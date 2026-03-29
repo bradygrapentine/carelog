@@ -1,0 +1,47 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@carelog/schemas": "workspace:*",
+    "@carelog/types": "workspace:*",
+    "@carelog/utils": "workspace:*",
+    "@supabase/ssr": "^0.1.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "@tanstack/react-query": "^5.95.2",
+    "@trpc/client": "^11.13.0",
+    "@trpc/react-query": "^11.13.0",
+    "@trpc/server": "^11.13.0",
+    "@upstash/redis": "^1.28.0",
+    "inngest": "^3.12.0",
+    "next": "16.2.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "resend": "^2.1.0",
+    "stripe": "^14.14.0",
+    "superjson": "^2.2.6",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20.19.37",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.1",
+    "jsdom": "^29.0.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1.2"
+  }
+}

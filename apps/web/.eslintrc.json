@@ -1,0 +1,24 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["**/supabaseAdmin.server*"],
+            "message": "Service role client is server-only. Never import outside server/ or app/api/."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["server/**/*.ts", "app/api/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}
