@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 
 const onboardingSchema = z.object({
   recipientName: z.string().min(1).max(200),
-  recipientDob:  z.string().optional(),
+  recipientDob:  z.string().nullable().optional(),
   orgName:       z.string().min(1).max(100),
   userId:        z.string().uuid(),
 });

@@ -29,16 +29,14 @@ export async function createMembershipAndInvite(params: {
   recipientId: string | null;
   role: string;
   email: string;
-  invitedBy: string;
 }): Promise<{ membershipId: string; token: string }> {
-  // user_id is set to invitedBy as a placeholder — the membership doesn't yet
-  // belong to the invitee. acceptInvite() overwrites user_id with the real
-  // accepting user's ID. See TECH_DEBT.md #8 for the proper fix (sentinel UUID).
+  // user_id is null for pending memberships — set to the accepting user's ID
+  // by acceptInvite() when the invite is consumed.
   const { data: membership, error: mError } = await supabaseAdmin
     .from("memberships")
     .insert({
       org_id: params.orgId,
-      user_id: params.invitedBy,
+      user_id: null,
       recipient_id: params.recipientId,
       role: params.role,
     })

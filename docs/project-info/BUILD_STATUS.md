@@ -1,6 +1,6 @@
 # Carelog — Build Status
 
-Last updated: session 7 (team coordinator in progress)
+Last updated: session 9
 
 ## Completed and working
 
@@ -25,10 +25,14 @@ Last updated: session 7 (team coordinator in progress)
 - [x] Entry form with mood tags (good/okay/difficult/crisis)
 - [x] Live timeline — human entries styled differently from system events
 - [x] Writes to Supabase via service role API route
+- [x] Flag for doctor — PATCH /api/journal/[eventId]/flag, role-enforced (supporters blocked)
+- [x] Supporter reactions — heart/thinking_of_you/strong/grateful, toggle, optimistic UI
+- [x] Writing prompts — 12 prompts, 3 shown randomly on focus, tap to fill
+- [x] Role-based UI — supporters read-only, coordinators invite, caregivers/aides post+flag
 
-### Team coordinator (in progress)
+### Team coordinator
 - [x] Team panel on journal page — shows members with role badges
-- [x] Invite form — email + role selector
+- [x] Invite form — email + role selector (coordinator only)
 - [x] POST /api/invite — creates membership + invite token
 - [x] GET /api/invite/[token] — looks up invite details
 - [x] POST /api/invite/[token]/accept — validates + consumes + activates
@@ -36,36 +40,21 @@ Last updated: session 7 (team coordinator in progress)
 - [ ] Pending invite redirect after sign-in (partially done — sessionStorage approach)
 - [ ] Team member display names (currently shows "You" / "Team member")
 
+### Weekly digest
+- [x] Inngest wired — client at `apps/web/inngest/client.ts`, serve at `/api/inngest`
+- [x] Resend wired — `apps/web/server/resend.server.ts` (null-safe for local dev)
+- [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
+
 ### Testing
 - [x] Vitest unit tests — Zod schemas, utility functions (all passing)
 - [x] pgTAP RLS tests — 8 tests, all passing
-- [x] Playwright E2E — auth flow + journal entry (5 tests, all passing)
+- [x] Playwright E2E — journal flow, reactions, flagging (7 tests, all passing)
 
-## In progress this session
+## Phase 1 remaining
 
-Team coordinator invite flow. The invite is created and the accept page renders.
-The outstanding issue is email matching when the user is already signed in as a
-different account. The fix is partially implemented — see invite/[token]/page.tsx
-handleAccept function.
-
-## Phase 1 remaining (the spine)
-
-### Journal depth
-- [ ] Flag for doctor button — marks entry, shows badge
-- [ ] Supporter reactions — heart/thinking_of_you/strong/grateful + 280-char note
-- [ ] Writing prompts — context-aware suggestions on empty text area
-- [ ] Entry detail view — full entry + reactions + flag status
-
-### Team coordinator (finish)
 - [ ] Pending invite redirect — after sign-in, auto-redirect back to invite URL
 - [ ] Display name resolution — show actual names not "Team member"
-- [ ] Role-based UI — coordinators see admin controls, supporters see read-only
-
-### Weekly digest
-- [ ] Inngest job setup and local testing
-- [ ] Resend email template — weekly summary
-- [ ] Digest content — journal highlights, team activity, flags
-- [ ] Stagger scheduling — digestMinuteOffset() already written
+- [ ] Entry detail view — full entry + reactions + flag status
 
 ## Phase 2 — Scheduler
 

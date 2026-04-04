@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: body.error.issues[0].message }, { status: 400 })
     }
 
-    const { orgId, recipientId, role, email, invitedBy } = body.data
+    const { orgId, recipientId, role, email } = body.data
     const normalizedEmail = email.toLowerCase().trim()
 
     // Check for an existing pending invite for this email + org.
@@ -37,15 +37,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create a pending membership. user_id is set to invitedBy as a placeholder —
-    // the row doesn't yet belong to the invitee. When the invite is accepted,
-    // acceptInvite() overwrites user_id with the real user's ID.
-    // See TECH_DEBT.md #8 for the proper fix using a sentinel UUID.
+    // Create a pending membership with user_id = null. The row doesn't yet belong
+    // to the invitee — user_id is set to the accepting user's ID when they accept.
+    // NULL is safe here: Postgres UNIQUE treats NULLs as distinct so multiple
+    // pending invites to the same org+recipient don't conflict.
     const { data: membership, error: mError } = await supabaseAdmin
       .from('memberships')
       .insert({
         org_id:       orgId,
-        user_id:      invitedBy, // placeholder until accepted
+        user_id:      null,
         recipient_id: recipientId ?? null,
         role,
         invited_at:   new Date().toISOString(),

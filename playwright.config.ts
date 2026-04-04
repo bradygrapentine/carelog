@@ -5,6 +5,7 @@ export default defineConfig({
   fullyParallel: false,
   retries: 1,
   workers: 1,
+  timeout: 60000,
   reporter: 'line',
   use: {
     baseURL: 'http://localhost:3000',

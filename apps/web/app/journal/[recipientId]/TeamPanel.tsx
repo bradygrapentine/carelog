@@ -5,11 +5,12 @@ import { useState } from 'react'
 interface Member { id: string; role: string; user_id: string; email: string | null }
 
 interface Props {
-  members:        Member[]
-  currentUserId:  string
-  onInvite:       (email: string, role: string) => Promise<void>
-  showInvite:     boolean
-  onToggleInvite: () => void
+  readonly members:        Member[]
+  readonly currentUserId:  string
+  readonly canInvite:      boolean
+  readonly onInvite:       (email: string, role: string) => Promise<void>
+  readonly showInvite:     boolean
+  readonly onToggleInvite: () => void
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -26,12 +27,12 @@ const ROLE_LABELS: Record<string, string> = {
   aide:        'Aide',
 }
 
-export function TeamPanel({ members, currentUserId, onInvite, showInvite, onToggleInvite }: Props) {
+export function TeamPanel({ members, currentUserId, canInvite, onInvite, showInvite, onToggleInvite }: Props) {
   const [email,   setEmail]   = useState('')
   const [role,    setRole]    = useState('caregiver')
   const [sending, setSending] = useState(false)
 
-  async function handleInvite(e: React.FormEvent) {
+  async function handleInvite(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!email.trim()) return
     setSending(true)
@@ -45,15 +46,17 @@ export function TeamPanel({ members, currentUserId, onInvite, showInvite, onTogg
     <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-50">
         <h3 className="text-sm font-medium text-gray-900">
-          Care team
-          <span className="ml-2 text-xs text-gray-400 font-normal">{members.length} members</span>
+          {'Care team'}
+          <span className="ml-2 text-xs text-gray-400 font-normal">{members.length}{' members'}</span>
         </h3>
-        <button
-          onClick={onToggleInvite}
-          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:border-gray-300 transition-colors"
-        >
-          {showInvite ? 'Cancel' : 'Invite someone'}
-        </button>
+        {canInvite && (
+          <button
+            onClick={onToggleInvite}
+            className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:border-gray-300 transition-colors"
+          >
+            {showInvite ? 'Cancel' : 'Invite someone'}
+          </button>
+        )}
       </div>
 
       {showInvite && (
@@ -95,14 +98,17 @@ export function TeamPanel({ members, currentUserId, onInvite, showInvite, onTogg
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <span className="text-xs font-medium text-gray-600">
-                  {member.user_id === currentUserId
-                    ? 'You'
-                    : (member.email?.[0] ?? '?').toUpperCase()}
+                  {(member.email?.[0] ?? '?').toUpperCase()}
                 </span>
               </div>
-              <span className="text-sm text-gray-900">
-                {member.user_id === currentUserId ? 'You' : (member.email ?? 'Team member')}
-              </span>
+              <div>
+                <span className="text-sm text-gray-900">
+                  {member.email ?? 'Team member'}
+                </span>
+                {member.user_id === currentUserId && (
+                  <span className="ml-2 text-xs text-gray-400">you</span>
+                )}
+              </div>
             </div>
             <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (ROLE_COLORS[member.role] ?? 'bg-gray-100 text-gray-600')}>
               {ROLE_LABELS[member.role] ?? member.role}

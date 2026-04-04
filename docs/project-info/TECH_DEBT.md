@@ -101,17 +101,8 @@ DashboardClient already has the skeleton for this — just needs the redirect.
 
 ---
 
-### 8. Invite token uses invitedBy as placeholder user_id
-**File:** `apps/web/app/api/invite/route.ts`
-
-**Problem:** When creating a pending membership, `user_id` is set to the
-inviting user's ID as a placeholder. When the invite is accepted, it's
-updated to the accepting user's ID. This means there's a window where
-a membership has the wrong user_id.
-
-**Fix:** Use a sentinel value (e.g. a dedicated system UUID) as the placeholder
-user_id for pending memberships, and add a `pending` boolean column to
-memberships so they can be filtered out of active member lists until accepted.
+### ~~8. Invite token uses invitedBy as placeholder user_id~~ FIXED
+Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable_pending_membership_user_id.sql` applied.
 
 ---
 

@@ -2,6 +2,26 @@
 
 import { useState } from 'react'
 
+const PROMPTS = [
+  'How did they seem today?',
+  'Anything the doctor should know?',
+  'What was hard today?',
+  'Was there a moment of connection?',
+  'Any changes in sleep or appetite?',
+  'What are you noticing lately?',
+  'How are you holding up?',
+  'Anything that felt different today?',
+  'What went well today?',
+  'Any concerns for the next appointment?',
+  'How did medications go today?',
+  'Any visitors or calls that helped?',
+]
+
+function pickPrompts(n: number) {
+  const shuffled = [...PROMPTS].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, n)
+}
+
 const MOODS = [
   { value: 'good',      label: 'Good',      color: 'bg-green-100 text-green-800 border-green-200' },
   { value: 'okay',      label: 'Okay',      color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -18,6 +38,14 @@ export function JournalEntryForm({ onPost, posting }: Props) {
   const [text,     setText]     = useState('')
   const [mood,     setMood]     = useState('')
   const [expanded, setExpanded] = useState(false)
+  const [prompts,  setPrompts]  = useState<string[]>([])
+
+  function expand() {
+    if (!expanded) {
+      setExpanded(true)
+      setPrompts(pickPrompts(3))
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -26,6 +54,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
     setText('')
     setMood('')
     setExpanded(false)
+    setPrompts([])
   }
 
   return (
@@ -33,8 +62,8 @@ export function JournalEntryForm({ onPost, posting }: Props) {
       <form onSubmit={handleSubmit}>
         <textarea
           value={text}
-          onChange={e => { setText(e.target.value); if (!expanded) setExpanded(true) }}
-          onFocus={() => setExpanded(true)}
+          onChange={e => { setText(e.target.value); expand() }}
+          onFocus={expand}
           placeholder="Share how today went..."
           rows={expanded ? 4 : 2}
           className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
@@ -42,6 +71,23 @@ export function JournalEntryForm({ onPost, posting }: Props) {
 
         {expanded && (
           <div className="px-4 pb-4">
+            {!text && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-400 mb-2">Need a starting point?</p>
+                <div className="flex flex-wrap gap-2">
+                  {prompts.map(prompt => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => setText(prompt + ' ')}
+                      className="text-xs px-3 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <p className="text-xs text-gray-400 mb-2">How is today going?</p>
             <div className="flex gap-2 flex-wrap mb-4">
               {MOODS.map(m => (
@@ -63,7 +109,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => { setExpanded(false); setText(''); setMood('') }}
+                onClick={() => { setExpanded(false); setText(''); setMood(''); setPrompts([]) }}
                 className="text-sm text-gray-400 hover:text-gray-600"
               >
                 Cancel

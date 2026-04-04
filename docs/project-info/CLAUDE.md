@@ -1,7 +1,9 @@
-# Carelog — Claude Code Context
+@ENTERPRISE_PRINCIPLES.md
+@../additional-project-info/UX_DECISIONS.md
+@ARCHITECTURE.md
+@TECH_DEBT.md
 
-This is the primary context file for Claude Code. Read this first, then read the
-other files in this directory before touching any code.
+# Carelog — Claude Code Context
 
 ## What this is
 
@@ -25,7 +27,10 @@ supabase start
 # Terminal 2 — Web app
 pnpm web          # runs Next.js on localhost:3000
 
-# Terminal 3 — Tests
+# Terminal 3 — Inngest Dev Server (for background jobs)
+npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
+
+# Terminal 4 — Tests
 pnpm test         # Vitest unit tests
 supabase test db  # RLS policy tests
 pnpm exec playwright test  # E2E tests
@@ -37,12 +42,17 @@ Local URLs:
 - Studio:        http://127.0.0.1:54323
 - Mailpit:       http://127.0.0.1:54324
 
-## Critical files to read before coding
+## Docs index
 
-1. `ENTERPRISE_PRINCIPLES.md` — coding rules discovered through hard experience
-2. `ARCHITECTURE.md` — data model, system design, key decisions
-3. `BUILD_STATUS.md` — what's done, what's in progress, what's next
-4. `TECH_DEBT.md` — known issues that must be resolved before production
+Auto-imported every session:
+- `ENTERPRISE_PRINCIPLES.md` — coding rules discovered through hard experience
+- `UX_DECISIONS.md` — language, tone, and design decisions
+- `ARCHITECTURE.md` — data model, system design, key decisions
+- `TECH_DEBT.md` — known issues that must be resolved before production
+
+Load on demand:
+- `BUILD_STATUS.md` — what's done, what's in progress, what's next
+- `PATTERNS.md` — code conventions, testing patterns, git format
 
 ## Stack
 
@@ -56,8 +66,8 @@ Local URLs:
 | API | tRPC + Next.js API routes |
 | Styling | Tailwind CSS |
 | Validation | Zod — shared schemas package |
-| Background jobs | Inngest (not yet wired) |
-| Email | Resend (not yet wired, Mailpit locally) |
+| Background jobs | Inngest — `apps/web/inngest/` |
+| Email | Resend — `apps/web/server/resend.server.ts` (Mailpit locally) |
 | Billing | Stripe (not yet wired) |
 | Testing | Vitest + pgTAP + Playwright |
 
@@ -97,3 +107,13 @@ This resolves automatically in production where Supabase sets cookies correctly.
 
 Never import it in client components or page components.
 The file has a runtime window guard that will throw if accidentally imported client-side.
+
+## Testing
+
+See `.claude/skills/test/SKILL.md` for pgTAP patterns, Vitest setup, and Playwright rules.
+
+When writing tests: create a todo list with expected test counts per file, show the plan before writing any code, and check off each item as you complete it.
+
+## General
+
+When asked to read docs or reference files, ALWAYS read them first before exploring the codebase. Do not autonomously explore code when documentation has been specified as the source of truth.

@@ -1,7 +1,25 @@
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+# Next.js 16 — breaking changes from training data
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+## Route params are async
+`params` is now a `Promise`. Always `await` it before use.
+```ts
+// WRONG — params.id is undefined
+export async function GET(req, { params }) {
+  const { id } = params
+}
+
+// RIGHT
+export async function GET(req, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+}
+```
+
+## No middleware.ts — use proxy.ts
+Next.js 16 replaces `middleware.ts` with `proxy.ts`. Export a named `proxy` function, not a default `middleware` export.
+
+## No experimental.turbo in next.config.ts
+Turbopack is the default bundler. The `experimental.turbo` config key is removed — it throws if present. Do not add it.
 
 <!-- END:nextjs-agent-rules -->

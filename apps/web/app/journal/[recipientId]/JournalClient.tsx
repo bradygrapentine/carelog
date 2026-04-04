@@ -10,15 +10,24 @@ import { TeamPanel } from './TeamPanel'
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
 interface Member { id: string; role: string; user_id: string; email: string | null }
+interface JournalEvent {
+  id: string
+  event_type: string
+  entry_kind: string
+  occurred_at: string
+  flagged: boolean
+  payload?: { text?: string; mood?: string }
+}
 
 export function JournalClient({ recipientId }: Props) {
-  const [user,        setUser]        = useState<User | null>(null)
-  const [org,         setOrg]         = useState<OrgInfo | null>(null)
-  const [events,      setEvents]      = useState<any[]>([])
-  const [members,     setMembers]     = useState<Member[]>([])
-  const [loading,     setLoading]     = useState(true)
-  const [posting,     setPosting]     = useState(false)
-  const [showInvite,  setShowInvite]  = useState(false)
+  const [user,            setUser]            = useState<User | null>(null)
+  const [org,             setOrg]             = useState<OrgInfo | null>(null)
+  const [events,          setEvents]          = useState<JournalEvent[]>([])
+  const [members,         setMembers]         = useState<Member[]>([])
+  const [currentUserRole, setCurrentUserRole] = useState<string>('supporter')
+  const [loading,         setLoading]         = useState(true)
+  const [posting,         setPosting]         = useState(false)
+  const [showInvite,      setShowInvite]      = useState(false)
 
   async function loadEvents() {
     const res = await fetch('/api/journal?recipientId=' + recipientId)
@@ -26,10 +35,14 @@ export function JournalClient({ recipientId }: Props) {
     if (data.events) setEvents(data.events)
   }
 
-  async function loadMembers(orgId: string) {
+  async function loadMembers(orgId: string, userId: string) {
     const res = await fetch('/api/members?orgId=' + orgId)
     const data = await res.json()
-    if (data.members) setMembers(data.members)
+    if (data.members) {
+      setMembers(data.members)
+      const me = data.members.find((m: Member) => m.user_id === userId)
+      if (me) setCurrentUserRole(me.role)
+    }
   }
 
   useEffect(() => {
@@ -50,10 +63,10 @@ export function JournalClient({ recipientId }: Props) {
         .eq('id', recipientId)
         .single()
       if (recipient) {
-        const orgData = (recipient as any).organizations
+        const orgData = (recipient as unknown as { organizations: OrgInfo }).organizations
         setOrg(orgData)
         // Load members and events in sequence (both depend on org being set).
-        await loadMembers(orgData.id)
+        await loadMembers(orgData.id, user.id)
       }
       await loadEvents()
       setLoading(false)
@@ -66,12 +79,22 @@ export function JournalClient({ recipientId }: Props) {
     await fetch('/api/journal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipientId, orgId: org.id, text, mood, userId: user.id }),
+      body: JSON.stringify({ recipientId, orgId: org.id, text, mood: mood || undefined, userId: user.id }),
     })
     // Full reload after POST rather than optimistic update. The server is the
     // source of truth for occurred_at and the generated payload shape.
     await loadEvents()
     setPosting(false)
+  }
+
+  async function handleFlag(eventId: string, flagged: boolean) {
+    await fetch('/api/journal/' + eventId + '/flag', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flagged, userId: user?.id }),
+    })
+    // Update local state directly — avoids a full reload for a single boolean toggle
+    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, flagged } : e))
   }
 
   async function handleInvite(email: string, role: string) {
@@ -113,18 +136,31 @@ export function JournalClient({ recipientId }: Props) {
       </nav>
 
       <div className="max-w-2xl mx-auto py-8 px-4">
-        <JournalEntryForm onPost={handlePost} posting={posting} />
+        {currentUserRole !== 'supporter'
+          ? <JournalEntryForm onPost={handlePost} posting={posting} />
+          : (
+            <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3">
+              <p className="text-sm text-gray-500">You&apos;re here as a Supporter — you can read everything shared and react to entries.</p>
+            </div>
+          )
+        }
         <div className="mt-6">
           <TeamPanel
             members={members}
             currentUserId={user?.id ?? ''}
+            canInvite={currentUserRole === 'coordinator'}
             onInvite={handleInvite}
             showInvite={showInvite}
             onToggleInvite={() => setShowInvite(v => !v)}
           />
         </div>
         <div className="mt-6">
-          <JournalTimeline events={events} />
+          <JournalTimeline
+            events={events}
+            currentUserId={user?.id ?? ''}
+            canFlag={currentUserRole !== 'supporter'}
+            onFlag={handleFlag}
+          />
         </div>
       </div>
     </div>

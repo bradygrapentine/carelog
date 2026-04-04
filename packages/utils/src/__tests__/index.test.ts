@@ -6,6 +6,7 @@ import {
   truncate,
   formatCurrency,
   safeParseJson,
+  randomHexToken,
 } from '../index'
 
 describe('digestMinuteOffset', () => {
@@ -94,5 +95,20 @@ describe('safeParseJson', () => {
 
   it('returns fallback for empty string', () => {
     expect(safeParseJson('', null)).toBe(null)
+  })
+})
+
+describe('randomHexToken', () => {
+  it('returns a hex string of the correct length', () => {
+    expect(randomHexToken(16)).toHaveLength(32) // 16 bytes = 32 hex chars
+    expect(randomHexToken(32)).toHaveLength(64) // default
+  })
+
+  it('returns only hex characters', () => {
+    expect(randomHexToken()).toMatch(/^[0-9a-f]+$/)
+  })
+
+  it('returns different values on successive calls', () => {
+    expect(randomHexToken()).not.toBe(randomHexToken())
   })
 })
