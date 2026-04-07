@@ -1,71 +1,48 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
-
-const acceptBodySchema = z.object({
-  userId:    z.string().uuid(),
-  userEmail: z.string().email(),
-})
+import { getRequestUser } from '@/lib/supabaseServer'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const limited = await rateLimit(request, 'invite/accept')
+  if (limited) return limited
+
+  const user = await getRequestUser(request)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { token } = await params
 
-    const body = acceptBodySchema.safeParse(await request.json())
-    if (!body.success) {
-      return NextResponse.json({ error: body.error.issues[0].message }, { status: 400 })
+    const { data, error } = await supabaseAdmin.rpc('accept_invite', {
+      p_token:   token,
+      p_user_id: user.id,
+      p_email:   user.email?.toLowerCase().trim() ?? '',
+    })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const { userId, userEmail } = body.data
-
-    const { data: invite, error } = await supabaseAdmin
-      .from('invite_tokens')
-      .select('id, email, consumed_at, expires_at, membership_id')
-      .eq('token', token)
-      .single()
-
-    if (error || !invite) {
-      return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
-    }
-
-    if (invite.consumed_at) {
-      return NextResponse.json({ error: 'Already used' }, { status: 410 })
-    }
-
-    if (new Date(invite.expires_at) < new Date()) {
-      return NextResponse.json({ error: 'Expired' }, { status: 410 })
-    }
-
-    // Email is normalized the same way it was stored at invite creation time
-    // (toLowerCase + trim). Case mismatch would silently fail without this.
-    if (invite.email !== userEmail.toLowerCase().trim()) {
+    if (!data.success) {
+      const statusMap: Record<string, number> = {
+        not_found:      404,
+        email_mismatch: 403,
+        already_used:   410,
+      }
+      const status = statusMap[data.error] ?? 400
+      const messageMap: Record<string, string> = {
+        not_found:      'Invite not found or has expired',
+        email_mismatch: 'This invite was sent to a different email address',
+        already_used:   'This invite has already been used. Ask the coordinator to send a new one.',
+      }
       return NextResponse.json(
-        { error: 'This invite was sent to a different email address' },
-        { status: 403 }
+        { error: messageMap[data.error] ?? data.error },
+        { status }
       )
     }
-
-    // Mark token consumed and activate membership together. Promise.all sends both
-    // updates concurrently. Note: this is not a true DB transaction — a failure
-    // in one after the other succeeds leaves inconsistent state. A Postgres RPC
-    // function would be the correct production fix.
-    await Promise.all([
-      supabaseAdmin
-        .from('invite_tokens')
-        .update({ consumed_at: new Date().toISOString() })
-        .eq('id', invite.id),
-
-      supabaseAdmin
-        .from('memberships')
-        .update({
-          user_id:     userId,
-          accepted_at: new Date().toISOString(),
-        })
-        .eq('id', invite.membership_id),
-    ])
 
     return NextResponse.json({ success: true })
   } catch (e: unknown) {
