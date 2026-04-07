@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase'
+import { authenticatedFetch } from '../../../lib/authenticatedFetch'
 
 interface Props {
   params: Promise<{ token: string }>
@@ -52,10 +53,10 @@ async function handleAccept() {
     return
   }
 
-  const res = await fetch('/api/invite/' + token + '/accept', {
+  const res = await authenticatedFetch('/api/invite/' + token + '/accept', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: user.id, userEmail: user.email }),
+    body: JSON.stringify({}),
   })
 
   const data = await res.json()
