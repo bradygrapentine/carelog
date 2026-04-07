@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const limited = await rateLimit(request, 'invite/token')
+  if (limited) return limited
+
   try {
     const { token } = await params
 

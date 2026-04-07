@@ -75,15 +75,15 @@ Load on demand:
 
 **`apps/web/.env.local`**
 ```
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_LOCAL_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY=REDACTED_LOCAL_SERVICE_ROLE_KEY
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<local anon key from supabase start>
+SUPABASE_SERVICE_ROLE_KEY=<local service role key from supabase start>
 ```
 
 **`apps/mobile/.env.local`**
 ```
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-EXPO_PUBLIC_SUPABASE_ANON_KEY=REDACTED_LOCAL_ANON_KEY
+EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<local anon key from supabase start>
 ```
 
 ## Auth pattern — IMPORTANT
@@ -117,3 +117,5 @@ When writing tests: create a todo list with expected test counts per file, show 
 ## General
 
 When asked to read docs or reference files, ALWAYS read them first before exploring the codebase. Do not autonomously explore code when documentation has been specified as the source of truth.
+
+Use short, 3-6 word sentences. No filler, preamble, or pleasantries. When using tools, run them, show the result, and stop without narrating. Drop article ("me fix code" nor "I will fix the code").

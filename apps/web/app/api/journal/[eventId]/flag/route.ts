@@ -1,27 +1,33 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
+import { getRequestUser } from '@/lib/supabaseServer'
+import { rateLimit } from '@/lib/rateLimit'
+import { parseBody } from '@/lib/parseBody'
 
 const flagBodySchema = z.object({
   flagged: z.boolean(),
-  userId:  z.string().uuid(),
 })
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
+  const limited = await rateLimit(request, 'journal/flag')
+  if (limited) return limited
+
+  const { data: body, error: bodyError } = await parseBody(request, flagBodySchema)
+  if (bodyError) return bodyError
+
+  const user = await getRequestUser(request)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { eventId } = await params
 
     const idParsed = z.string().uuid().safeParse(eventId)
     if (!idParsed.success) {
       return NextResponse.json({ error: 'Invalid eventId' }, { status: 400 })
-    }
-
-    const body = flagBodySchema.safeParse(await request.json())
-    if (!body.success) {
-      return NextResponse.json({ error: body.error.issues[0].message }, { status: 400 })
     }
 
     // Resolve the event's org so we can check the caller's role.
@@ -37,11 +43,12 @@ export async function PATCH(
 
     const orgId = (event as unknown as { care_recipients: { org_id: string } }).care_recipients.org_id
 
+    // Verify the AUTHENTICATED user's role — never trust client-supplied userId.
     const { data: membership } = await supabaseAdmin
       .from('memberships')
       .select('role')
       .eq('org_id', orgId)
-      .eq('user_id', body.data.userId)
+      .eq('user_id', user.id)
       .not('accepted_at', 'is', null)
       .single()
 
@@ -51,14 +58,14 @@ export async function PATCH(
 
     const { error } = await supabaseAdmin
       .from('care_events')
-      .update({ flagged: body.data.flagged })
+      .update({ flagged: body.flagged })
       .eq('id', idParsed.data)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, flagged: body.data.flagged })
+    return NextResponse.json({ success: true, flagged: body.flagged })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'An unknown error occurred'
     return NextResponse.json({ error: message }, { status: 500 })

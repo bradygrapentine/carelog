@@ -3,25 +3,31 @@ import { z } from "zod";
 import { createOrganization } from "@/server/repositories/organizationsRepository";
 import { createIdentity } from "@/server/repositories/identityRepository";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
+import { getRequestUser } from "@/lib/supabaseServer";
+import { rateLimit } from "@/lib/rateLimit";
+import { parseBody } from "@/lib/parseBody";
 
 const onboardingSchema = z.object({
   recipientName: z.string().min(1).max(200),
-  recipientDob:  z.string().nullable().optional(),
+  recipientDob:  z.string().max(10).nullable().optional(),
   orgName:       z.string().min(1).max(100),
-  userId:        z.string().uuid(),
 });
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, 'onboarding/create')
+  if (limited) return limited
+
+  const { data: body, error: bodyError } = await parseBody(request, onboardingSchema)
+  if (bodyError) return bodyError
+
   try {
-    const body = onboardingSchema.safeParse(await request.json());
-    if (!body.success) {
-      return NextResponse.json(
-        { error: body.error.issues[0].message },
-        { status: 400 },
-      );
+    const user = await getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { recipientName, recipientDob, orgName, userId } = body.data;
+    const { recipientName, recipientDob, orgName } = body;
+    const userId = user.id;
 
     const org = await createOrganization({
       name: orgName,

@@ -9,8 +9,12 @@ Do not work around them further — fix them properly when tackling production d
 **File:** all protected pages use `useEffect` + `createClient().auth.getUser()`
 
 **Problem:** `createServerSupabase()` can't read the session in local dev because
-the Supabase cookie name (`sb-127-auth-token`) doesn't match what `@supabase/ssr`
-expects. All protected pages use client-side auth as a workaround.
+the Supabase cookie name doesn't always match what `@supabase/ssr` expects. All
+protected pages use client-side auth as a workaround.
+
+**Note:** The `NEXT_PUBLIC_SUPABASE_URL` is now `http://localhost:54321` (not
+`127.0.0.1`) so cookie names are consistent. API routes work with server-side
+auth. Page-level auth (dashboard, journal) still uses the client-side pattern.
 
 **Impact:** No server-side rendering of protected content. Pages flash before
 auth check completes. SEO impossible for protected routes.
@@ -24,30 +28,13 @@ would be complex and fragile in the local environment.
 
 ---
 
-### 2. API routes bypass RLS via service role
-**Files:** `apps/web/app/api/journal/route.ts`, `apps/web/app/api/onboarding/create/route.ts`
-
-**Problem:** These routes use `createClient(supabaseUrl, serviceRoleKey)` directly
-to bypass RLS. This works because they're server-only, but it means the database's
-RLS layer is not enforcing access control — the API route logic is.
-
-**Impact:** A bug in the API route logic could expose data across orgs. RLS
-should be the safety net, not the only gate.
-
-**Fix:** Pass the authenticated user's session to the API route and use a
-session-scoped Supabase client. Then RLS enforces org isolation at the DB level
-and the API logic is just business logic, not security logic.
+### ~~2. API routes bypass RLS via service role~~ FIXED
+Auth check added to all API routes. Routes now use a session-scoped `createServerSupabase()` client for queries, enforcing RLS at the DB level. `supabaseAdmin` is only used where service role is explicitly required (vault reads, invite token creation).
 
 ---
 
-### 3. No input validation on API routes
-**Files:** `apps/web/app/api/journal/route.ts`, `apps/web/app/api/onboarding/create/route.ts`, `apps/web/app/api/invite/route.ts`
-
-**Problem:** Zod schemas exist in `@carelog/schemas` but are not used on these
-routes. Validation is ad-hoc (`if (!field) return error`).
-
-**Fix:** Import and use `validatePayload()` from `@carelog/schemas` at the top
-of each API route handler. Return structured Zod errors to the client.
+### ~~3. No input validation on API routes~~ FIXED
+Zod validation added to `journal`, `onboarding/create`, and `invite` routes. Invalid input returns 400 with structured errors.
 
 ---
 
@@ -63,41 +50,20 @@ a real device with airplane mode toggled.
 
 ---
 
-### 5. No error boundaries
-**Files:** `apps/web/app/dashboard/DashboardClient.tsx`, `apps/web/app/journal/[recipientId]/JournalClient.tsx`
-
-**Problem:** Client component errors crash silently with no recovery UI.
-
-**Fix:** Wrap each major client component tree with a React ErrorBoundary that
-shows a friendly error message and a "Try again" button.
+### ~~5. No error boundaries~~ FIXED
+`components/ErrorBoundary.tsx` exists and wraps both `DashboardClient` and `JournalClient` in their respective page components.
 
 ---
 
 ## Medium (fix before scale)
 
-### 6. Display names not resolved in team panel
-**File:** `apps/web/app/journal/[recipientId]/TeamPanel.tsx`
-
-**Problem:** Team members show as "Team member" instead of their name because
-we don't fetch names from the identity vault. The `display_names` cache table
-exists but isn't used here.
-
-**Fix:** Add a server-side API route that resolves display names from the cache
-(or vault on cache miss) and returns them alongside memberships. The client
-calls this route after loading members.
+### ~~6. Display names not resolved in team panel~~ FIXED
+`/api/members` batch-resolves `display_name` from `user_profiles` in a single query and returns it alongside memberships. `TeamPanel` renders the name directly.
 
 ---
 
-### 7. Invite flow email matching UX
-**File:** `apps/web/app/invite/[token]/page.tsx`
-
-**Problem:** If a user visits an invite link while signed in as a different email,
-they see an error. The pending invite is stored in sessionStorage but the redirect
-back to the invite URL after sign-in isn't fully implemented.
-
-**Fix:** After sign-in via OTP, check `sessionStorage.getItem('pending_invite')`.
-If present, redirect to `/invite/{token}` instead of `/dashboard`. The
-DashboardClient already has the skeleton for this — just needs the redirect.
+### ~~7. Invite flow email matching UX~~ FIXED
+`invite/[token]/page.tsx` saves the token to `sessionStorage` before redirecting to `/signin`. `DashboardClient` checks for it on load and hard-navigates back to `/invite/{token}` to complete acceptance.
 
 ---
 
@@ -108,15 +74,14 @@ Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable
 
 ## Low (nice to fix)
 
-### 9. No rate limiting on auth endpoints
-OTP requests are not rate-limited beyond Supabase's built-in limits.
-Add IP-based rate limiting via Upstash Redis before production.
+### ~~9. No rate limiting on auth endpoints~~ FIXED
+`lib/rateLimit.ts` implements a 5-request / 15-minute fixed window per IP using Upstash Redis. Applied to all API routes. No-ops gracefully when `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are absent (local dev).
 
 ### 10. Weekly digest stagger not wired
 `digestMinuteOffset()` is implemented and tested but not used anywhere yet.
 Wire it into the Inngest cron when building the digest feature.
 
-### 11. Supabase CLI version
+### 11. ~~~Supabase CLI version~~~ FIXED
 Running v2.75.0, latest is v2.84.2. Update before production:
 ```bash
 brew upgrade supabase

@@ -6,7 +6,16 @@ vi.mock('@/server/supabaseAdmin.server', () => ({
   supabaseAdmin: { from: vi.fn() },
 }))
 
+vi.mock('@/lib/supabaseServer', () => ({
+  getRequestUser: vi.fn(),
+}))
+
+vi.mock('@/lib/rateLimit', () => ({
+  rateLimit: vi.fn().mockResolvedValue(null),
+}))
+
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
+import { getRequestUser } from '@/lib/supabaseServer'
 
 const VALID_UUID   = '18dc6d19-6712-4b26-8797-b4e544e01b84'
 const VALID_ORG_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
@@ -48,6 +57,7 @@ const mockEvent = {
 
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset()
+  vi.mocked(getRequestUser).mockResolvedValue({ id: VALID_UUID } as any)
 })
 
 describe('PATCH /api/journal/[eventId]/flag', () => {
@@ -69,13 +79,6 @@ describe('PATCH /api/journal/[eventId]/flag', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 400 when userId is not a uuid', async () => {
-    const res = await PATCH(
-      patchRequest(VALID_UUID, { flagged: true, userId: 'not-a-uuid' }),
-      { params: Promise.resolve({ eventId: VALID_UUID }) },
-    )
-    expect(res.status).toBe(400)
-  })
 
   it('returns 404 when the event does not exist', async () => {
     vi.mocked(supabaseAdmin.from).mockImplementationOnce(() =>

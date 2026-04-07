@@ -87,7 +87,7 @@ CREATE TABLE memberships (
 -- ============================================================
 CREATE TABLE invite_tokens (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  token         text        NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
+  token         text        NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(32), 'hex'),
   membership_id uuid        NOT NULL REFERENCES memberships(id) ON DELETE CASCADE,
   email         text        NOT NULL,
   expires_at    timestamptz NOT NULL DEFAULT (now() + interval '48 hours'),
@@ -222,7 +222,7 @@ CREATE TABLE outer_circle_requests (
   id            uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id        uuid         NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   recipient_id  uuid         NOT NULL REFERENCES care_recipients(id) ON DELETE CASCADE,
-  share_token   text         NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(16), 'hex'),
+  share_token   text         NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(16), 'hex'),
   title         text         NOT NULL,
   description   text,
   request_type  request_type NOT NULL,
@@ -256,7 +256,7 @@ CREATE TABLE care_briefs (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id        uuid        NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   recipient_id  uuid        NOT NULL REFERENCES care_recipients(id) ON DELETE CASCADE,
-  share_token   text        NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'hex'),
+  share_token   text        NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(24), 'hex'),
   title         text        NOT NULL DEFAULT 'Care brief',
   content       jsonb       NOT NULL,
   includes      text[]      NOT NULL DEFAULT '{}',

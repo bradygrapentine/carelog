@@ -1,23 +1,37 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
+import { getRequestUser } from '@/lib/supabaseServer'
 import { createInviteSchema } from '@carelog/schemas'
-
-const inviteRequestSchema = createInviteSchema.extend({
-  // invitedBy comes from the client until session-scoped auth is used server-side (tech debt #2)
-  invitedBy: z.string().uuid(),
-})
+import { rateLimit } from '@/lib/rateLimit'
+import { parseBody } from '@/lib/parseBody'
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = inviteRequestSchema.safeParse(await request.json())
-    if (!body.success) {
-      // role, email, uuid format are all covered by the schema
-      return NextResponse.json({ error: body.error.issues[0].message }, { status: 400 })
-    }
+  const limited = await rateLimit(request, 'invite')
+  if (limited) return limited
 
-    const { orgId, recipientId, role, email } = body.data
+  const { data: body, error: bodyError } = await parseBody(request, createInviteSchema)
+  if (bodyError) return bodyError
+
+  try {
+    const user = await getRequestUser(request)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { orgId, recipientId, role, email } = body
     const normalizedEmail = email.toLowerCase().trim()
+
+    // Verify the authenticated user is a coordinator in the target org.
+    // supabaseAdmin bypasses RLS, so we must enforce this check explicitly.
+    const { data: callerMembership } = await supabaseAdmin
+      .from('memberships')
+      .select('role')
+      .eq('org_id', orgId)
+      .eq('user_id', user.id)
+      .not('accepted_at', 'is', null)
+      .single()
+
+    if (!callerMembership || callerMembership.role !== 'coordinator') {
+      return NextResponse.json({ error: 'Only coordinators can send invites' }, { status: 403 })
+    }
 
     // Check for an existing pending invite for this email + org.
     // invite_tokens links to memberships via membership_id; filter org_id via the join.
@@ -71,10 +85,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create invite token' }, { status: 500 })
     }
 
-    // Hardcoded to localhost for local dev. In production this should be
-    // derived from a NEXT_PUBLIC_APP_URL env var.
-    // TODO: send invite email via Resend instead of returning the URL to the UI.
-    const inviteUrl = 'http://localhost:3000/invite/' + invite.token
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const inviteUrl = appUrl + '/invite/' + invite.token
 
     console.log('[invite] URL for', email, ':', inviteUrl)
 

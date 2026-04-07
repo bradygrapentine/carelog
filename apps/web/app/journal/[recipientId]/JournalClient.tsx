@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase'
+import { authenticatedFetch } from '../../../lib/authenticatedFetch'
 import type { User } from '@supabase/supabase-js'
 import { JournalEntryForm } from './JournalEntryForm'
 import { JournalTimeline } from './JournalTimeline'
@@ -9,7 +10,7 @@ import { TeamPanel } from './TeamPanel'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
-interface Member { id: string; role: string; user_id: string; email: string | null }
+interface Member { id: string; role: string; user_id: string; display_name: string | null }
 interface JournalEvent {
   id: string
   event_type: string
@@ -30,13 +31,13 @@ export function JournalClient({ recipientId }: Props) {
   const [showInvite,      setShowInvite]      = useState(false)
 
   async function loadEvents() {
-    const res = await fetch('/api/journal?recipientId=' + recipientId)
+    const res = await authenticatedFetch('/api/journal?recipientId=' + recipientId)
     const data = await res.json()
     if (data.events) setEvents(data.events)
   }
 
   async function loadMembers(orgId: string, userId: string) {
-    const res = await fetch('/api/members?orgId=' + orgId)
+    const res = await authenticatedFetch('/api/members?orgId=' + orgId)
     const data = await res.json()
     if (data.members) {
       setMembers(data.members)
@@ -76,10 +77,10 @@ export function JournalClient({ recipientId }: Props) {
   async function handlePost(text: string, mood: string) {
     if (!user || !org) return
     setPosting(true)
-    await fetch('/api/journal', {
+    await authenticatedFetch('/api/journal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipientId, orgId: org.id, text, mood: mood || undefined, userId: user.id }),
+      body: JSON.stringify({ recipientId, orgId: org.id, text, mood: mood || undefined }),
     })
     // Full reload after POST rather than optimistic update. The server is the
     // source of truth for occurred_at and the generated payload shape.
@@ -88,7 +89,7 @@ export function JournalClient({ recipientId }: Props) {
   }
 
   async function handleFlag(eventId: string, flagged: boolean) {
-    await fetch('/api/journal/' + eventId + '/flag', {
+    await authenticatedFetch('/api/journal/' + eventId + '/flag', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ flagged, userId: user?.id }),
@@ -99,10 +100,10 @@ export function JournalClient({ recipientId }: Props) {
 
   async function handleInvite(email: string, role: string) {
     if (!user || !org) return
-    const res = await fetch('/api/invite', {
+    const res = await authenticatedFetch('/api/invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orgId: org.id, recipientId, role, email, invitedBy: user.id }),
+      body: JSON.stringify({ orgId: org.id, recipientId, role, email }),
     })
     const data = await res.json()
     if (data.inviteUrl) {

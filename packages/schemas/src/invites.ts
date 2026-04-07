@@ -4,7 +4,7 @@ export const createInviteSchema = z.object({
   orgId: z.string().uuid(),
   recipientId: z.string().uuid().nullable(),
   role: z.enum(["coordinator", "caregiver", "supporter", "aide"]),
-  email: z.string().email(),
+  email: z.string().email().max(254),
 });
 
 export const acceptInviteSchema = z.object({

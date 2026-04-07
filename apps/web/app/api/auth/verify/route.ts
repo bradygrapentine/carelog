@@ -2,9 +2,23 @@ import { createServerClient } from "@supabase/ssr";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
+import { rateLimit } from "@/lib/rateLimit";
+import { parseBody } from "@/lib/parseBody";
+
+const verifySchema = z.object({
+  email: z.string().email().max(254),
+  token: z.string().length(6),
+})
 
 export async function POST(request: NextRequest) {
-  const { email, token } = await request.json();
+  const limited = await rateLimit(request, 'auth/verify')
+  if (limited) return limited
+
+  const { data: body, error: bodyError } = await parseBody(request, verifySchema)
+  if (bodyError) return bodyError
+
+  const { email, token } = body;
 
   const cookieStore = await cookies();
 

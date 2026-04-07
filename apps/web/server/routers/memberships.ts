@@ -33,7 +33,6 @@ export const membershipsRouter = router({
         recipientId: input.recipientId,
         role: input.role,
         email: input.email,
-        invitedBy: ctx.user.id,
       });
 
       const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/invite/${token}`;

@@ -1,11 +1,21 @@
-{
-  "permissions": {
-    "deny": [
-      <!-- "Read(**/)",
-      "Edit(**/)",
-      "MultiEdit()",
-      "Write(**/)",
-      "Bash(**/)" -->
-    ]
-  }
-}
+# Build output and caches — large, auto-generated, not useful for code understanding
+.next/
+.turbo/
+.expo/
+dist/
+node_modules/
+
+# Package manager lockfile — too large to be useful context
+pnpm-lock.yaml
+
+# Test artifacts
+test-results/
+coverage/
+playwright-report/
+
+# Local Supabase state
+supabase/.branches/
+supabase/.temp/
+
+# Logs
+*.log

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "../../lib/supabase";
+import { authenticatedFetch } from "../../lib/authenticatedFetch";
 
 export function OnboardingForm() {
   const [loading, setLoading] = useState(false);
@@ -33,14 +34,13 @@ export function OnboardingForm() {
       return;
     }
 
-    const res = await fetch("/api/onboarding/create", {
+    const res = await authenticatedFetch("/api/onboarding/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         recipientName,
         recipientDob: recipientDob || null,
         orgName,
-        userId: user.id,
       }),
     });
 

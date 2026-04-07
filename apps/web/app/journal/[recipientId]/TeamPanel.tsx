@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-interface Member { id: string; role: string; user_id: string; email: string | null }
+interface Member { id: string; role: string; user_id: string; display_name: string | null; email: string | null }
 
 interface Props {
   readonly members:        Member[]
