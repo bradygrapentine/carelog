@@ -55,9 +55,14 @@ SELECT results_eq(
 );
 
 -- Test 5: wrong email returns error
+-- Fresh pending membership so test is realistic
+INSERT INTO memberships (id, org_id, user_id, role, recipient_id) VALUES
+  ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001',
+   NULL, 'caregiver', NULL);
+
 INSERT INTO invite_tokens (id, token, membership_id, email, expires_at) VALUES
   ('00000000-0000-0000-0000-000000000021', 'test-token-xyz',
-   '00000000-0000-0000-0000-000000000010',
+   '00000000-0000-0000-0000-000000000011',
    'bob@example.com',
    now() + interval '48 hours');
 

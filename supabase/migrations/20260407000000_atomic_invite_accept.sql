@@ -19,6 +19,7 @@ CREATE OR REPLACE FUNCTION accept_invite(
 ) RETURNS invite_accept_result
   LANGUAGE plpgsql
   SECURITY DEFINER
+  SET search_path = public
 AS $$
 DECLARE
   v_invite        invite_tokens%ROWTYPE;
