@@ -10,7 +10,7 @@ import { TeamPanel } from './TeamPanel'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
-interface Member { id: string; role: string; user_id: string; display_name: string | null }
+interface Member { id: string; role: string; user_id: string; display_name: string | null; email: string | null }
 interface JournalEvent {
   id: string
   event_type: string
