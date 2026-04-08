@@ -15,17 +15,17 @@ function makeProps(overrides: Partial<React.ComponentProps<typeof TeamPanel>> = 
 }
 
 const ALICE: React.ComponentProps<typeof TeamPanel>['members'][0] = {
-  id: 'm1', user_id: 'user-1', role: 'coordinator', email: 'alice@example.com',
+  id: 'm1', user_id: 'user-1', role: 'coordinator', display_name: 'Alice Smith', email: null,
 }
 const BOB: React.ComponentProps<typeof TeamPanel>['members'][0] = {
-  id: 'm2', user_id: 'user-2', role: 'caregiver', email: 'bob@example.com',
+  id: 'm2', user_id: 'user-2', role: 'caregiver', display_name: 'Bob Jones', email: null,
 }
 
 describe('TeamPanel — member list', () => {
-  it('shows member emails', () => {
+  it('shows member display names', () => {
     render(<TeamPanel {...makeProps({ members: [ALICE, BOB] })} />)
-    expect(screen.getByText('alice@example.com')).toBeInTheDocument()
-    expect(screen.getByText('bob@example.com')).toBeInTheDocument()
+    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
+    expect(screen.getByText('Bob Jones')).toBeInTheDocument()
   })
 
   it('shows role labels', () => {

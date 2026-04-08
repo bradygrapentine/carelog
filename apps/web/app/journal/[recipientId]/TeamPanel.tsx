@@ -98,12 +98,12 @@ export function TeamPanel({ members, currentUserId, canInvite, onInvite, showInv
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <span className="text-xs font-medium text-gray-600">
-                  {(member.email?.[0] ?? '?').toUpperCase()}
+                  {(member.display_name?.[0] ?? '?').toUpperCase()}
                 </span>
               </div>
               <div>
                 <span className="text-sm text-gray-900">
-                  {member.email ?? 'Team member'}
+                  {member.display_name ?? 'Team member'}
                 </span>
                 {member.user_id === currentUserId && (
                   <span className="ml-2 text-xs text-gray-400">you</span>
