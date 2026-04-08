@@ -160,6 +160,7 @@ export function JournalClient({ recipientId }: Props) {
             events={events}
             currentUserId={user?.id ?? ''}
             canFlag={currentUserRole !== 'supporter'}
+            recipientId={recipientId}
             onFlag={handleFlag}
           />
         </div>

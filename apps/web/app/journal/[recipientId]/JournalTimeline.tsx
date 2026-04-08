@@ -108,10 +108,11 @@ interface CardProps {
   event: JournalEvent
   currentUserId: string | null
   canFlag: boolean
+  recipientId: string
   onFlag: (eventId: string, flagged: boolean) => void
 }
 
-function JournalCard({ event, currentUserId, canFlag, onFlag }: CardProps) {
+function JournalCard({ event, currentUserId, canFlag, recipientId, onFlag }: CardProps) {
   const payload = event.payload ?? {}
   const { counts, myReaction, toggle } = useReactions(event.id, currentUserId)
 
@@ -121,8 +122,14 @@ function JournalCard({ event, currentUserId, canFlag, onFlag }: CardProps) {
   const flagBtnClass = 'text-xs px-2 py-0.5 rounded-full transition-colors ' +
     (event.flagged ? 'text-blue-600 hover:text-blue-800' : 'text-gray-400 hover:text-blue-600')
 
+  const detailUrl = '/journal/' + recipientId + '/entry/' + event.id
+
   return (
-    <div data-testid="journal-entry" className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+    <div
+      data-testid="journal-entry"
+      className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => { window.location.href = detailUrl }}
+    >
       <div className="flex items-start justify-between gap-3 mb-3">
         <p className="text-sm text-gray-900 leading-relaxed flex-1">
           {payload.text}
@@ -146,7 +153,7 @@ function JournalCard({ event, currentUserId, canFlag, onFlag }: CardProps) {
           )}
           {canFlag && (
             <button
-              onClick={() => onFlag(event.id, !event.flagged)}
+              onClick={(e) => { e.stopPropagation(); onFlag(event.id, !event.flagged) }}
               className={flagBtnClass}
             >
               {event.flagged ? 'Unflag' : 'Flag for doctor'}
@@ -165,7 +172,7 @@ function JournalCard({ event, currentUserId, canFlag, onFlag }: CardProps) {
             <button
               key={r.key}
               title={r.title}
-              onClick={() => toggle(r.key)}
+              onClick={(e) => { e.stopPropagation(); toggle(r.key) }}
               className={btnClass}
             >
               {r.emoji}
@@ -182,10 +189,11 @@ interface Props {
   events: JournalEvent[]
   currentUserId: string | null
   canFlag: boolean
+  recipientId: string
   onFlag: (eventId: string, flagged: boolean) => void
 }
 
-export function JournalTimeline({ events, currentUserId, canFlag, onFlag }: Props) {
+export function JournalTimeline({ events, currentUserId, canFlag, recipientId, onFlag }: Props) {
   if (events.length === 0) {
     return (
       <div className="text-center py-12">
@@ -210,6 +218,7 @@ export function JournalTimeline({ events, currentUserId, canFlag, onFlag }: Prop
               event={event}
               currentUserId={currentUserId}
               canFlag={canFlag}
+              recipientId={recipientId}
               onFlag={onFlag}
             />
           )

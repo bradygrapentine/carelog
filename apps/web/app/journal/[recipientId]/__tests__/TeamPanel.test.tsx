@@ -55,7 +55,7 @@ describe('TeamPanel — member list', () => {
   })
 
   it('falls back to "?" avatar initial when email is null', () => {
-    const noEmail = { id: 'm3', user_id: 'user-3', role: 'supporter', email: null }
+    const noEmail = { id: 'm3', user_id: 'user-3', role: 'supporter', email: null, display_name: null }
     render(<TeamPanel {...makeProps({ members: [noEmail] })} />)
     expect(screen.getByText('?')).toBeInTheDocument()
   })

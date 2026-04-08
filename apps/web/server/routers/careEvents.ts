@@ -95,4 +95,18 @@ export const careEventsRouter = router({
     .query(async ({ ctx, input }) => {
       return getFlaggedEvents(ctx.supabase, input.recipientId);
     }),
+
+  getOne: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('care_events')
+        .select('*')
+        .eq('id', input.eventId)
+        .single();
+      if (error || !data) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+      }
+      return data;
+    }),
 });

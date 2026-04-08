@@ -52,7 +52,8 @@ export function OnboardingForm() {
       return;
     }
 
-    window.location.href = "/dashboard";
+    const pendingInvite = sessionStorage.getItem('pending_invite')
+    window.location.href = pendingInvite ? '/invite/' + pendingInvite : '/dashboard'
   }
 
   return (

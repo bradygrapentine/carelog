@@ -108,3 +108,51 @@ describe('careEvents.insert — org/recipient consistency check', () => {
     expect(insertEvent).not.toHaveBeenCalled()
   })
 })
+
+// ─── careEvents.getOne — authorization ────────────────────────────────────────
+
+function makeSupabaseMock(result: object) {
+  const chain: any = {}
+  chain.select  = vi.fn().mockReturnValue(chain)
+  chain.eq      = vi.fn().mockReturnValue(chain)
+  chain.single  = vi.fn().mockResolvedValue(result)
+  return { from: vi.fn().mockReturnValue(chain) }
+}
+
+describe('careEvents.getOne — authorization', () => {
+  const EVENT_ID = '48dc6d19-6712-4b26-8797-b4e544e01b87'
+
+  it('throws NOT_FOUND when supabase returns an error', async () => {
+    const mockSupabase = makeSupabaseMock({ data: null, error: { message: 'not found' } })
+    const callerWithSupabase = appRouter.createCaller({
+      user:     { id: USER_ID, email: 'actor@example.com' } as any,
+      supabase: mockSupabase as any,
+      req:      undefined,
+    })
+    await expect(callerWithSupabase.careEvents.getOne({ eventId: EVENT_ID }))
+      .rejects.toMatchObject({ code: 'NOT_FOUND' })
+  })
+
+  it('throws NOT_FOUND when event data is null', async () => {
+    const mockSupabase = makeSupabaseMock({ data: null, error: null })
+    const callerWithSupabase = appRouter.createCaller({
+      user:     { id: USER_ID, email: 'actor@example.com' } as any,
+      supabase: mockSupabase as any,
+      req:      undefined,
+    })
+    await expect(callerWithSupabase.careEvents.getOne({ eventId: EVENT_ID }))
+      .rejects.toMatchObject({ code: 'NOT_FOUND' })
+  })
+
+  it('returns event data on success', async () => {
+    const fakeEvent = { id: EVENT_ID, event_type: 'journal', entry_kind: 'human' }
+    const mockSupabase = makeSupabaseMock({ data: fakeEvent, error: null })
+    const callerWithSupabase = appRouter.createCaller({
+      user:     { id: USER_ID, email: 'actor@example.com' } as any,
+      supabase: mockSupabase as any,
+      req:      undefined,
+    })
+    const result = await callerWithSupabase.careEvents.getOne({ eventId: EVENT_ID })
+    expect(result).toMatchObject({ id: EVENT_ID })
+  })
+})

@@ -92,6 +92,22 @@ test('can react to a journal entry and toggle it off', async ({ page }) => {
   await expect(heartButton.getByText('1')).not.toBeVisible({ timeout: 3000 })
 })
 
+test('clicking a journal entry navigates to detail page', async ({ page }) => {
+  await signIn(page, TEST_EMAIL)
+  await navigateToJournal(page)
+
+  const entryText = 'Detail nav test ' + Date.now()
+  await writeEntry(page, entryText)
+
+  const entryCard = page.locator('[data-testid="journal-entry"]', { hasText: entryText })
+  await expect(entryCard).toBeVisible()
+
+  // Click the card body (not the flag or reaction buttons)
+  await entryCard.click()
+
+  await expect(page).toHaveURL(/\/entry\//, { timeout: 8000 })
+})
+
 test('switching reactions replaces the previous one', async ({ page }) => {
   await signIn(page, TEST_EMAIL)
   await navigateToJournal(page)
