@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.DEBUG_SESSION_ENABLED !== 'true') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
   const cookieStore = await cookies();
@@ -23,26 +23,12 @@ export async function GET() {
   );
 
   const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-  const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
 
   return NextResponse.json({
-    cookies: all.map((c) => ({
-      name: c.name,
-      valueStart: c.value.slice(0, 50),
-    })),
-    session: session
-      ? {
-          expires_at: session.expires_at,
-          user_email: session.user.email,
-        }
-      : null,
-    sessionError: error?.message,
+    cookies: all.map((c) => c.name),
     user: user?.email,
     userError: userError?.message,
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,

@@ -41,12 +41,16 @@ Verify in the Supabase dashboard: Table Editor should show all 16 tables.
 
 ### 1c. Configure auth
 
-In Supabase dashboard → Authentication → Settings:
-
-- **Site URL:** `https://yourdomain.com`
-- **Redirect URLs:** add `https://yourdomain.com/auth/callback`
-- **Email OTP expiry:** 600 seconds (10 min)
-- **Disable email confirmations:** OFF (OTP is the confirmation)
+1. Open your Supabase project dashboard
+2. In the left sidebar, click **Authentication**
+3. Click **URL Configuration** (top of the Authentication section)
+4. Set **Site URL** to `https://care-log.org`
+5. Under **Redirect URLs**, click **Add URL** and enter `https://care-log.org/auth/callback`
+6. Click **Save**
+7. Still in Authentication, click **Email** in the left sidebar
+8. Set **OTP expiry** to `600` seconds
+9. Ensure **Confirm email** is **enabled** (OTP is the confirmation mechanism — do not disable it)
+10. Click **Save**
 
 ### 1d. Get your keys
 
@@ -86,7 +90,7 @@ INNGEST_SIGNING_KEY=<from Inngest dashboard>
 
 # Resend (Step 4)
 RESEND_API_KEY=<from Resend dashboard>
-RESEND_FROM_EMAIL=digest@yourdomain.com
+RESEND_FROM_EMAIL=digest@care-log.org
 
 # Upstash Redis (Step 5)
 UPSTASH_REDIS_REST_URL=<from Upstash dashboard>
@@ -116,23 +120,36 @@ After deploy, verify the auth fix: server-side `createServerSupabase().auth.getU
 
 ## Step 3 — Inngest
 
-### 3a. Create an app
+### 3a. Create an account and app
 
-1. Go to [inngest.com](https://inngest.com) → New App
-2. Name it `carelog`
-3. Copy the **Event Key** and **Signing Key**
+1. Go to [app.inngest.com](https://app.inngest.com) and sign up or log in
+2. Click **Create App** → name it `carelog` → click **Create**
 
-### 3b. Register the serve endpoint
+### 3b. Get your keys
 
-Inngest discovers your functions at `/api/inngest`. After Vercel deploys:
+1. In the left sidebar, click **Manage** → **Event Keys**
+2. Click **Create Event Key** → name it `carelog-production` → copy the key
+3. Set `INNGEST_EVENT_KEY` in Vercel with this value
+4. In the left sidebar, click **Manage** → **Signing Keys**
+5. Copy the **Active Signing Key** (starts with `signkey-prod-...`)
+6. Set `INNGEST_SIGNING_KEY` in Vercel with this value
 
-1. In Inngest dashboard → Apps → Sync App
-2. URL: `https://yourdomain.com/api/inngest`
-3. Inngest will discover and register all functions (weekly digest, gap detector when built, etc.)
+### 3c. Sync the serve endpoint
 
-### 3c. Verify the weekly digest cron
+This step registers your functions with Inngest. Do this after the first Vercel deploy completes.
 
-In Inngest dashboard → Functions → `weekly-digest`, confirm the cron schedule is `0 8 * * 1` (Mondays 8am UTC). Trigger a test run to verify the email sends.
+1. In the Inngest dashboard, click **Apps** in the left sidebar
+2. Click **Sync New App**
+3. Enter `https://care-log.org/api/inngest` as the URL
+4. Click **Sync** — Inngest will discover all functions automatically
+5. Confirm `weekly-digest` appears under **Functions**
+
+### 3d. Verify the weekly digest cron
+
+1. Click **Functions** → select `weekly-digest`
+2. Confirm the schedule shows `TZ=UTC 0 8 * * 1` (Mondays 8am UTC)
+3. Click **Invoke** → **Run** to trigger a test run
+4. Check the run logs — a successful run shows each step completing without error
 
 ---
 
@@ -147,14 +164,16 @@ In Inngest dashboard → Functions → `weekly-digest`, confirm the cron schedul
 
 ### 4b. Verify your domain
 
-1. Resend → Domains → Add Domain → enter `yourdomain.com`
+1. Resend → Domains → Add Domain → enter `care-log.org`
 2. Add the DNS records Resend provides (SPF, DKIM, DMARC)
 3. Verify propagation (~15 min)
-4. Set `RESEND_FROM_EMAIL=digest@yourdomain.com` (or `hello@yourdomain.com`)
+4. Set `RESEND_FROM_EMAIL=digest@care-log.org` (or `hello@care-log.org`)
 
 ### 4c. Test OTP email
 
 Sign in at your production URL. OTP should arrive in < 10 seconds.
+
+**Note:** `onboarding@resend.dev` cannot be used as a from address for third-party apps — Resend returns 403. A verified domain (Step 4b) is required before invite emails and the weekly digest will send. OTP emails are sent by Supabase directly and are not affected.
 
 ---
 
@@ -162,19 +181,24 @@ Sign in at your production URL. OTP should arrive in < 10 seconds.
 
 ### 5a. Create a database
 
-1. Go to [upstash.com](https://upstash.com) → Create Database
-2. Name: `carelog-prod`
-3. Region: same as Vercel deployment region
-4. Type: Regional (not Global — not needed at this scale)
+1. Go to [console.upstash.com](https://console.upstash.com) and sign up or log in
+2. Click **Create Database**
+3. Select **Redis** as the type
+4. Name: `carelog-prod`
+5. Select **Regional** (not Global — unnecessary at this scale)
+6. Choose the region closest to your Vercel deployment (check Vercel → Project → Settings → General → Regions to confirm)
+7. Leave TLS enabled (default)
+8. Click **Create**
 
 ### 5b. Get credentials
 
-From Upstash dashboard → REST API tab:
+1. Click into the `carelog-prod` database
+2. Scroll down to the **REST API** section
+3. Copy the value under **UPSTASH_REDIS_REST_URL** — starts with `https://`
+4. Copy the value under **UPSTASH_REDIS_REST_TOKEN** — a long base64 string
+5. Add both to Vercel → Project → Settings → Environment Variables
 
-- `UPSTASH_REDIS_REST_URL` — the REST URL
-- `UPSTASH_REDIS_REST_TOKEN` — the REST token
-
-Add both to Vercel. The rate limiter in `apps/web/lib/rateLimit.ts` activates automatically when these are present.
+The rate limiter in `apps/web/lib/rateLimit.ts` activates automatically when both vars are present. It no-ops silently in local dev when they are absent.
 
 ---
 
@@ -193,7 +217,7 @@ In Stripe dashboard (live mode):
 ### 6b. Set up webhook
 
 1. Stripe → Developers → Webhooks → Add Endpoint
-2. URL: `https://yourdomain.com/api/stripe/webhook`
+2. URL: `https://care-log.org/api/stripe/webhook`
 3. Events to listen for:
    - `customer.subscription.created`
    - `customer.subscription.updated`
@@ -279,11 +303,11 @@ posthog.identify(user.id) // UUID only — no name, no email
 ## Step 9 — Custom Domain
 
 1. Vercel → Project → Settings → Domains → Add Domain
-2. Add `yourdomain.com` and `www.yourdomain.com`
+2. Add `care-log.org` and `www.care-log.org`
 3. Update DNS at your registrar with the CNAME/A records Vercel provides
 4. SSL is automatic via Vercel
 
-Update Supabase → Authentication → Settings → Site URL to `https://yourdomain.com`.
+Update Supabase → Authentication → Settings → Site URL to `https://care-log.org`.
 
 ---
 

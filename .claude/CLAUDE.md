@@ -1,5 +1,13 @@
 @docs/project-info/CLAUDE.md
 
+## Code Reviews
+
+When asked for an "adversarial review", "security review", or "code review": ONLY read and analyze — do NOT edit files or make implementation changes. Output a ranked findings report (Critical / High / Medium / Low). Wait for explicit instruction before fixing anything.
+
+## Read Docs Before Exploring
+
+When directed to read specific docs or files first, always do that BEFORE exploring the codebase autonomously. Do not skip user-specified reading steps. This applies even if you think you know the codebase well.
+
 ## Plan Mode Default
 
 Enter plan mode for any task requiring 3+ file changes or architectural decisions. For simple single-file edits, proceed directly.

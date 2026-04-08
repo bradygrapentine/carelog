@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
 import {
   getTimeline,
@@ -6,6 +7,7 @@ import {
   getFlaggedEvents,
   insertEventIdempotent,
 } from "../repositories/careEventsRepository";
+import { supabaseAdmin } from "../supabaseAdmin.server";
 
 const eventTypeEnum = z.enum([
   "journal",
@@ -51,6 +53,17 @@ export const careEventsRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const { data: recipient } = await supabaseAdmin
+        .from('care_recipients')
+        .select('id')
+        .eq('id', input.recipientId)
+        .eq('org_id', input.orgId)
+        .single();
+
+      if (!recipient) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Recipient does not belong to the specified org' });
+      }
+
       if (input.idempotencyKey) {
         return insertEventIdempotent(ctx.supabase, {
           orgId: input.orgId,

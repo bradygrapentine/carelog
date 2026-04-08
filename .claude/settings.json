@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd apps/web && npx tsc --noEmit --pretty 2>&1 | head -20"
+            "command": "cd apps/web && output=$(npx tsc --noEmit 2>&1); if [ -n \"$output\" ]; then echo \"[tsc] $output\" | head -20; fi"
           }
         ]
       }
