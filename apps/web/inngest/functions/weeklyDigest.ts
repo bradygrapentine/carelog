@@ -162,7 +162,7 @@ export const weeklyDigest = inngest.createFunction(
           const subject = org.name + ' \u2014 ' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + ' this week'
 
           await resend.emails.send({
-            from: 'Carelog <digest@carelog.app>',
+            from: process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev',
             to: emails,
             subject,
             html,
