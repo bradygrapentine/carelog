@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../../lib/supabase";
 
-export default function ConfirmPage() {
+function ConfirmInner() {
   const [status, setStatus] = useState<"loading" | "error">("loading");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,5 +59,13 @@ export default function ConfirmPage() {
         <p className="text-gray-600">Signing you in...</p>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmPage() {
+  return (
+    <Suspense>
+      <ConfirmInner />
+    </Suspense>
   );
 }
