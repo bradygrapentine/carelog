@@ -4,6 +4,7 @@ import { getRequestUser } from '@/lib/supabaseServer'
 import { createInviteSchema } from '@carelog/schemas'
 import { rateLimit } from '@/lib/rateLimit'
 import { parseBody } from '@/lib/parseBody'
+import { resend } from '@/server/resend.server'
 
 export async function POST(request: NextRequest) {
   const limited = await rateLimit(request, 'invite')
@@ -88,7 +89,20 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
     const inviteUrl = appUrl + '/invite/' + invite.token
 
-    console.log('[invite] URL for', email, ':', inviteUrl)
+    if (resend) {
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev',
+        to: normalizedEmail,
+        subject: 'You have been invited to join a care team',
+        html: [
+          '<p>You have been invited to join a care team on Carelog.</p>',
+          '<p><a href="' + inviteUrl + '">Accept your invitation</a></p>',
+          '<p>This link expires in 48 hours.</p>',
+        ].join(''),
+      })
+    } else {
+      console.log('[invite] Resend not configured. Invite URL for', email, ':', inviteUrl)
+    }
 
     return NextResponse.json({ success: true, inviteUrl })
   } catch (e: unknown) {
