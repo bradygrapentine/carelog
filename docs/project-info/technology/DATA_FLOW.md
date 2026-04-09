@@ -105,8 +105,8 @@ POST /api/invite/route.ts
         │  1. Validate role is in allowed list
         │
         │  2. Insert memberships row:
-        │       user_id = invitedBy  ← PLACEHOLDER (tech debt #8)
-        │       accepted_at = null   ← pending state
+        │       user_id = NULL       ← pending state (no user yet)
+        │       accepted_at = null
         │
         │  3. Insert invite_tokens row:
         │       membership_id → links back to membership
@@ -143,9 +143,8 @@ POST /api/invite/[token]/accept
         │    memberships.update({ user_id: userId, accepted_at: now() })
         │  ])
         │
-        │  Note: not a true DB transaction — if one update fails after the
-        │  other succeeds, the state will be inconsistent. A proper fix
-        │  would wrap this in a Postgres function or RPC call.
+        │  Wrapped in Postgres function `atomic_invite_accept()` via
+        │  migration 20260407000000_atomic_invite_accept.sql — true transaction.
         │
         ▼
 Membership is now active. User appears in team panel.

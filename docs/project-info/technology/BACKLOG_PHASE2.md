@@ -1,4 +1,4 @@
-# Carelog — Phase 2 Backlog
+# Carelog — Phase 2 Backlog ✅ done 
 
 **As of:** 2026-04-07 (codebase scan: 2026-04-07)
 **Phase:** Scheduler (shifts, coverage, gap detection)
@@ -325,10 +325,10 @@ No further work needed.
 | Story | Status | Agent | Reason |
 |-------|--------|-------|--------|
 | P1-01 Display names | ✅ DONE | — | Complete |
-| P1-02 Invite redirect | ⚠️ PARTIAL | Continue.dev / Qwen3.5 | OnboardingForm missing sessionStorage check |
-| P1-03 Entry detail | ❌ NOT STARTED | Continue.dev / Qwen3.5 | New page, no architecture decisions |
-| P2-01 Shift tRPC + schema | ❌ NOT STARTED | Claude Code | RLS-adjacent, multi-file, new router |
-| P2-02 Shift creation UI | ❌ NOT STARTED | Claude Code + frontend-design | Coordinator form, role enforcement |
+| P1-02 Invite redirect | ✅ DONE | Continue.dev / Qwen3.5 | OnboardingForm missing sessionStorage check |
+| P1-03 Entry detail | ✅ DONE | Continue.dev / Qwen3.5 | New page, no architecture decisions |
+| P2-01 Shift tRPC + schema | ✅ DONE | Claude Code | RLS-adjacent, multi-file, new router |
+| P2-02 Shift creation UI | ✅ DONE | Claude Code + frontend-design | Coordinator form, role enforcement |
 | P2-03 Shift list | ✅ DONE | — | Complete |
 | P2-04 Coverage window UI | ✅ DONE | — | Complete |
 | P2-05 Gap detector | ✅ DONE | — | Complete |

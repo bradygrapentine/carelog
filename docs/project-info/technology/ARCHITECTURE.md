@@ -43,7 +43,12 @@ carelog/
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 20260327234330_core_schema.sql
-│   │   └── 20260328000200_auth_config.sql
+│   │   ├── 20260328000200_auth_config.sql
+│   │   ├── 20260401000000_nullable_pending_membership_user_id.sql
+│   │   ├── 20260407000000_atomic_invite_accept.sql
+│   │   ├── 20260408000000_shifts_enum_extend.sql
+│   │   ├── 20260408000001_shifts_schema_align.sql
+│   │   └── 20260409000000_coverage_windows_extend.sql
 │   └── tests/
 │       └── rls_policies.test.sql
 ├── e2e/
@@ -171,3 +176,39 @@ Revoking sets `revoked=true` — the share_token immediately returns 404.
 Every timeline render previously required a vault lookup per recipient.
 The `display_names` table caches (recipient_id → full_name) with 24hr TTL.
 Cache miss → vault read + cache write. Service role writes, RLS-scoped reads.
+
+## Design Rationale
+
+### Identity vault pattern
+Real names, DOB, and contact info live in `identity_vault` only — service role ONLY, anon/authenticated always return zero rows. This keeps PHI out of logs, error reports (Sentry), analytics (PostHog), and background jobs (Inngest). `care_recipients.identity_token` → UUID mapping to `identity_vault.token`. The `display_names` table is a 24hr read-through cache to avoid repeated vault reads.
+
+**You cannot:** SELECT real names from care_recipients (they're not there), display names in a client component without a server-side resolution step, or log recipient names to any external service.
+
+### care_events universal log
+Every action is a care_event row — journal entries, medication logs, shifts, expenses. A single longitudinal record enables full history export, weekly digest, doctor export, and burnout analysis.
+
+`entry_kind` distinction is UX-critical: `'human'` entries are displayed prominently; `'system'` entries compactly. Without it, system noise drowns human content (learned from CaringBridge analysis).
+
+`payload` is jsonb validated by Zod per `event_type` before insert — never reaches the DB invalid. The `missed` generated column (`(payload->>'missed')::boolean STORED`) enables fast "missed medications this week" queries without jsonb operators.
+
+### Why medications are NOT in care_events payload
+Original design used jsonb blobs. Changed because: (1) "days of Lisinopril remaining" requires parsing jsonb not querying a column, (2) refill alerts need `WHERE supply_days_remaining <= 7`, (3) OCR pipeline needs structured target, (4) gap detection needs clean data. care_events still records THAT a medication was given/missed, referencing by medication ID.
+
+### Why recipient_id on memberships is nullable
+`NULL` = org-wide role (coordinator). Value = recipient-scoped role (aide assigned to specific client). Enables the agency model: agency = one org, each client family = one recipient, aides scoped per recipient, coordinator sees all. Without nullable recipient_id, agencies would need a separate org per client.
+
+### Outer circle design
+`outer_circle_requests` has RLS enabled but policy is `USING (true)` — intentional open read. The share_token IS the access control. The `claim_outer_circle_slot()` function is atomic: one UPDATE wins, the second finds the WHERE clause fails and gets `slot_unavailable`. No double-booking possible.
+
+### care_briefs snapshot model
+Not a live view — vault is accessed ONCE at creation, resolved data stored as jsonb. Care brief URLs are shared outside the platform (doctors, facilities) without platform accounts. A live view would require service-role credentials on a public endpoint. Revoke = set `revoked=true` → URL immediately returns 404. Staleness is intentional — it's a document, not a live feed.
+
+### RLS scalar boolean functions
+Postgres RLS cannot call set-returning functions (`SETOF uuid`). All helper functions return `boolean`. They are `SECURITY DEFINER` — run as postgres, allowing joins against tables the calling user can't directly read. Security boundary enforced inside the function.
+
+### Index strategy
+**care_events:** `(recipient_id, occurred_at DESC)`, `(org_id, event_type)`, `(actor_id, occurred_at DESC)`, `(recipient_id, event_type, occurred_at DESC)`, `(recipient_id, missed) WHERE missed = true` (partial)
+
+**memberships:** `(user_id, org_id, recipient_id) WHERE accepted_at IS NOT NULL` — most critical index in the database. Every RLS policy function joins against memberships; without this index every RLS check is a table scan.
+
+Many indexes use `WHERE active = true` or `WHERE accepted_at IS NOT NULL` partial filters to stay small and fast.

@@ -56,7 +56,7 @@ The offline queue uses `expo-secure-store` for encrypted persistence.
 This prevents duplicate sends if a job is retried.
 Key pattern: `digest:{orgId}:{week_stamp}`, `refill:{medicationId}:{week_stamp}`
 
-**Not yet wired.** Inngest is in the dependencies but no jobs are implemented yet.
+**Implemented:** `gapDetector.ts` (daily 6am UTC) and `weeklyDigest.ts` (Monday 8am UTC) are live in `apps/web/inngest/functions/`. OCR pipeline, refill alerts are planned but not yet implemented.
 
 ---
 
@@ -76,8 +76,7 @@ Key pattern: `digest:{orgId}:{week_stamp}`, `refill:{medicationId}:{week_stamp}`
 **Local dev:** Mailpit captures all emails locally. No real emails sent.
 Open `http://127.0.0.1:54324` to see captured emails.
 
-**Not yet wired.** Resend is in the dependencies but the email sending
-code is not implemented. Current invite flow logs the URL to console.
+**Partially wired.** `weeklyDigest.ts` sends email via Resend (`resend.emails.send()`). OTP codes and invite emails still use Mailpit locally; invite URL is returned from the API (not emailed) in local dev.
 
 ---
 
