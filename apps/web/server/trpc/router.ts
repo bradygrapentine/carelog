@@ -5,6 +5,7 @@ import { membershipsRouter } from "../routers/memberships";
 import { shiftsRouter } from "../routers/shifts";
 import { coverageWindowsRouter } from "../routers/coverageWindows";
 import { medicationsRouter } from "../routers/medications";
+import { outerCircleRouter } from "../routers/outerCircle";
 
 export const appRouter = router({
   careEvents: careEventsRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   shifts: shiftsRouter,
   coverageWindows: coverageWindowsRouter,
   medications: medicationsRouter,
+  outerCircle: outerCircleRouter,
 });
 
 export type AppRouter = typeof appRouter;

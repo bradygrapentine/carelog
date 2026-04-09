@@ -10,6 +10,7 @@ import { TeamPanel } from './TeamPanel'
 import { ShiftForm } from './ShiftForm'
 import { ShiftList } from './ShiftList'
 import { MedicationPanel } from './MedicationPanel'
+import { OuterCirclePanel } from './OuterCirclePanel'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -32,6 +33,8 @@ export function JournalClient({ recipientId }: Props) {
   const [loading,         setLoading]         = useState(true)
   const [posting,         setPosting]         = useState(false)
   const [showInvite,      setShowInvite]      = useState(false)
+  const [briefUrl,        setBriefUrl]        = useState<string | null>(null)
+  const [generatingBrief, setGeneratingBrief] = useState(false)
 
   async function loadEvents() {
     const res = await authenticatedFetch('/api/journal?recipientId=' + recipientId)
@@ -101,6 +104,25 @@ export function JournalClient({ recipientId }: Props) {
     setEvents(prev => prev.map(e => e.id === eventId ? { ...e, flagged } : e))
   }
 
+  async function handleGenerateBrief() {
+    if (!user || !org) return
+    setGeneratingBrief(true)
+    setBriefUrl(null)
+    const res = await authenticatedFetch('/api/brief', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ org_id: org.id, recipient_id: recipientId }),
+    })
+    const data = await res.json()
+    if (data.share_token) {
+      const url = window.location.origin + '/brief/' + data.share_token
+      setBriefUrl(url)
+    } else {
+      alert('Error generating care brief: ' + (data.error ?? 'Unknown error'))
+    }
+    setGeneratingBrief(false)
+  }
+
   async function handleInvite(email: string, role: string) {
     if (!user || !org) return
     const res = await authenticatedFetch('/api/invite', {
@@ -166,9 +188,34 @@ export function JournalClient({ recipientId }: Props) {
         <div className="mt-6">
           <ShiftList orgId={org.id} recipientId={recipientId} members={members} currentUserId={user?.id ?? ''} currentUserRole={currentUserRole} />
         </div>
+        {currentUserRole === 'coordinator' && org && (
+          <div className="mt-6">
+            <OuterCirclePanel recipientId={recipientId} orgId={org.id} currentUserRole={currentUserRole} />
+          </div>
+        )}
         <div className="mt-6">
           <MedicationPanel orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
         </div>
+        {currentUserRole === 'coordinator' && (
+          <div className="mt-6">
+            <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3">
+              <p className="text-sm font-medium text-gray-700 mb-2">Care brief</p>
+              <button
+                type="button"
+                onClick={handleGenerateBrief}
+                disabled={generatingBrief}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              >
+                {generatingBrief ? 'Generating...' : 'Generate shareable brief'}
+              </button>
+              {briefUrl && (
+                <p className="text-xs text-gray-500 mt-2 break-all">
+                  {briefUrl}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
         <div className="mt-6">
           <JournalTimeline
             events={events}

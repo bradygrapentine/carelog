@@ -4,3 +4,4 @@ export * from "./organizations";
 export * from "./shifts";
 export * from "./coverageWindows";
 export * from "./medications";
+export * from "./outerCircle";
