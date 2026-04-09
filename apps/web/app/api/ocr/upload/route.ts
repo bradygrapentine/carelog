@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
 import { inngest } from '@/inngest/client'
+import { rateLimit } from '@/lib/rateLimit'
 
 const uploadBodySchema = z.object({
   orgId:       z.string().uuid(),
@@ -10,6 +11,9 @@ const uploadBodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, 'ocr/upload')
+  if (limited) return limited
+
   try {
     const user = await getRequestUser(request)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

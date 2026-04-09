@@ -2,17 +2,20 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
+import { rateLimit } from '@/lib/rateLimit'
 
 const confirmSchema = z.object({
   jobId:        z.string().uuid(),
   orgId:        z.string().uuid(),
-  recipientId:  z.string().uuid(),
   drug_name:    z.string().min(1),
   dosage:       z.string().min(1),
   instructions: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, 'ocr/confirm')
+  if (limited) return limited
+
   try {
     const user = await getRequestUser(request)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
 
-    const { jobId, orgId, recipientId, drug_name, dosage, instructions } = parsed.data
+    const { jobId, orgId, drug_name, dosage, instructions } = parsed.data
 
     // Verify coordinator membership
     const { data: membership } = await supabaseAdmin
@@ -38,10 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Verify job belongs to this org
+    // Fetch job — read recipient_id from the row, never trust client-supplied value
     const { data: job } = await supabaseAdmin
       .from('ocr_jobs')
-      .select('id')
+      .select('id, recipient_id')
       .eq('id', jobId)
       .eq('org_id', orgId)
       .single()
@@ -50,12 +53,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
-    // Create medication row
+    // Create medication row using recipient_id from the job (not from client body)
     const { error: medError } = await supabaseAdmin
       .from('medications')
       .insert({
         org_id:       orgId,
-        recipient_id: recipientId,
+        recipient_id: job.recipient_id,
         drug_name,
         dosage,
         instructions: instructions ?? null,

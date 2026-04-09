@@ -19,11 +19,10 @@ const VALID_JOB_ID  = 'cccccccc-dddd-eeee-ffff-000000000000'
 const VALID_REC_ID  = 'dddddddd-eeee-ffff-0000-111111111111'
 
 const VALID_BODY = {
-  jobId:       VALID_JOB_ID,
-  orgId:       VALID_ORG_ID,
-  recipientId: VALID_REC_ID,
-  drug_name:   'Metformin',
-  dosage:      '500mg',
+  jobId:     VALID_JOB_ID,
+  orgId:     VALID_ORG_ID,
+  drug_name: 'Metformin',
+  dosage:    '500mg',
 }
 
 function makeSelectChain(result: { data: unknown; error: unknown }) {
@@ -95,8 +94,8 @@ describe('POST /api/ocr/confirm', () => {
     vi.mocked(supabaseAdmin.from)
       // membership check
       .mockImplementationOnce(() => makeSelectChain({ data: { role: 'coordinator' }, error: null }) as any)
-      // job lookup
-      .mockImplementationOnce(() => makeSelectChain({ data: { id: VALID_JOB_ID }, error: null }) as any)
+      // job lookup — recipient_id comes from the row, never from client body
+      .mockImplementationOnce(() => makeSelectChain({ data: { id: VALID_JOB_ID, recipient_id: VALID_REC_ID }, error: null }) as any)
       // medication insert
       .mockImplementationOnce(() => makeSelectChain({ data: null, error: null }) as any)
       // ocr_jobs update

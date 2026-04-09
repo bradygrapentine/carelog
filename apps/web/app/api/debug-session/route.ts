@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  if (process.env.DEBUG_SESSION_ENABLED !== 'true') {
+  if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
   const cookieStore = await cookies();

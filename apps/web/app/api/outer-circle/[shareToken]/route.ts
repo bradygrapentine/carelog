@@ -1,10 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ shareToken: string }> }
 ) {
+  const limited = await rateLimit(request, 'outer-circle/view')
+  if (limited) return limited
+
   try {
     const { shareToken } = await params
 

@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ shareToken: string }> }
 ) {
+  const limited = await rateLimit(request, 'brief/revoke')
+  if (limited) return limited
+
   try {
     const user = await getRequestUser(request)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

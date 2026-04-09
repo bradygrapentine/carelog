@@ -2,8 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function GET(request: NextRequest) {
+  const limited = await rateLimit(request, 'ocr/review')
+  if (limited) return limited
+
   try {
     const user = await getRequestUser(request)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
