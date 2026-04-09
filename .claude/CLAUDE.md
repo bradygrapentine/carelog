@@ -1,64 +1,130 @@
-@docs/project-info/CLAUDE.md
+# Carelog
 
-## Code Reviews
+Family caregiving coordination platform. $14/mo family plan. Bootstrapped.
+Monorepo: `apps/`, `packages/`, `supabase/`.
 
-When asked for an "adversarial review", "security review", or "code review": ONLY read and analyze — do NOT edit files or make implementation changes. Output a ranked findings report (Critical / High / Medium / Low). Wait for explicit instruction before fixing anything.
+## Development Workflow
 
-## Read Docs Before Exploring
+1. Make changes
+2. `pnpm typecheck`
+3. `pnpm test`
+4. Before PR: `pnpm lint` + full test suite + `supabase test db`
 
-When directed to read specific docs or files first, always do that BEFORE exploring the codebase autonomously. Do not skip user-specified reading steps. This applies even if you think you know the codebase well.
+## Commands
 
-## Plan Mode Default
+```sh
+supabase start          # Must run first
+pnpm web                # localhost:3000
+npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
+pnpm test               # Vitest unit tests
+supabase test db        # RLS pgTAP tests
+pnpm exec playwright test
+```
 
-Enter plan mode for any task requiring 3+ file changes or architectural decisions. For simple single-file edits, proceed directly.
+## Code Style
 
-## Subagent Strategy
+- `type` over `interface`; no `enum` — use string literal unions
+- No template literals in JSX props (Turbopack rejects them — compute URLs as variables)
+- Auth: `createClient()` (browser) in `useEffect` for protected pages — not `createServerSupabase()`
+- API routes (not server actions) for cookie-writing + redirect operations
+- `supabaseAdmin` only in `server/` and `app/api/` — never client-side
 
-Dispatch parallel subagents only for genuinely independent tasks (different files, no shared state). Max 2 background agents per session. Prefer inline execution for tasks under 5 steps.
+## Plan Mode
 
-## Self-Improvement Loop
+- Start every complex task (3+ files) in plan mode
+- Pour energy into the plan → 1-shot implementation
+- When something goes sideways, re-plan — don't keep pushing
 
-After any session with a correction: update CLAUDE.md or memory immediately. Do not wait for next session.
+## Parallel Work
 
-## Verification Before Done
+- Subagents only for genuinely independent tasks (different files, no shared state)
+- Max 2 background agents per session
+- Worktrees: `git worktree add .worktrees/<name> origin/main`
 
-Run verification commands before claiming anything is complete. Use `superpowers:verification-before-completion` before any commit or "done" claim.
+## Automation & Sessions
 
-## Demand Elegance (Balanced)
+- `/loop` — run a skill on a recurring interval
+- `/schedule` — schedule Claude on a cron, up to a week
+- `/btw` — side query without interrupting current work
 
-Prefer simple, direct code. No speculative abstractions. No helpers for one-time operations. Three similar lines beat a premature abstraction.
+## Reference Docs (load on demand)
 
-## Autonomous Bug Fixing
+- `docs/project-info/ARCHITECTURE.md` — data model, system design, design rationale
+- `docs/project-info/ENTERPRISE_PRINCIPLES.md` — hard-won coding rules
+- `docs/additional-project-info/UX_DECISIONS.md` — language and tone rules
+- `docs/project-info/TECH_DEBT.md` — known issues before production
+- `docs/project-info/BUILD_STATUS.md` — what's done / in progress / next
+- `docs/project-info/PATTERNS.md` — code conventions, testing patterns, git format
+- `docs/additional-project-info/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
 
-Diagnose root cause before fixing. Read the error. Check assumptions. Don't retry identical actions. Escalate to user only after investigation.
+## Things Claude Should NOT Do
 
-## Task Management
+- Don't use `any` type without explicit approval
+- Don't use server actions for auth/cookie operations — use API routes
+- Don't mix `127.0.0.1` and `localhost` in Supabase URLs
+- Don't auto-import large reference docs — list them, let user load on demand
+- Don't claim done without running verification commands first
+- Don't edit files during code review — only read and report findings
 
-Use TodoWrite for multi-step tasks (3+ steps). Mark complete immediately after each step. Don't batch completions.
+## Self-Improvement
 
-## Core Principles
+After every correction: update this file immediately.
+End corrections with: "Now update CLAUDE.md so you don't make that mistake again."
 
-### Plugin priority (always in this order):
-1. **memsearch** — recall relevant memory before any codebase exploration
-2. **context-mode** — use `ctx_execute`/`ctx_execute_file` for any output >20 lines; never Bash/Read for analysis
-3. **superpowers** — invoke matching skill before any response; brainstorm before features; debug before fixes
-4. **frontend-design** — only for explicit UI/frontend design requests
+## Plugin Priority
+
+1. **memsearch** — recall memory before exploring codebase
+2. **context-mode** — `ctx_execute` for output >20 lines; never Bash/Read for analysis
+3. **superpowers** — invoke matching skill before any response
+4. **frontend-design** — only for explicit UI/design requests
 5. **codex** — fallback for isolated, well-scoped code generation
 
-### Token discipline:
-- Response cap: ≤350 output tokens unless user explicitly requests more
-- Use structured output (JSON task lists) for complex plans — enables direct handoff to Continue.dev
-- Trigger `context-mode:ctx-stats` if context feels large; trigger `/compact` proactively
-- When a task is purely implementation (no architecture decisions), output the plan then add: **"→ Implement in Continue.dev with Qwen3.5"**
+## Token Discipline
 
-### Handoff triggers to Continue.dev:
-- Autocomplete or inline edits → Continue.dev (never Claude Code)
-- Single-file refactor with no cross-file dependencies → Continue.dev
-- Routine debugging with a known error message → Continue.dev
-- Any task where you've already output the full plan → Continue.dev
+- Response cap: ≤350 tokens unless user asks for more
+- Purely implementation tasks: output plan → **"→ Implement in Continue.dev"**
+- Switch to Continue.dev when approaching usage limit
 
-### Stay in Claude Code for:
-- Multi-file architecture changes
-- Plugin orchestration (memsearch recall, subagent dispatch)
-- Anything requiring superpowers skills
-- Explicit UI/design work with frontend-design plugin
+**Handoff to Continue.dev:** autocomplete, inline edits (<50 lines), single-file refactors, known-error debugging, writing tests to a known pattern
+
+**Stay in Claude Code:** multi-file architecture, plugin orchestration, superpowers skills, RLS/schema changes, UI component design
+
+**Self-check signals:**
+- Response likely >400 tokens → use JSON instead of prose
+- Reading a 3rd file in a row for analysis → switch to `ctx_execute_file`
+- Task is purely mechanical (rename, format, boilerplate) → route to Continue.dev
+- Approaching end of session → run `/compact`, save key decisions to memory
+
+**Structured plan format for Continue.dev handoff:**
+```json
+{
+  "task": "human-readable description of the full deliverable",
+  "steps": [
+    {
+      "description": "what to implement — specific, not vague",
+      "files": ["exact/path/to/file.tsx"],
+      "verify": {
+        "command": "pnpm test FileName",
+        "passes_when": [
+          "exact test name string 1",
+          "exact test name string 2"
+        ]
+      },
+      "do_not": ["explicit scope boundary 1", "explicit scope boundary 2"]
+    }
+  ]
+}
+```
+
+`passes_when` strings must exactly match test names as they appear in Vitest output. All must pass.
+For pgTAP steps: use `supabase test db` as the command.
+
+**Continue.dev handoff prompt:**
+```
+Implement this plan step by step. After each step, run the verify command
+and confirm every string in passes_when appears in the output before proceeding.
+Do not move to the next step until all verify strings pass.
+Respect the do_not constraints exactly.
+
+[paste JSON plan here]
+```
