@@ -110,6 +110,31 @@ describe('POST /api/export — role', () => {
   })
 })
 
+// ─── Data fetching ────────────────────────────────────────────────────────────
+
+describe('POST /api/export — data fetching', () => {
+  it('returns 404 when care_recipient not found', async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+      if (table === 'memberships')     return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      if (table === 'care_recipients') return makeChain({ data: null, error: { message: 'not found' } })
+      return makeChain({ data: [], error: null })
+    })
+    const res = await POST(makeReq(BASE_BODY))
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 404 when identity vault not found', async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+      if (table === 'memberships')     return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      if (table === 'care_recipients') return makeChain({ data: { identity_token: 'tok' }, error: null })
+      if (table === 'identity_vault')  return makeChain({ data: null, error: { message: 'not found' } })
+      return makeChain({ data: [], error: null })
+    })
+    const res = await POST(makeReq(BASE_BODY))
+    expect(res.status).toBe(404)
+  })
+})
+
 // ─── JSON export ──────────────────────────────────────────────────────────────
 
 describe('POST /api/export — JSON format', () => {
