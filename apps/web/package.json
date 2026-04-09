@@ -12,6 +12,7 @@
     "@carelog/schemas": "workspace:*",
     "@carelog/types": "workspace:*",
     "@carelog/utils": "workspace:*",
+    "@react-pdf/renderer": "^4.4.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.95.2",
