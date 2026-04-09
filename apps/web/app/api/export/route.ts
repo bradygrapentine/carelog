@@ -124,10 +124,11 @@ export async function POST(request: NextRequest) {
     const React = (await import('react')).default
     const { ExportDocument } = await import('./ExportDocument')
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buffer = await renderToBuffer(
-      React.createElement(ExportDocument, { data: exportPayload })
+      React.createElement(ExportDocument, { data: exportPayload }) as any
     )
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status:  200,
       headers: {
         'Content-Type':        'application/pdf',

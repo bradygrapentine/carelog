@@ -38,7 +38,8 @@ function makeChain(result: object) {
     limit:   vi.fn().mockResolvedValue(result),
     single:  vi.fn().mockResolvedValue(result),
   }
-  return chain
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return chain as any
 }
 
 const BASE_BODY = { orgId: ORG_ID, recipientId: REC_ID, format: 'json' }

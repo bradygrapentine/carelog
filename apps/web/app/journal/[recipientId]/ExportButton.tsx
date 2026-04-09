@@ -40,16 +40,21 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
       return
     }
 
-    const blob      = await res.blob()
-    const url       = URL.createObjectURL(blob)
-    const a         = document.createElement('a')
-    a.href          = url
-    a.download      = format === 'json' ? 'care-history.json' : 'care-history.pdf'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    setLoading(false)
+    try {
+      const blob      = await res.blob()
+      const url       = URL.createObjectURL(blob)
+      const a         = document.createElement('a')
+      a.href          = url
+      a.download      = format === 'json' ? 'care-history.json' : 'care-history.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('Export failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -60,7 +65,7 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
         {/* Format */}
         <fieldset>
           <legend className="text-xs font-medium text-gray-600 mb-1.5">Format</legend>
-          <div className="flex gap-2" role="group">
+          <div className="flex gap-2">
             {(['json', 'pdf'] as Format[]).map(f => {
               const isSelected = format === f
               const cls = 'px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 ' +
@@ -99,6 +104,7 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
         <button
           type="submit"
           disabled={loading}
+          aria-busy={loading}
           className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Preparing...' : 'Download export'}
