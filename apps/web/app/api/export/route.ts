@@ -97,6 +97,11 @@ export async function POST(request: NextRequest) {
         .limit(500),
     ])
 
+    const dataError = eventsRes.error ?? symptomsRes.error ?? medsRes.error ?? shiftsRes.error
+    if (dataError) {
+      return NextResponse.json({ error: 'Data fetch failed: ' + dataError.message }, { status: 500 })
+    }
+
     const exportPayload = {
       recipient_name:   vault.full_name,
       dob:              vault.dob ?? null,
