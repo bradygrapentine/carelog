@@ -7,6 +7,8 @@ import type { User } from '@supabase/supabase-js'
 import { JournalEntryForm } from './JournalEntryForm'
 import { JournalTimeline } from './JournalTimeline'
 import { TeamPanel } from './TeamPanel'
+import { ShiftForm } from './ShiftForm'
+import { ShiftList } from './ShiftList'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -154,6 +156,14 @@ export function JournalClient({ recipientId }: Props) {
             showInvite={showInvite}
             onToggleInvite={() => setShowInvite(v => !v)}
           />
+        </div>
+        {currentUserRole === 'coordinator' && (
+          <div className="mt-6">
+            <ShiftForm members={members} recipientId={recipientId} orgId={org.id} onSuccess={() => {}} />
+          </div>
+        )}
+        <div className="mt-6">
+          <ShiftList orgId={org.id} recipientId={recipientId} members={members} currentUserId={user?.id ?? ''} currentUserRole={currentUserRole} />
         </div>
         <div className="mt-6">
           <JournalTimeline
