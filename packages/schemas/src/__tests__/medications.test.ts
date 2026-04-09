@@ -12,7 +12,7 @@ describe('medicationCreateInput', () => {
   it('accepts minimal valid input', () => {
     const result = medicationCreateInput.parse(BASE)
     expect(result.drug_name).toBe('Lisinopril')
-    expect(result.scan_source).toBeUndefined()
+    expect((result as Record<string, unknown>).scan_source).toBeUndefined()
   })
 
   it('accepts full optional fields', () => {

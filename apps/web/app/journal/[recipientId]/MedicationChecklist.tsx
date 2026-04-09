@@ -11,7 +11,7 @@ type Props = {
 type ScheduleRow = {
   id: string
   scheduled_time: string
-  medications: { id: string; drug_name: string; dosage: string } | null
+  medications: { id: string; drug_name: string; dosage: string }[] | null
 }
 
 type LogEntry = {
@@ -55,7 +55,7 @@ export function MedicationChecklist({ orgId, recipientId, currentUserRole }: Pro
       </div>
       <div className="px-4 py-3 space-y-2">
         {schedules.map((sched: ScheduleRow) => {
-          const med = sched.medications
+          const med = Array.isArray(sched.medications) ? sched.medications[0] : sched.medications
           if (!med) return null
 
           const logKey = med.id + sched.scheduled_time
