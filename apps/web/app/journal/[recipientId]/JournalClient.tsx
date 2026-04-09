@@ -9,6 +9,7 @@ import { JournalTimeline } from './JournalTimeline'
 import { TeamPanel } from './TeamPanel'
 import { ShiftForm } from './ShiftForm'
 import { ShiftList } from './ShiftList'
+import { MedicationPanel } from './MedicationPanel'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -164,6 +165,9 @@ export function JournalClient({ recipientId }: Props) {
         )}
         <div className="mt-6">
           <ShiftList orgId={org.id} recipientId={recipientId} members={members} currentUserId={user?.id ?? ''} currentUserRole={currentUserRole} />
+        </div>
+        <div className="mt-6">
+          <MedicationPanel orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
         </div>
         <div className="mt-6">
           <JournalTimeline

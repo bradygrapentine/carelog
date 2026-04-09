@@ -1,0 +1,67 @@
+---
+name: plan-with-tests
+description: Use when writing a Continue.dev handoff plan. Generates test-first plans where each step has a verify field with runnable tests that define "done". Use instead of writing-plans for Continue.dev handoffs.
+---
+
+# Plan-With-Tests
+
+Use this skill instead of `writing-plans` when the output is a Continue.dev handoff plan.
+
+## Process (RIGID — follow exactly)
+
+1. Read the spec or task description
+2. For each deliverable, write the minimal failing tests that capture the necessary flows:
+   - Happy path
+   - Key error cases
+   - Auth/security boundaries relevant to the step
+   → Invoke the `test` skill for pgTAP and Vitest patterns
+   → Run `pnpm test` to confirm tests are **FAILING** before proceeding — do not continue if tests pass prematurely
+3. Group tests by implementation step (one cohesive change per step)
+4. For each step, produce a JSON block with `description`, `files`, `verify`, and `do_not`
+5. Output the complete JSON plan
+6. State: "Run `pnpm test` to confirm all verify tests are currently failing before handing off to Continue.dev"
+
+## Hard Rules
+
+- No step without a `verify` field — if a deliverable can't be tested, decompose it differently or write a smoke test
+- Tests must be **committed** before handoff — Continue.dev starts with a red suite
+- `do_not` is required on every step — explicit scope at authoring time, not implementation time
+- `passes_when` strings must exactly match test names as they appear in Vitest output
+
+## Plan Format
+
+```json
+{
+  "task": "human-readable description of the full deliverable",
+  "steps": [
+    {
+      "description": "what to implement — specific, not vague",
+      "files": ["exact/path/to/file.tsx"],
+      "verify": {
+        "command": "pnpm test FileName",
+        "passes_when": [
+          "exact test name string 1",
+          "exact test name string 2",
+          "exact test name string 3"
+        ]
+      },
+      "do_not": ["explicit scope boundary 1", "explicit scope boundary 2"]
+    }
+  ]
+}
+```
+
+For RLS/pgTAP steps: use `supabase test db` as the command and the pgTAP test description as `passes_when` strings.
+
+## Continue.dev Handoff Prompt
+
+Wrap the JSON plan in this template when pasting into Continue.dev:
+
+```
+Implement this plan step by step. After each step, run the verify command
+and confirm every string in passes_when appears in the output before proceeding.
+Do not move to the next step until all verify strings pass.
+Respect the do_not constraints exactly.
+
+[paste JSON plan here]
+```
