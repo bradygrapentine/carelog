@@ -4,7 +4,7 @@
 **Phase:** Scheduler (shifts, coverage, gap detection)
 **Prerequisite:** Phase 1 cleanup stories (P1-01–P1-03) must ship first.
 
-**Scan summary:** P1-01 ✅ done | P1-02 ✅ done | P1-03 ✅ done | P2-01–P2-07 ❌ not started (P2-06 DB column exists)
+**Scan summary:** P1-01 ✅ done | P1-02 ✅ done | P1-03 ✅ done | P2-01 ✅ done | P2-02 ✅ done | P2-03 ✅ done | P2-04 ✅ done | P2-05 ✅ done | P2-06 ✅ done | P2-07 ✅ done
 
 ---
 
@@ -167,7 +167,7 @@ No further work needed.
 
 ---
 
-### P2-03 — Shift list / caregiver view ❌ NOT STARTED
+### ~~P2-03 — Shift list / caregiver view~~ ✅ DONE
 
 **Agent:** Continue.dev / Qwen3.5
 
@@ -197,7 +197,7 @@ No further work needed.
 
 ---
 
-### P2-04 — Coverage window UI ❌ NOT STARTED
+### ~~P2-04 — Coverage window UI~~ ✅ DONE
 
 **Agent:** Continue.dev / Qwen3.5
 
@@ -226,7 +226,7 @@ No further work needed.
 
 ---
 
-### P2-05 — Gap detector (Inngest background job) ❌ NOT STARTED
+### ~~P2-05 — Gap detector (Inngest background job)~~ ✅ DONE
 
 **Agent:** Claude Code (Inngest + multi-file)
 
@@ -257,7 +257,7 @@ No further work needed.
 
 ---
 
-### P2-06 — Recurring shifts ⚠️ PARTIAL (DB only)
+### ~~P2-06 — Recurring shifts~~ ✅ DONE
 
 **Agent:** Claude Code (schema extension + transaction logic)
 
@@ -291,7 +291,7 @@ No further work needed.
 
 ---
 
-### P2-07 — Shift section in weekly digest ❌ NOT STARTED
+### ~~P2-07 — Shift section in weekly digest~~ ✅ DONE
 
 **Agent:** Continue.dev / Qwen3.5
 
@@ -329,11 +329,11 @@ No further work needed.
 | P1-03 Entry detail | ❌ NOT STARTED | Continue.dev / Qwen3.5 | New page, no architecture decisions |
 | P2-01 Shift tRPC + schema | ❌ NOT STARTED | Claude Code | RLS-adjacent, multi-file, new router |
 | P2-02 Shift creation UI | ❌ NOT STARTED | Claude Code + frontend-design | Coordinator form, role enforcement |
-| P2-03 Shift list | ❌ NOT STARTED | Continue.dev / Qwen3.5 | Display-only component |
-| P2-04 Coverage window UI | ❌ NOT STARTED | Continue.dev / Qwen3.5 | CRUD UI, follows shift pattern |
-| P2-05 Gap detector | ❌ NOT STARTED | Claude Code | Inngest + multi-file + business logic |
-| P2-06 Recurring shifts | ⚠️ DB ONLY | Claude Code | No migration needed; transaction + UI work remains |
-| P2-07 Digest shift section | ❌ NOT STARTED | Continue.dev / Qwen3.5 | Additive to existing function |
+| P2-03 Shift list | ✅ DONE | — | Complete |
+| P2-04 Coverage window UI | ✅ DONE | — | Complete |
+| P2-05 Gap detector | ✅ DONE | — | Complete |
+| P2-06 Recurring shifts | ✅ DONE | — | Complete |
+| P2-07 Digest shift section | ✅ DONE | — | Complete |
 
 **QA:** Codex for each story — run after implementation, before marking done.
 
