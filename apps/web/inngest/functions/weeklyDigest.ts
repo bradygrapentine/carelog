@@ -9,11 +9,19 @@ type Entry = {
   payload: { text?: string; mood?: string }
 }
 
-function digestHtml(opts: {
-  orgName: string
-  entries: Entry[]
+type Shift = {
+  start_at:      string
+  end_at:        string
+  assignee_name: string
+  status:        string
+}
+
+export function digestHtml(opts: {
+  orgName:     string
+  entries:     Entry[]
   recipientId: string
-  appUrl: string
+  appUrl:      string
+  shifts:      Shift[]
 }): string {
   const { orgName, entries, recipientId, appUrl } = opts
   const journalUrl = appUrl + '/journal/' + recipientId
@@ -70,6 +78,24 @@ function digestHtml(opts: {
       flaggedHtml +
       previewHtml +
       moreHtml +
+      (opts.shifts.length > 0
+        ? (
+          '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #f5f5f5;">' +
+            '<p style="font-size:14px;font-weight:600;color:#111;margin:0 0 12px;">Here\'s who\'s helping this week</p>' +
+            opts.shifts.map(function(s) {
+              var day = new Date(s.start_at).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
+              var startTime = new Date(s.start_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+              var endTime   = new Date(s.end_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+              return (
+                '<div style="padding:6px 0;border-bottom:1px solid #f9f9f9;">' +
+                  '<p style="font-size:13px;color:#333;margin:0;">' + s.assignee_name + '</p>' +
+                  '<p style="font-size:12px;color:#aaa;margin:2px 0 0;">' + day + ' \u00b7 ' + startTime + '\u2013' + endTime + '</p>' +
+                '</div>'
+              )
+            }).join('') +
+          '</div>'
+        )
+        : '') +
       '<div style="margin-top:28px;">' +
         '<a href="' + journalUrl + '" style="display:inline-block;background:#111;color:#fff;font-size:14px;font-weight:500;padding:10px 20px;border-radius:8px;text-decoration:none;">View the full journal \u2192</a>' +
       '</div>' +
@@ -153,12 +179,37 @@ export const weeklyDigest = inngest.createFunction(
 
           if (emails.length === 0) return
 
+          // Upcoming week's shifts
+          const weekStart = new Date()
+          const weekEnd   = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+          const { data: rawShifts } = await supabaseAdmin
+            .from('shifts')
+            .select('start_at, end_at, status, assignee_user_id')
+            .eq('org_id', orgId)
+            .gte('start_at', weekStart.toISOString())
+            .lte('start_at', weekEnd.toISOString())
+            .neq('status', 'cancelled')
+            .order('start_at', { ascending: true })
+
+          const digestShifts: Shift[] = []
+          for (const s of (rawShifts ?? [])) {
+            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(s.assignee_user_id)
+            const name = user?.user_metadata?.display_name ?? user?.email ?? 'Care team member'
+            digestShifts.push({
+              start_at:      s.start_at,
+              end_at:        s.end_at,
+              assignee_name: name,
+              status:        s.status,
+            })
+          }
+
           if (!resend) {
             logger.warn('RESEND_API_KEY not set — skipping email for org ' + orgId)
             return
           }
 
-          const html = digestHtml({ orgName: org.name, entries: entries as Entry[], recipientId, appUrl })
+          const html = digestHtml({ orgName: org.name, entries: entries as Entry[], recipientId, appUrl, shifts: digestShifts })
           const subject = org.name + ' \u2014 ' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + ' this week'
 
           await resend.emails.send({
