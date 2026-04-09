@@ -175,3 +175,27 @@ describe('POST /api/export — JSON format', () => {
     expect(body).toHaveProperty('since', sinceDate)
   })
 })
+
+describe('POST /api/export — PDF format', () => {
+  it('returns 200 with application/pdf content-type', async () => {
+    vi.mock('@react-pdf/renderer', () => ({
+      renderToBuffer: vi.fn().mockResolvedValue(Buffer.from('%PDF-1.4 fake')),
+      Document:   ({ children }: { children: unknown }) => children,
+      Page:       ({ children }: { children: unknown }) => children,
+      View:       ({ children }: { children: unknown }) => children,
+      Text:       ({ children }: { children: unknown }) => children,
+      StyleSheet: { create: (s: object) => s },
+    }))
+
+    vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+      if (table === 'memberships')     return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      if (table === 'care_recipients') return makeChain({ data: { identity_token: 'tok' }, error: null })
+      if (table === 'identity_vault')  return makeChain({ data: { full_name: 'Alice', dob: null }, error: null })
+      return makeChain({ data: [], error: null })
+    })
+
+    const res = await POST(makeReq({ ...BASE_BODY, format: 'pdf' }))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toContain('application/pdf')
+  })
+})

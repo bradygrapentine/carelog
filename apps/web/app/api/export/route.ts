@@ -119,8 +119,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // PDF: handled in Task 4
-    return NextResponse.json({ error: 'PDF not yet implemented' }, { status: 501 })
+    // PDF format — rendered server-side with @react-pdf/renderer
+    const { renderToBuffer } = await import('@react-pdf/renderer')
+    const React = (await import('react')).default
+    const { ExportDocument } = await import('./ExportDocument')
+
+    const buffer = await renderToBuffer(
+      React.createElement(ExportDocument, { data: exportPayload })
+    )
+    return new NextResponse(buffer, {
+      status:  200,
+      headers: {
+        'Content-Type':        'application/pdf',
+        'Content-Disposition': 'attachment; filename="care-history.pdf"',
+      },
+    })
 
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unknown error'
