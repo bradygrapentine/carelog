@@ -114,4 +114,75 @@ export const medicationsRouter = router({
 
       return { success: true };
     }),
+
+  listScheduled: protectedProcedure
+    .input(z.object({ org_id: z.string().uuid(), recipient_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const todayDow = new Date().getUTCDay();
+      const { data, error } = await ctx.supabase
+        .from("medication_schedules")
+        .select("id, scheduled_time, medications(id, drug_name, dosage)")
+        .eq("org_id", input.org_id)
+        .eq("recipient_id", input.recipient_id)
+        .contains("days_of_week", [todayDow]);
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      return data ?? [];
+    }),
+
+  todayLog: protectedProcedure
+    .input(z.object({ org_id: z.string().uuid(), recipient_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const todayStart = new Date();
+      todayStart.setUTCHours(0, 0, 0, 0);
+      const { data, error } = await ctx.supabase
+        .from("care_events")
+        .select("payload")
+        .eq("org_id", input.org_id)
+        .eq("recipient_id", input.recipient_id)
+        .eq("event_type", "medication")
+        .eq("entry_kind", "system")
+        .gte("occurred_at", todayStart.toISOString());
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      return (data ?? []).map(e => (e.payload as { medication_id: string; scheduled_time: string; action: string }));
+    }),
+
+  logAdministration: protectedProcedure
+    .input(z.object({
+      org_id:         z.string().uuid(),
+      recipient_id:   z.string().uuid(),
+      medication_id:  z.string().uuid(),
+      scheduled_time: z.string(),
+      action:         z.enum(["given", "missed"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: membership } = await supabaseAdmin
+        .from("memberships")
+        .select("role, accepted_at")
+        .eq("org_id", input.org_id)
+        .eq("user_id", ctx.user.id)
+        .single();
+      if (!membership || !membership.accepted_at || membership.role === "supporter") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("care_events")
+        .insert({
+          org_id:       input.org_id,
+          recipient_id: input.recipient_id,
+          created_by:   ctx.user.id,
+          event_type:   "medication",
+          entry_kind:   "system",
+          occurred_at:  new Date().toISOString(),
+          payload: {
+            medication_id:  input.medication_id,
+            action:         input.action,
+            scheduled_time: input.scheduled_time,
+          },
+        })
+        .select()
+        .single();
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      return data;
+    }),
 });

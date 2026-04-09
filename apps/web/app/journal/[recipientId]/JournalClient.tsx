@@ -10,6 +10,7 @@ import { TeamPanel } from './TeamPanel'
 import { ShiftForm } from './ShiftForm'
 import { ShiftList } from './ShiftList'
 import { MedicationPanel } from './MedicationPanel'
+import { MedicationChecklist } from './MedicationChecklist'
 import { OuterCirclePanel } from './OuterCirclePanel'
 
 interface Props { recipientId: string }
@@ -180,13 +181,13 @@ export function JournalClient({ recipientId }: Props) {
             onToggleInvite={() => setShowInvite(v => !v)}
           />
         </div>
-        {currentUserRole === 'coordinator' && (
+        {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
             <ShiftForm members={members} recipientId={recipientId} orgId={org.id} onSuccess={() => {}} />
           </div>
         )}
         <div className="mt-6">
-          <ShiftList orgId={org.id} recipientId={recipientId} members={members} currentUserId={user?.id ?? ''} currentUserRole={currentUserRole} />
+          <ShiftList orgId={org?.id ?? ''} recipientId={recipientId} members={members} currentUserId={user?.id ?? ''} currentUserRole={currentUserRole} />
         </div>
         {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
@@ -195,6 +196,9 @@ export function JournalClient({ recipientId }: Props) {
         )}
         <div className="mt-6">
           <MedicationPanel orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
+        </div>
+        <div className="mt-6">
+          <MedicationChecklist orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
         </div>
         {currentUserRole === 'coordinator' && (
           <div className="mt-6">
