@@ -29,15 +29,15 @@ function makeReq(body: object) {
 
 // Helper: build a supabaseAdmin.from chain with .single() returning result
 function makeChain(result: object) {
-  const chain: any = {
+  const chain: Record<string, unknown> & { single: ReturnType<typeof vi.fn>; limit: ReturnType<typeof vi.fn> } = {
     select:  () => chain,
     eq:      () => chain,
     not:     () => chain,
     gte:     () => chain,
     order:   () => chain,
     limit:   vi.fn().mockResolvedValue(result),
+    single:  vi.fn().mockResolvedValue(result),
   }
-  chain.single = vi.fn().mockResolvedValue(result)
   return chain
 }
 
@@ -75,6 +75,11 @@ describe('POST /api/export — validation', () => {
     const res = await POST(makeReq({ ...BASE_BODY, since: 'yesterday' }))
     expect(res.status).toBe(400)
   })
+
+  it('returns 400 for missing recipientId', async () => {
+    const res = await POST(makeReq({ orgId: ORG_ID, format: 'json' }))
+    expect(res.status).toBe(400)
+  })
 })
 
 // ─── Role enforcement ────────────────────────────────────────────────────────
@@ -95,22 +100,25 @@ describe('POST /api/export — role', () => {
     const res = await POST(makeReq(BASE_BODY))
     expect(res.status).toBe(403)
   })
+
+  it('returns 403 when coordinator has pending invite (accepted_at is null)', async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeChain({ data: { role: 'coordinator', accepted_at: null }, error: null })
+    )
+    const res = await POST(makeReq(BASE_BODY))
+    expect(res.status).toBe(403)
+  })
 })
 
 // ─── JSON export ──────────────────────────────────────────────────────────────
 
 describe('POST /api/export — JSON format', () => {
   it('returns 200 application/json with correct top-level keys', async () => {
-    let callCount = 0
-    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
-      callCount++
-      // Call 1: membership check
-      if (callCount === 1) return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
-      // Call 2: care_recipients (identity_token)
-      if (callCount === 2) return makeChain({ data: { identity_token: 'vault-token-abc' }, error: null })
-      // Call 3: identity_vault
-      if (callCount === 3) return makeChain({ data: { full_name: 'Alice Smith', dob: '1940-06-01' }, error: null })
-      // Calls 4-7: care_events, symptom_readings, medications, shifts
+    vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+      if (table === 'memberships')      return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      if (table === 'care_recipients')  return makeChain({ data: { identity_token: 'vault-token-abc' }, error: null })
+      if (table === 'identity_vault')   return makeChain({ data: { full_name: 'Alice Smith', dob: '1940-06-01' }, error: null })
+      // care_events, symptom_readings, medications, shifts
       return makeChain({ data: [], error: null })
     })
 
@@ -125,5 +133,20 @@ describe('POST /api/export — JSON format', () => {
     expect(body).toHaveProperty('medications')
     expect(body).toHaveProperty('shifts')
     expect(body).toHaveProperty('exported_at')
+  })
+
+  it('includes since in response body when provided', async () => {
+    const sinceDate = '2026-01-01T00:00:00Z'
+    vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+      if (table === 'memberships')     return makeChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      if (table === 'care_recipients') return makeChain({ data: { identity_token: 'tok' }, error: null })
+      if (table === 'identity_vault')  return makeChain({ data: { full_name: 'Bob', dob: null }, error: null })
+      return makeChain({ data: [], error: null })
+    })
+
+    const res = await POST(makeReq({ ...BASE_BODY, since: sinceDate }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toHaveProperty('since', sinceDate)
   })
 })
