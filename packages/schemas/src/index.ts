@@ -2,3 +2,4 @@ export * from "./careEvents";
 export * from "./invites";
 export * from "./organizations";
 export * from "./shifts";
+export * from "./coverageWindows";
