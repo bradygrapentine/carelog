@@ -14,19 +14,19 @@ Use this skill instead of `writing-plans` when the output is a Continue.dev hand
    - Happy path
    - Key error cases
    - Auth/security boundaries relevant to the step
-   → Invoke the `test` skill for pgTAP and Vitest patterns
+   → Invoke the `test` skill: "Write minimal failing tests for these flows: [list flows]"
    → Run `pnpm test` to confirm tests are **FAILING** before proceeding — do not continue if tests pass prematurely
 3. Group tests by implementation step (one cohesive change per step)
 4. For each step, produce a JSON block with `description`, `files`, `verify`, and `do_not`
 5. Output the complete JSON plan
-6. State: "Run `pnpm test` to confirm all verify tests are currently failing before handing off to Continue.dev"
+6. State: "Run `pnpm test` to confirm ALL verify tests are currently failing before handing off to Continue.dev"
 
 ## Hard Rules
 
 - No step without a `verify` field — if a deliverable can't be tested, decompose it differently or write a smoke test
 - Tests must be **committed** before handoff — Continue.dev starts with a red suite
 - `do_not` is required on every step — explicit scope at authoring time, not implementation time
-- `passes_when` strings must exactly match test names as they appear in Vitest output
+- `passes_when` strings must exactly match test names as they appear in Vitest output. Example: if Vitest prints "✓ handles 404 errors", use "handles 404 errors" (without the ✓)
 
 ## Plan Format
 
@@ -51,7 +51,7 @@ Use this skill instead of `writing-plans` when the output is a Continue.dev hand
 }
 ```
 
-For RLS/pgTAP steps: use `supabase test db` as the command and the pgTAP test description as `passes_when` strings.
+For RLS/pgTAP steps: use `supabase test db` as the command. The `passes_when` string is the `ok()` description as it appears in `supabase test db` output. Example: "test_rls_can_invite_org_members".
 
 ## Continue.dev Handoff Prompt
 
