@@ -118,6 +118,7 @@ End corrections with: "Now update CLAUDE.md so you don't make that mistake again
 
 `passes_when` strings must exactly match test names as they appear in Vitest output. All must pass.
 For pgTAP steps: use `supabase test db` as the command.
+Commit failing tests before handing off — Continue.dev must start with a red suite.
 
 **Continue.dev handoff prompt:**
 ```
