@@ -6,6 +6,16 @@ import { coverageWindowCreateInput, coverageWindowListInput } from "@carelog/sch
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+// Converts HH:MM + day_of_week to a reference epoch timestamptz.
+// 1970-01-04 was a Sunday (day 0), so dayOfWeek 0-6 maps to 1970-01-04 through 1970-01-10.
+// The gap detector uses day_of_week for filtering and extracts the time portion for comparison.
+function timeToRefTimestamp(dayOfWeek: number, timeStr: string): string {
+  // Start from Sunday 1970-01-04, add dayOfWeek days
+  const base = new Date('1970-01-04T' + timeStr + ':00Z')
+  base.setUTCDate(base.getUTCDate() + dayOfWeek)
+  return base.toISOString()
+}
+
 async function requireCoordinator(orgId: string, userId: string) {
   const { data, error } = await supabaseAdmin
     .from("memberships")
@@ -52,8 +62,11 @@ export const coverageWindowsRouter = router({
           org_id:        input.org_id,
           recipient_id:  input.recipient_id,
           label:         input.label,
-          starts_at:     input.starts_at,
-          ends_at:       input.ends_at,
+          // Convert HH:MM time strings to reference epoch timestamps so the
+          // timestamptz NOT NULL constraint is satisfied. The gap detector uses
+          // day_of_week + the UTC time portion of these timestamps for comparison.
+          starts_at:     timeToRefTimestamp(input.day_of_week, input.starts_at),
+          ends_at:       timeToRefTimestamp(input.day_of_week, input.ends_at),
           required_role: input.required_role,
           day_of_week:   input.day_of_week,
           recurring:     true,
