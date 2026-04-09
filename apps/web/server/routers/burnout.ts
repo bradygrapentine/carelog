@@ -67,14 +67,16 @@ export const burnoutRouter = router({
         byWeek.set(row.week_stamp, existing)
       }
       const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+      const MIN_GROUP = 3 // suppress weeks with < 3 check-ins to prevent score de-anonymization
       return Array.from(byWeek.entries())
+        .filter(([, v]) => v.count >= MIN_GROUP)
         .slice(0, 8)
         .map(([week_stamp, v]) => ({
           week_stamp,
-          avg_sleep: avg(v.sleep),
-          avg_stress: avg(v.stress),
+          avg_sleep:   avg(v.sleep),
+          avg_stress:  avg(v.stress),
           avg_support: avg(v.support),
-          count: v.count,
+          count:       v.count,
         }))
     }),
 })

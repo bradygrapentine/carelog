@@ -98,10 +98,12 @@ describe('burnout.orgSummary — authorization', () => {
       .rejects.toMatchObject({ code: 'FORBIDDEN' })
   })
 
-  it('returns aggregated data for coordinator', async () => {
+  it('returns aggregated data for coordinator (minimum 3 check-ins per week to prevent de-anonymization)', async () => {
+    // 3 rows required — weeks with < 3 check-ins are suppressed
     const sampleRows = [
       { week_stamp: WEEK_STAMP, sleep_score: 4, stress_score: 2, support_score: 5 },
       { week_stamp: WEEK_STAMP, sleep_score: 2, stress_score: 4, support_score: 3 },
+      { week_stamp: WEEK_STAMP, sleep_score: 3, stress_score: 3, support_score: 4 },
     ]
     let callCount = 0
     vi.mocked(supabaseAdmin.from).mockImplementation(() => {
@@ -113,7 +115,7 @@ describe('burnout.orgSummary — authorization', () => {
     const result = await authedCaller.burnout.orgSummary({ org_id: ORG_ID })
     expect(result).toHaveLength(1)
     expect(result[0].week_stamp).toBe(WEEK_STAMP)
-    expect(result[0].count).toBe(2)
+    expect(result[0].count).toBe(3)
     expect(result[0].avg_sleep).toBe(3)
   })
 })

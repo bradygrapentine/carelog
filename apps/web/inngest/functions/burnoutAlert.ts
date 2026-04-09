@@ -104,7 +104,7 @@ export const burnoutAlert = inngest.createFunction(
           const orgId = userOrgMap.get(userId)
           if (!orgId) return
 
-          // Idempotent: skip if we already alerted for this user for this ISO week
+          // Idempotent: one burnout alert per org per ISO week
           const { data: existing } = await supabaseAdmin
             .from('care_events')
             .select('id')
@@ -112,7 +112,6 @@ export const burnoutAlert = inngest.createFunction(
             .eq('event_type', 'task')
             .eq('entry_kind', 'system')
             .filter('payload->>burnout_risk', 'eq', 'true')
-            .filter('payload->>user_id', 'eq', userId)
             .filter('payload->>week_stamp', 'eq', alertWeekStamp)
             .limit(1)
 
@@ -131,9 +130,9 @@ export const burnoutAlert = inngest.createFunction(
             flagged:     false,
             payload: {
               burnout_risk: true,
-              user_id:      userId,
+              // Omit user_id — care_events is readable by all org members; use burnout.orgSummary for per-user data
               week_stamp:   alertWeekStamp,
-              note:         'Caregiver stress score has been high for 2+ consecutive weeks.',
+              note:         'A caregiver in this org has had high stress scores for 2+ consecutive weeks.',
             },
           })
 

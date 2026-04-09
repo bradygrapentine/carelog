@@ -79,7 +79,7 @@ describe('SymptomPanel — readings list', () => {
   it('shows pain level and mood when data exists', () => {
     renderPanel()
     fireEvent.click(screen.getByRole('button', { name: /symptom readings/i }))
-    expect(screen.getByText(/pain: 7\/10/i)).toBeInTheDocument()
+    expect(screen.getByText('7/10')).toBeInTheDocument()
     expect(screen.getByText(/difficult/i)).toBeInTheDocument()
   })
 })
@@ -99,12 +99,14 @@ describe('SymptomPanel — coordinator vs supporter', () => {
 })
 
 describe('SymptomPanel — log form', () => {
-  it('shows log form with pain range input and mood select when "+ Log reading" clicked', () => {
+  it('shows log form with pain range input and mood pill buttons when "+ Log reading" clicked', () => {
     renderPanel()
     fireEvent.click(screen.getByRole('button', { name: /symptom readings/i }))
     fireEvent.click(screen.getByRole('button', { name: /\+ log reading/i }))
     expect(screen.getByLabelText(/pain level/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/mood/i)).toBeInTheDocument()
+    // Mood is now a pill button group — check for individual mood options
+    expect(screen.getByRole('button', { name: /^good$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^okay$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /save reading/i })).toBeInTheDocument()
   })
 
@@ -113,13 +115,12 @@ describe('SymptomPanel — log form', () => {
     fireEvent.click(screen.getByRole('button', { name: /symptom readings/i }))
     fireEvent.click(screen.getByRole('button', { name: /\+ log reading/i }))
 
-    // Change pain level
+    // Change pain level via range input
     const painInput = screen.getByLabelText(/pain level/i)
     fireEvent.change(painInput, { target: { value: '8' } })
 
-    // Change mood
-    const moodSelect = screen.getByLabelText(/mood/i)
-    fireEvent.change(moodSelect, { target: { value: 'okay' } })
+    // Select mood via pill button
+    fireEvent.click(screen.getByRole('button', { name: /^okay$/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /save reading/i }))
 

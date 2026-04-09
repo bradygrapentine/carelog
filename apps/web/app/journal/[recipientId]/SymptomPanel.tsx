@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { trpc } from '../../../lib/trpc'
 
-interface Props {
+type Props = {
   orgId:           string
   recipientId:     string
   currentUserRole: string
@@ -19,24 +19,66 @@ type SymptomRow = {
   recorded_at: string
 }
 
-const moodLabels: Record<string, string> = {
-  good: 'Good', okay: 'Okay', difficult: 'Difficult', crisis: 'Crisis',
+type MoodVal     = 'good' | 'okay' | 'difficult' | 'crisis' | ''
+type AppetiteVal = 'normal' | 'reduced' | 'poor' | 'none' | ''
+type MobilityVal = 'normal' | 'limited' | 'assisted' | 'bedbound' | ''
+
+const MOOD_OPTS: { value: MoodVal; label: string }[] = [
+  { value: 'good',      label: 'Good'      },
+  { value: 'okay',      label: 'Okay'      },
+  { value: 'difficult', label: 'Difficult' },
+  { value: 'crisis',    label: 'Crisis'    },
+]
+
+const APPETITE_OPTS: { value: AppetiteVal; label: string }[] = [
+  { value: 'normal',  label: 'Normal'  },
+  { value: 'reduced', label: 'Reduced' },
+  { value: 'poor',    label: 'Poor'    },
+  { value: 'none',    label: 'None'    },
+]
+
+const MOBILITY_OPTS: { value: MobilityVal; label: string }[] = [
+  { value: 'normal',   label: 'Normal'   },
+  { value: 'limited',  label: 'Limited'  },
+  { value: 'assisted', label: 'Assisted' },
+  { value: 'bedbound', label: 'Bedbound' },
+]
+
+const MOOD_ACTIVE_CLS: Record<string, string> = {
+  good:      'bg-emerald-100 text-emerald-800 border-emerald-300',
+  okay:      'bg-sky-100 text-sky-800 border-sky-300',
+  difficult: 'bg-amber-100 text-amber-800 border-amber-300',
+  crisis:    'bg-red-100 text-red-800 border-red-300',
 }
 
-const moodColors: Record<string, string> = {
-  good:      'bg-green-100 text-green-700',
-  okay:      'bg-blue-100 text-blue-700',
-  difficult: 'bg-amber-100 text-amber-700',
-  crisis:    'bg-red-100 text-red-700',
+const MOOD_TAG_CLS: Record<string, string> = {
+  good:      'bg-emerald-50 text-emerald-700',
+  okay:      'bg-sky-50 text-sky-700',
+  difficult: 'bg-amber-50 text-amber-700',
+  crisis:    'bg-red-50 text-red-700',
+}
+
+function painLabel(n: number): string {
+  if (n <= 2) return 'Minimal'
+  if (n <= 4) return 'Mild'
+  if (n <= 6) return 'Moderate'
+  if (n <= 8) return 'Severe'
+  return 'Maximum'
+}
+
+function painColor(n: number): string {
+  if (n <= 3) return 'text-emerald-600'
+  if (n <= 6) return 'text-amber-600'
+  return 'text-red-600'
 }
 
 export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
   const [expanded,   setExpanded]   = useState(false)
   const [showForm,   setShowForm]   = useState(false)
   const [painLevel,  setPainLevel]  = useState(5)
-  const [mood,       setMood]       = useState<'good'|'okay'|'difficult'|'crisis'|''>('')
-  const [appetite,   setAppetite]   = useState<'normal'|'reduced'|'poor'|'none'|''>('')
-  const [mobility,   setMobility]   = useState<'normal'|'limited'|'assisted'|'bedbound'|''>('')
+  const [mood,       setMood]       = useState<MoodVal>('')
+  const [appetite,   setAppetite]   = useState<AppetiteVal>('')
+  const [mobility,   setMobility]   = useState<MobilityVal>('')
   const [notes,      setNotes]      = useState('')
   const [error,      setError]      = useState<string | null>(null)
 
@@ -68,14 +110,19 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
     e.preventDefault()
     setError(null)
     logMutation.mutate({
-      org_id:      orgId,
+      org_id:       orgId,
       recipient_id: recipientId,
-      pain_level:  painLevel,
-      mood:        mood     || undefined,
-      appetite:    appetite || undefined,
-      mobility:    mobility || undefined,
-      notes:       notes.trim() || undefined,
+      pain_level:   painLevel,
+      mood:         mood     || undefined,
+      appetite:     appetite || undefined,
+      mobility:     mobility || undefined,
+      notes:        notes.trim() || undefined,
     })
+  }
+
+  function resetForm() {
+    setShowForm(false)
+    setError(null)
   }
 
   if (!expanded) {
@@ -84,9 +131,14 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="text-sm text-gray-400 hover:text-gray-600 transition-colors w-full text-left"
+          aria-expanded="false"
+          aria-controls="symptom-panel-body"
+          className="text-sm text-gray-400 hover:text-gray-600 transition-colors w-full text-left flex items-center justify-between"
         >
-          Symptom readings
+          <span>Symptom readings</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
       </div>
     )
@@ -95,48 +147,64 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
   return (
     <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-50">
-        <p className="text-sm font-medium text-gray-700">Symptom readings</p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Symptom readings</span>
+          {readings.length > 0 && (
+            <span className="text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5" aria-label={readings.length + ' recent readings'}>
+              {readings.length}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="text-xs text-gray-400 hover:text-gray-600"
+          aria-expanded="true"
+          aria-controls="symptom-panel-body"
+          aria-label="Collapse symptom readings"
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
           Collapse
         </button>
       </div>
 
-      <div className="px-4 py-3">
-        {isLoading && <p className="text-sm text-gray-400">Loading...</p>}
+      <div id="symptom-panel-body" className="px-4 py-3">
+        {isLoading && (
+          <div className="flex items-center gap-2 py-2" role="status" aria-label="Loading symptom readings">
+            <div className="h-4 w-4 rounded-full border-2 border-gray-200 border-t-gray-500 animate-spin" aria-hidden="true" />
+            <span className="text-sm text-gray-400">Loading...</span>
+          </div>
+        )}
 
         {!isLoading && readings.length === 0 && (
           <p className="text-sm text-gray-400 mb-3">No readings recorded yet.</p>
         )}
 
         {readings.length > 0 && (
-          <div className="space-y-2 mb-4">
+          <ul className="space-y-1 mb-4" role="list" aria-label="Recent symptom readings">
             {readings.map(r => {
               const dateStr = new Date(r.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-              const moodCls = r.mood ? (moodColors[r.mood] ?? 'bg-gray-100 text-gray-600') : ''
+              const tagCls  = r.mood ? (MOOD_TAG_CLS[r.mood] ?? 'bg-gray-50 text-gray-500') : ''
+              const pColor  = r.pain_level !== null ? painColor(r.pain_level) : ''
               return (
-                <div key={r.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <span className="text-xs text-gray-400 w-16 shrink-0">{dateStr}</span>
+                <li key={r.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                  <time dateTime={r.recorded_at} className="text-xs text-gray-400 w-16 shrink-0">{dateStr}</time>
                   {r.pain_level !== null && (
-                    <span className="text-xs font-medium text-gray-700 shrink-0">
-                      Pain: {r.pain_level}/10
+                    <span className={'text-xs font-semibold tabular-nums shrink-0 ' + pColor} aria-label={'Pain level ' + r.pain_level + ' out of 10'}>
+                      {r.pain_level}/10
                     </span>
                   )}
                   {r.mood && (
-                    <span className={'text-xs px-2 py-0.5 rounded-full shrink-0 ' + moodCls}>
-                      {moodLabels[r.mood] ?? r.mood}
+                    <span className={'text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ' + tagCls}>
+                      {r.mood.charAt(0).toUpperCase() + r.mood.slice(1)}
                     </span>
                   )}
                   {r.notes && (
                     <span className="text-xs text-gray-400 truncate">{r.notes}</span>
                   )}
-                </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
 
         {canLog && !showForm && (
@@ -150,101 +218,140 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
         )}
 
         {canLog && showForm && (
-          <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-2 space-y-5">
+
+            {/* Pain level */}
+            <fieldset>
+              <legend className="block text-xs font-medium text-gray-600 mb-2">Pain level</legend>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <input
+                    id="symptom-pain"
+                    type="range"
+                    min={0}
+                    max={10}
+                    value={painLevel}
+                    onChange={e => setPainLevel(parseInt(e.target.value, 10))}
+                    className="w-full accent-gray-700"
+                    aria-label="Pain level"
+                    aria-valuemin={0}
+                    aria-valuemax={10}
+                    aria-valuenow={painLevel}
+                    aria-valuetext={painLevel + ' out of 10 — ' + painLabel(painLevel)}
+                  />
+                  <div className="flex justify-between text-xs text-gray-300 mt-0.5" aria-hidden="true">
+                    <span>None</span>
+                    <span>Severe</span>
+                  </div>
+                </div>
+                <div className="text-center shrink-0 w-14" aria-hidden="true">
+                  <p className={'text-2xl font-bold tabular-nums leading-none ' + painColor(painLevel)}>{painLevel}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{painLabel(painLevel)}</p>
+                </div>
+              </div>
+            </fieldset>
+
+            {/* Mood */}
+            <fieldset>
+              <legend className="block text-xs font-medium text-gray-600 mb-2">Mood</legend>
+              <div className="flex flex-wrap gap-2" role="group">
+                {MOOD_OPTS.map(opt => {
+                  const isSelected = mood === opt.value
+                  const activeCls  = MOOD_ACTIVE_CLS[opt.value] ?? 'bg-gray-100 text-gray-700 border-gray-300'
+                  const cls = 'px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 ' +
+                    (isSelected ? activeCls : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700')
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setMood(isSelected ? '' : opt.value as MoodVal)}
+                      className={cls}
+                      aria-pressed={isSelected}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
+
+            {/* Appetite + Mobility */}
+            <div className="grid grid-cols-2 gap-4">
+              <fieldset>
+                <legend className="block text-xs font-medium text-gray-600 mb-2">Appetite</legend>
+                <div className="flex flex-wrap gap-1.5" role="group">
+                  {APPETITE_OPTS.map(opt => {
+                    const isSelected = appetite === opt.value
+                    const cls = 'px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 ' +
+                      (isSelected ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700')
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setAppetite(isSelected ? '' : opt.value as AppetiteVal)}
+                        className={cls}
+                        aria-pressed={isSelected}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend className="block text-xs font-medium text-gray-600 mb-2">Mobility</legend>
+                <div className="flex flex-wrap gap-1.5" role="group">
+                  {MOBILITY_OPTS.map(opt => {
+                    const isSelected = mobility === opt.value
+                    const cls = 'px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 ' +
+                      (isSelected ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700')
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setMobility(isSelected ? '' : opt.value as MobilityVal)}
+                        className={cls}
+                        aria-pressed={isSelected}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+            </div>
+
+            {/* Notes */}
             <div>
-              <label htmlFor="symptom-pain" className="block text-xs text-gray-500 mb-1">
-                Pain level: {painLevel}/10
+              <label htmlFor="symptom-notes" className="block text-xs font-medium text-gray-600 mb-1">
+                Notes <span className="font-normal text-gray-400">(optional)</span>
               </label>
-              <input
-                id="symptom-pain"
-                type="range"
-                min={0}
-                max={10}
-                value={painLevel}
-                onChange={e => setPainLevel(parseInt(e.target.value, 10))}
-                className="w-full accent-gray-900"
-              />
-              <div className="flex justify-between text-xs text-gray-300 mt-0.5">
-                <span>0 — none</span>
-                <span>10 — severe</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label htmlFor="symptom-mood" className="block text-xs text-gray-500 mb-1">Mood</label>
-                <select
-                  id="symptom-mood"
-                  value={mood}
-                  onChange={e => setMood(e.target.value as 'good'|'okay'|'difficult'|'crisis'|'')}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
-                >
-                  <option value="">—</option>
-                  <option value="good">Good</option>
-                  <option value="okay">Okay</option>
-                  <option value="difficult">Difficult</option>
-                  <option value="crisis">Crisis</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="symptom-appetite" className="block text-xs text-gray-500 mb-1">Appetite</label>
-                <select
-                  id="symptom-appetite"
-                  value={appetite}
-                  onChange={e => setAppetite(e.target.value as 'normal'|'reduced'|'poor'|'none'|'')}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
-                >
-                  <option value="">—</option>
-                  <option value="normal">Normal</option>
-                  <option value="reduced">Reduced</option>
-                  <option value="poor">Poor</option>
-                  <option value="none">None</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="symptom-mobility" className="block text-xs text-gray-500 mb-1">Mobility</label>
-                <select
-                  id="symptom-mobility"
-                  value={mobility}
-                  onChange={e => setMobility(e.target.value as 'normal'|'limited'|'assisted'|'bedbound'|'')}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
-                >
-                  <option value="">—</option>
-                  <option value="normal">Normal</option>
-                  <option value="limited">Limited</option>
-                  <option value="assisted">Assisted</option>
-                  <option value="bedbound">Bedbound</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="symptom-notes" className="block text-xs text-gray-500 mb-1">Notes</label>
               <textarea
                 id="symptom-notes"
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 maxLength={1000}
                 rows={2}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 resize-none"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent resize-none placeholder:text-gray-300"
                 placeholder="Any additional observations..."
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
             <div className="flex items-center justify-between pt-1">
               <button
                 type="button"
-                onClick={() => { setShowForm(false); setError(null) }}
-                className="text-sm text-gray-400 hover:text-gray-600"
+                onClick={resetForm}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={logMutation.isPending}
-                className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
               >
                 {logMutation.isPending ? 'Saving...' : 'Save reading'}
               </button>
