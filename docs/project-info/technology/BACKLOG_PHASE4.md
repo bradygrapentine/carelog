@@ -222,8 +222,8 @@ Two formats:
 
 | Story | Status | Agent | Reason |
 |-------|--------|-------|--------|
-| P4-01 Symptom tracker | ⬜ NOT STARTED | Claude Code | New table + router + UI, multi-file |
-| P4-02 Burnout tracker | ⬜ NOT STARTED | Claude Code | New table + router + UI + Inngest alert |
+| P4-01 Symptom tracker | ✅ SHIPPED 2026-04-10 | Claude Code | New table + router + UI, multi-file |
+| P4-02 Burnout tracker | ✅ SHIPPED 2026-04-10 | Claude Code | New table + router + UI + Inngest alert |
 | P4-03 Full history export | ⬜ NOT STARTED | Claude Code | API route + PDF/JSON generation, vault access |
 
 ---

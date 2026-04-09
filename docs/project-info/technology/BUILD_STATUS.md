@@ -47,7 +47,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
 
 ### Testing
-- [x] Vitest unit tests — 279 tests across 27 files (all passing)
+- [x] Vitest unit tests — 400+ tests (all passing)
 - [x] pgTAP RLS tests — 18+ tests, all passing
 - [x] Playwright E2E — journal flow, reactions, flagging, roles, invites (25+ tests)
 
@@ -78,10 +78,14 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Share link — no account required (`claim_outer_circle_slot()` atomic fn, 409 on slot full)
 - [x] Care brief generator — `POST /api/brief`, vault de-tokenized once, public `/brief/[token]`, revoke
 
-## Phase 4-5 — Wellbeing + finances
+## Phase 4 — Depth and retention
 
-- [ ] Burnout tracker
-- [ ] Symptom tracker
+- [x] Symptom tracker — `SymptomPanel.tsx`, tRPC symptoms router (list/log), RLS-enforced, coordinator+caregiver write
+- [x] Burnout tracker — `BurnoutCheckin.tsx`, tRPC burnout router (checkIn/myHistory/orgSummary), weekly check-in idempotent via UNIQUE constraint, burnoutAlert Inngest cron (Mon 8am UTC)
+- [ ] Full history export
+
+## Phase 5 — Finances + documents
+
 - [ ] Shared expense log
 - [ ] Document vault
 
@@ -91,10 +95,18 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [ ] Vercel deploy + environment variables
 - [ ] Server-side auth fix (auto-resolves on Supabase cloud)
 - [ ] Domain + SSL
-- [ ] Stripe billing — $14/mo or $120/yr family plan
+- [ ] Stripe billing — $14/mo or $120/yr family plan (`stripe` SDK installed; `/api/stripe/webhook` route not yet created)
 - [ ] Inngest cloud setup
 - [ ] Resend transactional email
-- [ ] Sentry error tracking
-- [ ] PostHog analytics
+- [ ] Sentry error tracking (`@sentry/nextjs` not installed; no config files exist)
+- [ ] PostHog analytics (`posthog-js` not installed; no provider exists)
 - [ ] Mobile app offline queue wired to tRPC
 - [ ] Error boundaries on all client pages
+
+## Runbooks
+
+Operational runbooks live in `docs/project-info/runbooks/`:
+- `DEPLOY.md` — production deploy guide
+- `MANUAL_TESTING.md` — QA testing checklist for web + mobile
+- `THIRD_PARTY_SETUP.md` — external service accounts and configuration
+- `CODEBASE_EDUCATION.md` — reading path for new contributors

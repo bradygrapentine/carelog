@@ -13,6 +13,8 @@ import { MedicationPanel } from './MedicationPanel'
 import { MedicationChecklist } from './MedicationChecklist'
 import { OcrReviewPanel } from './OcrReviewPanel'
 import { OuterCirclePanel } from './OuterCirclePanel'
+import { SymptomPanel } from './SymptomPanel'
+import { BurnoutCheckin } from './BurnoutCheckin'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -200,6 +202,12 @@ export function JournalClient({ recipientId }: Props) {
         </div>
         <div className="mt-6">
           <MedicationChecklist orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
+        </div>
+        <div className="mt-6">
+          <SymptomPanel orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
+        </div>
+        <div className="mt-6">
+          <BurnoutCheckin orgId={org?.id ?? ''} currentUserRole={currentUserRole} currentUserId={user?.id ?? ''} />
         </div>
         {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
