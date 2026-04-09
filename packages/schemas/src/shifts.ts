@@ -8,6 +8,10 @@ export const shiftCreateInput = z
     start_at:         z.string().datetime(),
     end_at:           z.string().datetime(),
     notes:            z.string().max(2000).optional(),
+    recurrence:       z.object({
+      freq:  z.literal('weekly'),
+      weeks: z.number().int().min(1).max(12),
+    }).optional(),
   })
   .refine((d) => new Date(d.end_at) > new Date(d.start_at), {
     message: "end_at must be after start_at",

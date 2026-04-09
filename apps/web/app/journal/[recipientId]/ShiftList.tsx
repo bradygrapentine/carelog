@@ -136,6 +136,7 @@ export function ShiftList({ orgId, recipientId, members, currentUserId, currentU
                     const startAt = shift.start_at as string
                     const endAt = shift.end_at as string
                     const notes = shift.notes as string | undefined
+                    const isRecurring = !!(shift.recurring as boolean | undefined)
                     const isOwn = assigneeId === currentUserId
                     const isCancelled = status === 'cancelled'
                     const canCancel = currentUserRole === 'coordinator' && !isCancelled
@@ -159,14 +160,26 @@ export function ShiftList({ orgId, recipientId, members, currentUserId, currentU
                           )}
                         </div>
                         {canCancel && (
-                          <button
-                            type="button"
-                            onClick={() => cancelMutation.mutate({ id: shiftId, org_id: orgId })}
-                            disabled={cancelMutation.isPending}
-                            className="text-xs text-red-500 hover:text-red-700 ml-3 shrink-0"
-                          >
-                            Cancel
-                          </button>
+                          <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => cancelMutation.mutate({ id: shiftId, org_id: orgId })}
+                              disabled={cancelMutation.isPending}
+                              className="text-xs text-red-500 hover:text-red-700"
+                            >
+                              Cancel
+                            </button>
+                            {isRecurring && (
+                              <button
+                                type="button"
+                                onClick={() => cancelMutation.mutate({ id: shiftId, org_id: orgId, cancel_future: true })}
+                                disabled={cancelMutation.isPending}
+                                className="text-xs text-red-400 hover:text-red-600"
+                              >
+                                Cancel series
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     )

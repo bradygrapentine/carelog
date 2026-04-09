@@ -66,9 +66,35 @@ export const shiftsRouter = router({
       await requireCoordinator(input.org_id, ctx.user.id);
       await requireAssigneeInOrg(input.org_id, input.assignee_user_id);
 
-      // Application-layer overlap check — a DB-level exclusion constraint
-      // (shifts_no_overlap via GiST) enforces this atomically and is the
-      // authoritative guard. This check gives a friendlier error message.
+      const { recurrence, ...baseFields } = input;
+
+      if (recurrence) {
+        // Recurring: bulk-insert N weekly shifts. Skip application-layer overlap
+        // check — the DB GiST exclusion constraint (shifts_no_overlap) is the
+        // authoritative guard for the entire series.
+        const seriesId = crypto.randomUUID();
+        const weekMs = 7 * 24 * 60 * 60 * 1000;
+        const rows = Array.from({ length: recurrence.weeks }, (_, i) => ({
+          org_id:           input.org_id,
+          recipient_id:     input.recipient_id,
+          assignee_user_id: input.assignee_user_id,
+          start_at:         new Date(new Date(input.start_at).getTime() + i * weekMs).toISOString(),
+          end_at:           new Date(new Date(input.end_at).getTime() + i * weekMs).toISOString(),
+          notes:            input.notes,
+          status:           "scheduled",
+          created_by:       ctx.user.id,
+          recurring:        true,
+          recurrence:       { freq: 'weekly', weeks: recurrence.weeks, series_id: seriesId },
+        }));
+
+        const { data, error } = await supabaseAdmin.from("shifts").insert(rows).select();
+        if (error) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        }
+        return data;
+      }
+
+      // Single shift: application-layer overlap check for friendly error message.
       const { data: overlaps, error: overlapError } = await supabaseAdmin
         .from("shifts")
         .select("id")
@@ -93,12 +119,12 @@ export const shiftsRouter = router({
       const { data, error } = await supabaseAdmin
         .from("shifts")
         .insert({
-          org_id:           input.org_id,
-          recipient_id:     input.recipient_id,
-          assignee_user_id: input.assignee_user_id,
-          start_at:         input.start_at,
-          end_at:           input.end_at,
-          notes:            input.notes,
+          org_id:           baseFields.org_id,
+          recipient_id:     baseFields.recipient_id,
+          assignee_user_id: baseFields.assignee_user_id,
+          start_at:         baseFields.start_at,
+          end_at:           baseFields.end_at,
+          notes:            baseFields.notes,
           status:           "scheduled",
           created_by:       ctx.user.id,
         })
@@ -137,9 +163,45 @@ export const shiftsRouter = router({
     }),
 
   cancel: protectedProcedure
-    .input(z.object({ id: z.string().uuid(), org_id: z.string().uuid() }))
+    .input(z.object({
+      id:            z.string().uuid(),
+      org_id:        z.string().uuid(),
+      cancel_future: z.boolean().optional(),
+    }))
     .mutation(async ({ ctx, input }) => {
       await requireCoordinator(input.org_id, ctx.user.id);
+
+      if (input.cancel_future) {
+        // Fetch the target shift to get series_id and start_at
+        const { data: target, error: fetchError } = await supabaseAdmin
+          .from("shifts")
+          .select("start_at, recurrence")
+          .eq("id", input.id)
+          .eq("org_id", input.org_id)
+          .single();
+
+        if (fetchError || !target) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const seriesId = (target.recurrence as { series_id?: string } | null)?.series_id;
+        if (!seriesId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Shift is not part of a series." });
+        }
+
+        const { error } = await supabaseAdmin
+          .from("shifts")
+          .update({ status: "cancelled" })
+          .eq("org_id", input.org_id)
+          .filter("recurrence->>series_id", "eq", seriesId)
+          .gte("start_at", target.start_at);
+
+        if (error) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        }
+
+        return { cancelled: 'series' };
+      }
 
       const { data, error } = await supabaseAdmin
         .from("shifts")

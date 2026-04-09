@@ -40,6 +40,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
   const [endTime,    setEndTime]    = useState('')
   const [assigneeId, setAssigneeId] = useState('')
   const [notes,      setNotes]      = useState('')
+  const [recurring,  setRecurring]  = useState(false)
+  const [weeks,      setWeeks]      = useState('4')
   const [error,      setError]      = useState<string | null>(null)
 
   const createMutation = trpc.shifts.create.useMutation()
@@ -58,6 +60,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
     const et  = endTime
     const aId = assigneeId
     const n   = notes.trim() || undefined
+    const rec = recurring
+    const w   = parseInt(weeks, 10)
 
     // Force UTC by appending Z suffix — tests assert UTC timestamps
     const startAt = new Date(d + 'T' + st + ':00Z').toISOString()
@@ -74,6 +78,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
         start_at:         startAt,
         end_at:           endAt,
         notes:            n,
+        recurrence:       rec ? { freq: 'weekly', weeks: w } : undefined,
       })
       setExpanded(false)
       setDate(new Date().toISOString().slice(0, 10))
@@ -82,6 +87,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
       setEndTime('')
       setAssigneeId('')
       setNotes('')
+      setRecurring(false)
+      setWeeks('4')
       onSuccess()
     } catch (err: unknown) {
       const code = (err as { data?: { code?: string } })?.data?.code
@@ -181,7 +188,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           </select>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3">
           <label htmlFor="shift-notes" className="block text-xs text-gray-500 mb-1">Notes (optional)</label>
           <textarea
             id="shift-notes"
@@ -191,6 +198,29 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             rows={2}
             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 resize-none"
           />
+        </div>
+
+        <div className="mb-4 flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={recurring}
+              onChange={e => setRecurring(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-600">Repeat weekly for</span>
+          </label>
+          {recurring && (
+            <select
+              value={weeks}
+              onChange={e => setWeeks(e.target.value)}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-400"
+            >
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                <option key={n} value={String(n)}>{n} {n === 1 ? 'week' : 'weeks'}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         {error && (
@@ -210,7 +240,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             disabled={!canSubmit}
             className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {createMutation.isPending ? 'Scheduling...' : 'Schedule shift'}
+            {createMutation.isPending ? 'Scheduling...' : recurring ? 'Schedule ' + weeks + ' shifts' : 'Schedule shift'}
           </button>
         </div>
       </form>
