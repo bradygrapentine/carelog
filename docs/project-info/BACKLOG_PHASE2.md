@@ -4,7 +4,7 @@
 **Phase:** Scheduler (shifts, coverage, gap detection)
 **Prerequisite:** Phase 1 cleanup stories (P1-01–P1-03) must ship first.
 
-**Scan summary:** P1-01 ✅ done | P1-02 ⚠️ partial | P1-03 ⚠️ partial | P2-01–P2-07 ❌ not started (P2-06 DB column exists)
+**Scan summary:** P1-01 ✅ done | P1-02 ✅ done | P1-03 ✅ done | P2-01–P2-07 ❌ not started (P2-06 DB column exists)
 
 ---
 
