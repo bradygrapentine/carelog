@@ -15,6 +15,7 @@ import { OcrReviewPanel } from './OcrReviewPanel'
 import { OuterCirclePanel } from './OuterCirclePanel'
 import { SymptomPanel } from './SymptomPanel'
 import { BurnoutCheckin } from './BurnoutCheckin'
+import { ExportButton }  from './ExportButton'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -209,6 +210,11 @@ export function JournalClient({ recipientId }: Props) {
         <div className="mt-6">
           <BurnoutCheckin orgId={org?.id ?? ''} currentUserRole={currentUserRole} currentUserId={user?.id ?? ''} />
         </div>
+        {currentUserRole === 'coordinator' && org && (
+          <div className="mt-6">
+            <ExportButton orgId={org.id} recipientId={recipientId} currentUserRole={currentUserRole} />
+          </div>
+        )}
         {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
             <OcrReviewPanel orgId={org.id} recipientId={recipientId} />
