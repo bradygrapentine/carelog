@@ -77,9 +77,33 @@ Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable
 ### ~~9. No rate limiting on auth endpoints~~ FIXED
 `lib/rateLimit.ts` implements a 5-request / 15-minute fixed window per IP using Upstash Redis. Applied to all API routes. No-ops gracefully when `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are absent (local dev).
 
-### 10. Weekly digest stagger not wired
-`digestMinuteOffset()` is implemented and tested but not used anywhere yet.
-Wire it into the Inngest cron when building the digest feature.
+### ~~10. Weekly digest stagger not wired~~ FIXED
+`digestMinuteOffset()` is now imported and applied in `weeklyDigest.ts` via
+`step.sleep('stagger-' + orgId, digestMinuteOffset(orgId) + 's')`.
+
+---
+
+## Medium (fix before scale)
+
+### 12. coverageWindowsRouter and organizationsRouter lack security tests
+**Files:** `apps/web/server/routers/coverageWindows.ts`, `apps/web/server/routers/organizations.ts`
+
+**Problem:** No `*.security.test.ts` for these routers. The DB-level RLS still protects
+data, but router-level auth checks (coordinator-only create/delete) are untested.
+
+**Fix:** Add `coverageWindowsRouter.security.test.ts` and `organizationsRouter.security.test.ts`
+following the pattern in `shiftsRouter.security.test.ts`.
+
+---
+
+## Low (nice to fix)
+
+### 13. N+1 user lookup in weeklyDigest member email resolution (partially fixed)
+**File:** `apps/web/inngest/functions/weeklyDigest.ts` line ~174
+
+**Problem:** Shift assignee lookups were N+1 — now deduped and parallelized (BF-04).
+Member email resolution (memberships loop) was also N+1 — now deduped and parallelized.
+Both are resolved. Documented here for awareness of the pattern.
 
 ### 11. ~~~Supabase CLI version~~~ FIXED
 Running v2.75.0, latest is v2.84.2. Update before production:

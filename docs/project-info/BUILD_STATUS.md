@@ -35,10 +35,11 @@ Last updated: session 9
 - [x] Invite form — email + role selector (coordinator only)
 - [x] POST /api/invite — creates membership + invite token
 - [x] GET /api/invite/[token] — looks up invite details
-- [x] POST /api/invite/[token]/accept — validates + consumes + activates
+- [x] POST /api/invite/[token]/accept — atomic Postgres function, validates + consumes + activates
 - [x] /invite/[token] page — shows invite details, accept button
-- [ ] Pending invite redirect after sign-in (partially done — sessionStorage approach)
-- [ ] Team member display names (currently shows "You" / "Team member")
+- [x] Pending invite redirect — sessionStorage bridge, DashboardClient bounces to invite URL
+- [x] Entry detail view — full entry + reactions + flag status
+- [ ] Team member display names (partially done — `/api/members` resolves names, UI shows them)
 
 ### Weekly digest
 - [x] Inngest wired — client at `apps/web/inngest/client.ts`, serve at `/api/inngest`
@@ -46,22 +47,23 @@ Last updated: session 9
 - [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
 
 ### Testing
-- [x] Vitest unit tests — Zod schemas, utility functions (all passing)
-- [x] pgTAP RLS tests — 8 tests, all passing
-- [x] Playwright E2E — journal flow, reactions, flagging (7 tests, all passing)
+- [x] Vitest unit tests — 153 tests across 16 files (all passing)
+- [x] pgTAP RLS tests — 18+ tests, all passing
+- [x] Playwright E2E — journal flow, reactions, flagging, roles, invites (25+ tests)
 
 ## Phase 1 remaining
 
-- [ ] Pending invite redirect — after sign-in, auto-redirect back to invite URL
-- [ ] Display name resolution — show actual names not "Team member"
-- [ ] Entry detail view — full entry + reactions + flag status
+- [ ] Display name resolution — show actual names not "Team member" (API ready, UI wiring partial)
 
 ## Phase 2 — Scheduler
 
-- [ ] Shift creation + assignment
-- [ ] Coverage request board
-- [ ] Gap detector — coverage_windows table already exists
-- [ ] Recurring shifts
+- [x] Shift model + tRPC router — `server/routers/shifts.ts`
+- [x] Shift creation UI — `ShiftForm.tsx`
+- [x] Shift list / caregiver view — `ShiftList.tsx`
+- [x] Coverage settings — `CoverageSettings.tsx`, `server/routers/coverageWindows.ts`
+- [x] Gap detector — `inngest/functions/gapDetector.ts` (daily 6am UTC)
+- [x] Recurring shifts — ShiftForm "Repeat weekly for N weeks" toggle, bulk insert, cancel series
+- [x] Weekly digest shift section — "Here's who's helping this week" with assignee names
 
 ## Phase 3 — Medical
 

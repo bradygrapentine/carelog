@@ -44,6 +44,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
   const [weeks,      setWeeks]      = useState('4')
   const [error,      setError]      = useState<string | null>(null)
 
+  const utils = trpc.useUtils()
   const createMutation = trpc.shifts.create.useMutation()
 
   // Supporters cannot be shift assignees
@@ -80,6 +81,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
         notes:            n,
         recurrence:       rec ? { freq: 'weekly', weeks: w } : undefined,
       })
+      utils.shifts.list.invalidate()
       setExpanded(false)
       setDate(new Date().toISOString().slice(0, 10))
       setStartTime('')

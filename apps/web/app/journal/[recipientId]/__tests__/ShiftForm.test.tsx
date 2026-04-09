@@ -5,13 +5,15 @@ import { ShiftForm } from '../ShiftForm'
 
 // vi.hoisted ensures mockMutateAsync is available inside the vi.mock factory,
 // which is hoisted above all imports by Vitest.
-const { mockMutateAsync, mockUseMutation } = vi.hoisted(() => ({
+const { mockMutateAsync, mockUseMutation, mockInvalidate } = vi.hoisted(() => ({
   mockMutateAsync: vi.fn(),
   mockUseMutation: vi.fn(),
+  mockInvalidate:  vi.fn(),
 }))
 
 vi.mock('@/lib/trpc', () => ({
   trpc: {
+    useUtils: () => ({ shifts: { list: { invalidate: mockInvalidate } } }),
     shifts: {
       create: {
         useMutation: mockUseMutation,

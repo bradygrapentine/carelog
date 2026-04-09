@@ -1,6 +1,7 @@
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { resend } from '../../server/resend.server'
+import { digestMinuteOffset } from '@carelog/utils'
 
 type Entry = {
   id: string
@@ -170,12 +171,14 @@ export const weeklyDigest = inngest.createFunction(
           if (membershipsError) throw new Error('Memberships query failed: ' + membershipsError.message)
           if (!memberships || memberships.length === 0) return
 
-          // Resolve member emails via auth.users
-          const emails: string[] = []
-          for (const m of memberships) {
-            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(m.user_id)
-            if (user?.email) emails.push(user.email)
-          }
+          // Resolve member emails — deduplicate user IDs, fetch in parallel
+          const memberIds = [...new Set(memberships.map(m => m.user_id))]
+          const memberUsers = await Promise.all(
+            memberIds.map(id => supabaseAdmin.auth.admin.getUserById(id))
+          )
+          const emails: string[] = memberUsers
+            .map(r => r.data.user?.email)
+            .filter((e): e is string => !!e)
 
           if (emails.length === 0) return
 
@@ -192,17 +195,26 @@ export const weeklyDigest = inngest.createFunction(
             .neq('status', 'cancelled')
             .order('start_at', { ascending: true })
 
-          const digestShifts: Shift[] = []
-          for (const s of (rawShifts ?? [])) {
-            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(s.assignee_user_id)
-            const name = user?.user_metadata?.display_name ?? user?.email ?? 'Care team member'
-            digestShifts.push({
-              start_at:      s.start_at,
-              end_at:        s.end_at,
-              assignee_name: name,
-              status:        s.status,
-            })
+          // Resolve assignee names — deduplicate user IDs, fetch in parallel
+          const assigneeIds = [...new Set((rawShifts ?? []).map(s => s.assignee_user_id))]
+          const assigneeUsers = await Promise.all(
+            assigneeIds.map(id => supabaseAdmin.auth.admin.getUserById(id))
+          )
+          const assigneeNameMap = new Map<string, string>()
+          for (let i = 0; i < assigneeIds.length; i++) {
+            const u = assigneeUsers[i].data.user
+            assigneeNameMap.set(assigneeIds[i], u?.user_metadata?.display_name ?? u?.email ?? 'Care team member')
           }
+
+          const digestShifts: Shift[] = (rawShifts ?? []).map(s => ({
+            start_at:      s.start_at,
+            end_at:        s.end_at,
+            assignee_name: assigneeNameMap.get(s.assignee_user_id) ?? 'Care team member',
+            status:        s.status,
+          }))
+
+          // Stagger sends across orgs to avoid burst load (BF-05)
+          await step.sleep('stagger-' + orgId, digestMinuteOffset(orgId) + 's')
 
           if (!resend) {
             logger.warn('RESEND_API_KEY not set — skipping email for org ' + orgId)

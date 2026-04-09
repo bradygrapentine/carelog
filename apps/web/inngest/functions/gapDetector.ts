@@ -90,8 +90,8 @@ export const gapDetector = inngest.createFunction(
             .select('start_at, end_at, status, assignee_user_id')
             .eq('org_id', orgId)
             .eq('recipient_id', recipientId)
-            .gte('start_at', todayStart)
-            .lte('start_at', todayEnd)
+            .lt('start_at', todayEnd)
+            .gt('end_at', todayStart)
             .neq('status', 'cancelled')
 
           if (shiftsError) throw new Error('Shifts query failed: ' + shiftsError.message)
