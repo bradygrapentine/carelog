@@ -75,7 +75,7 @@ export function ShiftList({ orgId, recipientId, members, currentUserId, currentU
     onSuccess: () => utils.shifts.list.invalidate(),
   })
 
-  const shifts = data?.rows ?? []
+  const shifts = data ?? []
   const grouped = groupByDay(shifts)
 
   function lookupName(userId: string): string {

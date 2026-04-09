@@ -69,7 +69,7 @@ beforeEach(() => {
 
 describe('ShiftList — empty state', () => {
   it('renders "No shifts scheduled" when list is empty', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [], isLoading: false })
     renderList()
     expect(screen.getByText(/no shifts scheduled this week/i)).toBeInTheDocument()
   })
@@ -79,14 +79,14 @@ describe('ShiftList — empty state', () => {
 
 describe('ShiftList — shift cards', () => {
   it('renders shift cards with assignee names', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift()] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift()], isLoading: false })
     renderList()
     expect(screen.getByText('Bob')).toBeInTheDocument()
     expect(screen.getByText('scheduled')).toBeInTheDocument()
   })
 
   it('shows notes when present', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift({ notes: 'Bring meds' })] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift({ notes: 'Bring meds' })], isLoading: false })
     renderList()
     expect(screen.getByText('Bring meds')).toBeInTheDocument()
   })
@@ -96,13 +96,13 @@ describe('ShiftList — shift cards', () => {
 
 describe('ShiftList — Your shift label', () => {
   it('shows "Your shift" for current user\'s shifts', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift({ assignee_user_id: USER_A_ID })] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift({ assignee_user_id: USER_A_ID })], isLoading: false })
     renderList({ currentUserId: USER_A_ID })
     expect(screen.getByText('Your shift')).toBeInTheDocument()
   })
 
   it('does not show "Your shift" for other user\'s shifts', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift({ assignee_user_id: USER_B_ID })] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift({ assignee_user_id: USER_B_ID })], isLoading: false })
     renderList({ currentUserId: USER_A_ID })
     expect(screen.queryByText('Your shift')).not.toBeInTheDocument()
   })
@@ -112,26 +112,26 @@ describe('ShiftList — Your shift label', () => {
 
 describe('ShiftList — cancel button', () => {
   it('shows cancel button for coordinator role', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift()] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift()], isLoading: false })
     renderList({ currentUserRole: 'coordinator' })
     expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
   })
 
   it('hides cancel button for caregiver role', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift()] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift()], isLoading: false })
     renderList({ currentUserRole: 'caregiver' })
     expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument()
   })
 
   it('hides cancel button for cancelled shifts', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift({ status: 'cancelled' })] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift({ status: 'cancelled' })], isLoading: false })
     renderList({ currentUserRole: 'coordinator' })
     expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument()
   })
 
   it('calls shifts.cancel.mutate with correct args when cancel is clicked', () => {
     const shiftId = '11111111-1111-1111-1111-111111111111'
-    mockUseQuery.mockReturnValue({ data: { rows: [makeShift({ id: shiftId })] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [makeShift({ id: shiftId })], isLoading: false })
     renderList({ currentUserRole: 'coordinator' })
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(mockMutate).toHaveBeenCalledWith({ id: shiftId, org_id: ORG_ID })
@@ -142,7 +142,7 @@ describe('ShiftList — cancel button', () => {
 
 describe('ShiftList — week navigation', () => {
   it('renders prev and next week buttons', () => {
-    mockUseQuery.mockReturnValue({ data: { rows: [] }, isLoading: false })
+    mockUseQuery.mockReturnValue({ data: [], isLoading: false })
     renderList()
     expect(screen.getByRole('button', { name: /previous week/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /next week/i })).toBeInTheDocument()
