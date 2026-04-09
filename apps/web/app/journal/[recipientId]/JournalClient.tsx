@@ -11,6 +11,7 @@ import { ShiftForm } from './ShiftForm'
 import { ShiftList } from './ShiftList'
 import { MedicationPanel } from './MedicationPanel'
 import { MedicationChecklist } from './MedicationChecklist'
+import { OcrReviewPanel } from './OcrReviewPanel'
 import { OuterCirclePanel } from './OuterCirclePanel'
 
 interface Props { recipientId: string }
@@ -200,6 +201,11 @@ export function JournalClient({ recipientId }: Props) {
         <div className="mt-6">
           <MedicationChecklist orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
         </div>
+        {currentUserRole === 'coordinator' && org && (
+          <div className="mt-6">
+            <OcrReviewPanel orgId={org.id} recipientId={recipientId} />
+          </div>
+        )}
         {currentUserRole === 'coordinator' && (
           <div className="mt-6">
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3">

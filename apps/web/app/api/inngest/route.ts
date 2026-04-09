@@ -3,8 +3,9 @@ import { inngest } from '../../../inngest/client'
 import { weeklyDigest } from '../../../inngest/functions/weeklyDigest'
 import { gapDetector } from '../../../inngest/functions/gapDetector'
 import { refillAlert } from '../../../inngest/functions/refillAlert'
+import { ocrPrescription } from '../../../inngest/functions/ocrPrescription'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [weeklyDigest, gapDetector, refillAlert],
+  functions: [weeklyDigest, gapDetector, refillAlert, ocrPrescription],
 })
