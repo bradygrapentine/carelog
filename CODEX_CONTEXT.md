@@ -26,9 +26,9 @@ Turborepo + pnpm | Next.js 16 (App Router) | Expo SDK 52 | Supabase (Postgres + 
 8. PHI (real names/emails) must never leave the identity vault; all external systems (Sentry, PostHog, logs) receive UUIDs only
 
 ## Test commands
-- `pnpm test` — Vitest (452 tests, 50 test files)
+- `pnpm test` — Vitest (528 tests, 57 test files)
 - `supabase test db` — pgTAP RLS tests
 - `pnpm exec playwright test` — E2E
 
 ## Current phase
-Phase 3 complete (medical, outer circle, care brief). Wave 2 complete (history export). Before-launch items: Stripe billing, Sentry, PostHog, server-side auth migration.
+Phase 5 complete (shared expense log, benefits navigator, document vault, end-of-life planner). Before-launch items: Stripe billing, Sentry, PostHog, server-side auth migration.

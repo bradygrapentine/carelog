@@ -86,8 +86,10 @@ Last updated: 2026-04-09 (Phase 3 complete)
 
 ## Phase 5 — Finances + documents
 
-- [ ] Shared expense log
-- [ ] Document vault
+- [x] Shared expense log — `ExpensePanel.tsx`, tRPC expenses router (list/add), RLS-enforced, all org members
+- [x] Benefits navigator — `BenefitsNavigator.tsx`, tRPC benefits router, eligibility screening for 5 programs, coordinator-only
+- [x] Document vault — `DocumentVault.tsx`, `POST /api/documents/upload`, `GET /api/documents/[id]/download`, tRPC documentsRouter (list/delete), private `care-documents` Supabase Storage bucket, signed URLs (180s), coordinator upload/delete + all members read, MIME allowlist (PDF/JPEG/PNG/HEIC), 10 MB limit
+- [x] End-of-life planner — `EolPlanner.tsx`, tRPC eolPlanRouter (get/upsert), coordinator-only RLS (completely invisible to other roles), advance directive links from document vault, upsert on recipient_id
 
 ## Before launch (any phase)
 
