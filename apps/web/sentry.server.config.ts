@@ -13,7 +13,7 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  // PHI protection: never send PII to Sentry. The identity vault ensures only
+  // UUIDs reach error reports, but this adds a second layer of defence.
+  sendDefaultPii: false,
 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "../../lib/supabase";
+import posthog from "posthog-js";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ export function SignInForm() {
       setLoading(false);
       return;
     }
+    posthog.capture("sign_in_otp_requested");
     setSent(true);
     setLoading(false);
   }
@@ -43,7 +45,10 @@ export function SignInForm() {
       setLoading(false);
       return;
     }
-    console.log("verified, user:", data.user?.email);
+    if (data.user) {
+      posthog.identify(data.user.id); // UUID only — never email (PHI)
+      posthog.capture("sign_in_completed");
+    }
     window.location.replace("/dashboard");
   }
 
@@ -51,9 +56,9 @@ export function SignInForm() {
     return (
       <form onSubmit={handleVerifyOtp} className="space-y-6">
         <div className="text-center mb-2">
-          <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-[var(--color-primary-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-6 h-6 text-green-600"
+              className="w-6 h-6 text-[var(--color-primary)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -66,17 +71,17 @@ export function SignInForm() {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-medium text-gray-900 mb-1">
+          <h2 className="text-lg font-medium text-[var(--color-ink)] mb-1">
             Check your email
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[var(--color-muted)]">
             We sent a 6-digit code to <strong>{email}</strong>
           </p>
         </div>
         <div>
           <label
             htmlFor="otp"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-[var(--color-ink)] mb-1.5"
           >
             Enter your code
           </label>
@@ -91,14 +96,14 @@ export function SignInForm() {
             placeholder="123456"
             required
             maxLength={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2 text-center text-2xl font-mono tracking-widest text-sm text-[var(--color-ink)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           />
         </div>
-        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+        {error && <p className="text-sm text-[var(--color-danger)] text-center">{error}</p>}
         <button
           type="submit"
           disabled={loading || otp.length !== 6}
-          className="w-full py-2.5 px-4 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
         >
           {loading ? "Signing you in..." : "Sign in"}
         </button>
@@ -109,7 +114,7 @@ export function SignInForm() {
             setOtp("");
             setError(null);
           }}
-          className="w-full text-sm text-gray-500 hover:text-gray-700"
+          className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
         >
           Use a different email
         </button>
@@ -122,7 +127,7 @@ export function SignInForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-[var(--color-ink)] mb-1.5"
         >
           Email address
         </label>
@@ -133,18 +138,18 @@ export function SignInForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+          className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
       <button
         type="submit"
         disabled={loading || !email}
-        className="w-full py-2.5 px-4 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
       >
         {loading ? "Sending code..." : "Continue with email"}
       </button>
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-[var(--color-muted)]">
         We will send you a secure sign-in code. No password needed.
       </p>
     </form>

@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/parseBody";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const onboardingSchema = z.object({
   recipientName: z.string().min(1).max(200),
@@ -75,6 +76,13 @@ export async function POST(request: NextRequest) {
       .from("user_profiles")
       .update({ onboarded: true })
       .eq("id", userId);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: userId,
+      event: "care_team_created_server",
+      properties: { org_id: org.id, org_type: "family" },
+    });
 
     return NextResponse.json({ success: true, orgId: org.id });
   } catch (e: unknown) {

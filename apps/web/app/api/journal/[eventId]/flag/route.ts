@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
 import { rateLimit } from '@/lib/rateLimit'
 import { parseBody } from '@/lib/parseBody'
+import { inngest } from '@/inngest/client'
 
 const flagBodySchema = z.object({
   flagged: z.boolean(),
@@ -63,6 +64,14 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Notify coordinators when an entry is flagged for the doctor
+    if (body.flagged) {
+      await inngest.send({
+        name: 'journal/flagged',
+        data: { eventId: idParsed.data, orgId, recipientId: event.recipient_id },
+      })
     }
 
     return NextResponse.json({ success: true, flagged: body.flagged })

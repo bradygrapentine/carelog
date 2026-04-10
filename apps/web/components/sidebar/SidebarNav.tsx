@@ -43,8 +43,8 @@ export function SidebarNav({ showLabels = false, onNavigate }: Props) {
                 ? "px-3 py-2 w-full text-left"
                 : "w-10 h-10 justify-center mx-auto",
               isActive
-                ? "bg-[var(--color-sidebar-active)] border border-[rgba(59,130,246,0.4)] text-white"
-                : "text-slate-400 hover:text-slate-200 hover:bg-[var(--color-sidebar-item)]",
+                ? "bg-[rgba(167,139,250,0.2)] border border-[rgba(59,130,246,0.4)] text-white"
+                : "text-slate-400 hover:text-slate-200 hover:bg-[rgba(255,255,255,0.07)]",
             ].join(" ")}
           >
             <span className="text-base leading-none" aria-hidden="true">

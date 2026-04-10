@@ -109,4 +109,90 @@ export const careEventsRouter = router({
       }
       return data;
     }),
+
+  react: protectedProcedure
+    .input(
+      z.object({
+        eventId: z.string().uuid(),
+        reaction: z.enum(['heart', 'thinking_of_you', 'strong', 'grateful']),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('journal_reactions')
+        .upsert(
+          { event_id: input.eventId, user_id: ctx.user.id, reaction: input.reaction },
+          { onConflict: 'event_id,user_id' },
+        );
+      if (error) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      }
+    }),
+
+  unreact: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('journal_reactions')
+        .delete()
+        .eq('event_id', input.eventId)
+        .eq('user_id', ctx.user.id);
+      if (error) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      }
+    }),
+
+  reactions: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('journal_reactions')
+        .select('reaction, user_id')
+        .eq('event_id', input.eventId);
+      if (error) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      }
+      const counts: Record<string, number> = {};
+      let myReaction: string | null = null;
+      for (const row of data ?? []) {
+        counts[row.reaction] = (counts[row.reaction] ?? 0) + 1;
+        if (row.user_id === ctx.user.id) {
+          myReaction = row.reaction;
+        }
+      }
+      return { counts, myReaction };
+    }),
+
+  flag: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid(), flagged: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify the event exists and get its org
+      const { data: event } = await ctx.supabase
+        .from('care_events')
+        .select('id, org_id')
+        .eq('id', input.eventId)
+        .single();
+      if (!event) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+      }
+
+      // Only coordinators may flag
+      const { data: membership } = await supabaseAdmin
+        .from('memberships')
+        .select('role')
+        .eq('user_id', ctx.user.id)
+        .eq('org_id', event.org_id)
+        .single();
+      if (!membership || membership.role !== 'coordinator') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only coordinators can flag events' });
+      }
+
+      const { error } = await ctx.supabase
+        .from('care_events')
+        .update({ flagged: input.flagged })
+        .eq('id', input.eventId);
+      if (error) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      }
+    }),
 });

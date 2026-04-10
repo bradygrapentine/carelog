@@ -1,0 +1,8 @@
+appId: com.carelog.app
+---
+- launchApp
+- assertVisible: "Sign in to Carelog"
+- tapOn: "your@email.com"
+- inputText: "test@carelog.dev"
+- tapOn: "Send code"
+- assertVisible: "Check your email"

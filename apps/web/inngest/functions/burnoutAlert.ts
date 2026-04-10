@@ -1,5 +1,6 @@
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
+import { sendPushToOrgCoordinators } from '../pushNotification'
 
 // ─── pure detection logic (testable without Inngest) ─────────────────────────
 
@@ -138,6 +139,15 @@ export const burnoutAlert = inngest.createFunction(
 
           totalAlerts++
           logger.info('Burnout alert created for user ' + userId)
+          try {
+            await sendPushToOrgCoordinators(orgId, {
+              title: 'Caregiver wellbeing alert',
+              body: 'A team member has had high stress for 2+ weeks. Check in with your team.',
+              data: { screen: 'team' },
+            })
+          } catch (pushErr) {
+            logger.warn('Push failed for burnout alert user ' + userId + ': ' + String(pushErr))
+          }
         })
       )
     )

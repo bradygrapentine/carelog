@@ -20,9 +20,15 @@ export const SidebarContext = createContext<SidebarContextType>({
   setActiveDestination: () => {},
 });
 
-export function SidebarProvider({ children }: { children: React.ReactNode }) {
+export function SidebarProvider({
+  children,
+  defaultDestination,
+}: {
+  children: React.ReactNode;
+  defaultDestination?: Destination;
+}) {
   const [activeDestination, setActiveDestination] =
-    useState<Destination>("journal");
+    useState<Destination>(defaultDestination ?? "journal");
   return (
     <SidebarContext.Provider
       value={{ activeDestination, setActiveDestination }}

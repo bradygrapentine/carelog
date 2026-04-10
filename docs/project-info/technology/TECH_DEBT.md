@@ -41,16 +41,7 @@ Zod validation added to `journal`, `onboarding/create`, and `invite` routes. Inv
 
 ---
 
-### 4. Mobile offline queue has TODO stubs
-
-**File:** `apps/mobile/hooks/useOfflineWrite.ts`
-
-**Problem:** The `flushQueue()` function has a TODO comment where the actual
-tRPC call should be. The offline queue persists to SecureStore correctly but
-never actually syncs.
-
-**Fix:** Wire in the tRPC client and implement the actual flush call. Test on
-a real device with airplane mode toggled.
+### ~~4. Mobile offline queue had TODO stubs~~ FIXED — `flushQueue()` in `apps/mobile/hooks/useOfflineWrite.ts` is wired to `trpc.careEvents.insert.useMutation()` with idempotencyKey; NetInfo-triggered flush on reconnect.
 
 ---
 

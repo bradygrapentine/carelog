@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
 import { rateLimit } from '@/lib/rateLimit'
+import { getPostHogClient } from '@/lib/posthog-server'
 
 export async function POST(
   request: NextRequest,
@@ -43,6 +44,12 @@ export async function POST(
         { status }
       )
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "invite_accepted",
+    });
 
     return NextResponse.json({ success: true })
   } catch (e: unknown) {

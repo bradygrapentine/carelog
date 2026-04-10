@@ -1,4 +1,4 @@
-# Mobile App — Expo SDK 55
+# Mobile App — Expo SDK 55 (canary)
 
 ## Overview
 Expo managed workflow. Plans: `docs/superpowers/plans/2026-04-10-mobile-wave*.md`
@@ -35,6 +35,9 @@ Points at EXPO_PUBLIC_API_URL (localhost:3000 dev, Vercel prod).
 ## Watch bridge
 `utils/watchBridge.ts` — no-op stub in Wave 1; replaced by real Expo Module in Wave 3.
 DO NOT implement native logic here — see Wave 3 plan.
+
+`flushQueue()` is wired to `trpc.careEvents.insert.useMutation()` with idempotencyKey.
+Flush triggers on NetInfo reconnect and immediately after each write when online.
 
 ## iOS native files
 Never edit `apps/mobile/ios/` directly — use `expo prebuild --clean` to regenerate.

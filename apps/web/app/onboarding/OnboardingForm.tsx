@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "../../lib/supabase";
 import { authenticatedFetch } from "../../lib/authenticatedFetch";
+import posthog from "posthog-js";
 
 export function OnboardingForm() {
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,7 @@ export function OnboardingForm() {
       return;
     }
 
+    posthog.capture("care_team_created", { org_id: data.orgId });
     const pendingInvite = sessionStorage.getItem('pending_invite')
     window.location.href = pendingInvite ? '/invite/' + pendingInvite : '/dashboard'
   }
