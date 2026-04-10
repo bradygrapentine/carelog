@@ -1,3 +1,8 @@
+// Mock the native module before importing watchBridge
+jest.mock('../modules/carelog-watch', () => ({
+  writeWatchData: jest.fn(),
+}))
+
 import { writeWatchData } from '../utils/watchBridge'
 
 describe('watchBridge stub', () => {
