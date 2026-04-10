@@ -1,0 +1,284 @@
+"use client";
+
+import { useState } from "react";
+import { trpc } from "../../../../lib/trpc";
+import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
+import { Card, CardContent } from "@/components/ui/card";
+
+type Props = {
+  orgId: string;
+  recipientId: string;
+  currentUserRole: string;
+};
+
+type DocRow = {
+  id: string;
+  display_name: string;
+  doc_type: string;
+  file_size: number | null;
+  uploaded_by: string;
+  created_at: string;
+};
+
+const DOC_TYPE_OPTS = [
+  { value: "hipaa_authorization", label: "HIPAA Authorization" },
+  { value: "power_of_attorney", label: "Power of Attorney" },
+  { value: "advance_directive", label: "Advance Directive" },
+  { value: "insurance_card", label: "Insurance Card" },
+  { value: "medication_list", label: "Medication List" },
+  { value: "other", label: "Other" },
+] as const;
+
+const DOC_TYPE_COLORS: Record<string, string> = {
+  hipaa_authorization: "bg-purple-100 text-purple-700",
+  power_of_attorney: "bg-amber-100 text-amber-700",
+  advance_directive: "bg-red-100 text-red-700",
+  insurance_card: "bg-blue-100 text-blue-700",
+  medication_list: "bg-green-100 text-green-700",
+  other: "bg-gray-100 text-gray-700",
+};
+
+function formatBytes(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
+  const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [docType, setDocType] = useState("other");
+
+  const isCoordinator = currentUserRole === "coordinator";
+
+  const utils = trpc.useUtils();
+
+  const { data: docs = [], isLoading } = trpc.documents.list.useQuery(
+    { org_id: orgId, recipient_id: recipientId },
+    { enabled: open },
+  );
+
+  const deleteMutation = trpc.documents.delete.useMutation({
+    onSuccess: () => utils.documents.list.invalidate(),
+  });
+
+  async function handleUpload(e: React.FormEvent) {
+    const form = e.currentTarget as HTMLFormElement;
+    e.preventDefault();
+    const displayNameEl = form.elements.namedItem(
+      "displayName",
+    ) as HTMLInputElement;
+    const docTypeEl = form.elements.namedItem("docType") as HTMLSelectElement;
+    const fileEl = form.elements.namedItem("file") as HTMLInputElement;
+    const displayName = displayNameEl.value;
+    const docTypeVal = docTypeEl.value;
+    const file = fileEl.files?.[0];
+
+    if (!file || !displayName) {
+      setUploadError("Please provide a file and a display name.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("orgId", orgId);
+      formData.append("recipientId", recipientId);
+      formData.append("displayName", displayName);
+      formData.append("docType", docTypeVal);
+      formData.append("file", file);
+
+      const res = await authenticatedFetch("/api/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setUploadError(data.error ?? "Upload failed.");
+        return;
+      }
+
+      utils.documents.list.invalidate();
+      form.reset();
+      setDocType("other");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleDownload(docId: string) {
+    const url = "/api/documents/" + docId + "/download";
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left"
+        aria-expanded={open}
+      >
+        <span className="text-sm font-medium text-gray-700">
+          Document vault
+        </span>
+        <svg
+          className={
+            "w-4 h-4 text-gray-400 transition-transform " +
+            (open ? "rotate-180" : "")
+          }
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 border-t border-gray-50 space-y-4">
+          {isLoading && (
+            <p className="text-sm text-gray-400 pt-3">Loading...</p>
+          )}
+
+          {!isLoading && docs.length === 0 && (
+            <p className="text-sm text-gray-400 pt-3">
+              No documents uploaded yet.
+            </p>
+          )}
+
+          {!isLoading && docs.length > 0 && (
+            <ul className="divide-y divide-gray-50 pt-2">
+              {docs.map((doc: DocRow) => {
+                const colorClass =
+                  DOC_TYPE_COLORS[doc.doc_type] ?? "bg-gray-100 text-gray-700";
+                const sizeLabel = formatBytes(doc.file_size);
+                const dateLabel = new Date(doc.created_at).toLocaleDateString();
+                const metaLabel = sizeLabel
+                  ? dateLabel + " · " + sizeLabel
+                  : dateLabel;
+                const downloadAriaLabel = "Download " + doc.display_name;
+                const deleteAriaLabel = "Delete " + doc.display_name;
+                return (
+                  <li
+                    key={doc.id}
+                    className="py-2 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={
+                            "text-xs px-2 py-0.5 rounded-full font-medium " +
+                            colorClass
+                          }
+                        >
+                          {doc.doc_type.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {doc.display_name}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {metaLabel}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(doc.id)}
+                        className="text-xs text-blue-600 hover:underline"
+                        aria-label={downloadAriaLabel}
+                      >
+                        Download
+                      </button>
+                      {isCoordinator && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            deleteMutation.mutate({ id: doc.id, org_id: orgId })
+                          }
+                          className="text-gray-300 hover:text-red-400 transition-colors"
+                          aria-label={deleteAriaLabel}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {isCoordinator && (
+            <form
+              onSubmit={handleUpload}
+              className="space-y-2 pt-2 border-t border-gray-50"
+            >
+              <p className="text-xs font-medium text-gray-500">
+                Upload document
+              </p>
+              {uploadError && (
+                <p className="text-xs text-red-500">{uploadError}</p>
+              )}
+              <input
+                name="displayName"
+                type="text"
+                placeholder="Display name (e.g. Mom's POA)"
+                required
+                className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <select
+                name="docType"
+                value={docType}
+                onChange={(e) => setDocType(e.target.value)}
+                className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              >
+                {DOC_TYPE_OPTS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="file"
+                type="file"
+                required
+                className="w-full text-sm text-gray-600"
+              />
+              <button
+                type="submit"
+                disabled={uploading}
+                className="w-full text-sm bg-gray-900 text-white rounded-lg py-1.5 hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Upload"}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

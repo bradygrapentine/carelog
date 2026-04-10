@@ -8,42 +8,43 @@ export default async function SignInPage({
   const params = await searchParams;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-semibold text-gray-900">
-          Carelog
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-surface)] px-4 py-16">
+      {/* Logo */}
+      <div className="mb-8 flex flex-col items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]" aria-hidden="true" />
+        <span className="text-xl font-bold tracking-tight text-[var(--color-ink)]">Carelog</span>
+      </div>
+
+      {/* Card */}
+      <div className="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-white px-8 py-10 shadow-sm">
+        <h1 className="mb-6 text-center text-xl font-bold text-[var(--color-ink)]">
+          Sign in to Carelog
         </h1>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Care coordination for families
-        </p>
+
+        {params.error && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-[var(--color-danger)]"
+          >
+            {params.error === "auth_callback_failed"
+              ? "Something went wrong. Please try again."
+              : params.error}
+          </div>
+        )}
+
+        {params.message && (
+          <div className="mb-4 rounded-xl bg-[var(--color-primary-subtle)] px-4 py-3 text-sm text-[var(--color-primary)]">
+            {params.message}
+          </div>
+        )}
+
+        <SignInForm />
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm border border-gray-100 rounded-xl sm:px-10">
-          {params.error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg">
-              <p className="text-sm text-red-700">
-                {params.error === "auth_callback_failed"
-                  ? "Something went wrong. Please try again."
-                  : params.error}
-              </p>
-            </div>
-          )}
-
-          {params.message && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-              <p className="text-sm text-blue-700">{params.message}</p>
-            </div>
-          )}
-
-          <SignInForm />
-        </div>
-
-        <p className="mt-6 text-center text-xs text-gray-500">
-          Private, secure, and ad-free. Your family&apos;s information never
-          leaves your care team.
-        </p>
-      </div>
+      {/* Trust tagline */}
+      <p className="mt-6 text-center text-xs text-[var(--color-muted)]">
+        Private, secure, and ad-free. Your family&apos;s information never leaves your care team.
+      </p>
     </div>
   );
 }
