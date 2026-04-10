@@ -99,7 +99,7 @@ export function OuterCirclePanel({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-text-muted)] hover:text-gray-600 transition-colors"
+            className="text-sm text-[var(--color-muted)] hover:text-gray-600 transition-colors"
           >
             + Volunteer requests
           </button>
@@ -115,7 +115,7 @@ export function OuterCirclePanel({
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="text-xs text-[var(--color-text-muted)] hover:text-gray-600"
+          className="text-xs text-[var(--color-muted)] hover:text-gray-600"
         >
           Collapse
         </button>

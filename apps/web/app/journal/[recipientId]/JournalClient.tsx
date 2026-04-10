@@ -182,8 +182,8 @@ export function JournalClient({ recipientId }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface-raised)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -259,7 +259,7 @@ function JournalLayout({
   const sectionLabel = DESTINATION_LABELS[activeDestination] ?? "Journal";
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-raised)]">
+    <div className="min-h-screen bg-[var(--color-surface)]">
       <SidebarRail />
 
       <div className="md:pl-[60px] flex flex-col min-h-screen">
@@ -273,11 +273,11 @@ function JournalLayout({
             <span className="font-semibold text-[var(--color-text-primary)] text-sm">
               {org?.name ?? "Care Journal"}
             </span>
-            <span className="text-[var(--color-text-muted)] text-xs hidden sm:inline">
+            <span className="text-[var(--color-muted)] text-xs hidden sm:inline">
               {sectionLabel}
             </span>
           </div>
-          <span className="text-xs text-[var(--color-text-muted)]">
+          <span className="text-xs text-[var(--color-muted)]">
             {user?.email}
           </span>
         </header>
@@ -416,14 +416,14 @@ function JournalLayout({
                       type="button"
                       onClick={onGenerateBrief}
                       disabled={generatingBrief}
-                      className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors disabled:opacity-50"
+                      className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text-secondary)] transition-colors disabled:opacity-50"
                     >
                       {generatingBrief
                         ? "Generating..."
                         : "Generate shareable brief"}
                     </button>
                     {briefUrl && (
-                      <p className="text-xs text-[var(--color-text-muted)] mt-2 break-all">
+                      <p className="text-xs text-[var(--color-muted)] mt-2 break-all">
                         {briefUrl}
                       </p>
                     )}

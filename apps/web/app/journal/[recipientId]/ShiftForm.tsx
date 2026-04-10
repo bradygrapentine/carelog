@@ -111,7 +111,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-text-muted)] hover:text-gray-600 transition-colors"
+            className="text-sm text-[var(--color-muted)] hover:text-gray-600 transition-colors"
           >
             + Schedule a shift
           </button>

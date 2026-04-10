@@ -182,12 +182,12 @@ function JournalCard({
         </div>
 
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-[var(--color-text-muted)]">
+          <p className="text-xs text-[var(--color-muted)]">
             {formatTime(event.occurred_at)}
           </p>
           <div className="flex items-center gap-2">
             {event.flagged && (
-              <span className="text-xs text-[var(--color-brand)] bg-[var(--color-brand-subtle)] px-2 py-0.5 rounded-full">
+              <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
                 Flagged for doctor
               </span>
             )}
@@ -212,8 +212,8 @@ function JournalCard({
             const btnClass =
               "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors " +
               (isActive
-                ? "bg-[var(--color-brand-subtle)] text-[var(--color-brand)]"
-                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]");
+                ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]"
+                : "text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]");
             return (
               <button
                 key={r.key}
@@ -273,7 +273,7 @@ export function JournalTimeline({
   if (events.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[var(--color-text-muted)] text-sm">
+        <p className="text-[var(--color-muted)] text-sm">
           {canFlag
             ? "No entries yet. Share how today is going above."
             : "No entries have been shared yet."}
@@ -296,7 +296,7 @@ export function JournalTimeline({
           <div key={event.id}>
             {showHeader && (
               <div className="flex items-center gap-3 py-2">
-                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
+                <span className="text-xs font-medium text-[var(--color-muted)] uppercase tracking-wide">
                   {formatDateHeader(event.occurred_at)}
                 </span>
                 <div className="flex-1 h-px bg-[var(--color-border)]" />
@@ -313,10 +313,10 @@ export function JournalTimeline({
             ) : (
               <div className="flex items-center gap-3 py-2 px-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-border)] shrink-0" />
-                <p className="text-xs text-[var(--color-text-muted)] flex-1">
+                <p className="text-xs text-[var(--color-muted)] flex-1">
                   {event.event_type} logged
                 </p>
-                <p className="text-xs text-[var(--color-text-muted)]">
+                <p className="text-xs text-[var(--color-muted)]">
                   {formatTime(event.occurred_at)}
                 </p>
               </div>

@@ -62,7 +62,7 @@ export function TeamPanel({
       <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm">
           {"Care team"}
-          <span className="ml-2 text-xs text-[var(--color-text-muted)] font-normal">
+          <span className="ml-2 text-xs text-[var(--color-muted)] font-normal">
             {members.length}
             {" members"}
           </span>

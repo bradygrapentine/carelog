@@ -1,11 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-:root {
-  --background: #faf5ff;
-  --foreground: #1e0a3c;
-}
-
 @theme inline {
   /* === Violet & Plum palette === */
 
@@ -75,7 +70,7 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: var(--font-sans);
 }

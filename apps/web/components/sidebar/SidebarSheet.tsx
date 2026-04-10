@@ -35,7 +35,7 @@ export function SidebarSheet() {
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="w-64 bg-[var(--color-sidebar-bg)] text-white border-none p-0"
+        className="w-64 bg-[var(--color-ink)] text-white border-none p-0"
       >
         <SheetHeader className="px-4 py-4">
           <SheetTitle className="text-white">Carelog</SheetTitle>

@@ -89,14 +89,14 @@ export function JournalEntryForm({ onPost, posting }: Props) {
             onFocus={expand}
             placeholder="Share how today went..."
             rows={expanded ? 4 : 2}
-            className="border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
+            className="border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-muted)]"
           />
 
           {expanded && (
             <div className="px-4 pb-4">
               {!text && (
                 <div className="mb-4">
-                  <p className="text-xs text-[var(--color-text-muted)] mb-2">
+                  <p className="text-xs text-[var(--color-muted)] mb-2">
                     Need a starting point?
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -105,7 +105,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                         key={prompt}
                         type="button"
                         onClick={() => setText(prompt + " ")}
-                        className="text-xs px-3 py-1 rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-slate-400 hover:text-[var(--color-text-secondary)] transition-colors"
+                        className="text-xs px-3 py-1 rounded-full border border-[var(--color-border)] text-[var(--color-muted)] hover:border-slate-400 hover:text-[var(--color-text-secondary)] transition-colors"
                       >
                         {prompt}
                       </button>
@@ -114,7 +114,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                 </div>
               )}
 
-              <p className="text-xs text-[var(--color-text-muted)] mb-2">
+              <p className="text-xs text-[var(--color-muted)] mb-2">
                 How is today going?
               </p>
               <div className="flex gap-2 flex-wrap mb-4">
@@ -126,7 +126,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                     className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                       mood === m.value
                         ? m.color
-                        : "bg-[var(--color-surface-muted)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-slate-100"
+                        : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-slate-100"
                     }`}
                   >
                     {m.label}
@@ -143,7 +143,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                     setMood("");
                     setPrompts([]);
                   }}
-                  className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                  className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]"
                 >
                   Cancel
                 </button>
