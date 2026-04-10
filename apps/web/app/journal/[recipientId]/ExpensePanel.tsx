@@ -100,11 +100,13 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   // 30-day category totals
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 30)
+  const today = new Date()
+  const cutoffStr = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)
+    .toISOString()
+    .slice(0, 10)
   const totals: Record<string, number> = {}
   for (const e of expenses) {
-    if (new Date(e.incurred_at) >= cutoff) {
+    if (e.incurred_at >= cutoffStr) {
       totals[e.category] = (totals[e.category] ?? 0) + Number(e.amount)
     }
   }
@@ -147,7 +149,7 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (CATEGORY_COLORS[expense.category] ?? 'bg-gray-100 text-gray-700')}>
-                          {expense.category.replace('_', ' ')}
+                          {expense.category.replaceAll('_', ' ')}
                         </span>
                         <span className="text-sm font-medium text-gray-900">
                           {'$' + Number(expense.amount).toFixed(2)}
@@ -181,7 +183,7 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                   <div className="flex flex-wrap gap-2">
                     {totalCategories.map(([cat, total]) => (
                       <span key={cat} className="text-xs text-gray-600">
-                        {cat.replace('_', ' ')}: {'$' + total.toFixed(2)}
+                        {cat.replaceAll('_', ' ')}: {'$' + total.toFixed(2)}
                       </span>
                     ))}
                   </div>

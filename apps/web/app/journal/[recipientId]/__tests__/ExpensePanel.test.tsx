@@ -130,3 +130,39 @@ describe('ExpensePanel — role gating for form', () => {
     expect(screen.queryByRole('button', { name: /log expense/i })).toBeNull()
   })
 })
+
+describe('ExpensePanel — form submission', () => {
+  it('submits form with correct values', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: /shared expenses/i }))
+
+    fireEvent.change(screen.getByPlaceholderText(/amount/i), { target: { value: '42.50' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'medication' } })
+    fireEvent.change(screen.getByPlaceholderText(/description/i), { target: { value: 'Monthly prescription' } })
+    fireEvent.submit(screen.getByRole('button', { name: /log expense/i }).closest('form')!)
+
+    expect(mockCreateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 42.5,
+        category: 'medication',
+        description: 'Monthly prescription',
+        org_id: ORG_ID,
+        recipient_id: REC_ID,
+      })
+    )
+  })
+})
+
+describe('ExpensePanel — 30-day totals', () => {
+  beforeEach(() => {
+    mockListUseQuery.mockReturnValue({ data: sampleExpenses, isLoading: false })
+  })
+
+  it('shows 30-day category totals', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: /shared expenses/i }))
+    expect(screen.getByText(/last 30 days by category/i)).toBeInTheDocument()
+    // The totals section shows "medication: $42.50"
+    expect(screen.getByText(/medication: \$42\.50/i)).toBeInTheDocument()
+  })
+})
