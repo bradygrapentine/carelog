@@ -1,0 +1,11 @@
+appId: com.carelog.app
+---
+- launchApp
+- tapOn: "Journal"
+- assertVisible: "What's happening"
+- tapOn: "okay"
+- tapOn:
+    id: "journal-input"
+- inputText: "Maestro test entry"
+- tapOn: "Add entry"
+- assertVisible: "Maestro test entry"
