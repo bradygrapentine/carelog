@@ -78,6 +78,21 @@ describe('BenefitsNavigator — expanded, no prior screening', () => {
   })
 })
 
+describe('BenefitsNavigator — screener submission', () => {
+  it('calls screen.mutate when Find matching programs is clicked', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: /benefits navigator/i }))
+    fireEvent.click(screen.getByRole('button', { name: /start screener/i }))
+    fireEvent.click(screen.getByRole('button', { name: /find matching programs/i }))
+    expect(mockScreenMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        org_id:       ORG_ID,
+        recipient_id: REC_ID,
+      })
+    )
+  })
+})
+
 describe('BenefitsNavigator — expanded, prior results available', () => {
   beforeEach(() => {
     mockLatestUseQuery.mockReturnValue({
