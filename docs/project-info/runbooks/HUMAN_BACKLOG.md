@@ -287,6 +287,129 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 ---
 
+---
+
+## Sub-Wave E: Mobile (complete after Vercel + domain are live)
+
+### 9. Firebase (FCM — Android push notifications)
+
+**Goal:** Create a Firebase project so Android users receive push notifications via FCM. iOS uses APNs (handled via EAS — no Firebase needed for iOS).
+
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) → Sign in with your Google account
+2. Click **Add project**
+3. Fill in:
+   - **Project name:** `carelog`
+   - Disable Google Analytics (not needed)
+4. Click **Create project** — takes ~30 seconds
+
+**Get your Android config file:**
+1. In the Firebase console → click the **Android** icon (add an Android app)
+2. **Android package name:** `com.carelog` (must match `apps/mobile/app.json` → `android.package`)
+3. Click **Register app**
+4. Download **`google-services.json`** — save it to `apps/mobile/google-services.json`
+5. Skip the "Add Firebase SDK" steps — Expo handles this
+
+**Get the server key (for Expo Push API):**
+1. In Firebase console → **Project settings** (gear icon) → **Cloud Messaging** tab
+2. Under **Cloud Messaging API (Legacy)** — if disabled, click **Enable**
+3. Copy the **Server key** → this goes into EAS secrets (not `.env.local`)
+
+**Add to EAS project (ask Claude to run this):**
+```bash
+eas secret:create --scope project --name FCM_SERVER_KEY --value "<your-server-key>"
+```
+
+**EAS `eas.json` update needed (tell Claude):**
+Once you have `google-services.json`, ask Claude to verify `eas.json` has:
+```json
+{
+  "build": {
+    "production": {
+      "android": {
+        "googleServicesFile": "./google-services.json"
+      }
+    }
+  }
+}
+```
+
+---
+
+### 10. Deep Link Verification Files (iOS Universal Links + Android App Links)
+
+**Goal:** Host two verification files on your domain so the OS trusts Carelog's deep links. This allows invite links (`yourcarelog.com/invite/TOKEN`) to open the mobile app directly instead of a browser.
+
+**Pre-requisite:** Custom domain must be live on Vercel (Step 3 above) before these files work.
+
+**Step 1: iOS Apple App Site Association (AASA)**
+
+The file must be served at: `https://yourcarelog.com/.well-known/apple-app-site-association`
+
+Ask Claude to create `apps/web/public/.well-known/apple-app-site-association` (no `.json` extension) with this content:
+```json
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.carelog",
+        "paths": ["/invite/*"]
+      }
+    ]
+  }
+}
+```
+
+**Get your Apple Team ID:**
+1. Go to [developer.apple.com](https://developer.apple.com) → Account → Membership
+2. Copy **Team ID** (10-character alphanumeric string like `AB12CD34EF`)
+3. Replace `TEAMID` in the file above with your actual Team ID
+
+**Verify it's working** (after deploy):
+```bash
+curl https://yourcarelog.com/.well-known/apple-app-site-association
+```
+Should return the JSON above with `Content-Type: application/json`.
+
+**Step 2: Android assetlinks.json**
+
+The file must be served at: `https://yourcarelog.com/.well-known/assetlinks.json`
+
+Ask Claude to create `apps/web/public/.well-known/assetlinks.json` with this content:
+```json
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.carelog",
+      "sha256_cert_fingerprints": ["YOUR_SHA256_FINGERPRINT"]
+    }
+  }
+]
+```
+
+**Get your SHA-256 fingerprint:**
+After running your first EAS production build:
+```bash
+eas credentials --platform android
+```
+Copy the **SHA-256 Certificate Fingerprint** and replace `YOUR_SHA256_FINGERPRINT` above.
+
+**Verify it's working** (after deploy):
+```bash
+curl https://yourcarelog.com/.well-known/assetlinks.json
+```
+
+**Step 3: EAS APNs setup (iOS push)**
+1. Go to [developer.apple.com](https://developer.apple.com) → **Certificates, Identifiers & Profiles**
+2. Create an **App ID** for `com.carelog` (if not already exists) with **Push Notifications** capability enabled
+3. In EAS dashboard → your project → **Credentials** → **iOS** → **Add** → **Apple Push Notification Key (.p8)**
+4. EAS will walk you through generating or uploading the key — follow the prompts
+   - Alternative: run `eas credentials` in terminal and follow interactive setup
+
+---
+
 ## Summary Checklist
 
 | Service | Account | Keys copied | Vercel vars set | Notes |
@@ -298,3 +421,6 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 | Inngest | ☐ | ☐ | ☐ | Register app after deploy |
 | Resend | ☐ | ☐ | ☐ | Domain verify takes time |
 | Stripe | ☐ | ☐ | ☐ | Use test mode initially |
+| Firebase (FCM) | ☐ | ☐ | n/a | google-services.json → EAS |
+| Deep link files | n/a | ☐ | n/a | Need Apple Team ID + SHA-256 |
+| APNs (.p8 key) | ☐ | ☐ | n/a | Via EAS credentials |
