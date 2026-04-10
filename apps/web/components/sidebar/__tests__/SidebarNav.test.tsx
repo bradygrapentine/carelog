@@ -42,9 +42,29 @@ describe("SidebarNav", () => {
   });
 
   it("calls setActiveDestination when a nav item is clicked", () => {
-    const onNavigate = vi.fn();
-    renderNav("journal", onNavigate);
+    const setDest = vi.fn();
+    render(
+      <SidebarContext.Provider
+        value={{ activeDestination: "journal", setActiveDestination: setDest }}
+      >
+        <SidebarNav />
+      </SidebarContext.Provider>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /team/i }));
-    expect(onNavigate).toHaveBeenCalledWith("team");
+    expect(setDest).toHaveBeenCalledWith("team");
+  });
+
+  it("calls onNavigate prop (no args) when a nav item is clicked", () => {
+    const onNavigate = vi.fn();
+    render(
+      <SidebarContext.Provider
+        value={{ activeDestination: "journal", setActiveDestination: vi.fn() }}
+      >
+        <SidebarNav onNavigate={onNavigate} />
+      </SidebarContext.Provider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /documents/i }));
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith();
   });
 });
