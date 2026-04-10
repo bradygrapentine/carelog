@@ -43,7 +43,6 @@ export function SignInForm() {
       setLoading(false);
       return;
     }
-    console.log("verified, user:", data.user?.email);
     window.location.replace("/dashboard");
   }
 
@@ -51,9 +50,9 @@ export function SignInForm() {
     return (
       <form onSubmit={handleVerifyOtp} className="space-y-6">
         <div className="text-center mb-2">
-          <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-[var(--color-primary-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-6 h-6 text-green-600"
+              className="w-6 h-6 text-[var(--color-primary)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -66,10 +65,10 @@ export function SignInForm() {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-medium text-gray-900 mb-1">
+          <h2 className="text-lg font-medium text-[var(--color-ink)] mb-1">
             Check your email
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[var(--color-muted)]">
             We sent a 6-digit code to <strong>{email}</strong>
           </p>
         </div>
@@ -91,10 +90,10 @@ export function SignInForm() {
             placeholder="123456"
             required
             maxLength={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2 text-center text-2xl font-mono tracking-widest text-sm text-[var(--color-ink)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           />
         </div>
-        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+        {error && <p className="text-sm text-[var(--color-danger)] text-center">{error}</p>}
         <button
           type="submit"
           disabled={loading || otp.length !== 6}
@@ -109,7 +108,7 @@ export function SignInForm() {
             setOtp("");
             setError(null);
           }}
-          className="w-full text-sm text-gray-500 hover:text-gray-700"
+          className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
         >
           Use a different email
         </button>
@@ -136,7 +135,7 @@ export function SignInForm() {
           className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
       <button
         type="submit"
         disabled={loading || !email}
@@ -144,7 +143,7 @@ export function SignInForm() {
       >
         {loading ? "Sending code..." : "Continue with email"}
       </button>
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-[var(--color-muted)]">
         We will send you a secure sign-in code. No password needed.
       </p>
     </form>
