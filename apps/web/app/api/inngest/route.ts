@@ -5,8 +5,9 @@ import { gapDetector } from '../../../inngest/functions/gapDetector'
 import { refillAlert } from '../../../inngest/functions/refillAlert'
 import { ocrPrescription } from '../../../inngest/functions/ocrPrescription'
 import { burnoutAlert } from '../../../inngest/functions/burnoutAlert'
+import { journalFlagAlert } from '../../../inngest/functions/journalFlagAlert'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [weeklyDigest, gapDetector, refillAlert, ocrPrescription, burnoutAlert],
+  functions: [weeklyDigest, gapDetector, refillAlert, ocrPrescription, burnoutAlert, journalFlagAlert],
 })

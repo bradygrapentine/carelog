@@ -14,6 +14,10 @@ vi.mock('@/lib/rateLimit', () => ({
   rateLimit: vi.fn().mockResolvedValue(null),
 }))
 
+vi.mock('@/inngest/client', () => ({
+  inngest: { send: vi.fn().mockResolvedValue(undefined) },
+}))
+
 import { supabaseAdmin } from '@/server/supabaseAdmin.server'
 import { getRequestUser } from '@/lib/supabaseServer'
 
