@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
 import { authenticatedFetch } from "../../../lib/authenticatedFetch";
 
@@ -49,10 +49,8 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [docType, setDocType] = useState("other");
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const canUpload = currentUserRole === "coordinator";
-  const canDelete = currentUserRole === "coordinator";
+  const isCoordinator = currentUserRole === "coordinator";
 
   const utils = trpc.useUtils();
 
@@ -202,7 +200,7 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                       >
                         Download
                       </button>
-                      {canDelete && (
+                      {isCoordinator && (
                         <button
                           type="button"
                           onClick={() =>
@@ -233,7 +231,7 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
             </ul>
           )}
 
-          {canUpload && (
+          {isCoordinator && (
             <form
               onSubmit={handleUpload}
               className="space-y-2 pt-2 border-t border-gray-50"
@@ -264,7 +262,6 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                 ))}
               </select>
               <input
-                ref={fileRef}
                 name="file"
                 type="file"
                 required
