@@ -1,222 +1,284 @@
----
-title: UI Redesign — Clean & Structured
-date: 2026-04-10
-status: approved
----
+# Carelog UI Redesign — Design Spec
 
-# UI Redesign — Clean & Structured
-
-A coherent visual overhaul of the Carelog web app. The right components are already present — this design addresses layout, hierarchy, and consistency through a component library foundation, design token layer, icon sidebar navigation, and systematic panel reskinning.
+**Date:** 2026-04-10
+**Status:** Approved
+**Scope:** Full SPA redesign — 10 pages across two shells
 
 ---
 
-## Decisions
+## 1. Design Decisions
 
-| Dimension | Choice | Rationale |
-|-----------|--------|-----------|
-| Design direction | Clean & Structured | Blue/slate palette, crisp grid, efficient SaaS feel — trustworthy and competent |
-| Layout | Icon sidebar + main content | Panels become sidebar destinations; eliminates the stacked-column wall-of-panels problem |
-| Component library | shadcn/ui + custom Tailwind v4 tokens | Copy-paste primitives with owned code; custom token layer enforces brand consistency |
-| Responsive | Full breakpoint support | Mobile: hidden sidebar + top-bar hamburger → Sheet drawer; Desktop: fixed icon rail |
+| Decision | Choice | Rationale |
+|---|---|---|
+| Color palette | Violet & Plum | Warm, emotionally intelligent; wellness-adjacent without being clinical |
+| Hero layout | Split — copy left, visual right | Immediate product visibility; classic SaaS conversion pattern |
+| Hero visual | Floating feature cards | Shows journal, medications, team at a glance; modern and dynamic |
+| Marketing nav | Full-width sticky bar | Clean, predictable, works everywhere; frosted blur on scroll |
+| App shell | Top tab bar on dark plum | Horizontal tabs, full-width content, maps naturally to mobile bottom bar |
+| Architecture | Two-shell (marketing + app) | Clean separation; SSR for marketing, CSR for app; standard Next.js pattern |
 
 ---
 
-## Design Tokens
+## 2. Design System
 
-Defined in `apps/web/app/globals.css` using Tailwind v4's `@theme` block. All components reference tokens, never raw hex values.
+### Color Tokens
 
 ```css
-@theme inline {
-  /* Brand */
-  --color-brand:        #2563eb;
-  --color-brand-hover:  #1d4ed8;
-  --color-brand-subtle: #eff6ff;
-  --color-brand-border: #bfdbfe;
-
-  /* Surface */
-  --color-surface:        #ffffff;
-  --color-surface-raised: #f8fafc;
-  --color-surface-muted:  #f1f5f9;
-
-  /* Text */
-  --color-text-primary:   #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted:     #94a3b8;
-
-  /* Borders */
-  --color-border:       #e2e8f0;
-  --color-border-focus: #2563eb;
-
-  /* Sidebar */
-  --color-sidebar-bg:      #0f172a;
-  --color-sidebar-item:    #1e293b;
-  --color-sidebar-active:  rgba(59, 130, 246, 0.15);
-
-  /* Semantic — mood */
-  --color-mood-good:      #22c55e;
-  --color-mood-okay:      #f59e0b;
-  --color-mood-difficult: #f97316;
-  --color-mood-crisis:    #ef4444;
-
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-
-  /* Typography */
-  --font-sans: 'Inter', system-ui, sans-serif;
-}
+--color-primary:        #7c3aed;   /* Violet 600 */
+--color-primary-light:  #a78bfa;   /* Violet 400 */
+--color-primary-subtle: #ede9fe;   /* Violet 100 */
+--color-ink:            #1e0a3c;   /* Deep plum — headings, tab bar bg */
+--color-surface:        #faf5ff;   /* Violet 50 — page backgrounds */
+--color-muted:          #6b7280;   /* Gray 500 — body text */
+--color-border:         #ede9fe;   /* Violet 100 — card borders */
+--color-warning:        #f59e0b;   /* Amber 400 */
+--color-success:        #10b981;   /* Emerald 400 */
+--color-danger:         #ef4444;   /* Red 500 */
 ```
+
+Add to `apps/web/app/globals.css` as CSS custom properties. Map to shadcn/ui semantic tokens (`--primary`, `--primary-foreground`, etc.) in `tailwind.config.ts`.
+
+### Typography
+
+- **Font:** Geist (already in stack via `next/font/google`)
+- **Hero headline:** 48px / 800 weight / −1px letter-spacing
+- **Section heading:** 24px / 700 weight
+- **Body:** 16px / 400 weight / `--color-muted`
+- **Label/overline:** 12px / 600 weight / uppercase / 0.5px tracking / `--color-primary`
+
+### Shape Scale
+
+| Token | Radius | Usage |
+|---|---|---|
+| `rounded-md` | 6px | Badges, tags |
+| `rounded-xl` | 10px | Buttons, inputs, small cards |
+| `rounded-2xl` | 14px | Cards, panels |
+| `rounded-3xl` | 20px | Hero sections, large containers |
+| `rounded-full` | 9999px | Pill CTAs, avatars |
+
+### Button Variants
+
+| Variant | Style |
+|---|---|
+| Primary | `bg-primary text-white rounded-xl hover:bg-primary/90` |
+| Secondary | `border-2 border-primary text-primary rounded-xl hover:bg-primary-subtle` |
+| Ghost | `bg-primary-subtle text-primary rounded-xl hover:bg-primary/20` |
+| Destructive | `bg-danger text-white rounded-xl` |
 
 ---
 
-## Sidebar Architecture
+## 3. Routing Architecture
 
-### Desktop (≥768px)
-
-A fixed 60px icon rail on the left edge. Each icon maps to a primary destination (panel). The active icon has a blue-tinted background ring. A logo mark sits at the top; user avatar at the bottom.
-
-**Sidebar destinations:**
-
-| Icon | Destination | Panel(s) |
-|------|-------------|----------|
-| 📋 | Journal | JournalTimeline + JournalEntryForm |
-| 💊 | Medications | MedicationPanel + MedicationChecklist |
-| 👥 | Team | TeamPanel + OuterCirclePanel |
-| 📅 | Shifts | ShiftForm + ShiftList |
-| 📁 | Documents | DocumentVault + OcrReviewPanel |
-| ⋯ | More | BurnoutCheckin, EolPlanner, BenefitsNavigator, ExpensePanel, ExportButton |
-
-### Mobile (<768px)
-
-Sidebar is hidden. Top bar shows a hamburger button (≡) on the left. Tapping opens a shadcn `Sheet` (left-edge drawer) containing the same nav list — icon + label text. Sheet closes on nav selection.
-
-### Shared component
+### Two-Shell Pattern
 
 ```
-components/
-  sidebar/
-    SidebarNav.tsx        — nav item list, shared between desktop rail and mobile Sheet
-    SidebarRail.tsx       — desktop fixed 60px wrapper
-    SidebarSheet.tsx      — mobile Sheet wrapper (shadcn Sheet)
-    SidebarContext.tsx    — active destination state (React context)
+app/
+├── (marketing)/                  ← MarketingLayout: full-width nav + footer
+│   ├── layout.tsx
+│   ├── page.tsx                  ← Landing / Hero
+│   ├── about/page.tsx
+│   ├── contact/page.tsx
+│   ├── pricing/page.tsx
+│   ├── privacy/page.tsx
+│   └── terms/page.tsx
+│
+├── (app)/                        ← AppLayout: auth check + top tab bar
+│   ├── layout.tsx
+│   ├── dashboard/page.tsx        ← existing DashboardClient, moved here
+│   ├── team/
+│   │   ├── page.tsx              ← Team panel (SPA destination)
+│   │   └── admin/page.tsx        ← Team Admin (coordinator-only full page)
+│   └── subscriptions/page.tsx
+│
+├── signin/                       ← outside both shells
+│   ├── page.tsx
+│   ├── SignInForm.tsx
+│   └── actions.ts
+│
+└── layout.tsx                    ← root: font, providers, Supabase
 ```
+
+### Auth Guard
+
+`(app)/layout.tsx` runs a server-side auth check via `createServerSupabase()`. Unauthenticated requests redirect to `/signin`. Coordinators accessing `/team/admin` are validated server-side; non-coordinators receive a 403 redirect to `/dashboard`.
 
 ---
 
-## Component Migration
+## 4. Marketing Shell
 
-### shadcn/ui components to install
+### MarketingLayout (`(marketing)/layout.tsx`)
 
-```bash
-pnpm dlx shadcn@latest add button card badge input textarea sheet separator avatar tooltip
-```
+- Full-width sticky top nav: `bg-white/80 backdrop-blur-md border-b border-border`
+- Logo left (violet square + "Carelog" wordmark)
+- Nav links: Features · Pricing · About · Contact
+- CTA button right: "Sign in" (primary, `rounded-xl`)
+- Footer: links (Privacy · Terms · Contact), tagline, copyright
 
-### Migration pattern
+### Landing Page (`/`)
 
-Every panel follows the same reskinning pattern. Internal logic (tRPC hooks, state, handlers) is untouched. Only the JSX shell changes:
+**Above the fold — split layout:**
 
-**Before:**
-```tsx
-<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4">
-  <h3 className="text-sm font-semibold text-gray-900">Panel title</h3>
-  ...
-</div>
-```
+- Left (55%):
+  - Overline: "Family caregiving, simplified" (primary, uppercase, small)
+  - H1 (48px/800): "Care made simple for families who show up every day"
+  - Body (18px/muted): "Coordinate medications, shifts, and journals — together. Private, ad-free, $14/mo for the whole family."
+  - CTAs: "Start free trial" (primary) + "See how it works" (secondary)
+  - Micro-copy: "No credit card required · Cancel anytime"
+- Right (45%): three floating feature cards at slight rotations
+  - Card 1 (white, violet border-left): journal entry snippet + reaction count
+  - Card 2 (violet bg, white text): medication due alert
+  - Card 3 (white, violet border-left): team member avatars + count
 
-**After:**
-```tsx
-<Card>
-  <CardHeader>
-    <CardTitle>Panel title</CardTitle>
-  </CardHeader>
-  <CardContent>
-    ...
-  </CardContent>
-</Card>
-```
+**Below the fold:**
+1. Feature grid (3-col): Journal · Medications · Team · Shifts · Documents · Digest
+2. Social proof / testimonial quotes (2 cards)
+3. Pricing preview (links to /pricing)
+4. Footer
 
-### Panels in scope
+### About Page (`/about`)
 
-All panels receive the Card wrapper + token-based styling. The journal-specific components receive deeper treatment:
+- Centered hero: "Built by a caregiver, for caregivers"
+- Origin story: 2-col (text left, warm illustration right)
+- Values: 3 cards — Privacy-first · Family-centered · Bootstrapped & independent
+- CTA: "Start free trial"
 
-**Deep treatment (visual redesign):**
-- `JournalEntryForm` — mood selector as shadcn toggle group, textarea as shadcn Textarea, submit as shadcn Button
-- `JournalTimeline` — date group headers, mood dot indicator, role Badge
-- Nav header — replaced by top bar + sidebar
+### Contact Page (`/contact`)
 
-**Shell treatment (Card + tokens only, logic untouched):**
-- `MedicationPanel`, `MedicationChecklist`
-- `TeamPanel`, `OuterCirclePanel`
-- `ShiftForm`, `ShiftList`
-- `DocumentVault`, `OcrReviewPanel`
-- `BurnoutCheckin`, `EolPlanner`, `BenefitsNavigator`, `ExpensePanel`
+- 2-col layout:
+  - Left: contact form (name, email, message) — POST to `/api/contact` → Resend
+  - Right: email address, response time ("We reply within 24 hours"), FAQ accordion (3 items)
+- Success/error states handled inline (no page navigation)
 
-### Role badges
+### Pricing Page (`/pricing`)
 
-Unified semantic mapping using shadcn `Badge` with token-derived variants:
+Two tiers side by side:
 
-| Role | Variant |
-|------|---------|
-| Coordinator | `bg-purple-100 text-purple-800` |
-| Caregiver | `bg-blue-100 text-blue-800` |
-| Supporter | `bg-green-100 text-green-800` |
-| Aide | `bg-orange-100 text-orange-800` |
+| | Free | Family Plan |
+|---|---|---|
+| Price | $0/mo | $14/mo |
+| Members | 1 caregiver | Unlimited |
+| Features | Journal only | All features |
+| CTA | "Get started" | "Start free trial" (highlighted, "Most popular" badge) |
 
-### Mood indicators
+Feature comparison checklist below the cards.
 
-Color dot (8px circle) + Badge using semantic mood tokens:
+### Privacy Policy (`/privacy`) & Terms (`/terms`)
 
-| Mood | Dot | Badge bg |
-|------|-----|----------|
-| Good | `--color-mood-good` | `dcfce7 / 166534` |
-| Okay | `--color-mood-okay` | `fef9c3 / 854d0e` |
-| Difficult | `--color-mood-difficult` | `ffedd5 / 9a3412` |
-| Crisis | `--color-mood-crisis` | `fee2e2 / 991b1b` |
+- Shared `LegalPageLayout`:
+  - Sticky table-of-contents sidebar (desktop only, collapses on mobile)
+  - Prose content area (max-w-2xl, generous line-height)
+  - "Last updated: [date]" below page title
+- Content: static TSX — no dynamic data needed
 
 ---
 
-## Layout Structure
+## 5. App Shell
 
-```
-app/journal/[recipientId]/
-  layout.tsx                — adds sidebar shell wrapper
-  JournalClient.tsx         — renders active panel based on SidebarContext
-  page.tsx                  — unchanged
-```
+### AppLayout (`(app)/layout.tsx`)
 
-The `JournalClient` switches rendered panel based on `activeDestination` from `SidebarContext`. Each destination renders its panel(s) in the main content area at full width.
+- Dark plum top bar (`bg-[--color-ink]`):
+  - Left: logo mark + "Carelog" wordmark (white)
+  - Center/right: tab links — Journal · Medications · Team · Shifts · Documents · More
+  - Right: user avatar (initials, violet bg) + dropdown (Profile · Subscriptions · Sign out)
+- Active tab: white text + 2px bottom border in `--color-primary-light`
+- Inactive tabs: `text-violet-300 hover:text-white`
+- Mobile: tabs collapse to scrollable horizontal strip; consider bottom nav bar at ≤640px
 
-Top bar (52px, white, border-bottom):
-- Left: recipient name + current section label
-- Right: primary action button (context-dependent: "+ New entry", "+ Add medication", etc.)
+### Dashboard SPA (`/dashboard`)
+
+Existing `DashboardClient` panel-switching pattern migrated into the `(app)` shell. Active panel renders in `bg-surface` content area below the tab bar. Panels:
+
+- **Journal** — existing JournalTimeline + JournalEntryForm
+- **Medications** — existing medications panel
+- **Team** — member cards, invite form (coordinator-only)
+- **Shifts** — existing shifts panel
+- **Documents** — existing documents panel
+- **More** — links to Settings, Subscriptions, Sign out
+
+### Team Panel (within Dashboard SPA)
+
+- Member cards: avatar (initials + violet bg), display name, role badge, last active
+- Role badges: Coordinator (violet), Caregiver (amber), Aide (slate), Supporter (gray)
+- Pending invites: card with email, role, expiry countdown, "Resend" / "Cancel" actions
+- Coordinator-only: "Invite member" button → inline Sheet with email + role selector
+
+### Team Admin Page (`/team/admin`)
+
+Full page within `(app)/` shell — coordinator-only.
+
+Sections:
+1. **Org settings** — org name, care recipient name (PATCH `/api/org`)
+2. **Member management** — table: avatar, name, role dropdown (save on change), "Remove" button (confirm dialog)
+3. **Danger zone** — "Delete organization" (confirm modal, requires typing org name)
+
+Non-coordinator access: server-side redirect to `/dashboard`.
+
+### Subscriptions Page (`/subscriptions`)
+
+- Current plan card: plan name, price, next renewal date, status badge
+- Feature checklist (what's included)
+- Upgrade/downgrade CTA (Stripe Checkout — layout-only, CTAs disabled until Stripe is wired)
+- Billing history table: date, amount, status, "Invoice" link
+- Cancel subscription: link → confirm modal with retention message
+
+### Sign In Page (`/signin`)
+
+Full-screen centered layout on `bg-surface`:
+- Carelog logo mark (violet square) + wordmark
+- Card (`bg-white rounded-2xl shadow-sm border border-border`):
+  - "Sign in to Carelog" heading
+  - OTP email form (existing `SignInForm` reskinned)
+  - Primary violet submit button
+- Below card: "Private, secure, and ad-free" micro-copy
 
 ---
 
-## Responsive Breakpoints
+## 6. Accessibility Requirements
 
-| Breakpoint | Behavior |
-|------------|----------|
-| `< 768px` | No sidebar rail; hamburger in top bar; main content full-width; cards stack |
-| `≥ 768px` | 60px icon rail fixed left; main content has `pl-[60px]` |
+- All interactive elements: visible focus ring (`ring-2 ring-primary ring-offset-2`)
+- Color contrast: all text/bg combos meet WCAG AA (4.5:1 normal text, 3:1 large text)
+- Tab bar: `role="tablist"`, each tab `role="tab"`, `aria-selected`, `aria-controls`
+- Floating hero cards: `aria-hidden="true"` (decorative)
+- Form labels: explicit `<label htmlFor>` — no placeholder-only labels
+- Modals/drawers: focus trap, `role="dialog"`, `aria-modal="true"`, Escape to close
 
 ---
 
-## Scope Boundaries
+## 7. Component Inventory
 
-**In scope:**
-- Tailwind v4 design token layer
-- shadcn/ui installation + configuration
-- Icon sidebar (desktop rail + mobile Sheet)
-- Top bar
-- Deep treatment of Journal surfaces
-- Shell treatment (Card + tokens) for all remaining panels
-- Responsive breakpoints
+### New components
 
-**Out of scope:**
-- Loading skeletons / skeleton screens
-- Micro-interactions and CSS transitions
-- Empty state illustrations
+| Component | Path | Notes |
+|---|---|---|
+| `MarketingLayout` | `app/(marketing)/layout.tsx` | Nav + footer |
+| `MarketingNav` | `components/marketing/MarketingNav.tsx` | Sticky, blur on scroll |
+| `MarketingFooter` | `components/marketing/MarketingFooter.tsx` | Links + tagline |
+| `HeroSection` | `components/marketing/HeroSection.tsx` | Split layout + floating cards |
+| `FeatureGrid` | `components/marketing/FeatureGrid.tsx` | 3-col feature cards |
+| `PricingCards` | `components/marketing/PricingCards.tsx` | Free + Family tiers |
+| `ContactForm` | `components/marketing/ContactForm.tsx` | Client component, Resend |
+| `LegalPageLayout` | `components/marketing/LegalPageLayout.tsx` | TOC sidebar + prose |
+| `AppLayout` | `app/(app)/layout.tsx` | Tab bar + auth guard |
+| `AppTabBar` | `components/app/AppTabBar.tsx` | Dark plum, active state |
+| `UserMenu` | `components/app/UserMenu.tsx` | Avatar dropdown |
+| `TeamPanel` | `components/app/TeamPanel.tsx` | Member cards + invite |
+| `TeamAdminPage` | `app/(app)/team/admin/page.tsx` | Full page, coordinator-only |
+| `SubscriptionsPage` | `app/(app)/subscriptions/page.tsx` | Plan card + billing |
+| `RoleBadge` | `components/ui/RoleBadge.tsx` | Reusable role indicator |
+
+### Existing components to reskin (design tokens only — no logic changes)
+
+- `SignInForm` — violet palette, `rounded-xl` inputs
+- `JournalTimeline` — border-left accent in `--color-primary`
+- `JournalEntryForm` — primary button, surface background
+- `SidebarNav` → replaced by `AppTabBar`
+
+---
+
+## 8. Out of Scope
+
+- Stripe integration (subscriptions page is layout-only)
 - Dark mode
-- Mobile-specific layout optimizations beyond breakpoints
-- Storybook or visual regression testing infrastructure
+- Mobile app (Expo) changes
+- Animation / transition polish (layer on after)
+- New backend API routes (all existing routes unchanged)
