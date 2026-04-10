@@ -43,6 +43,14 @@ describe('expenseCreateInput', () => {
     expect(expenseCreateInput.safeParse({ ...BASE, org_id: 'not-a-uuid' }).success).toBe(false)
   })
 
+  it('rejects non-date incurred_at', () => {
+    expect(expenseCreateInput.safeParse({ ...BASE, incurred_at: 'not-a-date' }).success).toBe(false)
+  })
+
+  it('accepts ISO date incurred_at', () => {
+    expect(expenseCreateInput.safeParse({ ...BASE, incurred_at: '2026-04-09' }).success).toBe(true)
+  })
+
   it('accepts all valid categories', () => {
     const categories = ['medication','supplies','equipment','home_modification','aide_hours','transport','food','other']
     for (const category of categories) {
@@ -65,5 +73,13 @@ describe('expenseListInput', () => {
       recipient_id: '00000000-0000-0000-0000-000000000002',
       since: '2026-01-01',
     }).success).toBe(true)
+  })
+
+  it('rejects non-date since', () => {
+    expect(expenseListInput.safeParse({
+      org_id: '00000000-0000-0000-0000-000000000001',
+      recipient_id: '00000000-0000-0000-0000-000000000002',
+      since: 'yesterday',
+    }).success).toBe(false)
   })
 })

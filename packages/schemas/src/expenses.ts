@@ -13,13 +13,13 @@ export const expenseCreateInput = z.object({
   category:     z.enum(EXPENSE_CATEGORIES),
   description:  z.string().min(1),
   paid_by_name: z.string().optional(),
-  incurred_at:  z.string().optional(),
+  incurred_at:  z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })
 
 export const expenseListInput = z.object({
   org_id:       z.string().uuid(),
   recipient_id: z.string().uuid(),
-  since:        z.string().optional(),
+  since:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })
 
 export const expenseDeleteInput = z.object({
