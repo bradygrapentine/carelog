@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Props = {
   orgId: string;
@@ -99,7 +100,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
     "w-4 h-4 text-gray-400 transition-transform " + (open ? "rotate-180" : "");
 
   return (
-    <div className="bg-white border border-red-50 rounded-xl shadow-sm overflow-hidden">
+    <Card className="border-red-50">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -362,6 +363,6 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

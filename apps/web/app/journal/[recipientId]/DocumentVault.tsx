@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
 import { authenticatedFetch } from "../../../lib/authenticatedFetch";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Props = {
   orgId: string;

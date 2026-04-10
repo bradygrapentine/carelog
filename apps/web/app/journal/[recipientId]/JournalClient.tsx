@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createClient } from "../../../lib/supabase";
 import { authenticatedFetch } from "../../../lib/authenticatedFetch";
 import type { User } from "@supabase/supabase-js";
@@ -20,6 +20,12 @@ import { ExportButton } from "./ExportButton";
 import { BenefitsNavigator } from "./BenefitsNavigator";
 import { DocumentVault } from "./DocumentVault";
 import { EolPlanner } from "./EolPlanner";
+import {
+  SidebarContext,
+  SidebarProvider,
+} from "../../../components/sidebar/SidebarContext";
+import { SidebarRail } from "../../../components/sidebar/SidebarRail";
+import { SidebarSheet } from "../../../components/sidebar/SidebarSheet";
 
 interface Props {
   recipientId: string;
@@ -176,192 +182,257 @@ export function JournalClient({ recipientId }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--color-surface-raised)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <a href="/dashboard" className="text-gray-400 hover:text-gray-600">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </a>
-          <span className="font-semibold text-gray-900">
-            {org?.name ?? "Care Journal"}
-          </span>
-        </div>
-        <span className="text-sm text-gray-500">{user?.email}</span>
-      </nav>
+    <SidebarProvider>
+      <JournalLayout
+        recipientId={recipientId}
+        user={user}
+        org={org}
+        events={events}
+        members={members}
+        currentUserRole={currentUserRole}
+        posting={posting}
+        showInvite={showInvite}
+        briefUrl={briefUrl}
+        generatingBrief={generatingBrief}
+        onPost={handlePost}
+        onFlag={handleFlag}
+        onGenerateBrief={handleGenerateBrief}
+        onInvite={handleInvite}
+        onToggleInvite={() => setShowInvite((v) => !v)}
+      />
+    </SidebarProvider>
+  );
+}
 
-      <div className="max-w-2xl mx-auto py-8 px-4">
-        {currentUserRole !== "supporter" ? (
-          <JournalEntryForm onPost={handlePost} posting={posting} />
-        ) : (
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3">
-            <p className="text-sm text-gray-500">
-              You&apos;re here as a Supporter — you can read everything shared
-              and react to entries.
-            </p>
+const DESTINATION_LABELS: Record<string, string> = {
+  journal: "Journal",
+  medications: "Medications",
+  team: "Team",
+  shifts: "Shifts",
+  documents: "Documents",
+  more: "More",
+};
+
+type LayoutProps = {
+  recipientId: string;
+  user: User | null;
+  org: OrgInfo | null;
+  events: JournalEvent[];
+  members: Member[];
+  currentUserRole: string;
+  posting: boolean;
+  showInvite: boolean;
+  briefUrl: string | null;
+  generatingBrief: boolean;
+  onPost: (text: string, mood: string) => Promise<void>;
+  onFlag: (eventId: string, flagged: boolean) => void;
+  onGenerateBrief: () => Promise<void>;
+  onInvite: (email: string, role: string) => Promise<void>;
+  onToggleInvite: () => void;
+};
+
+function JournalLayout({
+  recipientId,
+  user,
+  org,
+  events,
+  members,
+  currentUserRole,
+  posting,
+  showInvite,
+  briefUrl,
+  generatingBrief,
+  onPost,
+  onFlag,
+  onGenerateBrief,
+  onInvite,
+  onToggleInvite,
+}: LayoutProps) {
+  const { activeDestination } = useContext(SidebarContext);
+  const sectionLabel = DESTINATION_LABELS[activeDestination] ?? "Journal";
+
+  return (
+    <div className="min-h-screen bg-[var(--color-surface-raised)]">
+      <SidebarRail />
+
+      <div className="md:pl-[60px] flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header
+          data-testid="top-bar"
+          className="bg-[var(--color-surface)] border-b border-[var(--color-border)] h-[52px] px-4 flex items-center justify-between sticky top-0 z-30"
+        >
+          <div className="flex items-center gap-3">
+            <SidebarSheet />
+            <span className="font-semibold text-[var(--color-text-primary)] text-sm">
+              {org?.name ?? "Care Journal"}
+            </span>
+            <span className="text-[var(--color-text-muted)] text-xs hidden sm:inline">
+              {sectionLabel}
+            </span>
           </div>
-        )}
-        <div className="mt-6">
-          <TeamPanel
-            members={members}
-            currentUserId={user?.id ?? ""}
-            canInvite={currentUserRole === "coordinator"}
-            onInvite={handleInvite}
-            showInvite={showInvite}
-            onToggleInvite={() => setShowInvite((v) => !v)}
-          />
-        </div>
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <ShiftForm
-              members={members}
-              recipientId={recipientId}
-              orgId={org.id}
-              onSuccess={() => {}}
-            />
-          </div>
-        )}
-        <div className="mt-6">
-          <ShiftList
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            members={members}
-            currentUserId={user?.id ?? ""}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <OuterCirclePanel
-              recipientId={recipientId}
-              orgId={org.id}
-              currentUserRole={currentUserRole}
-            />
-          </div>
-        )}
-        <div className="mt-6">
-          <MedicationPanel
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        <div className="mt-6">
-          <MedicationChecklist
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        <div className="mt-6">
-          <SymptomPanel
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        <div className="mt-6">
-          <BurnoutCheckin
-            orgId={org?.id ?? ""}
-            currentUserRole={currentUserRole}
-            currentUserId={user?.id ?? ""}
-          />
-        </div>
-        <div className="mt-6">
-          <ExpensePanel
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <ExportButton
-              orgId={org.id}
-              recipientId={recipientId}
-              currentUserRole={currentUserRole}
-            />
-          </div>
-        )}
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <BenefitsNavigator
-              orgId={org.id}
-              recipientId={recipientId}
-              currentUserRole={currentUserRole}
-            />
-          </div>
-        )}
-        <div className="mt-6">
-          <DocumentVault
-            orgId={org?.id ?? ""}
-            recipientId={recipientId}
-            currentUserRole={currentUserRole}
-          />
-        </div>
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <EolPlanner
-              orgId={org.id}
-              recipientId={recipientId}
-              currentUserRole={currentUserRole}
-            />
-          </div>
-        )}
-        {currentUserRole === "coordinator" && org && (
-          <div className="mt-6">
-            <OcrReviewPanel orgId={org.id} recipientId={recipientId} />
-          </div>
-        )}
-        {currentUserRole === "coordinator" && (
-          <div className="mt-6">
-            <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Care brief
-              </p>
-              <button
-                type="button"
-                onClick={handleGenerateBrief}
-                disabled={generatingBrief}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
-              >
-                {generatingBrief ? "Generating..." : "Generate shareable brief"}
-              </button>
-              {briefUrl && (
-                <p className="text-xs text-gray-500 mt-2 break-all">
-                  {briefUrl}
-                </p>
+          <span className="text-xs text-[var(--color-text-muted)]">
+            {user?.email}
+          </span>
+        </header>
+
+        {/* Panel content */}
+        <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-6">
+          {activeDestination === "journal" && (
+            <>
+              {currentUserRole !== "supporter" ? (
+                <JournalEntryForm onPost={onPost} posting={posting} />
+              ) : (
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
+                    You&apos;re here as a Supporter — you can read everything
+                    shared and react to entries.
+                  </p>
+                </div>
               )}
-            </div>
-          </div>
-        )}
-        <div className="mt-6">
-          <JournalTimeline
-            events={events}
-            currentUserId={user?.id ?? ""}
-            canFlag={currentUserRole !== "supporter"}
-            recipientId={recipientId}
-            onFlag={handleFlag}
-          />
-        </div>
+              <JournalTimeline
+                events={events}
+                currentUserId={user?.id ?? ""}
+                canFlag={currentUserRole !== "supporter"}
+                recipientId={recipientId}
+                onFlag={onFlag}
+              />
+            </>
+          )}
+
+          {activeDestination === "medications" && (
+            <>
+              <MedicationPanel
+                orgId={org?.id ?? ""}
+                recipientId={recipientId}
+                currentUserRole={currentUserRole}
+              />
+              <MedicationChecklist
+                orgId={org?.id ?? ""}
+                recipientId={recipientId}
+                currentUserRole={currentUserRole}
+              />
+            </>
+          )}
+
+          {activeDestination === "team" && (
+            <>
+              <TeamPanel
+                members={members}
+                currentUserId={user?.id ?? ""}
+                canInvite={currentUserRole === "coordinator"}
+                onInvite={onInvite}
+                showInvite={showInvite}
+                onToggleInvite={onToggleInvite}
+              />
+              {currentUserRole === "coordinator" && org && (
+                <OuterCirclePanel
+                  recipientId={recipientId}
+                  orgId={org.id}
+                  currentUserRole={currentUserRole}
+                />
+              )}
+            </>
+          )}
+
+          {activeDestination === "shifts" && (
+            <>
+              {currentUserRole === "coordinator" && org && (
+                <ShiftForm
+                  members={members}
+                  recipientId={recipientId}
+                  orgId={org.id}
+                  onSuccess={() => {}}
+                />
+              )}
+              <ShiftList
+                orgId={org?.id ?? ""}
+                recipientId={recipientId}
+                members={members}
+                currentUserId={user?.id ?? ""}
+                currentUserRole={currentUserRole}
+              />
+            </>
+          )}
+
+          {activeDestination === "documents" && (
+            <>
+              <DocumentVault
+                orgId={org?.id ?? ""}
+                recipientId={recipientId}
+                currentUserRole={currentUserRole}
+              />
+              {currentUserRole === "coordinator" && org && (
+                <OcrReviewPanel orgId={org.id} recipientId={recipientId} />
+              )}
+            </>
+          )}
+
+          {activeDestination === "more" && (
+            <>
+              <SymptomPanel
+                orgId={org?.id ?? ""}
+                recipientId={recipientId}
+                currentUserRole={currentUserRole}
+              />
+              <BurnoutCheckin
+                orgId={org?.id ?? ""}
+                currentUserRole={currentUserRole}
+                currentUserId={user?.id ?? ""}
+              />
+              {currentUserRole === "coordinator" && org && (
+                <>
+                  <ExpensePanel
+                    orgId={org.id}
+                    recipientId={recipientId}
+                    currentUserRole={currentUserRole}
+                  />
+                  <EolPlanner
+                    orgId={org.id}
+                    recipientId={recipientId}
+                    currentUserRole={currentUserRole}
+                  />
+                  <BenefitsNavigator
+                    orgId={org.id}
+                    recipientId={recipientId}
+                    currentUserRole={currentUserRole}
+                  />
+                  <ExportButton
+                    orgId={org.id}
+                    recipientId={recipientId}
+                    currentUserRole={currentUserRole}
+                  />
+                  <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                      Care brief
+                    </p>
+                    <button
+                      type="button"
+                      onClick={onGenerateBrief}
+                      disabled={generatingBrief}
+                      className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors disabled:opacity-50"
+                    >
+                      {generatingBrief
+                        ? "Generating..."
+                        : "Generate shareable brief"}
+                    </button>
+                    {briefUrl && (
+                      <p className="text-xs text-[var(--color-text-muted)] mt-2 break-all">
+                        {briefUrl}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </main>
       </div>
     </div>
   );
