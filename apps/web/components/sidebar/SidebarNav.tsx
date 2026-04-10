@@ -43,7 +43,7 @@ export function SidebarNav({ showLabels = false, onNavigate }: Props) {
                 ? "px-3 py-2 w-full text-left"
                 : "w-10 h-10 justify-center mx-auto",
               isActive
-                ? "bg-[var(--color-sidebar-active)] border border-blue-500/40 text-white"
+                ? "bg-[var(--color-sidebar-active)] border border-[rgba(59,130,246,0.4)] text-white"
                 : "text-slate-400 hover:text-slate-200 hover:bg-[var(--color-sidebar-item)]",
             ].join(" ")}
           >
