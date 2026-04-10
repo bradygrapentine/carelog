@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, Suspense } from 'react'
 import { ErrorBoundary } from '../../../../components/ErrorBoundary'
 import { JournalClient } from './JournalClient'
 
@@ -12,7 +12,9 @@ export default function JournalPage({
   const { recipientId } = use(params)
   return (
     <ErrorBoundary>
-      <JournalClient recipientId={recipientId} />
+      <Suspense>
+        <JournalClient recipientId={recipientId} />
+      </Suspense>
     </ErrorBoundary>
   )
 }
