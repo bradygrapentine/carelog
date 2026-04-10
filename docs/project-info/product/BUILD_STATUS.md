@@ -8,7 +8,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Turborepo monorepo — Next.js 16 + Expo SDK 52 + shared packages
 - [x] Supabase local dev — all 16 tables, RLS, indexes, helper functions
 - [x] Repository pattern — identity, events, orgs, memberships, medications
-- [x] tRPC router — 3 routers, 8+ procedures, protected procedures
+- [x] tRPC router — 13 routers, 40+ procedures, protected procedures
 - [x] Service role key isolation — runtime guard + ESLint rule
 
 ### Auth
@@ -47,8 +47,8 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
 
 ### Testing
-- [x] Vitest unit tests — 400+ tests (all passing)
-- [x] pgTAP RLS tests — 18+ tests, all passing
+- [x] Vitest unit tests — 587 tests (all passing)
+- [x] pgTAP RLS tests — 11 test files, all passing
 - [x] Playwright E2E — journal flow, reactions, flagging, roles, invites (25+ tests)
 
 ## Phase 1 remaining
@@ -91,6 +91,47 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Document vault — `DocumentVault.tsx`, `POST /api/documents/upload`, `GET /api/documents/[id]/download`, tRPC documentsRouter (list/delete), private `care-documents` Supabase Storage bucket, signed URLs (180s), coordinator upload/delete + all members read, MIME allowlist (PDF/JPEG/PNG/HEIC), 10 MB limit
 - [x] End-of-life planner — `EolPlanner.tsx`, tRPC eolPlanRouter (get/upsert), coordinator-only RLS (completely invisible to other roles), advance directive links from document vault, upsert on recipient_id
 
+## Marketing Shell
+
+- [x] Landing page — HeroSection + FeatureGrid
+- [x] About page
+- [x] Pricing page — PricingCards component, $14/mo plan
+- [x] Contact page — form via Resend /api/contact
+- [x] Privacy + Terms pages with LegalPageLayout
+
+## UI Redesign
+
+- [x] Violet & Plum design system — token system replacing blue palette in globals.css
+
+## Mobile App
+
+### Wave 1 — Foundation
+- [x] Expo SDK 55 (canary) + Expo Router (file-based navigation)
+- [x] OTP auth screens — sign-in, verify, secure session via expo-secure-store
+- [x] tRPC client — httpBatchLink with superjson transformer + Bearer auth injection
+- [x] Journal screen — read timeline + write entries with mood tags, offline-first
+- [x] Medications screen — today's scheduled doses, mark as given
+- [x] Schedule screen — next 7 days of shifts
+- [x] Settings screen — push notification permission + sign out
+- [x] Offline queue — SecureStore persistence, flushQueue wired to careEvents.insert with idempotencyKey
+- [x] Sync status hook — 'synced' | 'pending' | 'offline' banner in journal
+- [x] Org selector + invite accept screens
+
+### Wave 2 — Push Notifications
+- [x] push_tokens table — Supabase migration, RLS owner-only
+- [x] POST /api/push/register — upserts Expo push token (web API route)
+- [x] pushNotification.ts — sendExpoPush + sendPushToOrgCoordinators helper
+- [x] journalFlagAlert — Inngest event-driven function (journal/flagged → coordinator push)
+- [x] gapDetector — sends coordinator push on each new coverage gap detected
+- [x] burnoutAlert — sends coordinator push on each burnout alert created
+- [x] Settings screen — expo-notifications permission prompt + token registration
+
+### Wave 3 — Apple Watch
+- [x] CarelogWatch Expo Native Module — Swift WCSession phone-side (updateApplicationContext)
+- [x] watchOS SwiftUI app — ContentView + WatchViewModel, receives WCSession context
+- [x] Config plugin — withCarelogWatch.ts adds Watch target + App Group entitlement via expo prebuild
+- [x] watchBridge.ts — re-exports from real native module (was no-op stub)
+
 ## Before launch (any phase)
 
 - [ ] Supabase cloud project
@@ -100,10 +141,10 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [ ] Stripe billing — $14/mo or $120/yr family plan (`stripe` SDK installed; `/api/stripe/webhook` route not yet created)
 - [ ] Inngest cloud setup
 - [ ] Resend transactional email
-- [ ] Sentry error tracking (`@sentry/nextjs` not installed; no config files exist)
+- [ ] Sentry error tracking — @sentry/nextjs installed; server+edge configs exist but sentry.client.config.ts missing; sendDefaultPii: true is a PHI risk that must be fixed before launch
 - [ ] PostHog analytics (`posthog-js` not installed; no provider exists)
-- [ ] Mobile app offline queue wired to tRPC
-- [ ] Error boundaries on all client pages
+- [x] Mobile app offline queue wired to tRPC — careEvents.insert with idempotencyKey, NetInfo-triggered flush
+- [x] Error boundaries — ErrorBoundary.tsx wraps DashboardClient and JournalClient
 
 ## Runbooks
 

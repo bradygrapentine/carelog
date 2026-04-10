@@ -26,6 +26,7 @@ vi.mock("@/lib/supabase", () => ({
 
 describe("TeamAdminPage", () => {
   beforeEach(() => {
+    vi.stubGlobal('location', { href: '' })
     vi.clearAllMocks();
     mockSupabase.auth.getUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "a@b.com" } },
