@@ -5,7 +5,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 ## Completed and working
 
 ### Infrastructure
-- [x] Turborepo monorepo — Next.js 16 + Expo SDK 52 + shared packages
+- [x] Turborepo monorepo — Next.js 16 + Expo SDK 55 + shared packages
 - [x] Supabase local dev — all 16 tables, RLS, indexes, helper functions
 - [x] Repository pattern — identity, events, orgs, memberships, medications
 - [x] tRPC router — 3 routers, 8+ procedures, protected procedures
@@ -47,8 +47,8 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
 
 ### Testing
-- [x] Vitest unit tests — 400+ tests (all passing)
-- [x] pgTAP RLS tests — 18+ tests, all passing
+- [x] Vitest unit tests — 528 tests (all passing)
+- [x] pgTAP RLS tests — 11 test files, all passing
 - [x] Playwright E2E — journal flow, reactions, flagging, roles, invites (25+ tests)
 
 ## Phase 1 remaining
@@ -91,6 +91,16 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Document vault — `DocumentVault.tsx`, `POST /api/documents/upload`, `GET /api/documents/[id]/download`, tRPC documentsRouter (list/delete), private `care-documents` Supabase Storage bucket, signed URLs (180s), coordinator upload/delete + all members read, MIME allowlist (PDF/JPEG/PNG/HEIC), 10 MB limit
 - [x] End-of-life planner — `EolPlanner.tsx`, tRPC eolPlanRouter (get/upsert), coordinator-only RLS (completely invisible to other roles), advance directive links from document vault, upsert on recipient_id
 
+## Mobile (in progress)
+
+- [ ] Wave 1 — Expo Router, auth, tRPC, core screens, offline flush — plan: `docs/superpowers/plans/2026-04-10-mobile-wave1-foundation.md`
+- [ ] Wave 2 — Push notifications (APNs + FCM, push_tokens, Inngest wiring) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave2-notifications.md`
+- [ ] Wave 3 — Apple Watch complications (WidgetKit, CarelogWatch target) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave3-watch.md`
+
+## Web UI Redesign (in progress)
+
+- [ ] Design token layer (Tailwind v4 @theme), shadcn/ui, icon sidebar, responsive mobile layout — plan: `docs/superpowers/plans/2026-04-10-ui-redesign.md`
+
 ## Before launch (any phase)
 
 - [ ] Supabase cloud project
@@ -100,7 +110,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [ ] Stripe billing — $14/mo or $120/yr family plan (`stripe` SDK installed; `/api/stripe/webhook` route not yet created)
 - [ ] Inngest cloud setup
 - [ ] Resend transactional email
-- [ ] Sentry error tracking (`@sentry/nextjs` not installed; no config files exist)
+- [ ] Sentry error tracking (`@sentry/nextjs` installed; `sentry.server.config.ts` + `sentry.edge.config.ts` exist but have `sendDefaultPii: true` — PHI violation — fix pending; `sentry.client.config.ts` missing)
 - [ ] PostHog analytics (`posthog-js` not installed; no provider exists)
 - [ ] Mobile app offline queue wired to tRPC
 - [ ] Error boundaries on all client pages

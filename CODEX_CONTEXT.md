@@ -1,7 +1,7 @@
 # Carelog — Workspace Context
 
 ## Stack (locked)
-Turborepo + pnpm | Next.js 16 (App Router) | Expo SDK 52 | Supabase (Postgres + RLS + Auth) | tRPC | Zod | Tailwind | Vitest + pgTAP + Playwright | Inngest + Resend + Stripe + Upstash Redis
+Turborepo + pnpm | Next.js 16 (App Router) | Expo SDK 55 + NativeWind 4 | Supabase (Postgres + RLS + Auth) | tRPC | Zod | Tailwind | Vitest + pgTAP + Playwright | Inngest + Resend + Stripe + Upstash Redis
 
 ## Monorepo layout
 - `apps/web/` — Next.js app (App Router)
@@ -31,4 +31,4 @@ Turborepo + pnpm | Next.js 16 (App Router) | Expo SDK 52 | Supabase (Postgres + 
 - `pnpm exec playwright test` — E2E
 
 ## Current phase
-Phase 5 complete (shared expense log, benefits navigator, document vault, end-of-life planner). Before-launch items: Stripe billing, Sentry, PostHog, server-side auth migration.
+Phase 5 complete (shared expense log, benefits navigator, document vault, end-of-life planner). Mobile Wave 1/2/3 plans written (`docs/superpowers/plans/2026-04-10-mobile-wave*.md`). UI redesign spec committed. Before-launch items: Sentry PHI fix (`sendDefaultPii: true` in server + edge configs), Stripe billing, PostHog, server-side auth migration.
