@@ -1,5 +1,6 @@
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
+import { sendPushToOrgCoordinators } from '../pushNotification'
 
 // ─── pure gap detection logic (testable without Inngest) ─────────────────────
 
@@ -137,6 +138,15 @@ export const gapDetector = inngest.createFunction(
               })
               totalGaps++
               logger.info('Gap detected: ' + (gap.label ?? gap.id) + ' for org ' + orgId)
+              try {
+                await sendPushToOrgCoordinators(orgId, {
+                  title: 'Coverage gap detected',
+                  body: (gap.label ?? 'A shift window') + ' has no coverage today.',
+                  data: { screen: 'schedule' },
+                })
+              } catch (pushErr) {
+                logger.warn('Push failed for gap ' + gap.id + ': ' + String(pushErr))
+              }
             }
           }
         })
