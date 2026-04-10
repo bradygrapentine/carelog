@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"${CLAUDE_TOOL_INPUT}\" | grep -qiE '(auth|rls|migration|policy)'; then echo '[pgTAP] Auth/RLS file changed — running supabase test db...'; cd /Users/bradygrapentine/Documents/projects/carelog && output=$(supabase test db 2>&1); echo \"$output\" | tail -20; fi"
+            "command": "if python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if any(k in fp.lower() for k in ['auth','rls','migration','policy','supabase/tests']) else 1)\" 2>/dev/null; then echo '[pgTAP] Auth/RLS file changed — running supabase test db...'; cd /Users/bradygrapentine/Documents/projects/carelog && output=$(supabase test db 2>&1); echo \"$output\" | tail -20; fi"
           }
         ]
       }
