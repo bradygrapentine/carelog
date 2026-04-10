@@ -15,17 +15,25 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+  // PHI protection: Replay is disabled — it could capture sensitive care data in the DOM.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
 
-  // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
-
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  // PHI protection: never send PII to Sentry. Identify users by UUID only.
+  sendDefaultPii: false,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
+import posthog from "posthog-js";
+
+if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+    api_host: "/ingest",
+    ui_host: "https://us.posthog.com",
+    person_profiles: "identified_only",
+    capture_pageview: false, // manual for App Router
+    capture_exceptions: true,
+    debug: process.env.NODE_ENV === "development",
+  });
+}

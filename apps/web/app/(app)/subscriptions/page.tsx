@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 
 const PLAN_FEATURES = [
   "Unlimited team members",
@@ -131,6 +132,7 @@ export default function SubscriptionsPage() {
               </button>
               <button
                 onClick={() => {
+                  posthog.capture("subscription_cancel_initiated", { plan: "family" });
                   setShowCancelModal(false);
                   alert("Cancellation: contact hello@carelog.app — Stripe not yet wired.");
                 }}

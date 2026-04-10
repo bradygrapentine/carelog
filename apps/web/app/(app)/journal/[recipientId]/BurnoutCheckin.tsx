@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import posthog from "posthog-js";
 
 type Props = {
   orgId: string;
@@ -76,6 +77,12 @@ export function BurnoutCheckin({
     onSuccess: () => {
       setSaved(true);
       setError(null);
+      posthog.capture("burnout_checkin_submitted", {
+        sleep_score: sleepScore,
+        stress_score: stressScore,
+        support_score: supportScore,
+        has_notes: notes.trim().length > 0,
+      });
     },
     onError: () => setError("Something went wrong. Please try again."),
   });

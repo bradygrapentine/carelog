@@ -5,6 +5,7 @@ import { createInviteSchema } from '@carelog/schemas'
 import { rateLimit } from '@/lib/rateLimit'
 import { parseBody } from '@/lib/parseBody'
 import { resend } from '@/server/resend.server'
+import { getPostHogClient } from '@/lib/posthog-server'
 
 export async function POST(request: NextRequest) {
   const limited = await rateLimit(request, 'invite')
@@ -103,6 +104,13 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('[invite] Resend not configured. Invite URL for', email, ':', inviteUrl)
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "invite_sent",
+      properties: { org_id: orgId, role, email_sent: !!resend },
+    });
 
     return NextResponse.json({ success: true, inviteUrl })
   } catch (e: unknown) {

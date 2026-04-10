@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import posthog from "posthog-js";
 
 const PROMPTS = [
   "How did they seem today?",
@@ -69,6 +70,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
+    posthog.capture("journal_entry_submitted", { mood: mood || null, char_count: text.trim().length });
     await onPost(text.trim(), mood);
     setText("");
     setMood("");

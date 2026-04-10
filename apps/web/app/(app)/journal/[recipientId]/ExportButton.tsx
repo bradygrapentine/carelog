@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import posthog from "posthog-js";
 
 type Props = {
   orgId: string;
@@ -51,6 +52,7 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      posthog.capture("care_history_exported", { format, has_date_filter: !!since });
     } catch {
       setError("Export failed. Please try again.");
     } finally {

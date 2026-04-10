@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "../../lib/supabase";
+import posthog from "posthog-js";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ export function SignInForm() {
       setLoading(false);
       return;
     }
+    posthog.capture("sign_in_otp_requested");
     setSent(true);
     setLoading(false);
   }
@@ -42,6 +44,10 @@ export function SignInForm() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+    if (data.user) {
+      posthog.identify(data.user.id); // UUID only — never email (PHI)
+      posthog.capture("sign_in_completed");
     }
     window.location.replace("/dashboard");
   }
