@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     await resend.emails.send({
       from: "Carelog Contact <noreply@carelog.app>",
       to: ["hello@carelog.app"],
-      replyTo: email,
+      reply_to: email,
       subject: "Contact form: " + name,
       text: "From: " + name + " <" + email + ">\n\n" + message,
     });
