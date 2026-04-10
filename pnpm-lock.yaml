@@ -71,6 +71,9 @@ importers:
       expo-linking:
         specifier: 55.0.10-canary-20260327-0789fbc
         version: 55.0.10-canary-20260327-0789fbc(expo@55.0.10-canary-20260327-0789fbc)(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      expo-modules-core:
+        specifier: 55.0.19-canary-20260327-0789fbc
+        version: 55.0.19-canary-20260327-0789fbc(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       expo-notifications:
         specifier: 55.0.15-canary-20260327-0789fbc
         version: 55.0.15-canary-20260327-0789fbc(expo@55.0.10-canary-20260327-0789fbc(@babel/core@7.29.0)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.9)(expo-router@55.0.9-canary-20260327-0789fbc)(react-dom@19.2.4(react@19.2.0))(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
@@ -96,6 +99,9 @@ importers:
         specifier: ^3.22.0
         version: 3.25.76
     devDependencies:
+      '@expo/config-plugins':
+        specifier: ^55.0.8
+        version: 55.0.8
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -930,8 +936,14 @@ packages:
   '@expo/code-signing-certificates@0.0.6':
     resolution: {integrity: sha512-iNe0puxwBNEcuua9gmTGzq+SuMDa0iATai1FlFTMHJ/vUmKvN/V//drXoLJkVb5i5H3iE/n/qIJxyoBnXouD0w==}
 
+  '@expo/config-plugins@55.0.8':
+    resolution: {integrity: sha512-8WfWTRntTCcowfOS+tHdB0z98gKetTwktg4G5TWkCkXVa8Jt1NUnvzaaU4UHk2vbR2U4N84RyZJFizSwfF6C9g==}
+
   '@expo/config-plugins@55.0.8-canary-20260327-0789fbc':
     resolution: {integrity: sha512-elG1bWVGlJPS08S1rg0TP82WzSB8iUPFoLCugd7dmuZFqscElHooXpTYjZdkqvnbQoX7DortfH2BObr1TtpWAA==}
+
+  '@expo/config-types@55.0.5':
+    resolution: {integrity: sha512-sCmSUZG4mZ/ySXvfyyBdhjivz8Q539X1NondwDdYG7s3SBsk+wsgPJzYsqgAG/P9+l0xWjUD2F+kQ1cAJ6NNLg==}
 
   '@expo/config-types@55.0.6-canary-20260327-0789fbc':
     resolution: {integrity: sha512-unRb4XgD1DyJ//7N6C/5OKxJn0FYRw8S+gnb3nv12u4SjR+XFNvfVlU+WFJWvngqdsyUFCYvCmE/XK15wnc5CA==}
@@ -970,6 +982,9 @@ packages:
 
   '@expo/image-utils@0.8.13-canary-20260327-0789fbc':
     resolution: {integrity: sha512-racPD4cgbRmOa9F6/3DhWnFVpSrkT6+brO35dTkcMjc3187XZXoEnBavV64pAlu39rYz29DvJ0kwcyJlkpotmA==}
+
+  '@expo/json-file@10.0.13':
+    resolution: {integrity: sha512-pX/XjQn7tgNw6zuuV2ikmegmwe/S7uiwhrs2wXrANMkq7ozrA+JcZwgW9Q/8WZgciBzfAhNp5hnackHcrmapQA==}
 
   '@expo/json-file@10.0.13-canary-20260327-0789fbc':
     resolution: {integrity: sha512-cxEhfurBgb249fk9xaYvmSz5Io95OgfeE/r6+cKCmp82f2eHPHAsksa/LQtJKuUuDmGFuLpHMWGqutPh8sGd8A==}
@@ -1021,6 +1036,9 @@ packages:
 
   '@expo/package-manager@1.10.4-canary-20260327-0789fbc':
     resolution: {integrity: sha512-3i9ASWS+aT705SjvBBBg3+h5mqjEDyis6FjAp/9qWO5DIIGBJD0PNINLm8A/davQZsnEYiJjSh/KABY2tnTuHA==}
+
+  '@expo/plist@0.5.2':
+    resolution: {integrity: sha512-o4xdVdBpe4aTl3sPMZ2u3fJH4iG1I768EIRk1xRZP+GaFI93MaR3JvoFibYqxeTmLQ1p1kNEVqylfUjezxx45g==}
 
   '@expo/plist@0.5.3-canary-20260327-0789fbc':
     resolution: {integrity: sha512-kdcgPJ/6SDXsmFyN8w8WxAnt5c57+i3CqsIQbrw0G4oogxdfSpfUavYpG+EjT+PhO3nIcgb0J6qoKrW+ZjufgQ==}
@@ -9065,6 +9083,24 @@ snapshots:
     dependencies:
       node-forge: 1.4.0
 
+  '@expo/config-plugins@55.0.8':
+    dependencies:
+      '@expo/config-types': 55.0.5
+      '@expo/json-file': 10.0.13
+      '@expo/plist': 0.5.2
+      '@expo/sdk-runtime-versions': 1.0.0
+      chalk: 4.1.2
+      debug: 4.4.3
+      getenv: 2.0.0
+      glob: 13.0.6
+      resolve-from: 5.0.0
+      semver: 7.7.4
+      slugify: 1.6.8
+      xcode: 3.0.1
+      xml2js: 0.6.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@expo/config-plugins@55.0.8-canary-20260327-0789fbc':
     dependencies:
       '@expo/config-types': 55.0.6-canary-20260327-0789fbc
@@ -9082,6 +9118,8 @@ snapshots:
       xml2js: 0.6.0
     transitivePeerDependencies:
       - supports-color
+
+  '@expo/config-types@55.0.5': {}
 
   '@expo/config-types@55.0.6-canary-20260327-0789fbc': {}
 
@@ -9155,6 +9193,11 @@ snapshots:
       parse-png: 2.1.0
       resolve-from: 5.0.0
       semver: 7.7.4
+
+  '@expo/json-file@10.0.13':
+    dependencies:
+      '@babel/code-frame': 7.29.0
+      json5: 2.2.3
 
   '@expo/json-file@10.0.13-canary-20260327-0789fbc':
     dependencies:
@@ -9264,6 +9307,12 @@ snapshots:
       npm-package-arg: 11.0.3
       ora: 3.4.0
       resolve-workspace-root: 2.0.1
+
+  '@expo/plist@0.5.2':
+    dependencies:
+      '@xmldom/xmldom': 0.8.11
+      base64-js: 1.5.1
+      xmlbuilder: 15.1.1
 
   '@expo/plist@0.5.3-canary-20260327-0789fbc':
     dependencies:
