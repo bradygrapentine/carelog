@@ -47,6 +47,8 @@ function EntryReactions({ eventId }: { eventId: string }) {
             key={r.key}
             onPress={() => toggle(r.key)}
             style={[styles.reactionBtn, active && styles.reactionActive]}
+            accessibilityRole="button"
+            accessibilityLabel={r.label + (myReaction === r.key ? ', selected' : '')}
           >
             <Text style={styles.reactionEmoji}>{r.emoji}</Text>
             {count > 0 && <Text style={styles.reactionCount}>{count}</Text>}
@@ -117,6 +119,8 @@ export default function JournalScreen() {
                 style={styles.entry}
                 onPress={() => setExpandedId(isExpanded ? null : item.id)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={isExpanded ? 'Collapse entry' : 'Expand entry'}
               >
                 <View style={styles.entryHeader}>
                   <Text style={styles.entryTime}>{formatEntryTime(item.occurred_at)}</Text>
@@ -135,6 +139,8 @@ export default function JournalScreen() {
                     <TouchableOpacity
                       style={styles.openBtn}
                       onPress={() => router.push('/journal/' + item.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Open full entry"
                     >
                       <Text style={styles.openBtnText}>Open entry →</Text>
                     </TouchableOpacity>
@@ -154,6 +160,8 @@ export default function JournalScreen() {
               key={m}
               style={[styles.moodTag, mood === m && { backgroundColor: INPUT_MOOD_COLORS[m] }]}
               onPress={() => setMood(m)}
+              accessibilityRole="button"
+              accessibilityLabel={m + ' mood'}
             >
               <Text style={[styles.moodTagText, mood === m && { color: '#fff' }]}>{m}</Text>
             </TouchableOpacity>
@@ -171,6 +179,8 @@ export default function JournalScreen() {
           style={[styles.submitBtn, (!text.trim() || submitting) && styles.submitDisabled]}
           onPress={handleSubmit}
           disabled={!text.trim() || submitting}
+          accessibilityRole="button"
+          accessibilityLabel={submitting ? 'Saving entry' : 'Add entry'}
         >
           <Text style={styles.submitText}>{submitting ? 'Saving…' : 'Add entry'}</Text>
         </TouchableOpacity>
