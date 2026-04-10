@@ -24,13 +24,16 @@ P5-04 End-of-life planner    ─── requires P5-03 (documents are stored ther
 **Agent:** Claude Code (new table + tRPC router + UI)
 
 **Scan findings:**
+
 - No `expenses` table exists
 - No expense tracking UI exists
 
 **Technical details:**
 
 ### Schema
+
 New table `expenses`:
+
 ```sql
 CREATE TABLE expenses (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -53,11 +56,13 @@ CREATE TABLE expenses (
 ```
 
 ### tRPC router `apps/web/server/routers/expenses.ts`
+
 - `expenses.list` — all org members; ordered by `incurred_at DESC`; optional `since` date filter
 - `expenses.create` — coordinator/caregiver; validates amount > 0, category enum
 - `expenses.delete` — coordinator only; org-scoped
 
 ### UI `apps/web/app/journal/[recipientId]/ExpensePanel.tsx`
+
 - Collapsible panel on journal page (coordinator/caregiver can add; all roles read)
 - List view: date, category badge, description, amount, who paid
 - Summary row: total by category for the last 30 days
@@ -65,6 +70,7 @@ CREATE TABLE expenses (
 - Split view (Phase 5b): shows per-contributor totals — "Brady paid $340, Mom paid $120"
 
 **Files to change:**
+
 - `supabase/migrations/YYYYMMDD_expenses.sql` — new table + RLS
 - `supabase/tests/expenses_rls.test.sql` — pgTAP RLS tests
 - `packages/schemas/src/expenses.ts` — `expenseCreateInput`, `expenseListInput`
@@ -78,6 +84,7 @@ CREATE TABLE expenses (
 **Business impact:** Reduces family conflict over "who paid what." Common pain point for multi-sibling caregiving situations.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator/caregiver can log an expense with amount, category, description
 - [ ] All roles can see the expense list and 30-day totals by category
 - [ ] Supporter cannot create an expense (role-enforced)
@@ -95,6 +102,7 @@ CREATE TABLE expenses (
 **Agent:** Claude Code (static eligibility logic + UI panel)
 
 **Scan findings:**
+
 - No benefits-related tables or routes exist
 - Care recipient age/DOB is in identity vault (service role access)
 - No diagnosis data in structured form (only free-text care_events)
@@ -103,10 +111,12 @@ CREATE TABLE expenses (
 **Technical details:**
 
 ### Approach
+
 MVP is a static eligibility screener — not a live benefits lookup API.
 Present a checklist of questions; surface matching programs based on answers.
 
 ### UI `apps/web/app/journal/[recipientId]/BenefitsNavigator.tsx`
+
 - Coordinator-only panel (not visible to other roles)
 - Short screener: age ≥ 65? Veteran? Low income? Medicare enrolled? Medicaid enrolled?
 - Results: list of matching programs with plain-language description + link to apply
@@ -114,7 +124,9 @@ Present a checklist of questions; surface matching programs based on answers.
 - No external API calls — all logic is local eligibility rules
 
 ### No new schema required
+
 - Store screener answers in a `benefits_screenings` table for coordinator reference:
+
 ```sql
 CREATE TABLE benefits_screenings (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -129,6 +141,7 @@ CREATE TABLE benefits_screenings (
 ```
 
 **Files to change:**
+
 - `supabase/migrations/YYYYMMDD_benefits_screenings.sql` — new table + RLS
 - `apps/web/server/routers/benefits.ts` — `benefits.screen` (save screening), `benefits.latest` (get last result)
 - `apps/web/server/trpc/router.ts` — wire benefitsRouter
@@ -140,6 +153,7 @@ CREATE TABLE benefits_screenings (
 **Business impact:** High perceived value, low implementation cost. Most families don't know what programs exist. This is a discovery tool, not an application tool.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator can complete the screener and see matching programs
 - [ ] Results are saved and retrievable (latest screening shown on revisit)
 - [ ] Non-coordinator roles cannot access the panel
@@ -156,6 +170,7 @@ CREATE TABLE benefits_screenings (
 **Agent:** Claude Code (Supabase Storage + new table + upload/download UI)
 
 **Scan findings:**
+
 - Supabase Storage already wired (prescription-images bucket used by P3-03)
 - No `documents` table exists
 - No document upload UI exists
@@ -164,7 +179,9 @@ CREATE TABLE benefits_screenings (
 **Technical details:**
 
 ### Schema
+
 New table `documents`:
+
 ```sql
 CREATE TABLE documents (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -185,20 +202,24 @@ CREATE TABLE documents (
 ```
 
 ### API routes
+
 - `POST /api/documents/upload` — coordinator only; uploads to `care-documents` bucket; inserts documents row; returns `documentId`
 - `GET /api/documents/[documentId]/download` — all org members; generates 60-second signed URL via `supabaseAdmin.storage.createSignedUrl()`; redirects to signed URL
 
 ### tRPC router `apps/web/server/routers/documents.ts`
+
 - `documents.list` — all org members; returns document rows (no storage URLs)
 - `documents.delete` — coordinator only; deletes row + removes from storage
 
 ### UI `apps/web/app/journal/[recipientId]/DocumentVault.tsx`
+
 - Collapsible panel on journal page (coordinator only for upload/delete; all roles can view/download)
 - Document list: type badge, display name, uploader, date, download button
 - Upload form: file input, display name, type selector
 - Download: opens signed URL in new tab
 
 **Files to change:**
+
 - `supabase/migrations/YYYYMMDD_documents.sql` — new table + RLS
 - `supabase/tests/documents_rls.test.sql` — pgTAP RLS tests
 - `apps/web/app/api/documents/upload/route.ts` — new
@@ -213,6 +234,7 @@ CREATE TABLE documents (
 **Business impact:** POA and advance directive in one place the whole team can access. Eliminates "where is the DNR?" crisis at 2am. High trust driver.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator can upload a document (file + display name + type)
 - [ ] All org members can view the document list and download via signed URL
 - [ ] Signed URL expires after 60 seconds (no persistent public URL)
@@ -230,6 +252,7 @@ CREATE TABLE documents (
 **Agent:** Claude Code (structured form + document attachments + access control)
 
 **Scan findings:**
+
 - No `eol_plans` table exists
 - P5-03 document vault provides storage for attached documents
 - Identity vault service role pattern applies here (names + contacts are sensitive)
@@ -237,7 +260,9 @@ CREATE TABLE documents (
 **Technical details:**
 
 ### Schema
+
 New table `eol_plans`:
+
 ```sql
 CREATE TABLE eol_plans (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -258,10 +283,12 @@ CREATE TABLE eol_plans (
 ```
 
 ### tRPC router `apps/web/server/routers/eolPlan.ts`
+
 - `eolPlan.get` — coordinator only; returns plan for recipient (null if none)
 - `eolPlan.upsert` — coordinator only; creates or updates (UPSERT on recipient_id)
 
 ### UI `apps/web/app/journal/[recipientId]/EolPlanner.tsx`
+
 - Coordinator-only panel — completely hidden from all other roles
 - Form: healthcare proxy name + contact, resuscitation preference (radio), funeral preferences (textarea), legacy message (textarea), attorney name + contact
 - Read-only display until "Edit" is clicked
@@ -269,6 +296,7 @@ CREATE TABLE eol_plans (
 - Attached documents: list of documents tagged `doc_type: 'advance_directive'` from P5-03 vault (filtered view, no new upload needed)
 
 **Files to change:**
+
 - `supabase/migrations/YYYYMMDD_eol_plans.sql` — new table + RLS
 - `supabase/tests/eol_plans_rls.test.sql` — pgTAP RLS tests (coordinator-only access)
 - `packages/schemas/src/eolPlan.ts` — `eolPlanUpsertInput`
@@ -282,6 +310,7 @@ CREATE TABLE eol_plans (
 **Business impact:** The conversation families put off. Having a structured place to store these decisions — and knowing it's private — removes the barrier. Elder law attorney referral channel opens once this ships.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator can create/update an end-of-life plan
 - [ ] Plan is completely hidden from caregiver, supporter, and aide roles
 - [ ] Resuscitation preference constrained to valid enum values
@@ -297,11 +326,11 @@ CREATE TABLE eol_plans (
 
 ## Agent Routing Summary
 
-| Story | Status | Agent | Reason |
-|-------|--------|-------|--------|
-| P5-01 Shared expense log | ⬜ NOT STARTED | Claude Code | New table + router + UI, multi-file |
-| P5-02 Benefits navigator | ⬜ NOT STARTED | Claude Code | Static eligibility logic + UI, no external API |
-| P5-03 Document vault | ⬜ NOT STARTED | Claude Code | Storage integration, signed URLs, role-gated |
+| Story                     | Status         | Agent       | Reason                                             |
+| ------------------------- | -------------- | ----------- | -------------------------------------------------- |
+| P5-01 Shared expense log  | ⬜ NOT STARTED | Claude Code | New table + router + UI, multi-file                |
+| P5-02 Benefits navigator  | ⬜ NOT STARTED | Claude Code | Static eligibility logic + UI, no external API     |
+| P5-03 Document vault      | ⬜ NOT STARTED | Claude Code | Storage integration, signed URLs, role-gated       |
 | P5-04 End-of-life planner | ⬜ NOT STARTED | Claude Code | Coordinator-only, sensitive data, P5-03 dependency |
 
 ---

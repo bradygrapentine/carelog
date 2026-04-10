@@ -13,6 +13,15 @@
             "command": "cd apps/web && output=$(npx eslint --cache --quiet . 2>&1 | head -15); if [ -n \"$output\" ]; then echo \"[eslint] $output\"; fi"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"${CLAUDE_TOOL_INPUT}\" | grep -qiE '(auth|rls|migration|policy)'; then echo '[pgTAP] Auth/RLS file changed — running supabase test db...'; cd /Users/bradygrapentine/Documents/projects/carelog && output=$(supabase test db 2>&1); echo \"$output\" | tail -20; fi"
+          }
+        ]
       }
     ]
   }

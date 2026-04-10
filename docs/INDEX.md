@@ -6,30 +6,33 @@ All docs are in `docs/project-info/`.
 
 ## Core docs (load when needed)
 
-| File | Purpose | Read when |
-|------|---------|-----------|
-| `project-info/ARCHITECTURE.md` | Directory tree, DB schema, tRPC router, RLS design, design rationale | Before touching data layer |
-| `project-info/BUILD_STATUS.md` | What's done, in progress, full phase roadmap | Planning work |
-| `project-info/TECH_DEBT.md` | Known issues with file locations and fix descriptions | Before production |
-| `project-info/ENTERPRISE_PRINCIPLES.md` | 12 principles discovered through hard experience | Before writing code |
-| `project-info/PATTERNS.md` | Code conventions, anti-patterns, testing conventions | Before writing code |
-| `project-info/UX_DECISIONS.md` | Language choices, emotional framing, design philosophy | Before UI changes |
-| `project-info/TROUBLESHOOTING.md` | Every local dev issue hit + exact fixes | When something breaks |
+| File                                    | Purpose                                                              | Read when                  |
+| --------------------------------------- | -------------------------------------------------------------------- | -------------------------- |
+| `project-info/ARCHITECTURE.md`          | Directory tree, DB schema, tRPC router, RLS design, design rationale | Before touching data layer |
+| `project-info/BUILD_STATUS.md`          | What's done, in progress, full phase roadmap                         | Planning work              |
+| `project-info/TECH_DEBT.md`             | Known issues with file locations and fix descriptions                | Before production          |
+| `project-info/ENTERPRISE_PRINCIPLES.md` | 12 principles discovered through hard experience                     | Before writing code        |
+| `project-info/PATTERNS.md`              | Code conventions, anti-patterns, testing conventions                 | Before writing code        |
+| `project-info/UX_DECISIONS.md`          | Language choices, emotional framing, design philosophy               | Before UI changes          |
+| `project-info/TROUBLESHOOTING.md`       | Every local dev issue hit + exact fixes                              | When something breaks      |
 
 ## Deep reference
 
-| File | Purpose |
-|------|---------|
-| `project-info/OVERVIEW.md` | Three-tier architecture diagram, Supabase client decision tree |
-| `project-info/AUTH_FLOW.md` | OTP sign-in, invite acceptance, session storage by layer |
-| `project-info/DATA_FLOW.md` | Care event write/read, identity resolution, invite paths |
-| `project-info/SECURITY_MODEL.md` | PHI boundary, service role isolation, RLS design, token security |
-| `project-info/INFRASTRUCTURE.md` | Why each third-party service was chosen |
-| `project-info/DEPLOY.md` | Production deploy guide |
-| `project-info/PRODUCT_STRATEGY.md` | Business model, GTM, moats, competitive positioning |
-| `project-info/ROADMAP.md` | Feature sequencing with reasoning |
-| `project-info/BACKLOG_PHASE2.md` | Phase 2 scheduler backlog |
-| `project-info/AGENT_WORKFLOW.md` | Agent and session workflow |
+| File                                          | Purpose                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| `project-info/OVERVIEW.md`                    | Three-tier architecture diagram, Supabase client decision tree   |
+| `project-info/AUTH_FLOW.md`                   | OTP sign-in, invite acceptance, session storage by layer         |
+| `project-info/DATA_FLOW.md`                   | Care event write/read, identity resolution, invite paths         |
+| `project-info/SECURITY_MODEL.md`              | PHI boundary, service role isolation, RLS design, token security |
+| `project-info/INFRASTRUCTURE.md`              | Why each third-party service was chosen                          |
+| `project-info/runbooks/DEPLOY.md`             | Production deploy guide                                          |
+| `project-info/runbooks/MANUAL_TESTING.md`     | QA testing checklist for web + mobile                            |
+| `project-info/runbooks/THIRD_PARTY_SETUP.md`  | External service accounts and configuration                      |
+| `project-info/runbooks/CODEBASE_EDUCATION.md` | Reading path for new contributors                                |
+| `project-info/PRODUCT_STRATEGY.md`            | Business model, GTM, moats, competitive positioning              |
+| `project-info/ROADMAP.md`                     | Feature sequencing with reasoning                                |
+| `project-info/BACKLOG_PHASE2.md`              | Phase 2 scheduler backlog                                        |
+| `project-info/AGENT_WORKFLOW.md`              | Agent and session workflow                                       |
 
 ## Quick reference
 

@@ -6,6 +6,7 @@ Do not work around them further — fix them properly when tackling production d
 ## Critical (must fix before real users)
 
 ### 1. Auth is client-side only
+
 **File:** all protected pages use `useEffect` + `createClient().auth.getUser()`
 
 **Problem:** `createServerSupabase()` can't read the session in local dev because
@@ -29,16 +30,19 @@ would be complex and fragile in the local environment.
 ---
 
 ### ~~2. API routes bypass RLS via service role~~ FIXED
+
 Auth check added to all API routes. Routes now use a session-scoped `createServerSupabase()` client for queries, enforcing RLS at the DB level. `supabaseAdmin` is only used where service role is explicitly required (vault reads, invite token creation).
 
 ---
 
 ### ~~3. No input validation on API routes~~ FIXED
+
 Zod validation added to `journal`, `onboarding/create`, and `invite` routes. Invalid input returns 400 with structured errors.
 
 ---
 
 ### 4. Mobile offline queue has TODO stubs
+
 **File:** `apps/mobile/hooks/useOfflineWrite.ts`
 
 **Problem:** The `flushQueue()` function has a TODO comment where the actual
@@ -51,6 +55,7 @@ a real device with airplane mode toggled.
 ---
 
 ### ~~5. No error boundaries~~ FIXED
+
 `components/ErrorBoundary.tsx` exists and wraps both `DashboardClient` and `JournalClient` in their respective page components.
 
 ---
@@ -58,16 +63,19 @@ a real device with airplane mode toggled.
 ## Medium (fix before scale)
 
 ### ~~6. Display names not resolved in team panel~~ FIXED
+
 `/api/members` batch-resolves `display_name` from `user_profiles` in a single query and returns it alongside memberships. `TeamPanel` renders the name directly.
 
 ---
 
 ### ~~7. Invite flow email matching UX~~ FIXED
+
 `invite/[token]/page.tsx` saves the token to `sessionStorage` before redirecting to `/signin`. `DashboardClient` checks for it on load and hard-navigates back to `/invite/{token}` to complete acceptance.
 
 ---
 
 ### ~~8. Invite token uses invitedBy as placeholder user_id~~ FIXED
+
 Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable_pending_membership_user_id.sql` applied.
 
 ---
@@ -75,9 +83,11 @@ Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable
 ## Low (nice to fix)
 
 ### ~~9. No rate limiting on auth endpoints~~ FIXED
+
 `lib/rateLimit.ts` implements a 5-request / 15-minute fixed window per IP using Upstash Redis. Applied to all API routes. No-ops gracefully when `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are absent (local dev).
 
 ### ~~10. Weekly digest stagger not wired~~ FIXED
+
 `digestMinuteOffset()` is now imported and applied in `weeklyDigest.ts` via
 `step.sleep('stagger-' + orgId, digestMinuteOffset(orgId) + 's')`.
 
@@ -86,6 +96,7 @@ Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable
 ## Medium (fix before scale)
 
 ### 12. coverageWindowsRouter and organizationsRouter lack security tests
+
 **Files:** `apps/web/server/routers/coverageWindows.ts`, `apps/web/server/routers/organizations.ts`
 
 **Problem:** No `*.security.test.ts` for these routers. The DB-level RLS still protects
@@ -99,14 +110,31 @@ following the pattern in `shiftsRouter.security.test.ts`.
 ## Low (nice to fix)
 
 ### 13. N+1 user lookup in weeklyDigest member email resolution (partially fixed)
+
 **File:** `apps/web/inngest/functions/weeklyDigest.ts` line ~174
 
 **Problem:** Shift assignee lookups were N+1 — now deduped and parallelized (BF-04).
 Member email resolution (memberships loop) was also N+1 — now deduped and parallelized.
 Both are resolved. Documented here for awareness of the pattern.
 
+### 14. Stripe webhook, Sentry, and PostHog have no code yet
+
+**Services:** Stripe (`/api/stripe/webhook`), Sentry, PostHog
+
+**Problem:** These are listed in the "Before launch" checklist but have zero implementation:
+
+- `stripe` SDK is installed (`package.json`) but `/api/stripe/webhook` route does not exist
+- `@sentry/nextjs` is not installed and no Sentry config files exist
+- `posthog-js` is not installed and no PostHog provider exists
+
+**Fix:** Implement before launch. See `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` for setup steps.
+
+---
+
 ### 11. ~~~Supabase CLI version~~~ FIXED
+
 Running v2.75.0, latest is v2.84.2. Update before production:
+
 ```bash
 brew upgrade supabase
 ```

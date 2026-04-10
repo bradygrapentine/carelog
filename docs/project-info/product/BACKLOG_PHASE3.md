@@ -31,11 +31,13 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Claude Code (new router + UI, multi-file)
 
 **Scan findings:**
+
 - `medications` table exists: `id, org_id, recipient_id, name, dosage_mg, frequency_per_day, supply_days_remaining, notes, created_by`
 - No tRPC router for medications yet
 - No UI for medications
 
 **Technical details:**
+
 - Add `packages/schemas/src/medications.ts` — Zod schemas: `medicationCreateInput`, `medicationListInput`
 - Add `apps/web/server/routers/medications.ts`:
   - `medications.list` — scoped to org+recipient, RLS-enforced
@@ -49,6 +51,7 @@ P3-06 Care brief          ─── parallel with medical module
   - List with delete button (coordinator only)
 
 **Files to change:**
+
 - `packages/schemas/src/medications.ts` — new
 - `packages/schemas/src/index.ts` — re-export
 - `apps/web/server/routers/medications.ts` — new
@@ -60,6 +63,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Medication tracking is a primary caregiving task. Without this, the OCR pipeline and refill alerts have no target.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator can add a medication (name, dosage, frequency required)
 - [ ] All roles see the medication list on the journal page
 - [ ] Coordinator can delete a medication
@@ -76,11 +80,13 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Claude Code + Continue.dev
 
 **Scan findings:**
+
 - `medication_schedules` table exists: `id, medication_id, org_id, recipient_id, scheduled_time, days_of_week` (jsonb)
 - `care_events` with `event_type='medication'` and `entry_kind='system'` is the log target
 - No administration UI exists
 
 **Technical details:**
+
 - New component: `apps/web/app/journal/[recipientId]/MedicationChecklist.tsx`
 - Shows today's scheduled medications (from `medication_schedules` joined to `medications`)
 - Each row: medication name + dose + scheduled time + "Gave it" / "Missed" buttons
@@ -90,6 +96,7 @@ P3-06 Care brief          ─── parallel with medical module
 - Add `medications.listScheduled` tRPC query — today's schedules for a recipient
 
 **Files to change:**
+
 - `apps/web/server/routers/medications.ts` — add `listScheduled` query
 - `apps/web/app/journal/[recipientId]/MedicationChecklist.tsx` — new
 - `apps/web/app/journal/[recipientId]/JournalClient.tsx` — render MedicationChecklist
@@ -97,6 +104,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Closes the loop on medication adherence. The care_events log + flagging system means doctors can see missed medication patterns.
 
 **Acceptance criteria:**
+
 - [ ] Today's scheduled medications appear in checklist
 - [ ] "Gave it" / "Missed" creates correct care_event
 - [ ] Buttons disable after logging (no double-logging same medication same day)
@@ -112,11 +120,13 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Claude Code (Inngest pipeline, multi-file)
 
 **Scan findings:**
+
 - `ocr_jobs` table exists: `id, org_id, recipient_id, image_url, status (pending|processing|needs_review|confirmed), raw_text, parsed_payload, created_by`
 - No Inngest function for OCR exists
 - No upload UI exists
 
 **Technical details:**
+
 - UI flow: coordinator uploads image (file input) → POST to `/api/ocr/upload` → Inngest job triggered
 - Inngest function `ocrPrescription`:
   - Triggered by `ocr/job.created` event
@@ -127,6 +137,7 @@ P3-06 Care brief          ─── parallel with medical module
 - Confirming creates a medication row and sets `ocr_jobs.status = confirmed`
 
 **Files to change:**
+
 - `apps/web/app/api/ocr/upload/route.ts` — POST: uploads image, creates ocr_job, fires Inngest event
 - `apps/web/inngest/functions/ocrPrescription.ts` — Inngest function
 - `apps/web/app/api/inngest/route.ts` — register ocrPrescription
@@ -136,6 +147,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Removes manual data entry for medications. OCR-to-confirmation is the core value for professional aides managing complex medication regimens.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator can upload a prescription image
 - [ ] Inngest function runs and updates `ocr_jobs.status` to `needs_review`
 - [ ] Coordinator sees parsed fields, can confirm or discard
@@ -152,10 +164,12 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Continue.dev (follows gapDetector.ts pattern)
 
 **Scan findings:**
+
 - `medications.supply_days_remaining` column exists
 - No alert mechanism exists yet
 
 **Technical details:**
+
 - New Inngest function `refillAlert` — cron `TZ=UTC 0 7 * * *` (daily 7am UTC, 1hr after gap detector)
 - Pure function `detectLowSupply(medications)` → medications with `supply_days_remaining <= 7`
 - For each low-supply medication: create `care_event { event_type: 'task', entry_kind: 'system', payload: { refill_needed: true, medication_id, days_remaining } }`
@@ -163,6 +177,7 @@ P3-06 Care brief          ─── parallel with medical module
 - Register in `apps/web/app/api/inngest/route.ts`
 
 **Files to change:**
+
 - `apps/web/inngest/functions/refillAlert.ts` — new (pure function + Inngest handler)
 - `apps/web/inngest/functions/__tests__/refillAlert.test.ts` — new
 - `apps/web/app/api/inngest/route.ts` — register refillAlert
@@ -170,6 +185,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Proactive alert prevents "we ran out of Lisinopril at 8pm" scenarios. High caregiver stress reduction.
 
 **Acceptance criteria:**
+
 - [ ] Cron runs daily at 7am UTC
 - [ ] Creates system care_event for each medication with ≤7 days remaining
 - [ ] Idempotent — no duplicate events for same medication same day
@@ -190,6 +206,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Claude Code (new public route, no-account flow)
 
 **Scan findings:**
+
 - `outer_circle_requests` table: `id, org_id, recipient_id, share_token (32-byte hex), title, description, slots_total, slots_filled, active`
 - `outer_circle_claims` table: `id, request_id, claimer_name, claimer_email, claim_note, claimed_at`
 - `claim_outer_circle_slot()` Postgres function exists — atomic, prevents double-booking
@@ -197,6 +214,7 @@ P3-06 Care brief          ─── parallel with medical module
 - No UI or routes exist yet
 
 **Technical details:**
+
 - Coordinator creates a request: `/api/outer-circle/[shareToken]` → POST to create request, generates `share_token`
 - Public board: `apps/web/app/care/[shareToken]/page.tsx` — no auth required
   - Shows: title, description, slots remaining, claim form
@@ -206,6 +224,7 @@ P3-06 Care brief          ─── parallel with medical module
 - Coordinator view: list of requests + who claimed each slot
 
 **Files to change:**
+
 - `apps/web/app/api/outer-circle/route.ts` — POST create request (coordinator only)
 - `apps/web/app/api/outer-circle/[shareToken]/route.ts` — GET board data
 - `apps/web/app/api/outer-circle/[shareToken]/claim/route.ts` — POST claim slot (no auth)
@@ -215,6 +234,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Enables volunteer coordination without requiring platform accounts. Critical for community care models.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator creates request → gets shareable URL
 - [ ] Anyone with URL can claim a slot without signing in
 - [ ] `claim_outer_circle_slot()` prevents double-booking (atomic)
@@ -231,11 +251,13 @@ P3-06 Care brief          ─── parallel with medical module
 **Agent:** Claude Code (vault access pattern, snapshot model)
 
 **Scan findings:**
+
 - `care_briefs` table: `id, org_id, recipient_id, share_token, snapshot (jsonb), created_by, revoked`
 - Vault access pattern: service role reads identity once at creation, never again
 - No UI or routes exist yet
 
 **Technical details:**
+
 - Coordinator generates brief: button in TeamPanel or settings → POST `/api/brief`
   - Server reads identity vault once (service role) → de-tokenizes name + DOB
   - Reads recent care_events (last 30 days, human entries only)
@@ -248,6 +270,7 @@ P3-06 Care brief          ─── parallel with medical module
 - Revoke: DELETE `/api/brief/[shareToken]` → sets `revoked = true`
 
 **Files to change:**
+
 - `apps/web/app/api/brief/route.ts` — POST create brief (coordinator only)
 - `apps/web/app/api/brief/[shareToken]/route.ts` — GET brief (public)
 - `apps/web/app/api/brief/[shareToken]/revoke/route.ts` — POST revoke
@@ -257,6 +280,7 @@ P3-06 Care brief          ─── parallel with medical module
 **Business impact:** Enables one-click doctor briefing. Removes the "please summarize everything for the new specialist" burden. High perceived value, low implementation cost.
 
 **Acceptance criteria:**
+
 - [ ] Coordinator generates brief → gets shareable URL
 - [ ] Brief renders at public URL without auth
 - [ ] Revoke sets `revoked=true` → URL returns 404
@@ -270,14 +294,14 @@ P3-06 Care brief          ─── parallel with medical module
 
 ## Agent Routing Summary
 
-| Story | Status | Agent | Reason |
-|-------|--------|-------|--------|
-| P3-01 Medication catalog | ✅ SHIPPED 2026-04-09 | Claude Code | New router + UI, multi-file |
-| P3-02 Admin log | ✅ SHIPPED 2026-04-09 | Claude Code | Checklist UI + care_event writes |
-| P3-03 OCR pipeline | ✅ SHIPPED 2026-04-09 | Claude Code | Inngest pipeline, file upload, multi-file |
-| P3-04 Refill alert | ✅ SHIPPED 2026-04-09 | Claude Code | Follows gapDetector pattern, 5 tests |
-| P3-05 Outer circle | ✅ SHIPPED 2026-04-09 | Claude Code | New public route, no-auth flow |
-| P3-06 Care brief | ✅ SHIPPED 2026-04-09 | Claude Code | Vault access pattern, snapshot model |
+| Story                    | Status                | Agent       | Reason                                    |
+| ------------------------ | --------------------- | ----------- | ----------------------------------------- |
+| P3-01 Medication catalog | ✅ SHIPPED 2026-04-09 | Claude Code | New router + UI, multi-file               |
+| P3-02 Admin log          | ✅ SHIPPED 2026-04-09 | Claude Code | Checklist UI + care_event writes          |
+| P3-03 OCR pipeline       | ✅ SHIPPED 2026-04-09 | Claude Code | Inngest pipeline, file upload, multi-file |
+| P3-04 Refill alert       | ✅ SHIPPED 2026-04-09 | Claude Code | Follows gapDetector pattern, 5 tests      |
+| P3-05 Outer circle       | ✅ SHIPPED 2026-04-09 | Claude Code | New public route, no-auth flow            |
+| P3-06 Care brief         | ✅ SHIPPED 2026-04-09 | Claude Code | Vault access pattern, snapshot model      |
 
 ---
 

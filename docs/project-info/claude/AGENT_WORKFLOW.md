@@ -2,58 +2,68 @@
 
 ## When to use what
 
-| Task | Use |
-|------|-----|
-| Single focused task (write tests for one file, fix one bug) | Interactive session (normal) |
-| One module's tests, run-until-green | `./scripts/ai-test.sh unit <path>` |
-| Multiple independent modules simultaneously | `./scripts/ai-test.sh parallel unit <path1> <path2>` |
-| Cross-layer work (auth change affecting mobile + web + backend) | Parallel Agent tool calls in one session |
-| Research / codebase exploration | Spawn an `Explore` subagent to protect main context |
+| Task                                                            | Use                                                                                          |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Single focused task (write tests for one file, fix one bug)     | Interactive session (normal)                                                                 |
+| One module's tests, run-until-green                             | `/codex:fix-tests --unit`                                                                    |
+| Multiple independent failures                                   | `/codex:fix-tests --all` or parallel subagents via `superpowers:dispatching-parallel-agents` |
+| Cross-layer work (auth change affecting mobile + web + backend) | Parallel Agent tool calls in one session                                                     |
+| Research / codebase exploration                                 | Spawn an `Explore` subagent to protect main context                                          |
+| Mechanical edits (<50 lines, single file, known pattern)        | Continue.dev handoff                                                                         |
+| Multi-file implementation with tests                            | Claude Code + `plan-with-tests` skill → Continue.dev handoff                                 |
 
 ## Parallel Agent tool calls
 
-When a session requires simultaneous independent work across layers, use the Agent tool with multiple calls in a single message. Each agent gets its own context window.
+When a session requires simultaneous independent work across layers, use the Agent tool with multiple calls in a single message. Each agent gets its own context window. See `superpowers:dispatching-parallel-agents` skill for the full pattern.
 
 Example: auth refactor touching three layers
+
 - Agent 1: "Update the web auth flow in apps/web/..."
-- Agent 2: "Update the mobile auth flow in apps/mobile/..."  
+- Agent 2: "Update the mobile auth flow in apps/mobile/..."
 - Agent 3: "Update the API routes in apps/web/app/api/..."
 
 All three run in parallel. Synthesize their results back in the main session.
 
+## Continue.dev handoff
+
+Route to Continue.dev when the task is mechanical: autocomplete, inline edits (<50 lines), single-file refactors, known-error debugging, writing tests to a known pattern.
+
+Use the `plan-with-tests` skill to generate a JSON handoff plan with TDD verify steps. Commit failing tests first — Continue.dev must start with a red suite.
+
 ## Session limit prevention
 
 The main reasons sessions hit rate/context limits:
+
 1. **Packing multiple deliverables into one session** — scope each session to one module or one feature
 2. **Reading entire files when only snippets are needed** — use Grep/Glob before Read
-3. **Iterative test debugging burning context** — use headless scripts that run autonomously
+3. **Iterative test debugging burning context** — use `/codex:fix-tests` which runs autonomously
 
 When context pressure is building: summarize the current state in a message, then use /compact.
 
 ## Memory
 
 Persistent memory lives in `~/.claude/projects/.../memory/`. The system automatically saves:
+
 - User preferences and working style
 - Project decisions and context
 - Feedback from corrections
 
-This persists across sessions without any explicit action needed.
+Recall memory at session start via the `memsearch` plugin before exploring the codebase.
 
 ## Code review
 
-To get an independent review of a file or change:
-```bash
-claude -p "
-Review this file for bugs, security issues, and test coverage gaps.
-Read: <file-path>
-Report findings as: [CRITICAL] / [WARN] / [SUGGESTION]
-Do not make any changes — report only.
-" --allowedTools "Read,Grep,Glob"
-```
+| Review type               | Command                                               |
+| ------------------------- | ----------------------------------------------------- |
+| Security + PHI boundary   | `/codex:security-review`                              |
+| Design + assumptions      | `/codex:adversarial-review`                           |
+| General code quality      | `/codex:review`                                       |
+| Plan implementation check | `/codex:plan-review`                                  |
+| Manual interactive review | Use `review` skill (`.claude/skills/review/SKILL.md`) |
 
 ## Role decomposition
 
 When decomposing a large task by layer:
+
 - Name the scope explicitly in the prompt ("only touch apps/web/app/api/")
 - Tell each agent what the other agents are doing, so it doesn't overreach
 - Have the main session synthesize results — don't chain agents to each other
