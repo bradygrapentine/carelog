@@ -1,15 +1,48 @@
 # Mobile App — Expo SDK 55 (canary)
 
+## Overview
+Expo managed workflow. Plans: `docs/superpowers/plans/2026-04-10-mobile-wave*.md`
+
+## Screenshot Workflow
+- Install Puppeteer and Chrome Cache
+
 ## Env vars
-`apps/mobile/.env.local`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-Use `http://localhost:54321` (not `127.0.0.1`) for cookie name consistency.
+`apps/mobile/.env.local`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_API_URL`
+Use `http://localhost:54321` for Supabase (not `127.0.0.1`) for cookie name consistency.
+
+## Design system
+Colors, typography, spacing → `apps/mobile/constants/tokens.ts` (mirrors web CSS vars in `apps/web/app/globals.css`).
+Never use raw hex in screen files — always import from tokens.
+Styling via NativeWind 4 (Tailwind classes on React Native).
+Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout).
+
+## Navigation
+Expo Router (file-based). Mirrors Next.js App Router mental model.
+- `app/(auth)/` — sign-in, verify
+- `app/(app)/` — bottom tabs: Journal · Medications · Schedule
+- `app/(app)/invite/[token].tsx` — deep-link invite acceptance
 
 ## Offline queue
 `store/offlineQueue.ts` — SecureStore persistence
 `hooks/useOfflineWrite.ts` — offline-first write hook
+Flush implementation: maps snake_case QueuedWrite → camelCase tRPC careEvents.insert with idempotency_key.
+See Wave 1 plan Task 12 for full implementation.
+
+## tRPC client
+`utils/trpc.ts` — createTRPCReact<AppRouter>() with httpBatchLink + Bearer token header
+Points at EXPO_PUBLIC_API_URL (localhost:3000 dev, Vercel prod).
+
+## Watch bridge
+`utils/watchBridge.ts` — no-op stub in Wave 1; replaced by real Expo Module in Wave 3.
+DO NOT implement native logic here — see Wave 3 plan.
 
 `flushQueue()` is wired to `trpc.careEvents.insert.useMutation()` with idempotencyKey.
 Flush triggers on NetInfo reconnect and immediately after each write when online.
 
+## iOS native files
+Never edit `apps/mobile/ios/` directly — use `expo prebuild --clean` to regenerate.
+Exception: `CarelogWatch/` Xcode target files (hand-maintained, outside prebuild scope).
+
 ## Auth
-Use browser client (`createClient()`) for auth checks — same pattern as web local dev.
+Use browser client (`createClient()`) — same pattern as web local dev.
+Session persisted in SecureStore via ExpoSecureStoreAdapter.

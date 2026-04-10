@@ -116,6 +116,22 @@ This is not in the main plan above because it's lower priority than billing/obse
 
 ---
 
+---
+
+## Mobile Design Consistency Note
+
+The mobile app (Expo) and mobile-web (Next.js at `<768px`) are separate implementations but serve the same caregivers. Both must look identical.
+
+**What's in sync:**
+- Color tokens: `constants/tokens.ts` (mobile) mirrors `apps/web/app/globals.css` @theme (web) — same hex values
+- Typography: Inter font on both platforms
+- Component visual language: cards, role badges, mood indicators use same values
+- Nav chrome: slate-900 (`#0f172a`) on both bottom tab bar (native) and sidebar (web desktop) / sheet (web mobile)
+
+**Rule for future changes:** If you change any brand color in `apps/web/app/globals.css`, also update `apps/mobile/constants/tokens.ts`. These files should stay in sync — they are intentionally parallel, not DRY.
+
+---
+
 ## Sequencing Summary
 
 ```

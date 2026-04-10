@@ -4,9 +4,21 @@
 .expo/
 dist/
 node_modules/
+.cache/
+.eslintcache
+apps/web/.eslintcache
 
-# Package manager lockfile — too large to be useful context
+# Package manager lockfiles — too large to be useful context
 pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Environment files — credentials and secrets, never load into context
+.env
+.env.local
+.env.*.local
+env.local
+.env.sentry-build-plugin
 
 # Test artifacts
 test-results/
@@ -16,6 +28,19 @@ playwright-report/
 # Local Supabase state
 supabase/.branches/
 supabase/.temp/
+
+# Static assets — binary files, not useful for code understanding
+public/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
 
 # Logs
 *.log

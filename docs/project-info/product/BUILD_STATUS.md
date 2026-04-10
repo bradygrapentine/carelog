@@ -5,7 +5,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 ## Completed and working
 
 ### Infrastructure
-- [x] Turborepo monorepo — Next.js 16 + Expo SDK 52 + shared packages
+- [x] Turborepo monorepo — Next.js 16 + Expo SDK 55 + shared packages
 - [x] Supabase local dev — all 16 tables, RLS, indexes, helper functions
 - [x] Repository pattern — identity, events, orgs, memberships, medications
 - [x] tRPC router — 13 routers, 40+ procedures, protected procedures
@@ -131,6 +131,16 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] watchOS SwiftUI app — ContentView + WatchViewModel, receives WCSession context
 - [x] Config plugin — withCarelogWatch.ts adds Watch target + App Group entitlement via expo prebuild
 - [x] watchBridge.ts — re-exports from real native module (was no-op stub)
+=======
+## Mobile (in progress)
+
+- [ ] Wave 1 — Expo Router, auth, tRPC, core screens, offline flush — plan: `docs/superpowers/plans/2026-04-10-mobile-wave1-foundation.md`
+- [ ] Wave 2 — Push notifications (APNs + FCM, push_tokens, Inngest wiring) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave2-notifications.md`
+- [ ] Wave 3 — Apple Watch complications (WidgetKit, CarelogWatch target) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave3-watch.md`
+
+## Web UI Redesign (in progress)
+
+- [ ] Design token layer (Tailwind v4 @theme), shadcn/ui, icon sidebar, responsive mobile layout — plan: `docs/superpowers/plans/2026-04-10-ui-redesign.md`
 
 ## Before launch (any phase)
 
