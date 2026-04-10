@@ -54,7 +54,7 @@ type ValidPanel = typeof VALID_PANELS[number];
 
 export function JournalClient({ recipientId }: Props) {
   const searchParams = useSearchParams();
-  const panelParam = searchParams.get("panel");
+  const panelParam = searchParams?.get("panel") ?? null;
   const defaultPanel: ValidPanel = (VALID_PANELS as readonly string[]).includes(panelParam ?? "")
     ? (panelParam as ValidPanel)
     : "journal";
