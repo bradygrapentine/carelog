@@ -45,7 +45,7 @@ const withCarelogWatch: ConfigPlugin = (config) => {
     const watchBundleId = bundleId + APP_GROUP_SUFFIX
 
     // Copy Swift source files from watchos/CarelogWatch/ → ios/CarelogWatch/
-    const srcDir = path.join(platformRoot, '..', '..', 'watchos', WATCH_TARGET_NAME)
+    const srcDir = path.join(platformRoot, '..', 'watchos', WATCH_TARGET_NAME)
     const dstDir = path.join(platformRoot, WATCH_TARGET_NAME)
     if (!fs.existsSync(dstDir)) {
       fs.mkdirSync(dstDir, { recursive: true })
