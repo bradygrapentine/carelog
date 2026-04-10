@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "../../../lib/supabase";
+import { createClient } from "../../../../lib/supabase";
 import { useRouter } from "next/navigation";
 
 export function SignOutButton() {
