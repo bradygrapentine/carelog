@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // Duration options: value '0' means Custom (user provides end time directly)
 const DURATION_OPTIONS = [
@@ -13,20 +15,20 @@ const DURATION_OPTIONS = [
   { label: "Custom", value: "0" },
 ];
 
-interface Member {
+type Member = {
   id: string;
   role: string;
   user_id: string;
   display_name: string | null;
   email: string | null;
-}
+};
 
-interface Props {
+type Props = {
   members: Member[];
   recipientId: string;
   orgId: string;
   onSuccess: () => void;
-}
+};
 
 function addHoursToUtcIso(date: string, time: string, hours: number): string {
   const startMs = new Date(date + "T" + time + ":00Z").getTime();
@@ -111,7 +113,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-muted)] hover:text-gray-600 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + Schedule a shift
           </button>
@@ -131,11 +133,11 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             <div>
               <label
                 htmlFor="shift-date"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Date
               </label>
-              <input
+              <Input
                 id="shift-date"
                 type="date"
                 value={date}
@@ -143,17 +145,16 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                   setDate(e.target.value);
                   setError(null);
                 }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
               />
             </div>
             <div>
               <label
                 htmlFor="shift-start"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Start time
               </label>
-              <input
+              <Input
                 id="shift-start"
                 type="time"
                 step="1800"
@@ -162,7 +163,6 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                   setStartTime(e.target.value);
                   setError(null);
                 }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
               />
             </div>
           </div>
@@ -171,7 +171,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             <div>
               <label
                 htmlFor="shift-duration"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Duration
               </label>
@@ -182,7 +182,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                   setDuration(e.target.value);
                   setError(null);
                 }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none"
               >
                 {DURATION_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -195,11 +195,11 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
               <div>
                 <label
                   htmlFor="shift-end"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   End time
                 </label>
-                <input
+                <Input
                   id="shift-end"
                   type="time"
                   value={endTime}
@@ -207,7 +207,6 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                     setEndTime(e.target.value);
                     setError(null);
                   }}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                 />
               </div>
             )}
@@ -216,7 +215,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <div className="mb-3">
             <label
               htmlFor="shift-assignee"
-              className="block text-xs text-gray-500 mb-1"
+              className="block text-xs text-muted-foreground mb-1"
             >
               Assignee
             </label>
@@ -227,7 +226,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                 setAssigneeId(e.target.value);
                 setError(null);
               }}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+              className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none"
             >
               <option value="">Select a caregiver...</option>
               {assignableMembers.map((m) => (
@@ -241,7 +240,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <div className="mb-3">
             <label
               htmlFor="shift-notes"
-              className="block text-xs text-gray-500 mb-1"
+              className="block text-xs text-muted-foreground mb-1"
             >
               Notes (optional)
             </label>
@@ -254,7 +253,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
               }}
               maxLength={2000}
               rows={2}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 resize-none"
+              className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none resize-none"
             />
           </div>
 
@@ -264,15 +263,17 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
                 type="checkbox"
                 checked={recurring}
                 onChange={(e) => setRecurring(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-border"
               />
-              <span className="text-sm text-gray-600">Repeat weekly for</span>
+              <span className="text-sm text-foreground/80">
+                Repeat weekly for
+              </span>
             </label>
             {recurring && (
               <select
                 value={weeks}
                 onChange={(e) => setWeeks(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-400"
+                className="text-sm border border-border rounded-xl px-2 py-1 focus:outline-none"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                   <option key={n} value={String(n)}>
@@ -283,30 +284,30 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             )}
           </div>
 
-          {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+          {error && (
+            <p className="text-sm text-[var(--color-danger)] mb-3">{error}</p>
+          )}
 
           <div className="flex items-center justify-between">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setExpanded(false);
                 setError(null);
               }}
-              className="text-sm text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            </Button>
+            <Button type="submit" disabled={!canSubmit}>
               {createMutation.isPending
                 ? "Scheduling..."
                 : recurring
                   ? "Schedule " + weeks + " shifts"
                   : "Schedule shift"}
-            </button>
+            </Button>
           </div>
         </form>
       </CardContent>

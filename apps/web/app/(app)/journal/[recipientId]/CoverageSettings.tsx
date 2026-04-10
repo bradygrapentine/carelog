@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const DAY_NAMES = [
   "Sunday",
@@ -15,10 +17,10 @@ const DAY_NAMES = [
 
 const ROLES = ["caregiver", "coordinator", "aide"] as const;
 
-interface Props {
+type Props = {
   orgId: string;
   recipientId: string;
-}
+};
 
 export default function CoverageSettings({ orgId, recipientId }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -32,7 +34,7 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
 
   const listQuery = trpc.coverageWindows.list.useQuery(
     { org_id: orgId, recipient_id: recipientId },
-    { enabled: expanded }
+    { enabled: expanded },
   );
 
   const createMutation = trpc.coverageWindows.create.useMutation({
@@ -60,7 +62,10 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
       recurring: true as const,
     };
     if (requiredRole) {
-      input.required_role = requiredRole as "caregiver" | "coordinator" | "aide";
+      input.required_role = requiredRole as
+        | "caregiver"
+        | "coordinator"
+        | "aide";
     }
     createMutation.mutate(input);
   }
@@ -70,16 +75,16 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4">
+    <div className="bg-card border border-border rounded-xl shadow-sm p-4">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left"
       >
-        <h3 className="text-sm font-semibold text-gray-700">
+        <h3 className="text-sm font-semibold text-foreground/80">
           Coverage expectations
         </h3>
-        <span className="text-gray-400 text-xs">
+        <span className="text-muted-foreground text-xs">
           {expanded ? "Collapse" : "Expand"}
         </span>
       </button>
@@ -87,11 +92,11 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
       {expanded && (
         <div className="mt-4 space-y-4">
           {listQuery.isLoading && (
-            <p className="text-sm text-gray-400">Loading...</p>
+            <p className="text-sm text-muted-foreground">Loading...</p>
           )}
 
           {listQuery.data && listQuery.data.length === 0 && (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               No coverage windows defined yet.
             </p>
           )}
@@ -110,20 +115,20 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
               return (
                 <div
                   key={windowId}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2"
+                  className="flex items-center justify-between bg-[var(--color-surface)] rounded-lg px-3 py-2"
                 >
                   <div>
-                    <span className="text-sm font-medium text-gray-800">
+                    <span className="text-sm font-medium text-foreground">
                       {windowLabel}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-muted-foreground ml-2">
                       {dayName}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-muted-foreground ml-2">
                       {timeRange}
                     </span>
                     {windowRole && (
-                      <span className="ml-2 inline-block text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                      <span className="ml-2 inline-block text-xs bg-[var(--color-primary-subtle)] text-primary px-1.5 py-0.5 rounded">
                         {windowRole}
                       </span>
                     )}
@@ -131,7 +136,7 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
                   <button
                     type="button"
                     onClick={() => handleDelete(windowId)}
-                    className="text-xs text-red-500 hover:text-red-700"
+                    className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
                     disabled={deleteMutation.isPending}
                   >
                     Delete
@@ -140,26 +145,28 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
               );
             })}
 
-          <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-600">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 pt-2 border-t border-border"
+          >
+            <p className="text-xs font-medium text-foreground/80">
               Add coverage window
             </p>
 
-            <input
+            <Input
               type="text"
               placeholder="Label (e.g. Weekday morning)"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               required
               maxLength={200}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
             />
 
             <div className="grid grid-cols-2 gap-3">
               <select
                 value={dayOfWeek}
                 onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-border rounded-xl px-3 py-2 text-sm"
               >
                 {DAY_NAMES.map((name, i) => (
                   <option key={name} value={i}>
@@ -171,7 +178,7 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
               <select
                 value={requiredRole}
                 onChange={(e) => setRequiredRole(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-border rounded-xl px-3 py-2 text-sm"
               >
                 <option value="">Role (optional)</option>
                 {ROLES.map((role) => (
@@ -184,37 +191,39 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500">Start time</label>
-                <input
+                <label className="text-xs text-muted-foreground">
+                  Start time
+                </label>
+                <Input
                   type="time"
                   value={startsAt}
                   onChange={(e) => setStartsAt(e.target.value)}
                   required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500">End time</label>
-                <input
+                <label className="text-xs text-muted-foreground">
+                  End time
+                </label>
+                <Input
                   type="time"
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
                   required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={createMutation.isPending || !label}
-              className="w-full bg-blue-600 text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-blue-700 disabled:opacity-50"
+              className="w-full"
             >
               {createMutation.isPending ? "Adding..." : "Add window"}
-            </button>
+            </Button>
 
             {createMutation.isError && (
-              <p className="text-xs text-red-500">
+              <p className="text-xs text-[var(--color-danger)]">
                 {createMutation.error.message}
               </p>
             )}

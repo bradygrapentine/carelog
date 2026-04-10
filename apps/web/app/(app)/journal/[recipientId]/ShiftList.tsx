@@ -4,21 +4,21 @@ import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-interface Member {
+type Member = {
   id: string;
   role: string;
   user_id: string;
   display_name: string | null;
   email: string | null;
-}
+};
 
-interface Props {
+type Props = {
   orgId: string;
   recipientId: string;
   members: Member[];
   currentUserId: string;
   currentUserRole: string;
-}
+};
 
 function getWeekRange(offset: number): { from: string; to: string } {
   const now = new Date();
@@ -63,10 +63,10 @@ function groupByDay(
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  scheduled: "bg-gray-100 text-gray-600",
-  in_progress: "bg-blue-100 text-blue-700",
+  scheduled: "bg-[var(--color-surface)] text-foreground/80",
+  in_progress: "bg-[var(--color-primary-subtle)] text-primary",
   completed: "bg-green-100 text-green-700",
-  cancelled: "bg-gray-100 text-gray-400 line-through",
+  cancelled: "bg-[var(--color-surface)] text-muted-foreground line-through",
 };
 
 export function ShiftList({
@@ -106,7 +106,7 @@ export function ShiftList({
           <button
             type="button"
             onClick={() => setWeekOffset((w) => w - 1)}
-            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
+            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
             aria-label="Previous week"
           >
             Prev
@@ -114,14 +114,14 @@ export function ShiftList({
           <button
             type="button"
             onClick={() => setWeekOffset(0)}
-            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
+            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
           >
             This week
           </button>
           <button
             type="button"
             onClick={() => setWeekOffset((w) => w + 1)}
-            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
+            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
             aria-label="Next week"
           >
             Next
@@ -131,11 +131,11 @@ export function ShiftList({
 
       <CardContent>
         {isLoading && (
-          <p className="text-sm text-gray-400">Loading shifts...</p>
+          <p className="text-sm text-muted-foreground">Loading shifts...</p>
         )}
 
         {!isLoading && shifts.length === 0 && (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No shifts scheduled this week.
           </p>
         )}
@@ -144,7 +144,7 @@ export function ShiftList({
           <div className="space-y-4">
             {Array.from(grouped.entries()).map(([dayLabel, dayShifts]) => (
               <div key={dayLabel}>
-                <p className="text-xs font-medium text-gray-500 mb-2">
+                <p className="text-xs font-medium text-muted-foreground mb-2">
                   {dayLabel}
                 </p>
                 <div className="space-y-2">
@@ -171,11 +171,11 @@ export function ShiftList({
                     return (
                       <div
                         key={shiftId}
-                        className="flex items-start justify-between py-2 border-b border-gray-50 last:border-0"
+                        className="flex items-start justify-between py-2 border-b border-border last:border-0"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-800">
+                            <span className="text-sm text-foreground">
                               {timeRange}
                             </span>
                             <span
@@ -192,11 +192,11 @@ export function ShiftList({
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 mt-0.5">
+                          <p className="text-sm text-foreground/80 mt-0.5">
                             {assigneeName}
                           </p>
                           {notes && (
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               {notes}
                             </p>
                           )}
@@ -212,7 +212,7 @@ export function ShiftList({
                                 })
                               }
                               disabled={cancelMutation.isPending}
-                              className="text-xs text-red-500 hover:text-red-700"
+                              className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
                             >
                               Cancel
                             </button>
@@ -227,7 +227,7 @@ export function ShiftList({
                                   })
                                 }
                                 disabled={cancelMutation.isPending}
-                                className="text-xs text-red-400 hover:text-red-600"
+                                className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
                               >
                                 Cancel series
                               </button>
