@@ -1,16 +1,19 @@
 "use client";
 
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
-export type AppTab =
-  | "journal"
-  | "medications"
-  | "team"
-  | "shifts"
-  | "documents"
-  | "more";
+const TAB_PANELS: Record<string, string> = {
+  journal:     "journal",
+  medications: "medications",
+  team:        "team",
+  shifts:      "shifts",
+  documents:   "documents",
+  more:        "more",
+};
 
-const TABS: { id: AppTab; label: string; icon: string }[] = [
+const TABS: { id: string; label: string; icon: string }[] = [
   { id: "journal",     label: "Journal",     icon: "📋" },
   { id: "medications", label: "Medications", icon: "💊" },
   { id: "team",        label: "Team",        icon: "👥" },
@@ -20,13 +23,30 @@ const TABS: { id: AppTab; label: string; icon: string }[] = [
 ];
 
 type Props = {
-  activeTab: AppTab;
-  onTabChange: (tab: AppTab) => void;
   userInitials: string;
   onSignOut?: () => void;
 };
 
-export function AppTabBar({ activeTab, onTabChange, userInitials, onSignOut }: Props) {
+function AppTabBarInner({ userInitials, onSignOut }: Props) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const journalMatch = pathname.match(/^\/journal\/([^/?]+)/);
+  const recipientId = journalMatch ? journalMatch[1] : null;
+
+  const panelParam = searchParams.get("panel") ?? "journal";
+  const activeTab = panelParam in TAB_PANELS ? panelParam : "journal";
+
+  function handleTabClick(tabId: string) {
+    if (!recipientId) {
+      router.push("/dashboard");
+      return;
+    }
+    const tabUrl = "/journal/" + recipientId + "?panel=" + tabId;
+    router.push(tabUrl);
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full bg-[var(--color-ink)] shadow-md">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 md:px-6">
@@ -35,6 +55,34 @@ export function AppTabBar({ activeTab, onTabChange, userInitials, onSignOut }: P
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]" aria-hidden="true" />
           <span className="text-sm font-bold text-white">Carelog</span>
         </div>
+
+        {/* Tab list — desktop */}
+        <nav
+          role="tablist"
+          aria-label="App navigation"
+          className="hidden items-center overflow-x-auto md:flex"
+        >
+          {TABS.map(({ id, label }) => {
+            const isActive = id === activeTab;
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={id + "-panel"}
+                onClick={() => handleTabClick(id)}
+                className={cn(
+                  "flex items-center gap-1.5 border-b-2 px-4 py-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
+                  isActive
+                    ? "border-[var(--color-primary-light)] text-white"
+                    : "border-transparent text-violet-300 hover:text-white"
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </nav>
 
         {/* User avatar */}
         <button
@@ -46,11 +94,11 @@ export function AppTabBar({ activeTab, onTabChange, userInitials, onSignOut }: P
         </button>
       </div>
 
-      {/* Unified tab list — desktop shows label only; mobile shows icon + label */}
-      <nav
+      {/* Mobile tab strip */}
+      <div
         role="tablist"
         aria-label="App navigation"
-        className="flex overflow-x-auto border-t border-white/10"
+        className="flex overflow-x-auto border-t border-white/10 md:hidden"
       >
         {TABS.map(({ id, label, icon }) => {
           const isActive = id === activeTab;
@@ -60,20 +108,28 @@ export function AppTabBar({ activeTab, onTabChange, userInitials, onSignOut }: P
               role="tab"
               aria-selected={isActive}
               aria-controls={id + "-panel"}
-              onClick={() => onTabChange(id)}
+              onClick={() => handleTabClick(id)}
               className={cn(
-                "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors md:flex-row md:gap-1.5 md:px-4 md:py-4 md:text-sm",
+                "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
                 isActive
                   ? "border-[var(--color-primary-light)] text-white"
                   : "border-transparent text-violet-300 hover:text-white"
               )}
             >
-              <span aria-hidden="true" className="md:hidden">{icon}</span>
+              <span aria-hidden="true">{icon}</span>
               <span>{label}</span>
             </button>
           );
         })}
-      </nav>
+      </div>
     </header>
+  );
+}
+
+export function AppTabBar(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <AppTabBarInner {...props} />
+    </Suspense>
   );
 }

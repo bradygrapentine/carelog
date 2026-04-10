@@ -1,32 +1,45 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { vi } from "vitest";
 import { AppTabBar } from "../AppTabBar";
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/journal/recipient-123",
+  useSearchParams: () => new URLSearchParams("panel=journal"),
+  useRouter: () => ({ push: mockPush }),
+}));
+
 describe("AppTabBar", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders all tab labels", () => {
-    render(<AppTabBar activeTab="journal" onTabChange={vi.fn()} userInitials="BG" />);
-    expect(screen.getByRole("tab", { name: /journal/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /medications/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /team/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /shifts/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /documents/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /more/i })).toBeInTheDocument();
+    render(<AppTabBar userInitials="BG" />);
+    expect(screen.getAllByRole("tab", { name: /journal/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /medications/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /team/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /shifts/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /documents/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /more/i })[0]).toBeInTheDocument();
   });
 
-  it("marks the active tab with aria-selected", () => {
-    render(<AppTabBar activeTab="medications" onTabChange={vi.fn()} userInitials="BG" />);
-    expect(screen.getByRole("tab", { name: /medications/i })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: /journal/i })).toHaveAttribute("aria-selected", "false");
+  it("marks the active tab with aria-selected based on URL", () => {
+    render(<AppTabBar userInitials="BG" />);
+    const journalTabs = screen.getAllByRole("tab", { name: /journal/i });
+    expect(journalTabs[0]).toHaveAttribute("aria-selected", "true");
+    const medTabs = screen.getAllByRole("tab", { name: /medications/i });
+    expect(medTabs[0]).toHaveAttribute("aria-selected", "false");
   });
 
-  it("calls onTabChange when a tab is clicked", () => {
-    const onTabChange = vi.fn();
-    render(<AppTabBar activeTab="journal" onTabChange={onTabChange} userInitials="BG" />);
-    fireEvent.click(screen.getByRole("tab", { name: /team/i }));
-    expect(onTabChange).toHaveBeenCalledWith("team");
+  it("calls router.push with correct URL when a tab is clicked", () => {
+    render(<AppTabBar userInitials="BG" />);
+    fireEvent.click(screen.getAllByRole("tab", { name: /team/i })[0]);
+    expect(mockPush).toHaveBeenCalledWith("/journal/recipient-123?panel=team");
   });
 
   it("renders user initials in avatar", () => {
-    render(<AppTabBar activeTab="journal" onTabChange={vi.fn()} userInitials="BG" />);
+    render(<AppTabBar userInitials="BG" />);
     expect(screen.getByText("BG")).toBeInTheDocument();
   });
 });

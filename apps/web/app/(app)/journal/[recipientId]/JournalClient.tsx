@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import type { User } from "@supabase/supabase-js";
@@ -48,7 +49,16 @@ interface JournalEvent {
   payload?: { text?: string; mood?: string };
 }
 
+const VALID_PANELS = ["journal", "medications", "team", "shifts", "documents", "more"] as const;
+type ValidPanel = typeof VALID_PANELS[number];
+
 export function JournalClient({ recipientId }: Props) {
+  const searchParams = useSearchParams();
+  const panelParam = searchParams.get("panel");
+  const defaultPanel: ValidPanel = (VALID_PANELS as readonly string[]).includes(panelParam ?? "")
+    ? (panelParam as ValidPanel)
+    : "journal";
+
   const [user, setUser] = useState<User | null>(null);
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [events, setEvents] = useState<JournalEvent[]>([]);
@@ -187,7 +197,7 @@ export function JournalClient({ recipientId }: Props) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultDestination={defaultPanel}>
       <JournalLayout
         recipientId={recipientId}
         user={user}
