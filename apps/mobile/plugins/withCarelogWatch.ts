@@ -66,11 +66,16 @@ const withCarelogWatch: ConfigPlugin = (config) => {
     // Add Sources build phase to the watch target
     xcodeProject.addBuildPhase([], 'PBXSourcesBuildPhase', 'Sources', target.uuid)
 
+    // Create a PBX group for the Watch source files so addSourceFile works
+    const watchGroup = xcodeProject.addPbxGroup([], WATCH_TARGET_NAME, WATCH_TARGET_NAME)
+    const watchGroupKey = watchGroup.uuid
+
     // Register each Swift file in the Sources build phase
     for (const file of swiftFiles) {
       xcodeProject.addSourceFile(
         path.join(WATCH_TARGET_NAME, file),
         { target: target.uuid },
+        watchGroupKey,
       )
     }
 

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 type Section = {
   id: string;
   title: string;
@@ -7,7 +9,7 @@ type Props = {
   title: string;
   lastUpdated: string;
   sections: Section[];
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export function LegalPageLayout({ title, lastUpdated, sections, children }: Props) {
