@@ -142,8 +142,8 @@ function JournalCard({
   const flagBtnClass =
     "text-xs px-2 py-0.5 rounded-full transition-colors " +
     (event.flagged
-      ? "text-blue-600 hover:text-blue-800"
-      : "text-gray-400 hover:text-blue-600");
+      ? "text-primary hover:text-primary/80"
+      : "text-muted-foreground hover:text-primary");
 
   const detailUrl = "/journal/" + recipientId + "/entry/" + event.id;
 
