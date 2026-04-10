@@ -1,22 +1,70 @@
+// apps/mobile/app/(app)/journal/index.tsx
 import { useState } from 'react'
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import {
+  View, Text, FlatList, TextInput, TouchableOpacity,
+  StyleSheet, ActivityIndicator,
+} from 'react-native'
+import { useRouter } from 'expo-router'
 import { trpc } from '../../../utils/trpc'
 import { useOfflineWrite } from '../../../hooks/useOfflineWrite'
 import { useSyncStatus } from '../../../hooks/useSyncStatus'
 import { useApp } from '../../../context/AppContext'
+import {
+  Mood, ReactionKey, MOOD_COLORS, REACTIONS,
+  formatEntryTime,
+} from '../../../utils/journalUtils'
 
 const MOOD_TAGS = ['good', 'okay', 'difficult', 'crisis'] as const
-type Mood = typeof MOOD_TAGS[number]
-
-const MOOD_COLORS: Record<Mood, string> = {
+const INPUT_MOOD_COLORS: Record<Mood, string> = {
   good: '#22c55e', okay: '#f59e0b', difficult: '#ef4444', crisis: '#7f1d1d',
 }
 
+// ── Reactions sub-component ────────────────────────────────────────────────
+// Only mounted when an entry is expanded — query fires on mount.
+function EntryReactions({ eventId }: { eventId: string }) {
+  const { data, refetch } = trpc.careEvents.reactions.useQuery({ eventId })
+  const reactMut = trpc.careEvents.react.useMutation({ onSuccess: () => refetch() })
+  const unreactMut = trpc.careEvents.unreact.useMutation({ onSuccess: () => refetch() })
+
+  const counts = data?.counts ?? {}
+  const myReaction = data?.myReaction ?? null
+
+  function toggle(key: ReactionKey) {
+    if (myReaction === key) {
+      unreactMut.mutate({ eventId })
+    } else {
+      reactMut.mutate({ eventId, reaction: key })
+    }
+  }
+
+  return (
+    <View style={styles.reactionRow}>
+      {REACTIONS.map(r => {
+        const count = counts[r.key] ?? 0
+        const active = myReaction === r.key
+        return (
+          <TouchableOpacity
+            key={r.key}
+            onPress={() => toggle(r.key)}
+            style={[styles.reactionBtn, active && styles.reactionActive]}
+          >
+            <Text style={styles.reactionEmoji}>{r.emoji}</Text>
+            {count > 0 && <Text style={styles.reactionCount}>{count}</Text>}
+          </TouchableOpacity>
+        )
+      })}
+    </View>
+  )
+}
+
+// ── Main screen ────────────────────────────────────────────────────────────
 export default function JournalScreen() {
+  const router = useRouter()
   const { orgId, recipientId } = useApp()
   const [text, setText] = useState('')
   const [mood, setMood] = useState<Mood>('okay')
   const [submitting, setSubmitting] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const syncStatus = useSyncStatus()
   const { write } = useOfflineWrite(orgId ?? '')
 
@@ -57,14 +105,44 @@ export default function JournalScreen() {
           data={timeline ?? []}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View style={styles.entry}>
-              <Text style={styles.entryTime}>
-                {new Date(item.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              <Text style={styles.entryText}>{(item.payload as Record<string, unknown>)?.['text'] as string ?? item.event_type}</Text>
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const payload = (item.payload as Record<string, unknown>) ?? {}
+            const entryText = (payload['text'] as string) ?? item.event_type
+            const entryMood = payload['mood'] as Mood | undefined
+            const isExpanded = expandedId === item.id
+            const moodColor = entryMood ? MOOD_COLORS[entryMood] : null
+
+            return (
+              <TouchableOpacity
+                style={styles.entry}
+                onPress={() => setExpandedId(isExpanded ? null : item.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.entryHeader}>
+                  <Text style={styles.entryTime}>{formatEntryTime(item.occurred_at)}</Text>
+                  {entryMood && moodColor && (
+                    <View style={[styles.moodBadge, { backgroundColor: moodColor.bg }]}>
+                      <Text style={[styles.moodText, { color: moodColor.text }]}>{entryMood}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.entryText} numberOfLines={isExpanded ? undefined : 2}>
+                  {entryText}
+                </Text>
+                {isExpanded && (
+                  <>
+                    <EntryReactions eventId={item.id} />
+                    <TouchableOpacity
+                      style={styles.openBtn}
+                      onPress={() => router.push('/journal/' + item.id)}
+                    >
+                      <Text style={styles.openBtnText}>Open entry →</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </TouchableOpacity>
+            )
+          }}
           ListEmptyComponent={<Text style={styles.empty}>No entries yet. Add the first one below.</Text>}
         />
       )}
@@ -74,7 +152,7 @@ export default function JournalScreen() {
           {MOOD_TAGS.map((m) => (
             <TouchableOpacity
               key={m}
-              style={[styles.moodTag, mood === m && { backgroundColor: MOOD_COLORS[m] }]}
+              style={[styles.moodTag, mood === m && { backgroundColor: INPUT_MOOD_COLORS[m] }]}
               onPress={() => setMood(m)}
             >
               <Text style={[styles.moodTagText, mood === m && { color: '#fff' }]}>{m}</Text>
@@ -109,9 +187,19 @@ const styles = StyleSheet.create({
   syncText: { fontSize: 12, color: '#374151' },
   loader: { marginTop: 48 },
   list: { padding: 16, paddingBottom: 8 },
-  entry: { borderLeftWidth: 2, borderLeftColor: '#e5e7eb', paddingLeft: 12, marginBottom: 16 },
-  entryTime: { fontSize: 12, color: '#9ca3af', marginBottom: 2 },
-  entryText: { fontSize: 15, color: '#111827' },
+  entry: { borderLeftWidth: 2, borderLeftColor: '#e5e7eb', paddingLeft: 12, marginBottom: 16, paddingVertical: 4 },
+  entryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  entryTime: { fontSize: 12, color: '#9ca3af' },
+  moodBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
+  moodText: { fontSize: 11, fontWeight: '500' },
+  entryText: { fontSize: 15, color: '#111827', lineHeight: 22 },
+  reactionRow: { flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' },
+  reactionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb' },
+  reactionActive: { borderColor: '#93c5fd', backgroundColor: '#eff6ff' },
+  reactionEmoji: { fontSize: 14 },
+  reactionCount: { fontSize: 12, color: '#374151', fontWeight: '500' },
+  openBtn: { marginTop: 8, alignSelf: 'flex-start' },
+  openBtnText: { fontSize: 13, color: '#0369a1', fontWeight: '500' },
   empty: { color: '#9ca3af', textAlign: 'center', marginTop: 48 },
   form: { borderTopWidth: 1, borderTopColor: '#f3f4f6', padding: 12 },
   moodRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
