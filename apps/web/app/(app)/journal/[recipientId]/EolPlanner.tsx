@@ -201,7 +201,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                         <dt className="text-xs font-medium text-muted-foreground">
                           Legacy message
                         </dt>
-                        <dd className="text-gray-700 whitespace-pre-wrap">
+                        <dd className="text-foreground/80 whitespace-pre-wrap">
                           {plan.legacy_message}
                         </dd>
                       </div>

@@ -44,8 +44,8 @@ const CATEGORY_OPTS = [
 ] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  medication: "bg-blue-100 text-blue-700",
-  supplies: "bg-gray-100 text-gray-700",
+  medication: "bg-[var(--color-primary-subtle)] text-primary",
+  supplies: "bg-[var(--color-surface)] text-foreground/80",
   equipment: "bg-purple-100 text-purple-700",
   home_modification: "bg-amber-100 text-amber-700",
   aide_hours: "bg-green-100 text-green-700",
@@ -193,7 +193,7 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                           className={
                             "text-xs px-2 py-0.5 rounded-full font-medium " +
                             (CATEGORY_COLORS[expense.category] ??
-                              "bg-gray-100 text-gray-700")
+                              "bg-[var(--color-surface)] text-foreground/80")
                           }
                         >
                           {expense.category.replaceAll("_", " ")}

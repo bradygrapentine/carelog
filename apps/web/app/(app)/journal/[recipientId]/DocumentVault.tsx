@@ -163,7 +163,8 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
             <ul className="divide-y divide-border pt-2">
               {docs.map((doc: DocRow) => {
                 const colorClass =
-                  DOC_TYPE_COLORS[doc.doc_type] ?? "bg-gray-100 text-gray-700";
+                  DOC_TYPE_COLORS[doc.doc_type] ??
+                  "bg-[var(--color-surface)] text-foreground/80";
                 const sizeLabel = formatBytes(doc.file_size);
                 const dateLabel = new Date(doc.created_at).toLocaleDateString();
                 const metaLabel = sizeLabel
@@ -209,7 +210,7 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                           onClick={() =>
                             deleteMutation.mutate({ id: doc.id, org_id: orgId })
                           }
-                          className="text-gray-300 hover:text-red-400 transition-colors"
+                          className="text-muted-foreground hover:text-[var(--color-danger)] transition-colors"
                           aria-label={deleteAriaLabel}
                         >
                           <svg
