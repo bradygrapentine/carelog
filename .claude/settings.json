@@ -7,16 +7,10 @@
           {
             "type": "command",
             "command": "cd apps/web && output=$(npx tsc --noEmit 2>&1); if [ -n \"$output\" ]; then echo \"[tsc] $output\" | head -20; fi"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
+          },
           {
             "type": "command",
-            "command": "exit 0"
+            "command": "cd apps/web && output=$(npx eslint --cache --quiet . 2>&1 | head -15); if [ -n \"$output\" ]; then echo \"[eslint] $output\"; fi"
           }
         ]
       }
