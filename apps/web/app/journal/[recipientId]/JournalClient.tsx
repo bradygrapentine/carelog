@@ -19,6 +19,7 @@ import { ExpensePanel } from "./ExpensePanel";
 import { ExportButton } from "./ExportButton";
 import { BenefitsNavigator } from "./BenefitsNavigator";
 import { DocumentVault } from "./DocumentVault";
+import { EolPlanner } from "./EolPlanner";
 
 interface Props {
   recipientId: string;
@@ -316,6 +317,15 @@ export function JournalClient({ recipientId }: Props) {
             currentUserRole={currentUserRole}
           />
         </div>
+        {currentUserRole === "coordinator" && org && (
+          <div className="mt-6">
+            <EolPlanner
+              orgId={org.id}
+              recipientId={recipientId}
+              currentUserRole={currentUserRole}
+            />
+          </div>
+        )}
         {currentUserRole === "coordinator" && org && (
           <div className="mt-6">
             <OcrReviewPanel orgId={org.id} recipientId={recipientId} />
