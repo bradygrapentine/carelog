@@ -17,6 +17,7 @@ import { SymptomPanel } from './SymptomPanel'
 import { BurnoutCheckin } from './BurnoutCheckin'
 import { ExpensePanel } from './ExpensePanel'
 import { ExportButton }  from './ExportButton'
+import { BenefitsNavigator } from './BenefitsNavigator'
 
 interface Props { recipientId: string }
 interface OrgInfo { id: string; name: string }
@@ -217,6 +218,11 @@ export function JournalClient({ recipientId }: Props) {
         {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
             <ExportButton orgId={org.id} recipientId={recipientId} currentUserRole={currentUserRole} />
+          </div>
+        )}
+        {currentUserRole === 'coordinator' && org && (
+          <div className="mt-6">
+            <BenefitsNavigator orgId={org.id} recipientId={recipientId} currentUserRole={currentUserRole} />
           </div>
         )}
         {currentUserRole === 'coordinator' && org && (

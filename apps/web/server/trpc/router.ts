@@ -9,6 +9,7 @@ import { outerCircleRouter } from "../routers/outerCircle";
 import { symptomsRouter } from "../routers/symptoms";
 import { burnoutRouter } from "../routers/burnout";
 import { expensesRouter } from "../routers/expenses";
+import { benefitsRouter } from "../routers/benefits";
 
 export const appRouter = router({
   careEvents: careEventsRouter,
@@ -21,6 +22,7 @@ export const appRouter = router({
   symptoms: symptomsRouter,
   burnout: burnoutRouter,
   expenses: expensesRouter,
+  benefits: benefitsRouter,
 });
 
 export type AppRouter = typeof appRouter;
