@@ -93,7 +93,7 @@ export default function TeamAdminPage() {
                       </span>
                       <div>
                         <p className="font-medium text-[var(--color-ink)]">
-                          {member.display_name ?? "Team member"}
+                          {member.display_name ?? member.email ?? "Team member"}
                         </p>
                         <p className="text-xs text-[var(--color-muted)]">{member.email}</p>
                       </div>

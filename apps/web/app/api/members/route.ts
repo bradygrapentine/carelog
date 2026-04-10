@@ -49,16 +49,17 @@ export async function GET(request: NextRequest) {
     const userIds = (memberships ?? []).map(m => m.user_id)
     const { data: profiles } = await supabaseAdmin
       .from('user_profiles')
-      .select('id, display_name')
+      .select('id, display_name, email')
       .in('id', userIds)
 
-    const profileMap = new Map((profiles ?? []).map(p => [p.id as string, p.display_name as string | null]))
+    const profileMap = new Map((profiles ?? []).map(p => [p.id as string, { display_name: p.display_name as string | null, email: p.email as string | null }]))
 
     const members = (memberships ?? []).map(m => ({
       id: m.id,
       role: m.role,
       user_id: m.user_id,
-      display_name: profileMap.get(m.user_id) ?? null,
+      display_name: profileMap.get(m.user_id)?.display_name ?? null,
+      email: profileMap.get(m.user_id)?.email ?? null,
     }))
 
     return NextResponse.json({ members })
