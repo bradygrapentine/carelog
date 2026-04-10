@@ -15,6 +15,7 @@ import { OcrReviewPanel } from './OcrReviewPanel'
 import { OuterCirclePanel } from './OuterCirclePanel'
 import { SymptomPanel } from './SymptomPanel'
 import { BurnoutCheckin } from './BurnoutCheckin'
+import { ExpensePanel } from './ExpensePanel'
 import { ExportButton }  from './ExportButton'
 
 interface Props { recipientId: string }
@@ -209,6 +210,9 @@ export function JournalClient({ recipientId }: Props) {
         </div>
         <div className="mt-6">
           <BurnoutCheckin orgId={org?.id ?? ''} currentUserRole={currentUserRole} currentUserId={user?.id ?? ''} />
+        </div>
+        <div className="mt-6">
+          <ExpensePanel orgId={org?.id ?? ''} recipientId={recipientId} currentUserRole={currentUserRole} />
         </div>
         {currentUserRole === 'coordinator' && org && (
           <div className="mt-6">
