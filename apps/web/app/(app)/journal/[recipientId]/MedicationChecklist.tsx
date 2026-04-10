@@ -78,15 +78,15 @@ export function MedicationChecklist({
             : "px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
 
           const missedClass = isLogged
-            ? "px-3 py-1 text-xs rounded-lg bg-gray-100 text-gray-500 opacity-50 cursor-not-allowed"
-            : "px-3 py-1 text-xs rounded-lg bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+            ? "px-3 py-1 text-xs rounded-lg bg-[var(--color-surface)] text-muted-foreground opacity-50 cursor-not-allowed"
+            : "px-3 py-1 text-xs rounded-lg bg-[var(--color-surface)] text-muted-foreground hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
 
           return (
             <div
               key={sched.id}
-              className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0"
+              className="flex items-center justify-between py-1 border-b border-border last:border-0"
             >
-              <span className="text-sm text-gray-700 flex-1 min-w-0">
+              <span className="text-sm text-foreground/80 flex-1 min-w-0">
                 {labelText}
               </span>
               <div className="flex items-center gap-2 ml-3 shrink-0">
