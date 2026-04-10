@@ -11,6 +11,7 @@ import { burnoutRouter } from "../routers/burnout";
 import { expensesRouter } from "../routers/expenses";
 import { benefitsRouter } from "../routers/benefits";
 import { documentsRouter } from "../routers/documents";
+import { eolPlanRouter } from "../routers/eolPlan";
 
 export const appRouter = router({
   careEvents: careEventsRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   expenses: expensesRouter,
   benefits: benefitsRouter,
   documents: documentsRouter,
+  eolPlan: eolPlanRouter,
 });
 
 export type AppRouter = typeof appRouter;
