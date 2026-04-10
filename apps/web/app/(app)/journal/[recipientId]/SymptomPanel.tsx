@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   orgId: string;
@@ -136,7 +137,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             onClick={() => setExpanded(true)}
             aria-expanded="false"
             aria-controls="symptom-panel-body"
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors w-full text-left flex items-center justify-between"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors w-full text-left flex items-center justify-between"
           >
             <span>Symptom readings</span>
             <svg
@@ -167,7 +168,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             <CardTitle className="text-sm">Symptom readings</CardTitle>
             {readings.length > 0 && (
               <span
-                className="text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5"
+                className="text-xs bg-[var(--color-surface)] text-muted-foreground rounded-full px-2 py-0.5"
                 aria-label={readings.length + " recent readings"}
               >
                 {readings.length}
@@ -180,7 +181,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             aria-expanded="true"
             aria-controls="symptom-panel-body"
             aria-label="Collapse symptom readings"
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             Collapse
           </button>
@@ -195,15 +196,15 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             aria-label="Loading symptom readings"
           >
             <div
-              className="h-4 w-4 rounded-full border-2 border-gray-200 border-t-gray-500 animate-spin"
+              className="h-4 w-4 rounded-full border-2 border-border border-t-foreground/80 animate-spin"
               aria-hidden="true"
             />
-            <span className="text-sm text-gray-400">Loading...</span>
+            <span className="text-sm text-muted-foreground">Loading...</span>
           </div>
         )}
 
         {!isLoading && readings.length === 0 && (
-          <p className="text-sm text-gray-400 mb-3">
+          <p className="text-sm text-muted-foreground mb-3">
             No readings recorded yet.
           </p>
         )}
@@ -220,18 +221,19 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                 { month: "short", day: "numeric" },
               );
               const tagCls = r.mood
-                ? (MOOD_TAG_CLS[r.mood] ?? "bg-gray-50 text-gray-500")
+                ? (MOOD_TAG_CLS[r.mood] ??
+                  "bg-[var(--color-surface)] text-muted-foreground")
                 : "";
               const pColor =
                 r.pain_level !== null ? painColor(r.pain_level) : "";
               return (
                 <li
                   key={r.id}
-                  className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0"
+                  className="flex items-center gap-3 py-2 border-b border-border last:border-0"
                 >
                   <time
                     dateTime={r.recorded_at}
-                    className="text-xs text-gray-400 w-16 shrink-0"
+                    className="text-xs text-muted-foreground w-16 shrink-0"
                   >
                     {dateStr}
                   </time>
@@ -256,7 +258,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                     </span>
                   )}
                   {r.notes && (
-                    <span className="text-xs text-gray-400 truncate">
+                    <span className="text-xs text-muted-foreground truncate">
                       {r.notes}
                     </span>
                   )}
@@ -270,7 +272,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + Log reading
           </button>
@@ -280,7 +282,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
           <form onSubmit={handleSubmit} className="mt-2 space-y-5">
             {/* Pain level */}
             <fieldset>
-              <legend className="block text-xs font-medium text-gray-600 mb-2">
+              <legend className="block text-xs font-medium text-foreground/80 mb-2">
                 Pain level
               </legend>
               <div className="flex items-center gap-4">
@@ -302,7 +304,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                     }
                   />
                   <div
-                    className="flex justify-between text-xs text-gray-300 mt-0.5"
+                    className="flex justify-between text-xs text-muted-foreground mt-0.5"
                     aria-hidden="true"
                   >
                     <span>None</span>
@@ -318,7 +320,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                   >
                     {painLevel}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {painLabel(painLevel)}
                   </p>
                 </div>
@@ -327,7 +329,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
 
             {/* Mood */}
             <fieldset>
-              <legend className="block text-xs font-medium text-gray-600 mb-2">
+              <legend className="block text-xs font-medium text-foreground/80 mb-2">
                 Mood
               </legend>
               <div className="flex flex-wrap gap-2" role="group">
@@ -335,12 +337,12 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                   const isSelected = mood === opt.value;
                   const activeCls =
                     MOOD_ACTIVE_CLS[opt.value] ??
-                    "bg-gray-100 text-gray-700 border-gray-300";
+                    "bg-[var(--color-surface)] text-foreground/80 border-border";
                   const cls =
-                    "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 " +
+                    "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
                     (isSelected
                       ? activeCls
-                      : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700");
+                      : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
                   return (
                     <button
                       key={opt.value}
@@ -361,17 +363,17 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             {/* Appetite + Mobility */}
             <div className="grid grid-cols-2 gap-4">
               <fieldset>
-                <legend className="block text-xs font-medium text-gray-600 mb-2">
+                <legend className="block text-xs font-medium text-foreground/80 mb-2">
                   Appetite
                 </legend>
                 <div className="flex flex-wrap gap-1.5" role="group">
                   {APPETITE_OPTS.map((opt) => {
                     const isSelected = appetite === opt.value;
                     const cls =
-                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 " +
+                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
                       (isSelected
-                        ? "bg-gray-800 text-white border-gray-800"
-                        : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700");
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
                     return (
                       <button
                         key={opt.value}
@@ -392,17 +394,17 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
               </fieldset>
 
               <fieldset>
-                <legend className="block text-xs font-medium text-gray-600 mb-2">
+                <legend className="block text-xs font-medium text-foreground/80 mb-2">
                   Mobility
                 </legend>
                 <div className="flex flex-wrap gap-1.5" role="group">
                   {MOBILITY_OPTS.map((opt) => {
                     const isSelected = mobility === opt.value;
                     const cls =
-                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 " +
+                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
                       (isSelected
-                        ? "bg-gray-800 text-white border-gray-800"
-                        : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700");
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
                     return (
                       <button
                         key={opt.value}
@@ -427,10 +429,12 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             <div>
               <label
                 htmlFor="symptom-notes"
-                className="block text-xs font-medium text-gray-600 mb-1"
+                className="block text-xs font-medium text-foreground/80 mb-1"
               >
                 Notes{" "}
-                <span className="font-normal text-gray-400">(optional)</span>
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
               </label>
               <textarea
                 id="symptom-notes"
@@ -438,13 +442,13 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
                 onChange={(e) => setNotes(e.target.value)}
                 maxLength={1000}
                 rows={2}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent resize-none placeholder:text-gray-300"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border focus:border-transparent resize-none placeholder:text-muted-foreground"
                 placeholder="Any additional observations..."
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-600" role="alert">
+              <p className="text-sm text-[var(--color-danger)]" role="alert">
                 {error}
               </p>
             )}
@@ -453,17 +457,13 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={logMutation.isPending}
-                className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
-              >
+              <Button type="submit" disabled={logMutation.isPending}>
                 {logMutation.isPending ? "Saving..." : "Save reading"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

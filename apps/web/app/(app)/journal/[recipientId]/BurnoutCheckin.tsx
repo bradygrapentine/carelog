@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import posthog from "posthog-js";
 
 type Props = {
@@ -109,7 +110,7 @@ export function BurnoutCheckin({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm">How are you doing this week?</CardTitle>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Your answers are private and help us look out for you.
         </p>
       </CardHeader>
@@ -120,7 +121,7 @@ export function BurnoutCheckin({
             <p className="text-sm font-medium text-emerald-700">
               Check-in saved.
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               We&apos;ll remind you next week.
             </p>
           </div>
@@ -129,7 +130,7 @@ export function BurnoutCheckin({
             {/* Sleep quality */}
             <fieldset>
               <div className="flex items-center justify-between mb-2">
-                <legend className="text-xs font-medium text-gray-600">
+                <legend className="text-xs font-medium text-foreground/80">
                   Sleep quality
                 </legend>
                 <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -162,7 +163,7 @@ export function BurnoutCheckin({
                 }
               />
               <div
-                className="flex justify-between text-xs text-gray-300 mt-0.5"
+                className="flex justify-between text-xs text-muted-foreground mt-0.5"
                 aria-hidden="true"
               >
                 <span>Very poor</span>
@@ -173,7 +174,7 @@ export function BurnoutCheckin({
             {/* Stress level */}
             <fieldset>
               <div className="flex items-center justify-between mb-2">
-                <legend className="text-xs font-medium text-gray-600">
+                <legend className="text-xs font-medium text-foreground/80">
                   Stress level
                 </legend>
                 <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -206,7 +207,7 @@ export function BurnoutCheckin({
                 }
               />
               <div
-                className="flex justify-between text-xs text-gray-300 mt-0.5"
+                className="flex justify-between text-xs text-muted-foreground mt-0.5"
                 aria-hidden="true"
               >
                 <span>None</span>
@@ -217,7 +218,7 @@ export function BurnoutCheckin({
             {/* Support from others */}
             <fieldset>
               <div className="flex items-center justify-between mb-2">
-                <legend className="text-xs font-medium text-gray-600">
+                <legend className="text-xs font-medium text-foreground/80">
                   Support from others
                 </legend>
                 <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -250,7 +251,7 @@ export function BurnoutCheckin({
                 }
               />
               <div
-                className="flex justify-between text-xs text-gray-300 mt-0.5"
+                className="flex justify-between text-xs text-muted-foreground mt-0.5"
                 aria-hidden="true"
               >
                 <span>None</span>
@@ -262,10 +263,12 @@ export function BurnoutCheckin({
             <div>
               <label
                 htmlFor="burnout-notes"
-                className="block text-xs font-medium text-gray-600 mb-1"
+                className="block text-xs font-medium text-foreground/80 mb-1"
               >
                 Anything you want to add?{" "}
-                <span className="font-normal text-gray-400">(optional)</span>
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
               </label>
               <textarea
                 id="burnout-notes"
@@ -273,24 +276,24 @@ export function BurnoutCheckin({
                 onChange={(e) => setNotes(e.target.value)}
                 maxLength={500}
                 rows={2}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent resize-none placeholder:text-gray-300"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border focus:border-transparent resize-none placeholder:text-muted-foreground"
                 placeholder="How are you really doing?"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-600" role="alert">
+              <p className="text-sm text-[var(--color-danger)]" role="alert">
                 {error}
               </p>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={checkInMutation.isPending}
-              className="w-full px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
+              className="w-full"
             >
               {checkInMutation.isPending ? "Saving..." : "Save check-in"}
-            </button>
+            </Button>
           </form>
         )}
       </CardContent>
