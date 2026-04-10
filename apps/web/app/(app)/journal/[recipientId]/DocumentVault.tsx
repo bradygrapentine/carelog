@@ -4,6 +4,8 @@ import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   orgId: string;
@@ -33,9 +35,9 @@ const DOC_TYPE_COLORS: Record<string, string> = {
   hipaa_authorization: "bg-purple-100 text-purple-700",
   power_of_attorney: "bg-amber-100 text-amber-700",
   advance_directive: "bg-red-100 text-red-700",
-  insurance_card: "bg-blue-100 text-blue-700",
+  insurance_card: "bg-[var(--color-primary-subtle)] text-primary",
   medication_list: "bg-green-100 text-green-700",
-  other: "bg-gray-100 text-gray-700",
+  other: "bg-[var(--color-surface)] text-foreground/80",
 };
 
 function formatBytes(bytes: number | null): string {
@@ -117,19 +119,19 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="w-full px-4 py-3 flex items-center justify-between text-left"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground/80">
           Document vault
         </span>
         <svg
           className={
-            "w-4 h-4 text-gray-400 transition-transform " +
+            "w-4 h-4 text-muted-foreground transition-transform " +
             (open ? "rotate-180" : "")
           }
           fill="none"
@@ -146,19 +148,19 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
       </button>
 
       {open && (
-        <div className="px-4 pb-4 border-t border-gray-50 space-y-4">
+        <div className="px-4 pb-4 border-t border-border space-y-4">
           {isLoading && (
-            <p className="text-sm text-gray-400 pt-3">Loading...</p>
+            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
           )}
 
           {!isLoading && docs.length === 0 && (
-            <p className="text-sm text-gray-400 pt-3">
+            <p className="text-sm text-muted-foreground pt-3">
               No documents uploaded yet.
             </p>
           )}
 
           {!isLoading && docs.length > 0 && (
-            <ul className="divide-y divide-gray-50 pt-2">
+            <ul className="divide-y divide-border pt-2">
               {docs.map((doc: DocRow) => {
                 const colorClass =
                   DOC_TYPE_COLORS[doc.doc_type] ?? "bg-gray-100 text-gray-700";
@@ -184,11 +186,11 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                         >
                           {doc.doc_type.replace(/_/g, " ")}
                         </span>
-                        <span className="text-sm font-medium text-gray-900 truncate">
+                        <span className="text-sm font-medium text-foreground truncate">
                           {doc.display_name}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {metaLabel}
                       </p>
                     </div>
@@ -196,7 +198,7 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                       <button
                         type="button"
                         onClick={() => handleDownload(doc.id)}
-                        className="text-xs text-blue-600 hover:underline"
+                        className="text-xs text-primary hover:underline"
                         aria-label={downloadAriaLabel}
                       >
                         Download
@@ -235,26 +237,28 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
           {isCoordinator && (
             <form
               onSubmit={handleUpload}
-              className="space-y-2 pt-2 border-t border-gray-50"
+              className="space-y-2 pt-2 border-t border-border"
             >
-              <p className="text-xs font-medium text-gray-500">
+              <p className="text-xs font-medium text-muted-foreground">
                 Upload document
               </p>
               {uploadError && (
-                <p className="text-xs text-red-500">{uploadError}</p>
+                <p className="text-xs text-[var(--color-danger)]">
+                  {uploadError}
+                </p>
               )}
-              <input
+              <Input
                 name="displayName"
                 type="text"
                 placeholder="Display name (e.g. Mom's POA)"
                 required
-                className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full text-sm"
               />
               <select
                 name="docType"
                 value={docType}
                 onChange={(e) => setDocType(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {DOC_TYPE_OPTS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -266,15 +270,16 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                 name="file"
                 type="file"
                 required
-                className="w-full text-sm text-gray-600"
+                className="w-full text-sm text-foreground/80"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={uploading}
-                className="w-full text-sm bg-gray-900 text-white rounded-lg py-1.5 hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="w-full"
+                size="sm"
               >
                 {uploading ? "Uploading..." : "Upload"}
-              </button>
+              </Button>
             </form>
           )}
         </div>
