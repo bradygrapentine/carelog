@@ -18,7 +18,7 @@ export function SidebarSheet() {
       <SheetTrigger asChild>
         <button
           aria-label="Menu"
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+          className="md:hidden p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
         >
           <svg
             width="20"
