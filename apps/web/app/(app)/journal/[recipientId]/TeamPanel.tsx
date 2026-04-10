@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Member {
   id: string;
@@ -22,10 +24,13 @@ interface Props {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  coordinator: "bg-purple-100 text-purple-800 border-purple-200",
-  caregiver: "bg-blue-100 text-blue-800 border-blue-200",
-  supporter: "bg-green-100 text-green-800 border-green-200",
-  aide: "bg-orange-100 text-orange-800 border-orange-200",
+  coordinator:
+    "bg-[var(--color-primary-subtle)] text-primary border-[var(--color-border)]",
+  caregiver:
+    "bg-[var(--color-primary-subtle)] text-primary border-[var(--color-border)]",
+  supporter:
+    "bg-[var(--color-primary-subtle)] text-primary border-[var(--color-border)]",
+  aide: "bg-[var(--color-primary-subtle)] text-primary border-[var(--color-border)]",
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -68,12 +73,14 @@ export function TeamPanel({
           </span>
         </CardTitle>
         {canInvite && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onToggleInvite}
-            className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:border-gray-300 transition-colors"
+            className="text-xs"
           >
             {showInvite ? "Cancel" : "Invite someone"}
-          </button>
+          </Button>
         )}
       </CardHeader>
 
@@ -81,24 +88,24 @@ export function TeamPanel({
         {showInvite && (
           <form
             onSubmit={handleInvite}
-            className="px-4 py-3 border-b border-gray-50 bg-gray-50"
+            className="px-4 py-3 border-b border-border bg-[var(--color-surface)]"
           >
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-muted-foreground mb-3">
               They will receive an invite link to join this care team.
             </p>
             <div className="flex gap-2 mb-2">
-              <input
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
                 required
-                className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 text-sm"
               />
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="caregiver">Caregiver</option>
                 <option value="coordinator">Coordinator</option>
@@ -106,34 +113,41 @@ export function TeamPanel({
                 <option value="aide">Aide</option>
               </select>
             </div>
-            <button
+            <Button
               type="submit"
               disabled={sending || !email.trim()}
-              className="w-full py-1.5 px-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="w-full"
+              size="sm"
             >
               {sending ? "Sending..." : "Send invite"}
-            </button>
+            </Button>
           </form>
         )}
 
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-border">
           {members.map((member) => (
             <div
               key={member.id}
               className="px-4 py-3 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-600">
-                    {(member.display_name?.[0] ?? member.email?.[0] ?? "?").toUpperCase()}
+                <div className="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center">
+                  <span className="text-xs font-medium text-foreground/80">
+                    {(
+                      member.display_name?.[0] ??
+                      member.email?.[0] ??
+                      "?"
+                    ).toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-sm text-foreground">
                     {member.display_name ?? member.email ?? "Team member"}
                   </span>
                   {member.user_id === currentUserId && (
-                    <span className="ml-2 text-xs text-gray-400">you</span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      you
+                    </span>
                   )}
                 </div>
               </div>
@@ -149,7 +163,9 @@ export function TeamPanel({
           ))}
           {members.length === 0 && (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-gray-400">No team members yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No team members yet.
+              </p>
             </div>
           )}
         </div>

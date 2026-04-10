@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type ParsedPayload = {
   drug_name: string;
@@ -134,19 +136,22 @@ export function OcrReviewPanel({ orgId, recipientId }: Props) {
           <CardTitle className="text-sm">Scan prescription label</CardTitle>
           <div className="flex items-center gap-2">
             {uploading && (
-              <span className="text-xs text-gray-400">Processing...</span>
+              <span className="text-xs text-muted-foreground">
+                Processing...
+              </span>
             )}
             {uploadMsg && !uploading && (
-              <span className="text-xs text-gray-500">{uploadMsg}</span>
+              <span className="text-xs text-muted-foreground">{uploadMsg}</span>
             )}
-            <button
+            <Button
               type="button"
+              size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="text-xs"
             >
               Scan label
-            </button>
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -159,10 +164,12 @@ export function OcrReviewPanel({ orgId, recipientId }: Props) {
       </CardHeader>
 
       <CardContent>
-        {loading && <p className="text-sm text-gray-400">Loading...</p>}
+        {loading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
         {!loading && jobs.length === 0 && (
-          <p className="text-sm text-gray-400">No scans pending review.</p>
+          <p className="text-sm text-muted-foreground">
+            No scans pending review.
+          </p>
         )}
 
         {jobs.map((job) => {
@@ -174,65 +181,65 @@ export function OcrReviewPanel({ orgId, recipientId }: Props) {
           return (
             <div
               key={job.id}
-              className="mb-4 pb-4 border-b border-gray-50 last:border-0"
+              className="mb-4 pb-4 border-b border-border last:border-0"
             >
-              <p className="text-xs text-gray-400 mb-2">
+              <p className="text-xs text-muted-foreground mb-2">
                 Scanned {new Date(job.created_at).toLocaleDateString()}
               </p>
 
               <div className="space-y-2">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">
+                  <label className="block text-xs text-muted-foreground mb-1">
                     Drug name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={edit.drug_name}
                     onChange={(e) =>
                       setField(job.id, "drug_name", e.target.value)
                     }
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                    className="w-full text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">
+                  <label className="block text-xs text-muted-foreground mb-1">
                     Dosage
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={edit.dosage ?? ""}
                     onChange={(e) => setField(job.id, "dosage", e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                    className="w-full text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">
+                  <label className="block text-xs text-muted-foreground mb-1">
                     Instructions
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={edit.instructions ?? ""}
                     onChange={(e) =>
                       setField(job.id, "instructions", e.target.value)
                     }
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                    className="w-full text-sm"
                   />
                 </div>
               </div>
 
               <div className="flex items-center gap-3 mt-3">
-                <button
+                <Button
                   type="button"
+                  size="sm"
                   onClick={() => handleConfirm(job)}
                   disabled={!edit.drug_name || !edit.dosage}
-                  className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Confirm
-                </button>
+                </Button>
                 <button
                   type="button"
                   onClick={() => handleDiscard(job.id)}
-                  className="text-sm text-red-400 hover:text-red-600 transition-colors"
+                  className="text-sm text-[var(--color-danger)] hover:opacity-80 transition-opacity"
                 >
                   Discard
                 </button>
