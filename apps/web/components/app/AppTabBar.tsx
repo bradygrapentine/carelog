@@ -32,10 +32,10 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const journalMatch = pathname.match(/^\/journal\/([^/?]+)/);
+  const journalMatch = pathname?.match(/^\/journal\/([^/?]+)/);
   const recipientId = journalMatch ? journalMatch[1] : null;
 
-  const panelParam = searchParams.get("panel") ?? "journal";
+  const panelParam = searchParams?.get("panel") ?? "journal";
   const activeTab = panelParam in TAB_PANELS ? panelParam : "journal";
 
   function handleTabClick(tabId: string) {
