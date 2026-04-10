@@ -50,4 +50,21 @@ describe('writeWatchData', () => {
     writeWatchData({ nextShift: { assigneeName: 'Alice', startsAt: '11:00' } })
     expect(mockNativeWrite).toHaveBeenCalledTimes(1)
   })
+
+  it('is a no-op on Android', () => {
+    // Temporarily override Platform.OS
+    const { Platform } = require('react-native')
+    const original = Platform.OS
+    Platform.OS = 'android'
+    writeWatchData({ nextShift: { assigneeName: 'Jane', startsAt: '10:00' } })
+    expect(mockNativeWrite).not.toHaveBeenCalled()
+    Platform.OS = original
+  })
+
+  it('excludes undefined nextShift from payload', () => {
+    writeWatchData({ nextShift: undefined, nextMedication: { name: 'Aspirin', dueAt: '09:00' } })
+    expect(mockNativeWrite).toHaveBeenCalledWith({
+      nextMedication: { name: 'Aspirin', dueAt: '09:00' },
+    })
+  })
 })

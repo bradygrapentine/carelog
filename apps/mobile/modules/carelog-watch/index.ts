@@ -13,6 +13,9 @@ export type WatchData = {
 export function writeWatchData(data: WatchData): void {
   if (Platform.OS !== 'ios') return
   try {
+    // Lazy require rather than top-level import: ensures the native module is only
+    // loaded on iOS at call time, avoiding Metro bundler issues in Expo Go / Storybook
+    // environments where the native CarelogWatch module isn't registered.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { requireNativeModule } = require('expo-modules-core')
     const mod = requireNativeModule('CarelogWatch')
