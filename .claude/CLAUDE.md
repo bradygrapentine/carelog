@@ -17,17 +17,15 @@ supabase start          # Must run first
 pnpm web                # localhost:3000
 npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
 pnpm test               # Vitest unit tests
-supabase test db        # RLS pgTAP tests
-pnpm exec playwright test
+supabase test db        # RLS pgTAP tests — see supabase/CLAUDE.md
+pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 ```
 
 ## Code Style
 
 - `type` over `interface`; no `enum` — use string literal unions
-- No template literals in JSX props (Turbopack rejects them — compute URLs as variables)
-- Auth: `createClient()` (browser) in `useEffect` for protected pages — not `createServerSupabase()`
-- API routes (not server actions) for cookie-writing + redirect operations
-- `supabaseAdmin` only in `server/` and `app/api/` — never client-side
+- Web-specific rules: see `apps/web/CLAUDE.md`
+- Supabase/RLS rules: see `supabase/CLAUDE.md`
 
 ## Plan Mode
 
@@ -47,23 +45,80 @@ pnpm exec playwright test
 - `/schedule` — schedule Claude on a cron, up to a week
 - `/btw` — side query without interrupting current work
 
-## Codex Commands
+## Codex
 
-Codex runs with terminal access (`danger-full-access`) and command approval (`confirm`) by default.
+Codex is a separate GPT-5.4-based agent with its own terminal. Default sandbox: `workspace-execute` (can run commands) with `--approval-policy confirm` (asks before each command).
 
-- `/codex:rescue [prompt]` — delegate investigation or fix to Codex; supports `--resume`, `--fresh`, `--background`, `--effort`, `--model spark`
-- `/codex:fix-tests [--unit|--rls|--e2e|--all]` — run failing tests and fix them with Codex; defaults to `pnpm test`
-- `/codex:security-review` — PHI-boundary review: checks identity vault leaks, supabaseAdmin misuse, RLS correctness, auth bypasses; always runs at `--effort high`
-- `/codex:adversarial-review [focus]` — challenge the implementation, design choices, and assumptions; supports `--path supabase/` to scope
-- `/codex:review` — standard built-in code review
-- `/codex:plan-review [plan-file]` — compare implementation diff against a plan in `docs/superpowers/plans/`; defaults to most recent plan
-- `/codex:status` — check background job progress
-- `/codex:result [job-id]` — fetch completed job output
-- `/codex:cancel [job-id]` — cancel a running job
+### Commands
 
-**When to use Codex vs Continue.dev:**
-- Codex: multi-file implementation, test fixing, security review, tasks needing terminal access
-- Continue.dev: autocomplete, inline edits <50 lines, single-file refactors, known-error debugging
+| Command | Purpose |
+|---------|---------|
+| `/codex:rescue [prompt]` | General-purpose: diagnosis, implementation, research |
+| `/codex:fix-tests [--unit\|--rls\|--e2e\|--all]` | Fix failing tests; `--rls` runs `supabase test db` |
+| `/codex:review` | Standard code review against local git state |
+| `/codex:adversarial-review [focus]` | Challenges design choices and assumptions |
+| `/codex:security-review` | PHI-boundary review: supabaseAdmin misuse, RLS gaps, auth bypasses (always `--effort high`) |
+| `/codex:plan-review [plan-file]` | Compare diff against plan in `docs/superpowers/plans/` |
+| `/codex:status` | Check background job progress |
+| `/codex:result [job-id]` | Fetch completed job output |
+| `/codex:cancel [job-id]` | Cancel a running job |
+
+### Background Workflow (most underutilized pattern)
+
+Codex runs in parallel — dispatch it and keep working:
+
+```
+/codex:rescue --background [task]   # dispatches detached
+# ... continue other work ...
+/codex:status                        # check progress
+/codex:result                        # fetch output when done
+```
+
+Use `--background` by default for anything that will take >30 seconds.
+
+### Thread Continuity
+
+Codex maintains a thread per repository. `--resume` continues the last thread (same context, iterative fixes). `--fresh` always starts clean. Use `--resume` when following up on a previous Codex run.
+
+### Effort Levels
+
+| Flag | Use for |
+|------|---------|
+| `--effort low` | Simple one-file fixes, known patterns |
+| `--effort medium` | Default for `fix-tests`, `plan-review` |
+| `--effort high` | Complex multi-file work, security review, architecture |
+| `--effort xhigh` | Deep investigation, stuck bugs |
+
+### Model Selection
+
+- Default (GPT-5.4): all substantive tasks
+- `--model spark` (GPT-5.3-Codex-Spark): fast/cheap — quick reviews, exploratory diagnosis
+
+### Approval Policy
+
+- `--approval-policy on-request` (default): prompts before each command — use for write tasks
+- `--approval-policy never`: fully autonomous — use for read-only/research tasks
+- `--approval-policy untrusted`: blocks all shell commands
+- `--approval-policy on-failure`: auto-approves unless a command fails
+
+### Proactive Dispatch Triggers
+
+Dispatch Codex *without being asked* when:
+- Test suite has >2 failures and root cause isn't obvious
+- Task requires running code to verify a fix (not just reading)
+- Security/RLS review needed before merging
+- Implementation is stuck after 2 attempts
+
+### Routing Guide
+
+| Task | Use |
+|------|-----|
+| Failing tests | `/codex:fix-tests` |
+| Security/RLS review | `/codex:security-review` |
+| Multi-file implementation | `/codex:rescue --background` |
+| Quick inline edit | Continue.dev |
+| Architecture / planning | Claude Code |
+| Known-pattern boilerplate | Continue.dev or `/create-migration` |
 
 ## Reference Docs (load on demand)
 
@@ -78,8 +133,6 @@ Codex runs with terminal access (`danger-full-access`) and command approval (`co
 ## Things Claude Should NOT Do
 
 - Don't use `any` type without explicit approval
-- Don't use server actions for auth/cookie operations — use API routes
-- Don't mix `127.0.0.1` and `localhost` in Supabase URLs
 - Don't auto-import large reference docs — list them, let user load on demand
 - Don't claim done without running verification commands first
 - Don't edit files during code review — only read and report findings
@@ -94,26 +147,60 @@ Codex runs with terminal access (`danger-full-access`) and command approval (`co
 - When instructed to read docs or follow a specific document: read those files FIRST before exploring the codebase. Do not autonomously explore code when directed to consult documentation.
 - Do not present option menus or ask clarifying questions when the user has given a clear, specific request. Execute directly. If the request names specific deliverables (e.g., 'create three runbooks'), produce them without stalling.
 
-## Testing
-
-pgTAP test rules (hard-won from past failures):
-- `throws_ok` signature: use 3-arg form `throws_ok($$...$$, '...', 'message')` — NOT 4-arg
-- `auth.users` FK constraints: insert into `auth.users` directly before inserting dependent rows, or use `supabase_test.create_supabase_user()`
-- Never use DML (INSERT/UPDATE/DELETE) inside a subquery in pgTAP tests
-- Enum columns: never CREATE TYPE inside a transaction — run migrations with `BEGIN; ... COMMIT;` outside pgTAP
-
 ## Self-Improvement
 
 After every correction: update this file immediately.
 End corrections with: "Now update CLAUDE.md so you don't make that mistake again."
+
+## Project Skills
+
+Local skills in `.claude/skills/` — invoke with `/skill-name`:
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-migration` | Scaffold Supabase migration + pgTAP test with hard-won rules baked in |
+| `/frontend-design` | Production-grade UI components with design system |
+| `/review` | Adversarial security review for PHI/RLS/auth code |
+| `/test` | Vitest + pgTAP test writing patterns |
+| `/plan-with-tests` | Write a Continue.dev handoff plan (failing tests first) |
+| `/expo` | Expo/React Native patterns for the mobile app |
+| `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
+| `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
+| `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
+
+## Agents
+
+Local agents in `.claude/agents/`:
+
+- **rls-reviewer** — reviews RLS policies and pgTAP tests for PHI security gaps after writing migrations or `supabase/tests/` files; verdicts: "Safe to commit" or "Do not commit — [reason]"
+
+## Active Hooks
+
+Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
+
+| Hook | Trigger | What it does |
+|------|---------|-------------|
+| tsc | PostToolUse Edit/Write | `npx tsc --noEmit` in apps/web |
+| ESLint | PostToolUse Edit/Write | `npx eslint --cache --quiet` in apps/web |
+| Prettier | PostToolUse Edit/Write | Auto-formats `.ts/.tsx/.js/.jsx` |
+| pgTAP | PostToolUse Edit/Write | `supabase test db` when auth/RLS/migration files change; auto-dispatches `codex fix-tests` in background on failure |
+| `.env` guard | PreToolUse Edit/Write | Blocks edits to `.env*` files (allows `.env.example`) |
+| Lock file guard | PreToolUse Edit/Write | Blocks edits to `pnpm-lock.yaml` and `package-lock.json` |
+| supabaseAdmin guard | PreToolUse Edit/Write | Warns when editing files outside `server/` or `app/api/` that contain `supabaseAdmin` |
+| PR security review | PreToolUse Bash | Auto-dispatches `codex security-review --effort high` in background on `gh pr create` |
 
 ## Plugin Priority
 
 1. **memsearch** — recall memory before exploring codebase
 2. **context-mode** — `ctx_execute` for output >20 lines; never Bash/Read for analysis
 3. **superpowers** — invoke matching skill before any response
-4. **frontend-design** — only for explicit UI/design requests
+4. **frontend-design** — only for explicit UI/design requests (`/frontend-design`)
 5. **codex** — fallback for isolated, well-scoped code generation
+6. **context7** — fetch live library docs before answering framework/API questions
+7. **pr-review-toolkit** — run `/pr-review-toolkit:review-pr` before merging any PR
+8. **chrome-devtools-mcp** — browser debugging, LCP, a11y audits on live app
+9. **commit-commands** — `/commit`, `/commit-push-pr` for all git commits
+10. **claude-md-management** — `/claude-md-management:revise-claude-md` after sessions with corrections
 
 ## Token Discipline
 
