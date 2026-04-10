@@ -121,6 +121,18 @@ Sentry PHI fix task file: `.worktrees/sentry-fix/AGENT_TASK.md`
 
 ---
 
+### 15. Mobile design tokens not yet extracted
+
+**File:** All files in `apps/mobile/app/` and `apps/mobile/utils/journalUtils.ts`
+
+**Problem:** `apps/mobile/CLAUDE.md` documents `apps/mobile/constants/tokens.ts` as the source of truth for colors, typography, and spacing (mirroring web CSS vars). This file does not exist. All mobile screens use raw hex values directly in `StyleSheet.create()`.
+
+**Fix:** Create `apps/mobile/constants/tokens.ts` mirroring `apps/web/app/globals.css` CSS variables, then replace raw hex in all screen files and `journalUtils.ts`.
+
+**Impact:** Low — raw hex is consistent across all existing screens. Not a runtime bug.
+
+---
+
 ### 11. ~~~Supabase CLI version~~~ FIXED
 
 Running v2.75.0, latest is v2.84.2. Update before production:
