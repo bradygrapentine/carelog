@@ -1,20 +1,25 @@
-'use client'
+"use client";
 
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 interface Props {
-  children: ReactNode
+  children: ReactNode;
 }
 
 interface State {
-  hasError: boolean
+  hasError: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false }
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(): State {
-    return { hasError: true }
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    Sentry.captureException(error);
   }
 
   render() {
@@ -22,7 +27,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-center max-w-sm">
-            <p className="text-gray-900 font-medium mb-2">Something went wrong</p>
+            <p className="text-gray-900 font-medium mb-2">
+              Something went wrong
+            </p>
             <p className="text-gray-500 text-sm mb-6">
               We ran into an unexpected problem. Try refreshing the page.
             </p>
@@ -34,9 +41,9 @@ export class ErrorBoundary extends Component<Props, State> {
             </button>
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

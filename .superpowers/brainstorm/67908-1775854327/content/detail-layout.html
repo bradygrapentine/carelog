@@ -1,0 +1,87 @@
+<h2>Mobile Journal — Entry Detail Layout</h2>
+<p class="subtitle">When a caregiver taps a timeline entry, what should they see?</p>
+
+<div class="cards">
+
+  <!-- Option A: Full-screen sheet -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f9fafb;padding:12px;font-family:system-ui;border-radius:8px;">
+      <div style="background:#fff;border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;border-bottom:1px solid #f3f4f6;padding-bottom:8px;">
+          <span style="font-size:11px;color:#6b7280;">← Journal</span>
+          <span style="font-size:13px;font-weight:600;color:#111;flex:1;text-align:center;">Entry</span>
+          <span style="font-size:11px;color:#3b82f6;">Flag</span>
+        </div>
+        <div style="font-size:13px;color:#374151;line-height:1.5;margin-bottom:10px;">Mom had a rough morning — pain level was a 7 before meds, settled to a 4 by noon. She asked about the garden again.</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:10px;background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:20px;">difficult</span>
+          <span style="font-size:10px;color:#9ca3af;">Jun 4 at 10:32 AM</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">❤️ 2</span>
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">🤍 1</span>
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">💪</span>
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">🙏</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Full-screen push</h3>
+      <p>Tap entry → navigate to a new screen. Standard iOS pattern. Back button returns to timeline. Reactions + flag button inline.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Bottom sheet modal -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#e5e7eb;padding:12px;font-family:system-ui;border-radius:8px;position:relative;">
+      <div style="background:rgba(0,0,0,0.3);border-radius:8px;height:60px;margin-bottom:4px;"></div>
+      <div style="background:#fff;border-radius:16px 16px 0 0;padding:12px;">
+        <div style="width:32px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto 12px;"></div>
+        <div style="font-size:13px;color:#374151;line-height:1.5;margin-bottom:8px;">Mom had a rough morning — pain level was a 7 before meds, settled to a 4 by noon.</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:10px;background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:20px;">difficult</span>
+          <span style="font-size:10px;color:#9ca3af;">10:32 AM</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">❤️ 2</span>
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">🤍</span>
+          <span style="font-size:11px;border:1px solid #e5e7eb;border-radius:20px;padding:3px 10px;">💪</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Bottom sheet</h3>
+      <p>Tap entry → sheet slides up over timeline. Swipe down to dismiss. Context stays visible behind sheet. Quicker to get back to timeline.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Inline expand -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f9fafb;padding:12px;font-family:system-ui;border-radius:8px;">
+      <div style="border-left:2px solid #e5e7eb;padding-left:10px;margin-bottom:6px;">
+        <div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">9:14 AM</div>
+        <div style="font-size:12px;color:#374151;">Morning vitals noted. BP 118/76.</div>
+      </div>
+      <div style="border-left:2px solid #3b82f6;padding-left:10px;background:#eff6ff;border-radius:6px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">10:32 AM · <span style="color:#854d0e;">difficult</span></div>
+        <div style="font-size:12px;color:#374151;line-height:1.5;margin-bottom:8px;">Mom had a rough morning — pain level was a 7 before meds, settled to a 4 by noon. She asked about the garden again.</div>
+        <div style="display:flex;gap:5px;">
+          <span style="font-size:10px;border:1px solid #bfdbfe;border-radius:20px;padding:2px 8px;background:#eff6ff;">❤️ 2</span>
+          <span style="font-size:10px;border:1px solid #bfdbfe;border-radius:20px;padding:2px 8px;background:#eff6ff;">🤍</span>
+          <span style="font-size:10px;border:1px solid #bfdbfe;border-radius:20px;padding:2px 8px;background:#eff6ff;">💪</span>
+        </div>
+      </div>
+      <div style="border-left:2px solid #e5e7eb;padding-left:10px;">
+        <div style="font-size:10px;color:#9ca3af;margin-bottom:2px;">12:15 PM</div>
+        <div style="font-size:12px;color:#374151;">Lunch eaten well today.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Inline expand</h3>
+      <p>Tap entry → it expands in-place showing full text + reactions. No navigation. Timeline context always visible. Simpler to implement.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Click a card to select. You can also just tell me in the terminal.</p>
