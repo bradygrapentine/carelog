@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import posthog from "posthog-js";
 
 type Props = {
@@ -52,7 +54,10 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      posthog.capture("care_history_exported", { format, has_date_filter: !!since });
+      posthog.capture("care_history_exported", {
+        format,
+        has_date_filter: !!since,
+      });
     } catch {
       setError("Export failed. Please try again.");
     } finally {
@@ -69,17 +74,17 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
         <form onSubmit={handleDownload} className="space-y-3">
           {/* Format */}
           <fieldset>
-            <legend className="text-xs font-medium text-gray-600 mb-1.5">
+            <legend className="text-xs font-medium text-foreground/80 mb-1.5">
               Format
             </legend>
             <div className="flex gap-2">
               {(["json", "pdf"] as Format[]).map((f) => {
                 const isSelected = format === f;
                 const cls =
-                  "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 " +
+                  "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-ring " +
                   (isSelected
-                    ? "bg-gray-800 text-white border-gray-800"
-                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300");
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-border hover:border-border/80");
                 return (
                   <button
                     key={f}
@@ -99,36 +104,36 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
           <div>
             <label
               htmlFor="export-since"
-              className="block text-xs font-medium text-gray-600 mb-1"
+              className="block text-xs font-medium text-foreground/80 mb-1"
             >
               From date{" "}
-              <span className="font-normal text-gray-400">
+              <span className="font-normal text-muted-foreground">
                 (optional — exports all history if empty)
               </span>
             </label>
-            <input
+            <Input
               id="export-since"
               type="date"
               value={since}
               onChange={(e) => setSince(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-[var(--color-danger)]" role="alert">
               {error}
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
+            variant="outline"
+            size="sm"
             disabled={loading}
             aria-busy={loading}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Preparing..." : "Download export"}
-          </button>
+          </Button>
         </form>
       </CardContent>
     </Card>

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type ExpenseCategory =
   | "medication"
@@ -144,12 +146,12 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
         className="w-full px-4 py-3 flex items-center justify-between text-left"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground/80">
           Shared expenses
         </span>
         <svg
           className={
-            "w-4 h-4 text-gray-400 transition-transform " +
+            "w-4 h-4 text-muted-foreground transition-transform " +
             (open ? "rotate-180" : "")
           }
           fill="none"
@@ -166,20 +168,20 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
       </button>
 
       {open && (
-        <div className="px-4 pb-4 border-t border-gray-50 space-y-4">
+        <div className="px-4 pb-4 border-t border-border space-y-4">
           {isLoading && (
-            <p className="text-sm text-gray-400 pt-3">Loading...</p>
+            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
           )}
 
           {!isLoading && expenses.length === 0 && (
-            <p className="text-sm text-gray-400 pt-3">
+            <p className="text-sm text-muted-foreground pt-3">
               No expenses logged yet.
             </p>
           )}
 
           {!isLoading && expenses.length > 0 && (
             <>
-              <ul className="divide-y divide-gray-50 pt-2">
+              <ul className="divide-y divide-border pt-2">
                 {expenses.map((expense: ExpenseRow) => (
                   <li
                     key={expense.id}
@@ -196,14 +198,14 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                         >
                           {expense.category.replaceAll("_", " ")}
                         </span>
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-foreground">
                           {"$" + Number(expense.amount).toFixed(2)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-0.5 truncate">
+                      <p className="text-sm text-foreground/80 mt-0.5 truncate">
                         {expense.description}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {expense.incurred_at}
                         {expense.paid_by_name
                           ? " · " + expense.paid_by_name
@@ -219,7 +221,7 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                             org_id: orgId,
                           })
                         }
-                        className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
+                        className="text-muted-foreground/50 hover:text-[var(--color-danger)] transition-colors flex-shrink-0"
                         aria-label="Delete expense"
                       >
                         <svg
@@ -242,13 +244,13 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
               </ul>
 
               {totalCategories.length > 0 && (
-                <div className="bg-gray-50 rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-gray-500 mb-1">
+                <div className="bg-[var(--color-surface)] rounded-lg px-3 py-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
                     Last 30 days by category
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {totalCategories.map(([cat, total]) => (
-                      <span key={cat} className="text-xs text-gray-600">
+                      <span key={cat} className="text-xs text-foreground/80">
                         {cat.replaceAll("_", " ")}: {"$" + total.toFixed(2)}
                       </span>
                     ))}
@@ -261,25 +263,29 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
           {canWrite && (
             <form
               onSubmit={handleSubmit}
-              className="space-y-2 pt-2 border-t border-gray-50"
+              className="space-y-2 pt-2 border-t border-border"
             >
-              <p className="text-xs font-medium text-gray-500">Log expense</p>
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              <p className="text-xs font-medium text-muted-foreground">
+                Log expense
+              </p>
+              {error && (
+                <p className="text-xs text-[var(--color-danger)]">{error}</p>
+              )}
               <div className="flex gap-2">
-                <input
+                <Input
                   name="amount"
                   type="number"
                   step="0.01"
                   min="0.01"
                   placeholder="Amount"
                   required
-                  className="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-24"
                 />
                 <select
                   name="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="flex-1 text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
                 >
                   {CATEGORY_OPTS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -288,34 +294,29 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
                   ))}
                 </select>
               </div>
-              <input
+              <Input
                 name="description"
                 type="text"
                 placeholder="Description"
                 required
-                className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
               <div className="flex gap-2">
-                <input
+                <Input
                   name="paid_by_name"
                   type="text"
                   placeholder="Paid by (optional)"
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="flex-1"
                 />
-                <input
-                  name="incurred_at"
-                  type="date"
-                  defaultValue={todayStr}
-                  className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
+                <Input name="incurred_at" type="date" defaultValue={todayStr} />
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="w-full text-sm bg-gray-900 text-white rounded-lg py-1.5 hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="w-full"
+                size="sm"
               >
                 {createMutation.isPending ? "Saving..." : "Log expense"}
-              </button>
+              </Button>
             </form>
           )}
         </div>
