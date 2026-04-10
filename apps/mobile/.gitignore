@@ -36,6 +36,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Expo plugins — compiled JS (TS plugins handled natively by Expo SDK 50+)
+plugins/*.js
+
 # generated native folders
 /ios
 /android
