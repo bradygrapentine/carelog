@@ -8,3 +8,4 @@ export * from "./outerCircle";
 export * from './symptoms'
 export * from './burnout'
 export * from './export'
+export * from './expenses'
