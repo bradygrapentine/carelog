@@ -55,3 +55,6 @@ async function handleSubmit(e) {
 ## Testing
 When writing tests: plan with expected counts per file first, check off each item as you complete it.
 See `docs/project-info/ENTERPRISE_PRINCIPLES.md` for RLS and pgTAP patterns.
+
+## Screenshot Workflow
+- Install Puppeteer and Chrome Cache

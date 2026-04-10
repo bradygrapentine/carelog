@@ -3,6 +3,9 @@
 ## Overview
 Expo managed workflow. Plans: `docs/superpowers/plans/2026-04-10-mobile-wave*.md`
 
+## Screenshot Workflow
+- Install Puppeteer and Chrome Cache
+
 ## Env vars
 `apps/mobile/.env.local`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_API_URL`
 Use `http://localhost:54321` for Supabase (not `127.0.0.1`) for cookie name consistency.
