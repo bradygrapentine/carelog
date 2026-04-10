@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 const REQUEST_TYPES = [
   { label: "Meal", value: "meal" },
@@ -132,20 +135,23 @@ export function OuterCirclePanel({
                     ? window.location.origin + "/care/" + req.share_token
                     : "/care/" + req.share_token;
                 return (
-                  <div key={req.id} className="bg-gray-50 rounded-lg px-3 py-3">
+                  <div
+                    key={req.id}
+                    className="bg-[var(--color-surface)] rounded-lg px-3 py-3"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {req.title}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {req.slots_filled}/{req.slots_total} slots filled
                         </p>
                         <a
                           href={shareUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline mt-0.5 block truncate"
+                          className="text-xs text-primary hover:underline mt-0.5 block truncate"
                         >
                           {shareUrl}
                         </a>
@@ -154,7 +160,7 @@ export function OuterCirclePanel({
                         type="button"
                         onClick={() => handleDeactivate(req.id)}
                         disabled={deactivateMutation.isPending}
-                        className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap disabled:opacity-50"
+                        className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80 whitespace-nowrap disabled:opacity-50"
                       >
                         Deactivate
                       </button>
@@ -169,7 +175,7 @@ export function OuterCirclePanel({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + New request
           </button>
@@ -178,11 +184,11 @@ export function OuterCirclePanel({
             <div>
               <label
                 htmlFor="oc-title"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Title
               </label>
-              <input
+              <Input
                 id="oc-title"
                 type="text"
                 required
@@ -192,7 +198,6 @@ export function OuterCirclePanel({
                   setTitle(e.target.value);
                   setError(null);
                 }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                 placeholder="Meals needed this week"
               />
             </div>
@@ -200,17 +205,17 @@ export function OuterCirclePanel({
             <div>
               <label
                 htmlFor="oc-description"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Description (optional)
               </label>
-              <textarea
+              <Textarea
                 id="oc-description"
                 maxLength={1000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 resize-none"
+                className="resize-none"
                 placeholder="Any details helpers should know..."
               />
             </div>
@@ -219,7 +224,7 @@ export function OuterCirclePanel({
               <div>
                 <label
                   htmlFor="oc-type"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Type
                 </label>
@@ -229,7 +234,7 @@ export function OuterCirclePanel({
                   onChange={(e) =>
                     setRequestType(e.target.value as typeof requestType)
                   }
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
                 >
                   {REQUEST_TYPES.map((rt) => (
                     <option key={rt.value} value={rt.value}>
@@ -242,7 +247,7 @@ export function OuterCirclePanel({
               <div>
                 <label
                   htmlFor="oc-slots"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Slots needed
                 </label>
@@ -250,7 +255,7 @@ export function OuterCirclePanel({
                   id="oc-slots"
                   value={slotsTotal}
                   onChange={(e) => setSlotsTotal(e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
                 >
                   {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={String(n)}>
@@ -264,20 +269,21 @@ export function OuterCirclePanel({
             <div>
               <label
                 htmlFor="oc-needed-by"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Needed by (optional)
               </label>
-              <input
+              <Input
                 id="oc-needed-by"
                 type="date"
                 value={neededBy}
                 onChange={(e) => setNeededBy(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <p className="text-sm text-[var(--color-danger)]">{error}</p>
+            )}
 
             <div className="flex items-center justify-between">
               <button
@@ -286,17 +292,17 @@ export function OuterCirclePanel({
                   setShowForm(false);
                   setError(null);
                 }}
-                className="text-sm text-gray-400 hover:text-gray-600"
+                className="text-sm text-muted-foreground hover:text-foreground/80"
               >
                 Cancel
               </button>
-              <button
+              <Button
                 type="submit"
+                size="sm"
                 disabled={createMutation.isPending}
-                className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {createMutation.isPending ? "Creating..." : "Create request"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   orgId: string;
@@ -97,7 +100,8 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   const chevronClass =
-    "w-4 h-4 text-gray-400 transition-transform " + (open ? "rotate-180" : "");
+    "w-4 h-4 text-muted-foreground transition-transform " +
+    (open ? "rotate-180" : "");
 
   return (
     <Card className="border-red-50">
@@ -108,7 +112,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
         aria-expanded={open}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-foreground/80">
             End-of-life plan
           </span>
           <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
@@ -131,26 +135,26 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
       </button>
 
       {open && (
-        <div className="px-4 pb-4 border-t border-gray-50 space-y-4">
+        <div className="px-4 pb-4 border-t border-border space-y-4">
           {planLoading && (
-            <p className="text-sm text-gray-400 pt-3">Loading...</p>
+            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
           )}
 
           {!planLoading && !editing && (
             <>
               {!plan ? (
                 <div className="pt-3">
-                  <p className="text-sm text-gray-500 mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     No end-of-life plan on file yet. Create one to document
                     wishes, preferences, and key contacts.
                   </p>
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => setEditing(true)}
-                    className="text-sm bg-gray-900 text-white rounded-lg px-4 py-1.5 hover:bg-gray-700 transition-colors"
                   >
                     Create plan
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="pt-3 space-y-3">
@@ -162,20 +166,20 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                   <dl className="space-y-2 text-sm">
                     {plan.healthcare_proxy && (
                       <div>
-                        <dt className="text-xs font-medium text-gray-500">
+                        <dt className="text-xs font-medium text-muted-foreground">
                           Healthcare proxy
                         </dt>
-                        <dd className="text-gray-700">
+                        <dd className="text-foreground/80">
                           {plan.healthcare_proxy}
                         </dd>
                       </div>
                     )}
                     {plan.resuscitation_pref && (
                       <div>
-                        <dt className="text-xs font-medium text-gray-500">
+                        <dt className="text-xs font-medium text-muted-foreground">
                           Resuscitation preference
                         </dt>
-                        <dd className="text-gray-700">
+                        <dd className="text-foreground/80">
                           {RESUS_OPTS.find(
                             (o) => o.value === plan.resuscitation_pref,
                           )?.label ?? plan.resuscitation_pref}
@@ -184,15 +188,17 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                     )}
                     {plan.funeral_pref && (
                       <div>
-                        <dt className="text-xs font-medium text-gray-500">
+                        <dt className="text-xs font-medium text-muted-foreground">
                           Funeral preferences
                         </dt>
-                        <dd className="text-gray-700">{plan.funeral_pref}</dd>
+                        <dd className="text-foreground/80">
+                          {plan.funeral_pref}
+                        </dd>
                       </div>
                     )}
                     {plan.legacy_message && (
                       <div>
-                        <dt className="text-xs font-medium text-gray-500">
+                        <dt className="text-xs font-medium text-muted-foreground">
                           Legacy message
                         </dt>
                         <dd className="text-gray-700 whitespace-pre-wrap">
@@ -202,10 +208,10 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                     )}
                     {(plan.attorney_name || plan.attorney_contact) && (
                       <div>
-                        <dt className="text-xs font-medium text-gray-500">
+                        <dt className="text-xs font-medium text-muted-foreground">
                           Attorney
                         </dt>
-                        <dd className="text-gray-700">
+                        <dd className="text-foreground/80">
                           {[plan.attorney_name, plan.attorney_contact]
                             .filter(Boolean)
                             .join(" · ")}
@@ -216,7 +222,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
 
                   {advanceDocs.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500 mb-1">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
                         Advance directives on file
                       </p>
                       <ul className="space-y-1">
@@ -229,7 +235,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                                 href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:underline"
+                                className="text-xs text-primary hover:underline"
                               >
                                 {label}
                               </a>
@@ -243,7 +249,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
                   >
                     Edit plan
                   </button>
@@ -254,25 +260,26 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
 
           {!planLoading && editing && (
             <form onSubmit={handleSubmit} className="pt-3 space-y-3">
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              {error && (
+                <p className="text-xs text-[var(--color-danger)]">{error}</p>
+              )}
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Healthcare proxy (name + contact)
                 </label>
-                <input
+                <Input
                   name="healthcare_proxy"
                   type="text"
                   defaultValue={plan?.healthcare_proxy ?? ""}
                   placeholder="e.g. Jane Smith — 555-0199"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="resuscitation_pref"
-                  className="block text-xs font-medium text-gray-500 mb-1"
+                  className="block text-xs font-medium text-muted-foreground mb-1"
                 >
                   Resuscitation preference
                 </label>
@@ -280,7 +287,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
                   id="resuscitation_pref"
                   name="resuscitation_pref"
                   defaultValue={plan?.resuscitation_pref ?? ""}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
                 >
                   <option value="">Not specified</option>
                   {RESUS_OPTS.map((opt) => (
@@ -292,72 +299,72 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Funeral preferences
                 </label>
-                <textarea
+                <Textarea
                   name="funeral_pref"
                   defaultValue={plan?.funeral_pref ?? ""}
                   rows={2}
                   placeholder="Cremation, burial location, service preferences..."
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                  className="resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Legacy message to the family
                 </label>
-                <textarea
+                <Textarea
                   name="legacy_message"
                   defaultValue={plan?.legacy_message ?? ""}
                   rows={3}
                   placeholder="A personal message..."
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                  className="resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Attorney name
                 </label>
-                <input
+                <Input
                   name="attorney_name"
                   type="text"
                   defaultValue={plan?.attorney_name ?? ""}
                   placeholder="Attorney name"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Attorney contact
                 </label>
-                <input
+                <Input
                   name="attorney_contact"
                   type="text"
                   defaultValue={plan?.attorney_contact ?? ""}
                   placeholder="Email or phone"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
 
               <div className="flex gap-2">
-                <button
+                <Button
                   type="submit"
                   disabled={upsertMutation.isPending}
-                  className="flex-1 text-sm bg-gray-900 text-white rounded-lg py-1.5 hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="flex-1"
+                  size="sm"
                 >
                   {upsertMutation.isPending ? "Saving..." : "Save plan"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setEditing(false)}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           )}
