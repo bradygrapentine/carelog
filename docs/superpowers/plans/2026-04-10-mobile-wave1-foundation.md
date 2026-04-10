@@ -6,9 +6,11 @@
 
 **Architecture:** Expo Router (file-based navigation, mirrors Next.js App Router) over the existing monorepo foundation. The tRPC client reuses the web app's `AppRouter` type for full type safety with zero duplication. Offline writes flush to `careEvents.insert` with idempotency on reconnect.
 
-**Tech Stack:** Expo SDK 55 · Expo Router · `@trpc/react-query` · `@tanstack/react-query` · `expo-secure-store` · `@supabase/supabase-js` · `@react-native-community/netinfo` · jest-expo · Maestro
+**Tech Stack:** Expo SDK 55 · Expo Router · NativeWind 4 · Inter font · `@trpc/react-query` · `@tanstack/react-query` · `expo-secure-store` · `@supabase/supabase-js` · `@react-native-community/netinfo` · jest-expo · Maestro
 
 **Already installed (no install needed):** `@trpc/client`, `@trpc/react-query`, `@tanstack/react-query`, `expo-secure-store`, `@supabase/supabase-js`, `@react-native-community/netinfo`, `@carelog/schemas`, `@carelog/types`
+
+**Design consistency:** All color values, typography (Inter), spacing (4px grid), border radii (6/8/10px), and component visual language mirror the web app exactly. See `apps/mobile/constants/tokens.ts` (created in Task 0). Never use raw hex values in screen files — always import from tokens.
 
 ---
 
@@ -17,7 +19,12 @@
 ```
 apps/mobile/
   app.json                              MODIFY — add scheme + Expo Router plugin + deep link domains
-  package.json                          MODIFY — add expo-router, expo-linking
+  package.json                          MODIFY — add expo-router, expo-linking, nativewind, expo-font
+  tailwind.config.js                    CREATE — NativeWind config pointing at app/ + components/
+  babel.config.js                       MODIFY — add NativeWind babel preset
+  global.css                           CREATE — @tailwind base/components/utilities (NativeWind entry)
+  constants/
+    tokens.ts                           CREATE — JS mirror of web CSS tokens (colors, radius, fonts)
   app/
     _layout.tsx                         CREATE — root layout: TrpcProvider + QueryClient
     (auth)/
@@ -54,6 +61,193 @@ apps/mobile/
   .maestro/
     sign-in.yaml                        CREATE
     journal-entry.yaml                  CREATE
+```
+
+---
+
+## Task 0: Design System — NativeWind + Inter font + tokens
+
+**Files:**
+- Modify: `apps/mobile/package.json`
+- Create: `apps/mobile/tailwind.config.js`
+- Modify: `apps/mobile/babel.config.js` (or create if absent)
+- Create: `apps/mobile/global.css`
+- Create: `apps/mobile/constants/tokens.ts`
+
+This task must run before any screen is written. All screens import from `constants/tokens.ts` and use NativeWind Tailwind classes. No raw hex values anywhere except this tokens file.
+
+- [ ] **Step 1: Install NativeWind + Inter font packages**
+
+```bash
+cd apps/mobile
+npx expo install nativewind tailwindcss @expo-google-fonts/inter expo-font
+```
+
+- [ ] **Step 2: Create tailwind.config.js**
+
+```js
+// apps/mobile/tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  presets: [require('nativewind/preset')],
+  theme: {
+    extend: {
+      colors: {
+        brand: '#2563eb',
+        'brand-hover': '#1d4ed8',
+        'brand-subtle': '#eff6ff',
+        'brand-border': '#bfdbfe',
+        surface: '#ffffff',
+        'surface-raised': '#f8fafc',
+        'surface-muted': '#f1f5f9',
+        border: '#e2e8f0',
+        'text-primary': '#0f172a',
+        'text-secondary': '#475569',
+        'text-muted': '#94a3b8',
+        'nav-bg': '#0f172a',
+        'mood-good': '#22c55e',
+        'mood-okay': '#f59e0b',
+        'mood-difficult': '#f97316',
+        'mood-crisis': '#ef4444',
+      },
+      borderRadius: {
+        sm: '6px',
+        md: '8px',
+        lg: '10px',
+      },
+    },
+  },
+  plugins: [],
+}
+```
+
+- [ ] **Step 3: Create global.css (NativeWind entry)**
+
+```css
+/* apps/mobile/global.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+- [ ] **Step 4: Update babel.config.js**
+
+If `babel.config.js` exists, add `'nativewind/babel'` to plugins. If it doesn't exist, create:
+
+```js
+// apps/mobile/babel.config.js
+module.exports = function (api) {
+  api.cache(true)
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: ['nativewind/babel'],
+  }
+}
+```
+
+- [ ] **Step 5: Wire global.css into app entry**
+
+In `apps/mobile/index.ts` (or wherever the app entry is), add:
+
+```typescript
+import './global.css'
+```
+
+- [ ] **Step 6: Create constants/tokens.ts**
+
+```typescript
+// apps/mobile/constants/tokens.ts
+// JS mirror of apps/web/app/globals.css @theme tokens.
+// Both platforms use identical values — update both files if changing brand colors.
+
+export const colors = {
+  brand:        '#2563eb',
+  brandHover:   '#1d4ed8',
+  brandSubtle:  '#eff6ff',
+  brandBorder:  '#bfdbfe',
+
+  surface:        '#ffffff',
+  surfaceRaised:  '#f8fafc',
+  surfaceMuted:   '#f1f5f9',
+
+  textPrimary:   '#0f172a',
+  textSecondary: '#475569',
+  textMuted:     '#94a3b8',
+
+  border:       '#e2e8f0',
+  borderFocus:  '#2563eb',
+
+  navBg:    '#0f172a',
+  navItem:  '#1e293b',
+  navActive: '#3b82f6',
+
+  moodGood:      '#22c55e',
+  moodOkay:      '#f59e0b',
+  moodDifficult: '#f97316',
+  moodCrisis:    '#ef4444',
+
+  // Role badge backgrounds (matches web purple/blue/green/orange variants)
+  roleBadge: {
+    coordinator: { bg: '#f3e8ff', text: '#6b21a8' },
+    caregiver:   { bg: '#dbeafe', text: '#1e40af' },
+    supporter:   { bg: '#dcfce7', text: '#166534' },
+    aide:        { bg: '#ffedd5', text: '#9a3412' },
+  },
+} as const
+
+export const radius = {
+  sm: 6,
+  md: 8,
+  lg: 10,
+} as const
+
+export const fontFamily = {
+  regular:   'Inter_400Regular',
+  semiBold:  'Inter_600SemiBold',
+} as const
+
+export const fontSize = {
+  caption:  12,
+  body:     14,
+  label:    14,
+  heading:  18,
+} as const
+```
+
+- [ ] **Step 7: Load Inter font in root layout**
+
+In `apps/mobile/app/_layout.tsx` (created in Task 4), load the font before rendering:
+
+```typescript
+import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter'
+import * as SplashScreen from 'expo-splash-screen'
+
+SplashScreen.preventAutoHideAsync()
+
+// Inside component:
+const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_600SemiBold })
+
+useEffect(() => {
+  if (fontsLoaded) SplashScreen.hideAsync()
+}, [fontsLoaded])
+
+if (!fontsLoaded) return null
+```
+
+- [ ] **Step 8: Typecheck**
+
+```bash
+cd apps/mobile && npx tsc --noEmit 2>&1 | head -10
+```
+
+Expected: no errors from tokens.ts.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add apps/mobile/tailwind.config.js apps/mobile/babel.config.js apps/mobile/global.css apps/mobile/constants/tokens.ts
+git commit -m "feat: NativeWind + Inter font + design token constants for mobile"
 ```
 
 ---
@@ -389,6 +583,7 @@ Create `apps/mobile/app/(app)/_layout.tsx`:
 import { useEffect } from 'react'
 import { Tabs, useRouter } from 'expo-router'
 import { getSession } from '../../utils/auth'
+import { colors, fontFamily, fontSize } from '../../constants/tokens'
 
 export default function AppLayout() {
   const router = useRouter()
@@ -400,7 +595,16 @@ export default function AppLayout() {
   }, [])
 
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: '#0369a1' }}>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: { backgroundColor: colors.navBg },
+        tabBarActiveTintColor: colors.navActive,
+        tabBarInactiveTintColor: colors.textMuted,
+        headerStyle: { backgroundColor: colors.surface },
+        headerTitleStyle: { fontFamily: fontFamily.semiBold, fontSize: fontSize.heading, color: colors.textPrimary },
+        headerTintColor: colors.brand,
+      }}
+    >
       <Tabs.Screen name="index" options={{ title: 'Home', href: null }} />
       <Tabs.Screen name="journal/index" options={{ title: 'Journal' }} />
       <Tabs.Screen name="medications/index" options={{ title: 'Medications' }} />

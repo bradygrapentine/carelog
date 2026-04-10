@@ -11,12 +11,14 @@
 
 | Layer | Choice | Rationale |
 |---|---|---|
-| Framework | Expo SDK 52 (managed workflow) | Already in monorepo; `expo prebuild` generates native projects when needed |
+| Framework | Expo SDK 55 (managed workflow) | Already in monorepo; `expo prebuild` generates native projects when needed |
 | Navigation | Expo Router (file-based) | Mirrors Next.js App Router mental model; auth layout gates trivially |
 | API client | `@trpc/client` + TanStack Query | Same procedures and types as web; no separate API layer |
 | Session storage | `expo-secure-store` | Encrypted, survives app restarts |
 | Offline writes | `apps/mobile/store/offlineQueue.ts` (existing) + tRPC flush | SecureStore-backed queue already built; flush call is the missing piece |
 | Shared packages | `@carelog/schemas`, `@carelog/types` | Already wired in `apps/mobile/` |
+| Styling | NativeWind 4 + design tokens | Tailwind classes on React Native — matches web token vocabulary |
+| Typography | `@expo-google-fonts/inter` + `expo-font` | Same Inter typeface as web; loaded at root layout |
 | TypeScript | Strict mode enabled | Matches web standards |
 
 ### tRPC Client
@@ -303,6 +305,97 @@ Both use `AppIntentTimelineProvider` — timeline refreshes when the phone write
 ### TypeScript strict mode
 
 `apps/mobile/tsconfig.json` — add `"strict": true`. Fix any resulting errors as part of the foundation task (likely a handful of implicit `any` in the existing hook files).
+
+---
+
+## 5B. Design Consistency with Web
+
+The web app uses a Tailwind v4 CSS variable token layer defined in `apps/web/app/globals.css`. React Native cannot consume CSS variables, so the same values are mirrored as a JS constants file at `apps/mobile/constants/tokens.ts`. Both platforms use identical hex values — the constants file is the single source of truth for mobile.
+
+### Color tokens
+
+```typescript
+// apps/mobile/constants/tokens.ts
+export const colors = {
+  // Brand
+  brand:        '#2563eb',
+  brandHover:   '#1d4ed8',
+  brandSubtle:  '#eff6ff',
+  brandBorder:  '#bfdbfe',
+
+  // Surface
+  surface:        '#ffffff',
+  surfaceRaised:  '#f8fafc',
+  surfaceMuted:   '#f1f5f9',
+
+  // Text
+  textPrimary:   '#0f172a',
+  textSecondary: '#475569',
+  textMuted:     '#94a3b8',
+
+  // Border
+  border:       '#e2e8f0',
+  borderFocus:  '#2563eb',
+
+  // Navigation (bottom tab bar — mirrors web sidebar palette)
+  navBg:      '#0f172a',   // slate-900
+  navItem:    '#1e293b',   // slate-800
+  navActive:  '#3b82f6',   // brand blue (active tab icon)
+
+  // Semantic — mood
+  moodGood:      '#22c55e',
+  moodOkay:      '#f59e0b',
+  moodDifficult: '#f97316',
+  moodCrisis:    '#ef4444',
+} as const
+```
+
+### Typography
+
+Inter is loaded at the root layout via `expo-font`. All text components use `fontFamily: 'Inter_400Regular'` (body) or `'Inter_600SemiBold'` (labels/headings). Font sizes follow the same scale as web:
+
+| Usage | Size | Weight |
+|-------|------|--------|
+| Body / entry text | 14sp | Regular (400) |
+| Caption / secondary | 12sp | Regular (400) |
+| Label / card header | 14sp | SemiBold (600) |
+| Screen heading | 18sp | SemiBold (600) |
+
+### Spacing and radius
+
+Same 4px grid as web. Border radii: `sm=6`, `md=8`, `lg=10` (matches web `--radius-sm/md/lg`).
+
+### Component visual language
+
+| Web (shadcn/ui) | Mobile (RN + NativeWind) | Visual match |
+|-----------------|--------------------------|--------------|
+| `<Card>` | `View` with `bg-white border border-[#e2e8f0] rounded-[8px]` | ✅ |
+| `<Button variant="default">` | `Pressable` + brand blue bg + white text | ✅ |
+| `<Badge role="coordinator">` | `View` + `bg-purple-100` pill + purple text | ✅ |
+| Mood dot | 8px `View` with `borderRadius: 4` + mood color bg | ✅ |
+| Sync banner | Full-width `View` + `bg-[#f59e0b]` amber strip | ✅ |
+
+### Navigation: mobile-web vs native
+
+The web app at `<768px` uses a top bar (52px) + hamburger → Sheet drawer. The native app uses a bottom tab bar with the same three primary destinations (Journal · Medications · Schedule). Both experiences should feel visually consistent:
+
+- Same slate-900 (`#0f172a`) for nav chrome background
+- Same brand blue (`#2563eb`) for active/selected state
+- Same top bar height equivalent (native: SafeAreaView insets)
+- Screen titles use the same typography (Inter SemiBold 18sp)
+
+This matters because caregivers on Android may use the mobile-web as a fallback when the app isn't installed — they should not experience a jarring visual shift.
+
+### Role badge colors
+
+Identical to web:
+
+| Role | Background | Text |
+|------|------------|------|
+| Coordinator | `#f3e8ff` (purple-100) | `#6b21a8` (purple-800) |
+| Caregiver | `#dbeafe` (blue-100) | `#1e40af` (blue-800) |
+| Supporter | `#dcfce7` (green-100) | `#166534` (green-800) |
+| Aide | `#ffedd5` (orange-100) | `#9a3412` (orange-800) |
 
 ---
 
