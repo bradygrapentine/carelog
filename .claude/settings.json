@@ -16,7 +16,8 @@
       "Bash(grep -n \"color-brand\\\\|color-sidebar\\\\|color-text-muted\\\\|color-surface-raised\\\\|color-surface-muted\" /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/TeamPanel.tsx /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/JournalClient.tsx)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm type-check:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(git check-ignore:*)"
     ]
   },
   "hooks": {
