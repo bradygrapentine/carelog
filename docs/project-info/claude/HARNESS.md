@@ -15,6 +15,23 @@
 |-------|------|---------|
 | `test` | `.claude/skills/test/SKILL.md` | pgTAP fixtures, Vitest patterns, Playwright helpers, Zod rules |
 | `review` | `.claude/skills/review/SKILL.md` | Adversarial security review — PHI leakage, IDOR, RLS, invite TOCTOU |
+| `plan-with-tests` | `.claude/skills/plan-with-tests/SKILL.md` | Continue.dev handoff plans with TDD verify steps |
+| `worktree-subagents` | `.claude/skills/worktree-subagents/SKILL.md` | Parallel subagents with isolated file state via git worktrees |
+| `expo` | `.claude/skills/expo/SKILL.md` | Expo/React Native patterns for `apps/mobile/` — navigation, auth, styling, tRPC, testing |
+
+## Codex Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/codex:rescue` | Delegate investigation or multi-file fix to Codex |
+| `/codex:fix-tests` | Run failing tests and fix them with Codex |
+| `/codex:security-review` | PHI-boundary review: identity vault, supabaseAdmin, RLS, auth bypasses |
+| `/codex:adversarial-review` | Challenge implementation design, tradeoffs, and assumptions |
+| `/codex:review` | Standard code review |
+| `/codex:plan-review` | Compare implementation diff against a plan in `docs/superpowers/plans/` |
+| `/codex:status` | Check background job progress |
+| `/codex:result [job-id]` | Fetch completed job output |
+| `/codex:cancel [job-id]` | Cancel a running job |
 
 ## Reference Docs (load on demand)
 
@@ -22,25 +39,43 @@ Linked from `.claude/CLAUDE.md`:
 
 | Doc | Purpose |
 |-----|---------|
-| `docs/project-info/ARCHITECTURE.md` | Data model, system design, design rationale |
-| `docs/project-info/ENTERPRISE_PRINCIPLES.md` | Hard-won coding rules (12 numbered principles) |
-| `docs/project-info/UX_DECISIONS.md` | Language, tone, emotional framing decisions |
-| `docs/project-info/TECH_DEBT.md` | Known issues before production |
-| `docs/project-info/BUILD_STATUS.md` | What's done / in progress / next |
-| `docs/project-info/PATTERNS.md` | Code conventions, testing patterns, git format |
-| `docs/project-info/TROUBLESHOOTING.md` | Local dev fixes (Supabase, auth, Turbopack) |
+| `docs/project-info/technology/ARCHITECTURE.md` | Data model, system design, design rationale |
+| `docs/project-info/technology/ENTERPRISE_PRINCIPLES.md` | Hard-won coding rules (12 numbered principles) |
+| `docs/project-info/product/UX_DECISIONS.md` | Language, tone, emotional framing decisions |
+| `docs/project-info/technology/TECH_DEBT.md` | Known issues before production |
+| `docs/project-info/product/BUILD_STATUS.md` | What's done / in progress / next |
+| `docs/project-info/technology/PATTERNS.md` | Code conventions, testing patterns, git format |
+| `docs/project-info/technology/TROUBLESHOOTING.md` | Local dev fixes (Supabase, auth, Turbopack) |
+
+## MCP Servers
+
+| Server | Package | Purpose |
+|--------|---------|---------|
+| `playwright` | `@playwright/mcp` | Browser automation — drive the app visually during e2e testing |
+| `supabase-local` | `@modelcontextprotocol/server-postgres` | Direct SQL access to local Supabase (port 54322) |
+| `github` | `@modelcontextprotocol/server-github` | PRs, issues, CI status — requires `GITHUB_PERSONAL_ACCESS_TOKEN` env var |
+| `sentry` | `@sentry/mcp-server` | Pull Sentry issues and stack traces in-session — requires `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` env vars; dormant until Sentry account configured |
+
+## Workflow Guide
+
+| Doc | Purpose |
+|-----|---------|
+| `docs/project-info/claude/USING_THE_HARNESS.md` | **Start here** — task routing, skill invocation, Codex commands, hooks, memory, token discipline |
 
 ## Additional Docs (not auto-loaded)
 
 | Doc | Purpose |
 |-----|---------|
-| `docs/project-info/OVERVIEW.md` | Three-tier architecture diagram, client decision tree |
-| `docs/project-info/AUTH_FLOW.md` | OTP flow, invite acceptance flow, session storage by layer |
-| `docs/project-info/DATA_FLOW.md` | Care event write/read paths, identity resolution, invite paths |
-| `docs/project-info/SECURITY_MODEL.md` | PHI boundary, service role isolation, RLS design, invite token security |
-| `docs/project-info/INFRASTRUCTURE.md` | Why each third-party service was chosen |
-| `docs/project-info/AGENT_WORKFLOW.md` | Agent and session workflow |
-| `docs/project-info/DEPLOY.md` | Production deploy guide |
-| `docs/project-info/PRODUCT_STRATEGY.md` | Product and business strategy |
-| `docs/project-info/ROADMAP.md` | Product roadmap |
-| `docs/project-info/BACKLOG_PHASE2.md` | Phase 2 backlog items |
+| `docs/project-info/product/OVERVIEW.md` | Three-tier architecture diagram, client decision tree |
+| `docs/project-info/technology/AUTH_FLOW.md` | OTP flow, invite acceptance flow, session storage by layer |
+| `docs/project-info/technology/DATA_FLOW.md` | Care event write/read paths, identity resolution, invite paths |
+| `docs/project-info/technology/SECURITY_MODEL.md` | PHI boundary, service role isolation, RLS design, invite token security |
+| `docs/project-info/technology/INFRASTRUCTURE.md` | Why each third-party service was chosen |
+| `docs/project-info/claude/AGENT_WORKFLOW.md` | Agent and session workflow |
+| `docs/project-info/runbooks/DEPLOY.md` | Production deploy guide |
+| `docs/project-info/runbooks/MANUAL_TESTING.md` | QA testing for live website (web + mobile) |
+| `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` | External services, accounts, and infrastructure |
+| `docs/project-info/runbooks/CODEBASE_EDUCATION.md` | Documentation reading path for new contributors |
+| `docs/project-info/product/PRODUCT_STRATEGY.md` | Product and business strategy |
+| `docs/project-info/product/ROADMAP.md` | Product roadmap |
+| `docs/project-info/product/BACKLOG_PHASE2.md` | Phase 2 backlog items |
