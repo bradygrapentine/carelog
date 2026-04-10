@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   orgId: string;
@@ -79,7 +81,7 @@ export function MedicationPanel({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-muted)] hover:text-gray-600 transition-colors w-full text-left"
+            className="text-sm text-[var(--color-muted)] hover:text-muted-foreground transition-colors w-full text-left"
           >
             Medications
           </button>
@@ -95,17 +97,19 @@ export function MedicationPanel({
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="text-xs text-[var(--color-muted)] hover:text-gray-600"
+          className="text-xs text-[var(--color-muted)] hover:text-muted-foreground"
         >
           Collapse
         </button>
       </CardHeader>
 
       <CardContent>
-        {isLoading && <p className="text-sm text-gray-400">Loading...</p>}
+        {isLoading && (
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        )}
 
         {!isLoading && medications.length === 0 && (
-          <p className="text-sm text-gray-400 mb-3">
+          <p className="text-sm text-muted-foreground mb-3">
             No medications added yet.
           </p>
         )}
@@ -124,14 +128,16 @@ export function MedicationPanel({
               return (
                 <div
                   key={medId}
-                  className="flex items-start justify-between py-2 border-b border-gray-50 last:border-0"
+                  className="flex items-start justify-between py-2 border-b border-border last:border-0"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-800">
+                      <span className="text-sm font-medium text-foreground">
                         {name}
                       </span>
-                      <span className="text-xs text-gray-500">{dos}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {dos}
+                      </span>
                       {isLow && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
                           Low supply
@@ -139,13 +145,17 @@ export function MedicationPanel({
                       )}
                     </div>
                     {instStr && (
-                      <p className="text-xs text-gray-400 mt-0.5">{instStr}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {instStr}
+                      </p>
                     )}
                     {pharmStr && (
-                      <p className="text-xs text-gray-400">{pharmStr}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {pharmStr}
+                      </p>
                     )}
                     {typeof supplyDays === "number" && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {supplyDays} days remaining
                       </p>
                     )}
@@ -157,7 +167,7 @@ export function MedicationPanel({
                         deleteMutation.mutate({ id: medId, org_id: orgId })
                       }
                       disabled={deleteMutation.isPending}
-                      className="text-xs text-red-400 hover:text-red-600 ml-3 shrink-0"
+                      className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)] ml-3 shrink-0"
                     >
                       Remove
                     </button>
@@ -172,7 +182,7 @@ export function MedicationPanel({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + Add medication
           </button>
@@ -184,34 +194,32 @@ export function MedicationPanel({
               <div>
                 <label
                   htmlFor="med-drug"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Drug name *
                 </label>
-                <input
+                <Input
                   id="med-drug"
                   type="text"
                   value={drugName}
                   onChange={(e) => setDrugName(e.target.value)}
                   required
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                   placeholder="e.g. Lisinopril"
                 />
               </div>
               <div>
                 <label
                   htmlFor="med-dosage"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Dosage *
                 </label>
-                <input
+                <Input
                   id="med-dosage"
                   type="text"
                   value={dosage}
                   onChange={(e) => setDosage(e.target.value)}
                   required
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                   placeholder="e.g. 10mg once daily"
                 />
               </div>
@@ -220,16 +228,15 @@ export function MedicationPanel({
             <div>
               <label
                 htmlFor="med-instructions"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted-foreground mb-1"
               >
                 Instructions
               </label>
-              <input
+              <Input
                 id="med-instructions"
                 type="text"
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                 placeholder="Take with food"
               />
             </div>
@@ -238,58 +245,59 @@ export function MedicationPanel({
               <div>
                 <label
                   htmlFor="med-pharmacy"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Pharmacy
                 </label>
-                <input
+                <Input
                   id="med-pharmacy"
                   type="text"
                   value={pharmacy}
                   onChange={(e) => setPharmacy(e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                   placeholder="CVS on Main St"
                 />
               </div>
               <div>
                 <label
                   htmlFor="med-supply"
-                  className="block text-xs text-gray-500 mb-1"
+                  className="block text-xs text-muted-foreground mb-1"
                 >
                   Days remaining
                 </label>
-                <input
+                <Input
                   id="med-supply"
                   type="number"
                   min="0"
                   value={supply}
                   onChange={(e) => setSupply(e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
                   placeholder="30"
                 />
               </div>
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <p className="text-sm text-[var(--color-danger)]">{error}</p>
+            )}
 
             <div className="flex items-center justify-between pt-1">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setShowForm(false);
                   setError(null);
                 }}
-                className="text-sm text-gray-400 hover:text-gray-600"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="sm"
                 disabled={!drugName || !dosage || createMutation.isPending}
-                className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {createMutation.isPending ? "Adding..." : "Add medication"}
-              </button>
+              </Button>
             </div>
           </form>
         )}
