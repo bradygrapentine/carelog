@@ -6,7 +6,7 @@ CREATE TABLE expenses (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id        uuid        NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   recipient_id  uuid        NOT NULL REFERENCES care_recipients(id) ON DELETE CASCADE,
-  logged_by     uuid        NOT NULL,
+  logged_by     uuid        NOT NULL REFERENCES auth.users(id),
   amount        numeric(10,2) NOT NULL CHECK (amount > 0),
   currency      text        NOT NULL DEFAULT 'USD',
   category      text        NOT NULL CHECK (category IN (
@@ -31,7 +31,8 @@ CREATE POLICY "org members can read expenses"
 CREATE POLICY "coordinator or caregiver can insert expenses"
   ON expenses FOR INSERT
   WITH CHECK (
-    EXISTS (
+    logged_by = auth.uid()
+    AND EXISTS (
       SELECT 1
       FROM   memberships
       WHERE  org_id       = expenses.org_id
@@ -54,3 +55,5 @@ CREATE POLICY "coordinator can delete expenses"
       AND    accepted_at  IS NOT NULL
     )
   );
+
+-- No UPDATE policy: expenses is an append-only log. Coordinators delete, not edit.
