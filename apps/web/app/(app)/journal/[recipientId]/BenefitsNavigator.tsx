@@ -8,6 +8,7 @@ import {
   type BenefitProgram,
 } from "../../../../lib/benefitsEligibility";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   orgId: string;
@@ -87,12 +88,12 @@ export function BenefitsNavigator({
         className="w-full px-4 py-3 flex items-center justify-between text-left"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground/80">
           Benefits navigator
         </span>
         <svg
           className={
-            "w-4 h-4 text-gray-400 transition-transform " +
+            "w-4 h-4 text-muted-foreground transition-transform " +
             (open ? "rotate-180" : "")
           }
           fill="none"
@@ -109,32 +110,28 @@ export function BenefitsNavigator({
       </button>
 
       {open && (
-        <div className="px-4 pb-4 border-t border-gray-50 space-y-4">
+        <div className="px-4 pb-4 border-t border-border space-y-4">
           {!showForm && displayResults === null && (
             <div className="pt-3">
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-muted-foreground mb-3">
                 Answer a few questions to find matching benefit programs for the
                 care recipient.
               </p>
-              <button
-                type="button"
-                onClick={() => setShowForm(true)}
-                className="text-sm bg-gray-900 text-white rounded-lg px-4 py-1.5 hover:bg-gray-700 transition-colors"
-              >
+              <Button type="button" onClick={() => setShowForm(true)} size="sm">
                 Start screener
-              </button>
+              </Button>
             </div>
           )}
 
           {!showForm && displayResults !== null && (
             <div className="pt-3 space-y-3">
               {displayResults.length === 0 ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   No matching programs found based on the answers provided.
                 </p>
               ) : (
                 <>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {displayResults.length} matching{" "}
                     {displayResults.length === 1 ? "program" : "programs"}
                     {latest && !results ? " (from last screener)" : ""}
@@ -143,19 +140,19 @@ export function BenefitsNavigator({
                     {displayResults.map((program: BenefitProgram) => (
                       <li
                         key={program.key}
-                        className="bg-gray-50 rounded-lg px-3 py-2"
+                        className="bg-[var(--color-surface)] rounded-lg px-3 py-2"
                       >
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-foreground">
                           {program.name}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {program.description}
                         </p>
                         <a
                           href={program.applyUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                          className="text-xs text-primary hover:underline mt-1 inline-block"
                         >
                           Learn how to apply →
                         </a>
@@ -171,7 +168,7 @@ export function BenefitsNavigator({
                   setResults(null);
                   setAnswers(DEFAULT_ANSWERS);
                 }}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
               >
                 Run screener again
               </button>
@@ -180,7 +177,7 @@ export function BenefitsNavigator({
 
           {showForm && (
             <div className="pt-3 space-y-3">
-              <p className="text-xs font-medium text-gray-500">
+              <p className="text-xs font-medium text-muted-foreground">
                 Eligibility screener
               </p>
               {QUESTIONS.map((q) => (
@@ -192,24 +189,24 @@ export function BenefitsNavigator({
                     type="checkbox"
                     checked={answers[q.key]}
                     onChange={() => handleToggleAnswer(q.key)}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
-                  <span className="text-sm text-gray-700">{q.label}</span>
+                  <span className="text-sm text-foreground/80">{q.label}</span>
                 </label>
               ))}
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   handleRunScreener();
                   setShowForm(false);
                 }}
                 disabled={screenMutation.isPending}
-                className="w-full text-sm bg-gray-900 text-white rounded-lg py-1.5 hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="w-full"
               >
                 {screenMutation.isPending
                   ? "Saving..."
                   : "Find matching programs"}
-              </button>
+              </Button>
             </div>
           )}
         </div>
