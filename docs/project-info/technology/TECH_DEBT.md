@@ -95,15 +95,13 @@ Pending memberships now use `user_id = NULL`. Migration `20260401000000_nullable
 
 ## Medium (fix before scale)
 
-### 12. coverageWindowsRouter and organizationsRouter lack security tests
+### ~~12. coverageWindowsRouter and organizationsRouter lack security tests~~ FIXED
 
-**Files:** `apps/web/server/routers/coverageWindows.ts`, `apps/web/server/routers/organizations.ts`
+Security tests exist for both routers:
+- `coverageWindowsRouter.security.test.ts` (113 lines)
+- `organizationsRouter.security.test.ts` (77 lines)
 
-**Problem:** No `*.security.test.ts` for these routers. The DB-level RLS still protects
-data, but router-level auth checks (coordinator-only create/delete) are untested.
-
-**Fix:** Add `coverageWindowsRouter.security.test.ts` and `organizationsRouter.security.test.ts`
-following the pattern in `shiftsRouter.security.test.ts`.
+Phase 5 routers (expenses, benefits, documents, eolPlan) now also have security tests as of 2026-04-09.
 
 ---
 
@@ -117,17 +115,18 @@ following the pattern in `shiftsRouter.security.test.ts`.
 Member email resolution (memberships loop) was also N+1 — now deduped and parallelized.
 Both are resolved. Documented here for awareness of the pattern.
 
-### 14. Stripe webhook, Sentry, and PostHog have no code yet
+### 14. Sentry PII config + missing client file + PostHog not wired
 
-**Services:** Stripe (`/api/stripe/webhook`), Sentry, PostHog
+**Services:** Sentry (partial), PostHog (not started)
 
-**Problem:** These are listed in the "Before launch" checklist but have zero implementation:
+**Problem:**
+- `@sentry/nextjs` IS installed; `sentry.server.config.ts` and `sentry.edge.config.ts` exist but have `sendDefaultPii: true` — **critical PHI violation**
+- `sentry.client.config.ts` is missing (client-side errors not captured)
+- `posthog-js` is not installed, no provider exists
+- Stripe: `stripe` SDK installed, `/api/stripe/webhook` route and billing tRPC router do not exist
 
-- `stripe` SDK is installed (`package.json`) but `/api/stripe/webhook` route does not exist
-- `@sentry/nextjs` is not installed and no Sentry config files exist
-- `posthog-js` is not installed and no PostHog provider exists
-
-**Fix:** Implement before launch. See `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` for setup steps.
+**Fix:** See `docs/superpowers/plans/2026-04-09-before-launch.md` — Tasks B1, B3, D2–D6.
+Sentry PHI fix task file: `.worktrees/sentry-fix/AGENT_TASK.md`
 
 ---
 
