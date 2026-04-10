@@ -177,8 +177,8 @@ export default function EntryDetailPage({
   const flagBtnClass =
     "text-sm px-3 py-1.5 rounded-lg transition-colors " +
     (event.flagged
-      ? "bg-[var(--color-primary-subtle)] text-primary hover:bg-[var(--color-primary-subtle)]/80"
-      : "bg-[var(--color-surface)] text-foreground/80 hover:bg-[var(--color-surface)]/80");
+      ? "bg-[var(--color-primary-subtle)] text-primary hover:bg-primary/90"
+      : "bg-[var(--color-surface)] text-foreground/80 hover:bg-muted");
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
@@ -245,7 +245,7 @@ export default function EntryDetailPage({
                 "flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full transition-colors " +
                 (isActive
                   ? "bg-[var(--color-primary-subtle)] text-primary"
-                  : "bg-[var(--color-surface)] text-muted-foreground hover:bg-[var(--color-surface)]/80");
+                  : "bg-[var(--color-surface)] text-muted-foreground hover:bg-muted");
               return (
                 <button
                   key={r.key}
