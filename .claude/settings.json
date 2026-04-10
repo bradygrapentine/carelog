@@ -1,4 +1,24 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git stash:*)",
+      "Bash(npx vitest:*)",
+      "Bash(pnpm add:*)",
+      "Read(//Users/bradygrapentine/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/subagent-driven-development/**)",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog rev-parse HEAD)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"VITEST_EXIT:$?\")",
+      "Bash(echo \"GIT_EXIT:$?\")",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog diff b5725a19ab248a4b3e9bf09649961153edbc4d0e HEAD -- apps/web/app/globals.css apps/web/app/layout.tsx)",
+      "Bash(grep -n \"color-brand\\\\|color-sidebar\\\\|color-text-muted\\\\|color-surface-raised\\\\|color-surface-muted\" /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/TeamPanel.tsx /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/JournalClient.tsx)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(git show:*)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
