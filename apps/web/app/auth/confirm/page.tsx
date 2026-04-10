@@ -8,7 +8,7 @@ function ConfirmInner() {
   const [status, setStatus] = useState<"loading" | "error">("loading");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams?.get("next") ?? "/dashboard";
 
   useEffect(() => {
     const supabase = createClient();

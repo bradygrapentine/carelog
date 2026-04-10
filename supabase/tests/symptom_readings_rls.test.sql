@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(6);
+SELECT plan(7);
 
 -- ─── fixtures ────────────────────────────────────────────────────────────────
 
@@ -113,13 +113,18 @@ SELECT results_eq(
   'non-member cannot read symptom_readings from another org'
 );
 
--- 6. Direct DELETE is blocked (no delete policy exists)
+-- 6+7. Direct DELETE is blocked by RLS (no DELETE policy — PostgreSQL silently skips the row)
 SET LOCAL "request.jwt.claims" TO '{"sub":"aa110001-0000-0000-0000-000000000001","role":"authenticated"}';
 
-SELECT throws_ok(
+SELECT lives_ok(
   $$DELETE FROM symptom_readings WHERE id = '31000000-0000-0000-0000-000000000001'$$,
-  '42501', NULL,
-  'direct delete on symptom_readings is blocked by RLS'
+  'direct delete on symptom_readings does not raise (RLS silently skips the row)'
+);
+
+SELECT results_eq(
+  $$SELECT count(*)::int FROM symptom_readings WHERE id = '31000000-0000-0000-0000-000000000001'$$,
+  ARRAY[1]::int[],
+  'direct delete on symptom_readings is blocked by RLS — row still exists'
 );
 
 SELECT * FROM finish();

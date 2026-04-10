@@ -13,7 +13,7 @@ INSERT INTO auth.users (
    'coord@burnout-rls.com', now(), now(), now(), '{}', '{}', false),
   ('ff660006-0000-0000-0000-000000000006', 'authenticated', 'authenticated',
    'caregiver@burnout-rls.com', now(), now(), now(), '{}', '{}', false),
-  ('gg770007-0000-0000-0000-000000000007', 'authenticated', 'authenticated',
+  ('77700007-0000-0000-0000-000000000007', 'authenticated', 'authenticated',
    'outsider@burnout-rls.com', now(), now(), now(), '{}', '{}', false)
 ON CONFLICT (id) DO NOTHING;
 
@@ -81,7 +81,7 @@ SELECT results_eq(
 );
 
 -- 5. Outsider (not a member) sees 0 rows
-SET LOCAL "request.jwt.claims" TO '{"sub":"gg770007-0000-0000-0000-000000000007","role":"authenticated"}';
+SET LOCAL "request.jwt.claims" TO '{"sub":"77700007-0000-0000-0000-000000000007","role":"authenticated"}';
 
 SELECT results_eq(
   $$SELECT count(*)::int FROM burnout_checkins WHERE org_id = '12000000-0000-0000-0000-000000000001'$$,
