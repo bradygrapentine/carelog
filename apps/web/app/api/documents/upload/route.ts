@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
+import { rateLimit } from "@/lib/rateLimit";
 
 const ALLOWED_DOC_TYPES = [
   "hipaa_authorization",
@@ -22,6 +23,9 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, "documents/upload");
+  if (limited) return limited;
+
   const user = await getRequestUser(request);
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,6 +46,15 @@ export async function POST(request: NextRequest) {
   if (!orgId || !recipientId || !displayName || !docType) {
     return NextResponse.json(
       { error: "Missing required fields" },
+      { status: 400 },
+    );
+  }
+
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(orgId) || !UUID_RE.test(recipientId)) {
+    return NextResponse.json(
+      { error: "Invalid org or recipient ID" },
       { status: 400 },
     );
   }

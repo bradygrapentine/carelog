@@ -44,6 +44,15 @@ export const eolPlanRouter = router({
     .input(eolPlanUpsertInput)
     .mutation(async ({ ctx, input }) => {
       await assertCoordinator(input.org_id, ctx.user.id);
+      const { data: recipient, error: recipientError } = await supabaseAdmin
+        .from("care_recipients")
+        .select("id")
+        .eq("id", input.recipient_id)
+        .eq("org_id", input.org_id)
+        .single();
+      if (recipientError || !recipient) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
       const { error } = await supabaseAdmin.from("eol_plans").upsert(
         {
           ...input,
