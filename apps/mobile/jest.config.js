@@ -1,8 +1,14 @@
 module.exports = {
-  testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.ts?(x)'],
+  testEnvironment: "node",
+  testMatch: ["**/__tests__/**/*.test.ts?(x)"],
   transform: {
-    '^.+\\.tsx?$': ['babel-jest', { configFile: './babel.config.js' }],
+    "^.+\\.[jt]sx?$": ["babel-jest", { configFile: "./babel.config.js" }],
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-}
+  transformIgnorePatterns: [
+    "node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|@testing-library|expo|@expo))",
+  ],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+  globals: {
+    __DEV__: true,
+  },
+};
