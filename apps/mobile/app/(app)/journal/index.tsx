@@ -101,14 +101,18 @@ export default function JournalScreen() {
     const entry = text.trim();
     setText("");
     setSubmitting(true);
-    await write({
-      event_type: "journal",
-      entry_kind: "journal_entry",
-      payload: { text: entry, mood },
-      recipient_id: recipientId,
-    });
-    setSubmitting(false);
-    refetch();
+    
+    try {
+      await write({
+        event_type: "journal",
+        entry_kind: "human",
+        payload: { text: entry, mood },
+        recipient_id: recipientId,
+      });
+      refetch();
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
