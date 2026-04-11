@@ -6,16 +6,10 @@ import { DashboardClient } from "../DashboardClient";
 // Module mocks
 // ---------------------------------------------------------------------------
 
-const mockGetUser = vi.fn();
 const mockFrom = vi.fn();
-const mockSignOut = vi.fn();
 
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
-    auth: {
-      getUser: mockGetUser,
-      signOut: mockSignOut,
-    },
     from: mockFrom,
   }),
 }));
@@ -30,7 +24,7 @@ vi.mock("next/navigation", () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-const MOCK_USER = { id: "user-1", email: "caregiver@example.com" };
+const MOCK_USER = { id: "user-1", email: "caregiver@example.com" } as any;
 
 const mockMembershipsChain = (data: unknown) => ({
   select: vi.fn().mockReturnThis(),
@@ -44,10 +38,9 @@ const mockRecipientsChain = (data: unknown) => ({
   limit: vi.fn().mockResolvedValue({ data }),
 });
 
-function setupAuthWithTeams(
+function setupTeams(
   teams: Array<{ orgId: string; orgName: string; recipientId: string }>,
 ) {
-  mockGetUser.mockResolvedValue({ data: { user: MOCK_USER } });
   mockFrom.mockImplementation((table: string) => {
     if (table === "memberships") {
       return mockMembershipsChain(
@@ -64,8 +57,7 @@ function setupAuthWithTeams(
   });
 }
 
-function setupAuthNoTeams() {
-  mockGetUser.mockResolvedValue({ data: { user: MOCK_USER } });
+function setupNoTeams() {
   mockFrom.mockImplementation((table: string) => {
     if (table === "memberships") return mockMembershipsChain([]);
     return mockRecipientsChain([]);
@@ -86,12 +78,12 @@ beforeEach(() => {
 });
 
 describe("DashboardClient (flow)", () => {
-  it("loads and displays care team cards after auth resolves", async () => {
-    setupAuthWithTeams([
+  it("loads and displays care team cards after data loads", async () => {
+    setupTeams([
       { orgId: "org-1", orgName: "Smith Family", recipientId: "rec-1" },
     ]);
 
-    render(<DashboardClient />);
+    render(<DashboardClient user={MOCK_USER} />);
 
     // Initially shows spinner
     expect(document.querySelector(".animate-spin")).toBeTruthy();
@@ -103,11 +95,11 @@ describe("DashboardClient (flow)", () => {
   });
 
   it("clicking a care team card navigates to the journal URL", async () => {
-    setupAuthWithTeams([
+    setupTeams([
       { orgId: "org-1", orgName: "Smith Family", recipientId: "rec-42" },
     ]);
 
-    render(<DashboardClient />);
+    render(<DashboardClient user={MOCK_USER} />);
 
     await waitFor(() =>
       expect(screen.getByText("Smith Family")).toBeInTheDocument(),
@@ -121,9 +113,9 @@ describe("DashboardClient (flow)", () => {
   });
 
   it("shows 'Set up a care team' link for a new user with no teams", async () => {
-    setupAuthNoTeams();
+    setupNoTeams();
 
-    render(<DashboardClient />);
+    render(<DashboardClient user={MOCK_USER} />);
 
     await waitFor(() =>
       expect(
@@ -137,9 +129,8 @@ describe("DashboardClient (flow)", () => {
 
   it("pending invite from sessionStorage triggers redirect to invite URL", async () => {
     sessionStorage.setItem("pending_invite", "token-xyz");
-    mockGetUser.mockResolvedValue({ data: { user: MOCK_USER } });
 
-    render(<DashboardClient />);
+    render(<DashboardClient user={MOCK_USER} />);
 
     await waitFor(() => {
       expect(window.location.href).toBe("/invite/token-xyz");
