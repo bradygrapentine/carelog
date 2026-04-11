@@ -69,12 +69,22 @@ function makeAdminUpdateChain(result: object) {
 // Build a membership select chain (for requireCoordinator) that returns coordinator
 function makeCoordinatorChain() {
   const chain: any = { select: () => chain, eq: () => chain };
-  chain.single = vi
-    .fn()
-    .mockResolvedValue({
-      data: { role: "coordinator", accepted_at: "2026-01-01" },
-      error: null,
-    });
+  chain.single = vi.fn().mockResolvedValue({
+    data: { role: "coordinator", accepted_at: "2026-01-01" },
+    error: null,
+  });
+  return chain;
+}
+
+// Dedup select chain (select().eq()...maybeSingle())
+function makeDedupChain(data: object | null) {
+  const chain: any = {
+    select: () => chain,
+    eq: () => chain,
+    gte: () => chain,
+    lte: () => chain,
+  };
+  chain.maybeSingle = vi.fn().mockResolvedValue({ data, error: null });
   return chain;
 }
 
@@ -318,6 +328,7 @@ describe("medications.logAdministration — logic", () => {
     vi.mocked(supabaseAdmin.from).mockImplementation(() => {
       callCount++;
       if (callCount === 1) return makeCoordinatorChain(); // membership check
+      if (callCount === 2) return makeDedupChain(null); // dedup: no duplicate
       return makeAdminMutationChain({ data: careEvent, error: null });
     });
     const result = await authedCaller.medications.logAdministration(logInput);
@@ -325,11 +336,24 @@ describe("medications.logAdministration — logic", () => {
     expect(vi.mocked(supabaseAdmin.from)).toHaveBeenCalledWith("care_events");
   });
 
+  it("returns existing event without inserting when duplicate within 30-min window", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return makeCoordinatorChain();
+      return makeDedupChain(careEvent); // dedup: duplicate found
+    });
+    const result = await authedCaller.medications.logAdministration(logInput);
+    expect(result).toEqual(careEvent);
+    expect(callCount).toBe(2); // no insert call
+  });
+
   it("throws INTERNAL_SERVER_ERROR when care_events insert fails", async () => {
     let callCount = 0;
     vi.mocked(supabaseAdmin.from).mockImplementation(() => {
       callCount++;
       if (callCount === 1) return makeCoordinatorChain();
+      if (callCount === 2) return makeDedupChain(null);
       return makeAdminMutationChain({
         data: null,
         error: { message: "insert failed" },
