@@ -6,50 +6,211 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  web:
-    name: Web — typecheck + unit tests
+  # ─── Fast checks — run in parallel ──────────────────────────────────────────
+
+  typecheck:
+    name: Typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v3
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
 
-      - name: Typecheck
-        run: pnpm typecheck
+  # ─── Unit tests ──────────────────────────────────────────────────────────────
 
-      - name: Unit tests
-        run: pnpm test --reporter=verbose
+  web-tests:
+    name: Web — unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run tests with coverage
+        run: pnpm test:coverage
         working-directory: apps/web
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-coverage
+          path: apps/web/coverage/
+          retention-days: 7
 
-  mobile:
-    name: Mobile — Jest tests
+  mobile-tests:
+    name: Mobile — unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v3
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Jest tests
+      - run: pnpm install --frozen-lockfile
+      - name: Run Jest tests
         run: npx jest --no-coverage --ci
         working-directory: apps/mobile
+
+  # ─── RLS + database tests ────────────────────────────────────────────────────
+
+  rls-tests:
+    name: RLS pgTAP tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start Supabase
+        run: supabase start
+      - name: Run pgTAP tests
+        run: supabase test db
+
+  # ─── E2E — only on push to main (slow, needs full stack) ────────────────────
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start Supabase (includes Inbucket mail on :54324)
+        run: |
+          supabase start
+          supabase status -o env >> $GITHUB_ENV
+      - name: Build web app
+        run: |
+          NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+          pnpm --filter web build
+      - name: Start web app
+        run: |
+          NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+          pnpm --filter web start &
+          npx wait-on http://localhost:3000 --timeout 60000
+      - name: Run Playwright tests
+        run: pnpm test:e2e
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ─── AI security review — PRs only ──────────────────────────────────────────
+
+  ai-review:
+    name: AI security review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate diff
+        id: diff
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }}...HEAD \
+            -- '*.ts' '*.tsx' '*.sql' \
+            > /tmp/pr.diff
+          echo "lines=$(wc -l < /tmp/pr.diff)" >> $GITHUB_OUTPUT
+      - name: Run Claude security review
+        if: steps.diff.outputs.lines != '0'
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          REVIEW=$(node scripts/ci-ai-review.mjs < /tmp/pr.diff)
+          echo "review<<EOF" >> $GITHUB_OUTPUT
+          echo "$REVIEW" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Post review comment
+        if: steps.diff.outputs.lines != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const review = `${{ steps.review.outputs.review }}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const bot = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('AI Security Review')
+            );
+            const body = `## AI Security Review\n\n${review}\n\n---\n*Reviewed by Claude Sonnet — checks: PHI leakage, RLS bypass, auth patterns, Stripe verification*`;
+            if (bot) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: bot.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
