@@ -9,8 +9,8 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
 import {
   APPETITE_OPTIONS,
   MOBILITY_OPTIONS,
@@ -24,6 +24,7 @@ const MOODS: Mood[] = ["good", "okay", "difficult", "crisis"];
 export default function SymptomLogScreen() {
   const router = useRouter();
   const { orgId, recipientId } = useApp();
+  const { write } = useOfflineWrite(orgId ?? "");
   const [step, setStep] = useState(0);
   const [pain, setPain] = useState<number | null>(null);
   const [mood, setMood] = useState<Mood | null>(null);
@@ -32,24 +33,26 @@ export default function SymptomLogScreen() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const logMut = trpc.symptoms.log.useMutation({
-    onSuccess: () => router.back(),
-    onError: (err) => Alert.alert("Error", err.message),
-  });
-
   async function handleSubmit() {
     if (!orgId || !recipientId) return;
     setSubmitting(true);
     try {
-      await logMut.mutateAsync({
-        org_id: orgId,
+      await write({
+        event_type: "symptom",
+        entry_kind: "symptom_reading",
+        payload: {
+          pain_level: pain ?? undefined,
+          mood: mood ?? undefined,
+          appetite: appetite ?? undefined,
+          mobility: mobility ?? undefined,
+          notes: notes.trim() || undefined,
+        },
         recipient_id: recipientId,
-        pain_level: pain ?? undefined,
-        mood: mood ?? undefined,
-        appetite: appetite ?? undefined,
-        mobility: mobility ?? undefined,
-        notes: notes.trim() || undefined,
       });
+      router.back();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      Alert.alert("Error", msg);
     } finally {
       setSubmitting(false);
     }
