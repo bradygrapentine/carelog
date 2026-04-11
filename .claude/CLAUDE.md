@@ -56,8 +56,8 @@ Codex is a separate GPT-5.4-based agent with its own terminal. Default sandbox: 
 | `/codex:rescue [prompt]` | General-purpose: diagnosis, implementation, research |
 | `/codex:fix-tests [--unit\|--rls\|--e2e\|--all]` | Fix failing tests; `--rls` runs `supabase test db` |
 | `/codex:review` | Standard code review against local git state |
-| `/codex:adversarial-review [focus]` | Challenges design choices and assumptions |
-| `/codex:security-review` | PHI-boundary review: supabaseAdmin misuse, RLS gaps, auth bypasses (always `--effort high`) |
+| `/codex:adversarial-review [focus]` | Challenges design choices — prefer `/review` skill instead (uses parallel subagents, more reliable) |
+| `/codex:security-review` | PHI-boundary review — prefer `/review` skill instead |
 | `/codex:plan-review [plan-file]` | Compare diff against plan in `docs/superpowers/plans/` |
 | `/codex:status` | Check background job progress |
 | `/codex:result [job-id]` | Fetch completed job output |
@@ -119,6 +119,15 @@ Dispatch Codex *without being asked* when:
 | Quick inline edit | Continue.dev |
 | Architecture / planning | Claude Code |
 | Known-pattern boilerplate | Continue.dev or `/create-migration` |
+
+## Headless Scripts
+
+Run Claude non-interactively for automated QA:
+
+| Script | Purpose |
+|--------|---------|
+| `./scripts/security-review.sh` | Adversarial security review → `reviews/YYYY-MM-DD-security-review.md` |
+| `./scripts/build-fix.sh` | Self-correcting build loop (up to 5 fix cycles) |
 
 ## Reference Docs (load on demand)
 

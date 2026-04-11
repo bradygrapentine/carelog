@@ -3,13 +3,13 @@
 import { Component, type ReactNode } from "react";
 import * as Sentry from "@sentry/nextjs";
 
-interface Props {
+type Props = {
   children: ReactNode;
-}
+};
 
-interface State {
+type State = {
   hasError: boolean;
-}
+};
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };

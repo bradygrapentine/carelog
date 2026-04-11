@@ -54,73 +54,75 @@ export function OnboardingForm() {
     }
 
     posthog.capture("care_team_created", { org_id: data.orgId });
-    const pendingInvite = sessionStorage.getItem('pending_invite')
-    window.location.href = pendingInvite ? '/invite/' + pendingInvite : '/dashboard'
+    const pendingInvite = sessionStorage.getItem("pending_invite");
+    window.location.href = pendingInvite
+      ? "/invite/" + pendingInvite
+      : "/dashboard";
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-foreground/80 mb-1">
           Who are you caring for?
-          <span className="text-red-500 ml-1">*</span>
+          <span className="text-[var(--color-danger)] ml-1">*</span>
         </label>
         <input
           name="recipientName"
           type="text"
           required
           placeholder="e.g. Margaret Smith"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           Their name is stored securely and only visible to your care team.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-foreground/80 mb-1">
           Date of birth
-          <span className="text-gray-400 ml-1">(optional)</span>
+          <span className="text-muted-foreground ml-1">(optional)</span>
         </label>
         <input
           name="recipientDob"
           type="date"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-foreground/80 mb-1">
           What would you like to call this care team?
-          <span className="text-red-500 ml-1">*</span>
+          <span className="text-[var(--color-danger)] ml-1">*</span>
         </label>
         <input
           name="orgName"
           type="text"
           required
           placeholder="e.g. The Smith Family"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           This is how your team will be identified in the app.
         </p>
       </div>
 
       {error && (
         <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-[var(--color-danger)]">{error}</p>
         </div>
       )}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 px-4 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full py-2.5 px-4 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Setting up your care team..." : "Create care team"}
       </button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-muted-foreground">
         You can invite team members after setup.
       </p>
     </form>

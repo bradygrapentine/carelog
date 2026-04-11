@@ -31,8 +31,12 @@ const url = '/journal/' + recipientId
 ```
 
 ## Auth pattern — IMPORTANT
-Auth is client-side in local dev. All protected pages use `createClient()` (browser) in `useEffect`.
-**Do not use `createServerSupabase()` in page components.** Works correctly in production.
+Auth is server-side. Protected pages use `createServerSupabase().auth.getUser()` in async
+server components and pass `user` as a non-null prop to client components.
+The `(app)/layout.tsx` provides auth for the entire app shell.
+
+Client components that need Supabase for data queries still use `createClient()` (browser)
+for RLS-scoped reads and mutations.
 
 Use API routes (not server actions) for any operation writing cookies + redirecting.
 Server actions don't reliably propagate cookie writes before redirect.

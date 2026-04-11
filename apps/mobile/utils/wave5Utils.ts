@@ -74,8 +74,9 @@ export function formatWeekStamp(stamp: string): string {
   if (!match) return stamp;
   const year = parseInt(match[1], 10);
   const week = parseInt(match[2], 10);
+  // ISO week 1 contains Jan 4. Calculate Monday of the given week.
   const jan4 = new Date(year, 0, 4);
-  const dayOfWeek = jan4.getDay() || 7;
+  const dayOfWeek = jan4.getDay() || 7; // Mon=1..Sun=7
   const monday = new Date(jan4);
   monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
   const monthName = monday.toLocaleDateString("en-US", { month: "short" });

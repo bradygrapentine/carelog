@@ -15,7 +15,7 @@ carelog/
 │   │   │   │   └── onboarding/create/route.ts   ← POST create org+team
 │   │   │   ├── auth/callback/route.ts    ← auth callback handler
 │   │   │   ├── auth/confirm/page.tsx     ← client-side auth confirm
-│   │   │   ├── dashboard/               ← care teams list (client-side auth)
+│   │   │   ├── dashboard/               ← care teams list (server auth)
 │   │   │   ├── invite/[token]/          ← accept invite UI page
 │   │   │   ├── journal/[recipientId]/   ← care journal
 │   │   │   ├── onboarding/              ← create first care team
@@ -30,7 +30,7 @@ carelog/
 │   │   ├── components/providers/
 │   │   │   └── TrpcProvider.tsx
 │   │   └── proxy.ts                     ← Next.js 16 proxy (replaces middleware)
-│   └── mobile/                          ← Expo SDK 52
+│   └── mobile/                          ← Expo SDK 55
 │       ├── store/offlineQueue.ts        ← SecureStore persistence
 │       └── hooks/useOfflineWrite.ts     ← offline-first write hook
 ├── packages/
@@ -146,13 +146,19 @@ All procedures use `protectedProcedure` which requires `ctx.user` to exist.
 ## Auth flow
 
 1. User enters email → `supabase.auth.signInWithOtp({ email })` (browser client)
-2. Mailpit receives email with 6-digit OTP code
-3. User enters code → `POST /api/auth/verify` (API route, not server action)
-4. API route calls `supabase.auth.verifyOtp()` server-side → sets session cookie
-5. Client redirects to `/dashboard` via `window.location.replace()`
+2. Supabase sends email with 6-digit OTP code (Mailpit in local dev, Resend in prod)
+3. User enters code → `supabase.auth.verifyOtp()` client-side → sets session cookie
+4. Client redirects to `/dashboard` via `window.location.replace()`
 
-Why API route not server action: server actions don't reliably propagate cookie
-writes to subsequent renders. See ENTERPRISE_PRINCIPLES.md #3.
+### Protected pages (server-side auth)
+
+All routes under `app/(app)/` are protected by the `(app)/layout.tsx` server component:
+```
+createServerSupabase().auth.getUser() → redirect('/signin') if no user
+```
+Client components receive `user: User` as a non-null prop — no `useEffect` auth needed.
+
+API routes use `getRequestUser(request)` from `lib/supabaseServer.ts` — validates Bearer token or session cookie.
 
 ## Key design decisions
 
