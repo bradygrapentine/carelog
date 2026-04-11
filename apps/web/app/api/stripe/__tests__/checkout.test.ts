@@ -180,4 +180,55 @@ describe("POST /api/stripe/checkout", () => {
       }),
     );
   });
+
+  it("returns 400 for invalid input (missing orgId)", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
+    const { POST } = await import("../checkout/route");
+    const res = await POST(makeRequest({ interval: "month" }));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for invalid input (bad interval)", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
+    const { POST } = await import("../checkout/route");
+    const res = await POST(
+      makeRequest({ orgId: TEST_ORG_ID, interval: "week" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 when org not found", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: { role: "coordinator" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "organizations") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+    const { POST } = await import("../checkout/route");
+    const res = await POST(
+      makeRequest({ orgId: TEST_ORG_ID, interval: "month" }),
+    );
+    expect(res.status).toBe(404);
+  });
 });

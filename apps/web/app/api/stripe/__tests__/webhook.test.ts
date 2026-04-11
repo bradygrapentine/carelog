@@ -19,7 +19,7 @@ const mockSupabaseFrom = vi.fn().mockImplementation(() => ({
   select: vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       single: vi.fn().mockResolvedValue({
-        data: { id: "org-1" },
+        data: { id: "org-1", stripe_id: null },
         error: null,
       }),
     }),
@@ -110,5 +110,42 @@ describe("POST /api/stripe/webhook", () => {
     const { POST } = await import("../webhook/route");
     const res = await POST(makeWebhookRequest("{}"));
     expect(res.status).toBe(200);
+  });
+
+  it("checkout.session.completed with no orgId in metadata does nothing", async () => {
+    mockConstructEvent.mockReturnValue({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          customer: "cus_123",
+          metadata: {},
+        },
+      },
+    });
+    const { POST } = await import("../webhook/route");
+    const res = await POST(makeWebhookRequest("{}"));
+    expect(res.status).toBe(200);
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it("customer.subscription.deleted when org lookup returns null does nothing", async () => {
+    mockConstructEvent.mockReturnValue({
+      type: "customer.subscription.deleted",
+      data: {
+        object: { customer: "cus_unknown" },
+      },
+    });
+    mockSupabaseFrom.mockImplementation(() => ({
+      update: mockUpdate,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    }));
+    const { POST } = await import("../webhook/route");
+    const res = await POST(makeWebhookRequest("{}"));
+    expect(res.status).toBe(200);
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 });

@@ -20,6 +20,8 @@ vi.mock("@/lib/stripe", () => ({
   },
 }));
 
+const TEST_ORG_ID = "00000000-0000-0000-0000-000000000001";
+
 function makeRequest(body: Record<string, unknown>) {
   return new NextRequest("http://localhost:3000/api/stripe/portal", {
     method: "POST",
@@ -39,8 +41,15 @@ describe("POST /api/stripe/portal", () => {
   it("returns 401 without auth", async () => {
     mockGetRequestUser.mockResolvedValue(null);
     const { POST } = await import("../portal/route");
-    const res = await POST(makeRequest({ orgId: "org-1" }));
+    const res = await POST(makeRequest({ orgId: TEST_ORG_ID }));
     expect(res.status).toBe(401);
+  });
+
+  it("returns 400 for invalid input (missing orgId)", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1" });
+    const { POST } = await import("../portal/route");
+    const res = await POST(makeRequest({}));
+    expect(res.status).toBe(400);
   });
 
   it("returns 403 for non-coordinator", async () => {
@@ -63,7 +72,7 @@ describe("POST /api/stripe/portal", () => {
       return {};
     });
     const { POST } = await import("../portal/route");
-    const res = await POST(makeRequest({ orgId: "org-1" }));
+    const res = await POST(makeRequest({ orgId: TEST_ORG_ID }));
     expect(res.status).toBe(403);
   });
 
@@ -89,7 +98,7 @@ describe("POST /api/stripe/portal", () => {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               single: vi.fn().mockResolvedValue({
-                data: { id: "org-1", stripe_id: null },
+                data: { id: TEST_ORG_ID, stripe_id: null },
                 error: null,
               }),
             }),
@@ -99,7 +108,7 @@ describe("POST /api/stripe/portal", () => {
       return {};
     });
     const { POST } = await import("../portal/route");
-    const res = await POST(makeRequest({ orgId: "org-1" }));
+    const res = await POST(makeRequest({ orgId: TEST_ORG_ID }));
     expect(res.status).toBe(400);
   });
 
@@ -125,7 +134,7 @@ describe("POST /api/stripe/portal", () => {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               single: vi.fn().mockResolvedValue({
-                data: { id: "org-1", stripe_id: "cus_123" },
+                data: { id: TEST_ORG_ID, stripe_id: "cus_123" },
                 error: null,
               }),
             }),
@@ -135,7 +144,7 @@ describe("POST /api/stripe/portal", () => {
       return {};
     });
     const { POST } = await import("../portal/route");
-    const res = await POST(makeRequest({ orgId: "org-1" }));
+    const res = await POST(makeRequest({ orgId: TEST_ORG_ID }));
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.url).toBe("https://billing.stripe.com/session_456");
