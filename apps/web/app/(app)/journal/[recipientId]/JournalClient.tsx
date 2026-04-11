@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import type { User } from "@supabase/supabase-js";
+import { Card, CardContent } from "@/components/ui/card";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { JournalTimeline } from "./JournalTimeline";
 import { TeamPanel } from "./TeamPanel";
@@ -430,6 +431,25 @@ function JournalLayout({
                       </p>
                     )}
                   </div>
+                  <Card className="border-border">
+                    <CardContent className="pt-4 space-y-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Settings
+                      </p>
+                      <a
+                        href="/billing"
+                        className="block text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Billing & subscription
+                      </a>
+                      <a
+                        href="/team/admin"
+                        className="block text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Team admin
+                      </a>
+                    </CardContent>
+                  </Card>
                 </>
               )}
             </>
