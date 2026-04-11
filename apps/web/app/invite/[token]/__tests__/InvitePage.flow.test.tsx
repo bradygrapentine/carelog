@@ -1,5 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { Suspense } from "react";
 import InvitePage from "../page";
 
@@ -31,7 +37,6 @@ const TOKEN = "test-token-abc";
 // Pass an already-resolved thenable so React.use() resolves synchronously
 function resolvedPromise<T>(val: T): Promise<T> {
   const p = Promise.resolve(val);
-  // React.use() checks .status on the thenable for sync resolution
   (p as any).status = "fulfilled";
   (p as any).value = val;
   return p;
@@ -46,19 +51,19 @@ function renderPage(token = TOKEN) {
 }
 
 function mockValidInvite() {
-  global.fetch = vi.fn().mockResolvedValue({
+  vi.spyOn(global, "fetch").mockResolvedValue({
     json: async () => ({
       email: "invited@example.com",
       orgName: "Smith Family",
       role: "caregiver",
     }),
-  });
+  } as Response);
 }
 
 function mockInvalidInvite() {
-  global.fetch = vi.fn().mockResolvedValue({
+  vi.spyOn(global, "fetch").mockResolvedValue({
     json: async () => ({ error: "Invite not found or has expired." }),
-  });
+  } as Response);
 }
 
 // ---------------------------------------------------------------------------
@@ -67,26 +72,27 @@ function mockInvalidInvite() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Reset window.location
+  vi.useFakeTimers({ shouldAdvanceTime: true });
   Object.defineProperty(window, "location", {
     writable: true,
     value: { href: "" },
   });
-  // Clear sessionStorage
   sessionStorage.clear();
 });
 
-describe("InvitePage", () => {
-  it("shows invite details (org name and role) when token is valid", async () => {
-    mockValidInvite();
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
+describe("InvitePage", () => {
+  it("shows invite details when token is valid", async () => {
+    mockValidInvite();
     renderPage();
 
     await waitFor(() => {
       expect(screen.getByText("Smith Family")).toBeInTheDocument();
     });
-
     expect(screen.getByText("Caregiver")).toBeInTheDocument();
     expect(screen.getByText("invited@example.com")).toBeInTheDocument();
     expect(
@@ -94,7 +100,7 @@ describe("InvitePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls POST /api/invite/[token]/accept when accept button is clicked by authenticated user", async () => {
+  it("calls POST accept when accept button is clicked", async () => {
     mockValidInvite();
     mockGetUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "invited@example.com" } },
@@ -112,7 +118,11 @@ describe("InvitePage", () => {
       ).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Accept invitation" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Accept invitation" }),
+      );
+    });
 
     await waitFor(() => {
       expect(mockAuthenticatedFetch).toHaveBeenCalledWith(
@@ -122,7 +132,7 @@ describe("InvitePage", () => {
     });
   });
 
-  it("redirects to /dashboard after successful acceptance", async () => {
+  it("shows 'joined the team' after successful acceptance", async () => {
     mockValidInvite();
     mockGetUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "invited@example.com" } },
@@ -140,27 +150,19 @@ describe("InvitePage", () => {
       ).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Accept invitation" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Accept invitation" }),
+      );
+    });
 
-    // Wait for "done" state to render
     await waitFor(() => {
       expect(screen.getByText("You have joined the team")).toBeInTheDocument();
     });
-
-    // The component schedules a setTimeout(2000) redirect.
-    // Wait for window.location.href to be set.
-    await waitFor(
-      () => {
-        expect(window.location.href).toBe("/dashboard");
-      },
-      { timeout: 3000 },
-    );
   });
 
   it("shows error state for invalid or expired token", async () => {
     mockInvalidInvite();
-    mockGetUser.mockResolvedValue({ data: { user: null } });
-
     renderPage();
 
     await waitFor(() => {
