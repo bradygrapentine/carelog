@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# pre-commit: run Vitest before every commit
+set -euo pipefail
+
+echo "Running tests..."
+cd apps/web && npx vitest run --reporter=dot 2>&1 | tail -5
