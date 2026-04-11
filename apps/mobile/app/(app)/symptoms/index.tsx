@@ -9,12 +9,14 @@ import {
 import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { canLogSymptoms } from "../../../utils/wave5Utils";
 import { MOOD_COLORS, type Mood } from "../../../utils/journalUtils";
 
 export default function SymptomsScreen() {
   const router = useRouter();
   const { orgId, recipientId, currentRole } = useApp();
+  const syncStatus = useSyncStatus();
 
   const { data, isLoading } = trpc.symptoms.list.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
@@ -32,6 +34,21 @@ export default function SymptomsScreen() {
 
   return (
     <View style={styles.container}>
+      {syncStatus !== "synced" && (
+        <View
+          style={{
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            backgroundColor: syncStatus === "offline" ? "#fef3c7" : "#eff6ff",
+          }}
+        >
+          <Text style={{ fontSize: 12, color: "#374151" }}>
+            {syncStatus === "offline"
+              ? "● Offline — readings will sync when connected"
+              : "↑ Syncing readings…"}
+          </Text>
+        </View>
+      )}
       {canLogSymptoms(currentRole) && (
         <TouchableOpacity
           style={styles.logBtn}

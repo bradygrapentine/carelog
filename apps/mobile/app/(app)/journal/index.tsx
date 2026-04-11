@@ -101,6 +101,7 @@ export default function JournalScreen() {
     const entry = text.trim();
     setText("");
     setSubmitting(true);
+    
     try {
       await write({
         event_type: "journal",

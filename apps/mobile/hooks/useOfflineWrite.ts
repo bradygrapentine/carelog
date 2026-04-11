@@ -1,80 +1,110 @@
-import { useEffect, useCallback } from 'react'
-import NetInfo from '@react-native-community/netinfo'
-import { enqueue, dequeue, incrementAttempts, getQueue } from '../store/offlineQueue'
-import type { EventType } from '@carelog/types'
-import { trpc } from '../utils/trpc'
+import { useEffect, useCallback } from "react";
+import NetInfo from "@react-native-community/netinfo";
+import {
+  enqueue,
+  dequeue,
+  incrementAttempts,
+  getQueue,
+} from "../store/offlineQueue";
+import type { OfflineEntryKind, QueuedWrite } from "../store/offlineQueue";
+import type { EventType } from "@carelog/types";
+import { trpc } from "../utils/trpc";
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 5;
 
-type InsertFn = (input: {
-  orgId: string
-  recipientId: string
-  eventType: string
-  entryKind: 'human' | 'system'
-  payload: Record<string, unknown>
-  occurredAt: string
-  idempotencyKey: string
-}) => Promise<unknown>
+type MutationMap = {
+  journal_entry: (write: QueuedWrite, orgId: string) => Promise<unknown>;
+  medication_log: (write: QueuedWrite, orgId: string) => Promise<unknown>;
+  symptom_reading: (write: QueuedWrite, orgId: string) => Promise<unknown>;
+};
 
-async function flushQueue(insertFn: InsertFn, orgId: string) {
-  const queue = await getQueue()
-  if (queue.length === 0) return
+export function useOfflineWrite(orgId: string) {
+  const careEventsInsert = trpc.careEvents.insert.useMutation();
+  const medLogAdmin = trpc.medications.logAdministration.useMutation();
+  const symptomsLog = trpc.symptoms.log.useMutation();
 
-  for (const write of queue) {
-    if (write.attempts >= MAX_ATTEMPTS) {
-      await dequeue(write.id)
-      continue
-    }
-    try {
-      await insertFn({
-        orgId,
+  const mutations: MutationMap = {
+    journal_entry: (write, org) =>
+      careEventsInsert.mutateAsync({
+        orgId: org,
         recipientId: write.recipient_id,
         eventType: write.event_type,
-        entryKind: write.entry_kind,
+        entryKind: "human",
         payload: write.payload as Record<string, unknown>,
         occurredAt: write.occurred_at,
         idempotencyKey: write.id,
-      })
-      await dequeue(write.id)
-    } catch {
-      await incrementAttempts(write.id)
+      }),
+    medication_log: (write, org) => {
+      const p = write.payload as Record<string, unknown>;
+      return medLogAdmin.mutateAsync({
+        org_id: org,
+        recipient_id: write.recipient_id,
+        medication_id: p.medication_id as string,
+        scheduled_time: p.scheduled_time as string,
+        action: p.action as "given" | "missed",
+      });
+    },
+    symptom_reading: (write, org) => {
+      const p = write.payload as Record<string, unknown>;
+      return symptomsLog.mutateAsync({
+        org_id: org,
+        recipient_id: write.recipient_id,
+        ...(p.pain_level != null && { pain_level: p.pain_level as number }),
+        ...(p.mood && { mood: p.mood as string }),
+        ...(p.appetite && { appetite: p.appetite as string }),
+        ...(p.mobility && { mobility: p.mobility as string }),
+        ...(p.notes && { notes: p.notes as string }),
+      });
+    },
+  };
+
+  async function flushQueue() {
+    const queue = await getQueue();
+    if (queue.length === 0) return;
+
+    for (const write of queue) {
+      if (write.attempts >= MAX_ATTEMPTS) {
+        await dequeue(write.id);
+        continue;
+      }
+      try {
+        const mutate = mutations[write.entry_kind];
+        await mutate(write, orgId);
+        await dequeue(write.id);
+      } catch {
+        await incrementAttempts(write.id);
+      }
     }
   }
-}
-
-export function useOfflineWrite(orgId: string) {
-  const insertMutation = trpc.careEvents.insert.useMutation()
-
-  const insertFn: InsertFn = (input) => insertMutation.mutateAsync(input as Parameters<typeof insertMutation.mutateAsync>[0])
 
   // Flush on reconnect
   useEffect(() => {
     const unsub = NetInfo.addEventListener((state) => {
       if (state.isConnected) {
-        flushQueue(insertFn, orgId).catch(console.error)
+        flushQueue().catch(console.error);
       }
-    })
-    return unsub
-  }, [orgId])
+    });
+    return unsub;
+  }, [orgId]);
 
   const write = useCallback(
     async (event: {
-      event_type: EventType
-      entry_kind: 'human' | 'system'
-      payload: unknown
-      recipient_id: string
+      event_type: EventType;
+      entry_kind: OfflineEntryKind;
+      payload: unknown;
+      recipient_id: string;
     }) => {
-      const id = crypto.randomUUID()
-      const occurred_at = new Date().toISOString()
+      const id = crypto.randomUUID();
+      const occurred_at = new Date().toISOString();
       // Always enqueue first — captures occurred_at at write time, not flush time
-      await enqueue({ id, occurred_at, ...event })
-      const net = await NetInfo.fetch()
+      await enqueue({ id, occurred_at, ...event });
+      const net = await NetInfo.fetch();
       if (net.isConnected) {
-        await flushQueue(insertFn, orgId)
+        await flushQueue();
       }
     },
     [orgId],
-  )
+  );
 
-  return { write }
+  return { write };
 }

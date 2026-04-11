@@ -174,6 +174,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/plan-with-tests` | Write a Continue.dev handoff plan (failing tests first) |
 | `/expo` | Expo/React Native patterns for the mobile app |
 | `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
+| `/ollama` | Dispatch parallel tasks to local Ollama models (Opus/Sonnet stays as orchestrator) |
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
 

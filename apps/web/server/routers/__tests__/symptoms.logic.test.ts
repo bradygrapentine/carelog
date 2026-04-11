@@ -63,6 +63,17 @@ function makeListChain(result: object) {
   return chain;
 }
 
+function makeDedupChain(data: object | null) {
+  const chain: any = {
+    select: () => chain,
+    eq: () => chain,
+    gte: () => chain,
+    lte: () => chain,
+  };
+  chain.maybeSingle = vi.fn().mockResolvedValue({ data, error: null });
+  return chain;
+}
+
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
 });
@@ -148,6 +159,7 @@ describe("symptoms.log — business logic", () => {
       callCount++;
       if (callCount === 1)
         return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      if (callCount === 2) return makeDedupChain(null); // dedup: no duplicate
       return { insert: insertFn } as any;
     });
 
@@ -162,12 +174,27 @@ describe("symptoms.log — business logic", () => {
     );
   });
 
+  it("returns ok without inserting when duplicate within 30-min window", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1)
+        return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      return makeDedupChain({ id: "existing-1" }); // dedup: duplicate found
+    });
+
+    const result = await authedCaller.symptoms.log(logInput);
+    expect(result).toEqual({ ok: true });
+    expect(callCount).toBe(2); // no insert call
+  });
+
   it("throws INTERNAL_SERVER_ERROR when insert fails", async () => {
     let callCount = 0;
     vi.mocked(supabaseAdmin.from).mockImplementation(() => {
       callCount++;
       if (callCount === 1)
         return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      if (callCount === 2) return makeDedupChain(null);
       return {
         insert: vi
           .fn()
