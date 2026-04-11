@@ -3,10 +3,15 @@ import type { EventType } from "@carelog/types";
 
 const QUEUE_KEY = "carelog_offline_queue";
 
+export type OfflineEntryKind =
+  | "journal_entry"
+  | "medication_log"
+  | "symptom_reading";
+
 export interface QueuedWrite {
   id: string; // idempotency key — uuid
   event_type: EventType;
-  entry_kind: "human" | "system";
+  entry_kind: OfflineEntryKind;
   payload: unknown;
   recipient_id: string;
   occurred_at: string; // captured at time of entry, never flush time
