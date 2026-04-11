@@ -84,6 +84,9 @@ From Supabase dashboard → Project Settings → API:
 In Vercel → Project → Settings → Environment Variables, add:
 
 ```
+# App URL (used in server-side redirects and email links)
+NEXT_PUBLIC_APP_URL=https://care-log.org
+
 # Inngest (Step 3)
 INNGEST_EVENT_KEY=<from Inngest dashboard>
 INNGEST_SIGNING_KEY=<from Inngest dashboard>
@@ -100,6 +103,8 @@ UPSTASH_REDIS_REST_TOKEN=<from Upstash dashboard>
 STRIPE_SECRET_KEY=<live secret key from Stripe>
 STRIPE_WEBHOOK_SECRET=<from Stripe webhook setup>
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<live publishable key>
+STRIPE_PRICE_MONTHLY=<monthly Price ID from Step 6a>
+STRIPE_PRICE_ANNUAL=<annual Price ID from Step 6a>
 
 # Sentry (Step 7)
 SENTRY_DSN=<from Sentry project>
@@ -108,13 +113,16 @@ SENTRY_AUTH_TOKEN=<for source map upload>
 # PostHog (Step 8)
 NEXT_PUBLIC_POSTHOG_KEY=<from PostHog project>
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+
+# OCR (optional — prescription scan feature, Phase 3)
+# OCR_API_KEY=<if wiring ocrPrescription Inngest function>
 ```
 
 ### 2d. Deploy
 
 Click **Deploy**. First deploy takes ~2 min.
 
-After deploy, verify the auth fix: server-side `createServerSupabase().auth.getUser()` works correctly on Supabase cloud. The client-side auth workaround in `TECH_DEBT.md` #1 auto-resolves here — you can migrate pages to server-side auth after verifying.
+After deploy, verify auth: sign in at your production URL and confirm session persists on page reload. All protected pages use server-side `createServerSupabase().auth.getUser()`.
 
 ---
 
@@ -334,7 +342,6 @@ These items from `TECH_DEBT.md` and `BUILD_STATUS.md` must be complete:
 - [x] Mobile offline queue wired to tRPC — `careEvents.insert` with idempotencyKey
 - [x] Error boundaries on all client pages
 - [x] Privacy policy and terms of service pages — `(marketing)/privacy` and `(marketing)/terms`
-- [ ] Stripe billing wired — org must have active subscription to use the app
 - [ ] Supabase HIPAA BAA signed (Pro plan required)
 
 ---
@@ -346,6 +353,7 @@ These items from `TECH_DEBT.md` and `BUILD_STATUS.md` must be complete:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase | Yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase | Yes |
+| `NEXT_PUBLIC_APP_URL` | App | Yes |
 | `INNGEST_EVENT_KEY` | Inngest | Yes |
 | `INNGEST_SIGNING_KEY` | Inngest | Yes |
 | `RESEND_API_KEY` | Resend | Yes |
@@ -355,7 +363,10 @@ These items from `TECH_DEBT.md` and `BUILD_STATUS.md` must be complete:
 | `STRIPE_SECRET_KEY` | Stripe | Yes (pre-launch) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe | Yes (pre-launch) |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe | Yes (pre-launch) |
+| `STRIPE_PRICE_MONTHLY` | Stripe | Yes (pre-launch) |
+| `STRIPE_PRICE_ANNUAL` | Stripe | Yes (pre-launch) |
 | `SENTRY_DSN` | Sentry | Yes |
 | `SENTRY_AUTH_TOKEN` | Sentry | Build only |
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog | Yes |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog | Yes |
+| `OCR_API_KEY` | OCR service | No (Phase 3) |
