@@ -11,6 +11,7 @@ import { trpc } from "../../../utils/trpc";
 import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
 import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
+import { useSyncStatus } from "../../../hooks/useSyncStatus";
 
 // Supabase join returns medications as an array; we use the first element
 type ScheduledMed = {
@@ -28,6 +29,7 @@ type TodayLogEntry = {
 export default function MedicationsScreen() {
   const { orgId, recipientId } = useApp();
   const { write } = useOfflineWrite(orgId ?? "");
+  const syncStatus = useSyncStatus();
 
   const {
     data: scheduled,
@@ -79,6 +81,21 @@ export default function MedicationsScreen() {
 
   return (
     <View style={styles.container}>
+      {syncStatus !== "synced" && (
+        <View
+          style={{
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            backgroundColor: syncStatus === "offline" ? "#fef3c7" : "#eff6ff",
+          }}
+        >
+          <Text style={{ fontSize: 12, color: "#374151" }}>
+            {syncStatus === "offline"
+              ? "● Offline — logs will sync when connected"
+              : "↑ Syncing logs…"}
+          </Text>
+        </View>
+      )}
       <Text style={styles.title}>Today's medications</Text>
       <FlatList
         data={meds}
