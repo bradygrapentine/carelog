@@ -4,9 +4,9 @@ import { use, useEffect, useState } from "react";
 import { createClient } from "../../../lib/supabase";
 import { authenticatedFetch } from "../../../lib/authenticatedFetch";
 
-interface Props {
+type Props = {
   params: Promise<{ token: string }>;
-}
+};
 
 export default function InvitePage({ params }: Props) {
   // In Next.js 16 App Router, dynamic route params are a Promise.

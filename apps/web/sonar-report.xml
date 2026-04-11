@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="app/api/stripe/__tests__/portal.test.ts">
+    <testCase name="POST /api/stripe/portal - returns 401 without auth" duration="9" />
+    <testCase name="POST /api/stripe/portal - returns 403 for non-coordinator" duration="1" />
+    <testCase name="POST /api/stripe/portal - returns 400 if org has no stripe_id" duration="0" />
+    <testCase name="POST /api/stripe/portal - returns portal URL" duration="0" />
+  </file>
+</testExecutions>

@@ -5,10 +5,10 @@ import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-interface CareTeam {
+type CareTeam = {
   org: { id: string; name: string };
   recipientId: string;
-}
+};
 
 type Props = {
   user: User;

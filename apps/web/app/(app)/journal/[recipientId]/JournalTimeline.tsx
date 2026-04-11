@@ -112,22 +112,22 @@ function useReactions(eventId: string, userId: string | null) {
   return { counts, myReaction, toggle };
 }
 
-interface JournalEvent {
+type JournalEvent = {
   id: string;
   event_type: string;
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
   payload?: { text?: string; mood?: string };
-}
+};
 
-interface CardProps {
+type CardProps = {
   event: JournalEvent;
   currentUserId: string | null;
   canFlag: boolean;
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
-}
+};
 
 function JournalCard({
   event,
@@ -235,13 +235,13 @@ function JournalCard({
   );
 }
 
-interface Props {
+type Props = {
   events: JournalEvent[];
   currentUserId: string | null;
   canFlag: boolean;
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
-}
+};
 
 function formatDateHeader(iso: string) {
   const d = new Date(iso);

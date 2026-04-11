@@ -6,22 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Member {
+type Member = {
   id: string;
   role: string;
   user_id: string;
   display_name: string | null;
   email: string | null;
-}
+};
 
-interface Props {
+type Props = {
   readonly members: Member[];
   readonly currentUserId: string;
   readonly canInvite: boolean;
   readonly onInvite: (email: string, role: string) => Promise<void>;
   readonly showInvite: boolean;
   readonly onToggleInvite: () => void;
-}
+};
 
 const ROLE_BADGE: Record<string, string> = {
   coordinator:

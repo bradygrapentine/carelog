@@ -31,25 +31,25 @@ type Props = {
   recipientId: string;
   user: User;
 };
-interface OrgInfo {
+type OrgInfo = {
   id: string;
   name: string;
-}
-interface Member {
+};
+type Member = {
   id: string;
   role: string;
   user_id: string;
   display_name: string | null;
   email: string | null;
-}
-interface JournalEvent {
+};
+type JournalEvent = {
   id: string;
   event_type: string;
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
   payload?: { text?: string; mood?: string };
-}
+};
 
 const VALID_PANELS = [
   "journal",

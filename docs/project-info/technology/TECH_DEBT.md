@@ -80,27 +80,15 @@ Phase 5 routers (expenses, benefits, documents, eolPlan) now also have security 
 
 ## Low (nice to fix)
 
-### 13. N+1 user lookup in weeklyDigest member email resolution (partially fixed)
+### ~~13. N+1 user lookup in weeklyDigest~~ FIXED
 
-**File:** `apps/web/inngest/functions/weeklyDigest.ts` line ~174
+Shift assignee lookups deduped and parallelized (BF-04). Member email resolution also deduped and parallelized. Both resolved.
 
-**Problem:** Shift assignee lookups were N+1 — now deduped and parallelized (BF-04).
-Member email resolution (memberships loop) was also N+1 — now deduped and parallelized.
-Both are resolved. Documented here for awareness of the pattern.
+### ~~14. Sentry PII config + PostHog + Stripe~~ FIXED
 
-### ~~14. Sentry PII config + missing client file + PostHog not wired~~ PARTIALLY FIXED
+- `sendDefaultPii: false` in all Sentry configs, Replay disabled
+- `instrumentation-client.ts` handles client-side Sentry + PostHog init
+- PostHog: `posthog-js` + `posthog-node`, provider wired, `/ingest` proxy rewrites
+- Stripe: checkout, webhook, portal, verify routes all working; billing page wired
 
-- ~~`sendDefaultPii: true` PHI violation~~ FIXED — all three Sentry configs now have `sendDefaultPii: false`, Replay disabled
-- ~~`sentry.client.config.ts` missing~~ FIXED — created via `instrumentation-client.ts` (App Router pattern)
-- ~~`posthog-js` not installed~~ FIXED — installed, provider wired, init in `instrumentation-client.ts`, proxy rewrites for ad-blocker resilience, server-side client for API routes
-- Stripe: `stripe` SDK installed, `/api/stripe/webhook` route exists but billing flow is in progress
-
----
-
-### 11. ~~~Supabase CLI version~~~ FIXED
-
-Running v2.75.0, latest is v2.84.2. Update before production:
-
-```bash
-brew upgrade supabase
-```
+### ~~11. Supabase CLI version~~ FIXED

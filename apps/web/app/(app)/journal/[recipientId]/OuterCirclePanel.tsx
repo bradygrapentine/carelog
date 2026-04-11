@@ -15,11 +15,11 @@ const REQUEST_TYPES = [
   { label: "Other", value: "other" },
 ] as const;
 
-interface Props {
+type Props = {
   recipientId: string;
   orgId: string;
   currentUserRole: string;
-}
+};
 
 export function OuterCirclePanel({
   recipientId,
