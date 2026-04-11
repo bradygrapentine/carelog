@@ -22,6 +22,7 @@ jest.mock("expo-secure-store", () => ({
 
 beforeEach(() => {
   Object.keys(store).forEach((k) => delete store[k]);
+  jest.clearAllMocks();
 });
 
 describe("offlineQueue", () => {
@@ -101,6 +102,7 @@ describe("offlineQueue", () => {
   });
 
   it("clears entire queue", async () => {
+    const SecureStore = require("expo-secure-store");
     await enqueue({
       id: "uuid-1",
       event_type: "journal",
@@ -112,5 +114,8 @@ describe("offlineQueue", () => {
     await clearQueue();
     const queue = await getQueue();
     expect(queue).toHaveLength(0);
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(
+      "carelog_offline_queue",
+    );
   });
 });
