@@ -43,6 +43,42 @@ export function DashboardClient() {
         return;
       }
 
+      // Pending billing bridge: pricing page stores selected plan in sessionStorage
+      // before redirecting to /signin. After sign-in, we check for it here and
+      // redirect to Stripe Checkout.
+      const pendingPlan = sessionStorage.getItem("pendingPlan");
+      if (pendingPlan) {
+        sessionStorage.removeItem("pendingPlan");
+        try {
+          const { interval } = JSON.parse(pendingPlan);
+          // Need org to create checkout — fetch memberships first, then use first org
+          const { data: memberships } = await supabase
+            .from("memberships")
+            .select("org_id")
+            .eq("user_id", user.id)
+            .not("accepted_at", "is", null)
+            .limit(1);
+
+          if (memberships && memberships[0]) {
+            const res = await fetch("/api/stripe/checkout", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                orgId: memberships[0].org_id,
+                interval: interval ?? "month",
+              }),
+            });
+            if (res.ok) {
+              const { url } = await res.json();
+              window.location.href = url;
+              return;
+            }
+          }
+        } catch {
+          // If checkout fails, continue to dashboard normally
+        }
+      }
+
       // Only fetch accepted (active) memberships — pending invites have accepted_at = null.
       const { data: memberships } = await supabase
         .from("memberships")
