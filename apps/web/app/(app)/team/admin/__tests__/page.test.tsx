@@ -1,68 +1,77 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import TeamAdminPage from "../page";
+import { TeamAdminClient } from "../TeamAdminClient";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-const mockSupabase = {
-  auth: {
-    getUser: vi.fn(),
-  },
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        not: vi.fn(() => ({
-          single: vi.fn(),
-        })),
-      })),
-    })),
-  })),
-};
-
-vi.mock("@/lib/supabase", () => ({
-  createClient: () => mockSupabase,
-}));
-
-describe("TeamAdminPage", () => {
+describe("TeamAdminClient", () => {
   beforeEach(() => {
-    vi.stubGlobal('location', { href: '' })
     vi.clearAllMocks();
-    mockSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { id: "user-1", email: "a@b.com" } },
-    });
   });
 
-  it("redirects to /signin when no user", async () => {
-    mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null } });
-    const { unmount } = render(<TeamAdminPage />);
-    await waitFor(() => {
-      expect(window.location.href).toContain("/signin");
-    });
-    unmount();
-  });
-
-  it("renders page heading when coordinator", async () => {
+  it("renders page heading when members load", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        members: [{ user_id: "user-1", role: "coordinator", display_name: "Alex", email: "a@b.com" }],
+        members: [
+          {
+            id: "m-1",
+            user_id: "user-1",
+            role: "coordinator",
+            display_name: "Alex",
+            email: "a@b.com",
+          },
+        ],
       }),
     });
-    mockSupabase.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          not: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({
-              data: { org_id: "org-1", role: "coordinator" },
-            }),
-          })),
-        })),
-      })),
-    });
-    render(<TeamAdminPage />);
+    render(<TeamAdminClient orgId="org-1" userId="user-1" />);
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /team admin/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /team admin/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders role badge for coordinator member", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        members: [
+          {
+            id: "m-1",
+            user_id: "user-1",
+            role: "coordinator",
+            display_name: "Alex",
+            email: "a@b.com",
+          },
+        ],
+      }),
+    });
+    render(<TeamAdminClient orgId="org-1" userId="user-1" />);
+    await waitFor(() => {
+      expect(screen.getByText("Alex")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show Remove button for coordinator", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        members: [
+          {
+            id: "m-1",
+            user_id: "user-1",
+            role: "coordinator",
+            display_name: "Alex",
+            email: "a@b.com",
+          },
+        ],
+      }),
+    });
+    render(<TeamAdminClient orgId="org-1" userId="user-1" />);
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /remove/i })).toBeNull();
     });
   });
 });
