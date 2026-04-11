@@ -15,12 +15,15 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "./plugins/withCarelogWatch"
+      "./plugins/withCarelogWatch",
+      "@react-native-community/datetimepicker"
     ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carelog.app",
-      "associatedDomains": ["applinks:yourcarelog.com"]
+      "associatedDomains": [
+        "applinks:yourcarelog.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -33,12 +36,21 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "yourcarelog.com", "pathPrefix": "/invite" }
+            {
+              "scheme": "https",
+              "host": "yourcarelog.com",
+              "pathPrefix": "/invite"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
-    "web": { "favicon": "./assets/favicon.png" }
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
   }
 }

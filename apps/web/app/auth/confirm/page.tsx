@@ -39,12 +39,12 @@ function ConfirmInner() {
 
   if (status === "error") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">
+          <p className="text-foreground/80 mb-4">
             Sign-in link expired or already used.
           </p>
-          <a href="/signin" className="text-blue-600 hover:underline">
+          <a href="/signin" className="text-primary hover:underline">
             Request a new link
           </a>
         </div>
@@ -53,10 +53,10 @@ function ConfirmInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-600">Signing you in...</p>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-foreground/80">Signing you in...</p>
       </div>
     </div>
   );

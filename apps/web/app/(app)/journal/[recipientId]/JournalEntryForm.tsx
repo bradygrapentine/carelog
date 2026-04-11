@@ -49,10 +49,10 @@ const MOODS = [
   },
 ];
 
-interface Props {
+type Props = {
   onPost: (text: string, mood: string) => Promise<void>;
   posting: boolean;
-}
+};
 
 export function JournalEntryForm({ onPost, posting }: Props) {
   const [text, setText] = useState("");
@@ -70,7 +70,10 @@ export function JournalEntryForm({ onPost, posting }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
-    posthog.capture("journal_entry_submitted", { mood: mood || null, char_count: text.trim().length });
+    posthog.capture("journal_entry_submitted", {
+      mood: mood || null,
+      char_count: text.trim().length,
+    });
     await onPost(text.trim(), mood);
     setText("");
     setMood("");

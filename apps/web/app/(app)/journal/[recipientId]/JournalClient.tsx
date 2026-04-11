@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import type { User } from "@supabase/supabase-js";
+import { Card, CardContent } from "@/components/ui/card";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { JournalTimeline } from "./JournalTimeline";
 import { TeamPanel } from "./TeamPanel";
@@ -26,40 +27,49 @@ import {
   SidebarProvider,
 } from "../../../../components/sidebar/SidebarContext";
 
-interface Props {
+type Props = {
   recipientId: string;
-}
-interface OrgInfo {
+  user: User;
+};
+type OrgInfo = {
   id: string;
   name: string;
-}
-interface Member {
+};
+type Member = {
   id: string;
   role: string;
   user_id: string;
   display_name: string | null;
   email: string | null;
-}
-interface JournalEvent {
+};
+type JournalEvent = {
   id: string;
   event_type: string;
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
   payload?: { text?: string; mood?: string };
-}
+};
 
-const VALID_PANELS = ["journal", "medications", "team", "shifts", "documents", "more"] as const;
-type ValidPanel = typeof VALID_PANELS[number];
+const VALID_PANELS = [
+  "journal",
+  "medications",
+  "team",
+  "shifts",
+  "documents",
+  "more",
+] as const;
+type ValidPanel = (typeof VALID_PANELS)[number];
 
-export function JournalClient({ recipientId }: Props) {
+export function JournalClient({ recipientId, user }: Props) {
   const searchParams = useSearchParams();
   const panelParam = searchParams?.get("panel") ?? null;
-  const defaultPanel: ValidPanel = (VALID_PANELS as readonly string[]).includes(panelParam ?? "")
+  const defaultPanel: ValidPanel = (VALID_PANELS as readonly string[]).includes(
+    panelParam ?? "",
+  )
     ? (panelParam as ValidPanel)
     : "journal";
 
-  const [user, setUser] = useState<User | null>(null);
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [events, setEvents] = useState<JournalEvent[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -89,20 +99,8 @@ export function JournalClient({ recipientId }: Props) {
   }
 
   useEffect(() => {
-    // Load sequence: user first (auth gate), then org+members+events.
-    // We use the browser client (anon key) for auth and RLS-scoped reads.
-    // identity_vault is never queried here — recipient names are resolved
-    // server-side via the display_names cache when needed.
-    const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "/signin";
-        return;
-      }
-      setUser(user);
-
-      // Fetch the recipient's org via a Supabase join.
-      // RLS ensures this returns null if the user doesn't have access.
+    async function loadData() {
+      const supabase = createClient();
       const { data: recipient } = await supabase
         .from("care_recipients")
         .select("org_id, organizations(id, name)")
@@ -112,16 +110,16 @@ export function JournalClient({ recipientId }: Props) {
         const orgData = (recipient as unknown as { organizations: OrgInfo })
           .organizations;
         setOrg(orgData);
-        // Load members and events in sequence (both depend on org being set).
         await loadMembers(orgData.id, user.id);
       }
       await loadEvents();
       setLoading(false);
-    });
-  }, [recipientId]);
+    }
+    loadData();
+  }, [recipientId, user.id]);
 
   async function handlePost(text: string, mood: string) {
-    if (!user || !org) return;
+    if (!org) return;
     setPosting(true);
     await authenticatedFetch("/api/journal", {
       method: "POST",
@@ -143,7 +141,7 @@ export function JournalClient({ recipientId }: Props) {
     await authenticatedFetch("/api/journal/" + eventId + "/flag", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ flagged, userId: user?.id }),
+      body: JSON.stringify({ flagged, userId: user.id }),
     });
     // Update local state directly — avoids a full reload for a single boolean toggle
     setEvents((prev) =>
@@ -152,7 +150,7 @@ export function JournalClient({ recipientId }: Props) {
   }
 
   async function handleGenerateBrief() {
-    if (!user || !org) return;
+    if (!org) return;
     setGeneratingBrief(true);
     setBriefUrl(null);
     const res = await authenticatedFetch("/api/brief", {
@@ -171,7 +169,7 @@ export function JournalClient({ recipientId }: Props) {
   }
 
   async function handleInvite(email: string, role: string) {
-    if (!user || !org) return;
+    if (!org) return;
     const res = await authenticatedFetch("/api/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -230,7 +228,7 @@ const DESTINATION_LABELS: Record<string, string> = {
 
 type LayoutProps = {
   recipientId: string;
-  user: User | null;
+  user: User;
   org: OrgInfo | null;
   events: JournalEvent[];
   members: Member[];
@@ -283,7 +281,7 @@ function JournalLayout({
             </span>
           </div>
           <span className="text-xs text-[var(--color-muted)]">
-            {user?.email}
+            {user.email}
           </span>
         </header>
 
@@ -303,7 +301,7 @@ function JournalLayout({
               )}
               <JournalTimeline
                 events={events}
-                currentUserId={user?.id ?? ""}
+                currentUserId={user.id}
                 canFlag={currentUserRole !== "supporter"}
                 recipientId={recipientId}
                 onFlag={onFlag}
@@ -330,7 +328,7 @@ function JournalLayout({
             <>
               <TeamPanel
                 members={members}
-                currentUserId={user?.id ?? ""}
+                currentUserId={user.id}
                 canInvite={currentUserRole === "coordinator"}
                 onInvite={onInvite}
                 showInvite={showInvite}
@@ -360,7 +358,7 @@ function JournalLayout({
                 orgId={org?.id ?? ""}
                 recipientId={recipientId}
                 members={members}
-                currentUserId={user?.id ?? ""}
+                currentUserId={user.id}
                 currentUserRole={currentUserRole}
               />
             </>
@@ -433,6 +431,25 @@ function JournalLayout({
                       </p>
                     )}
                   </div>
+                  <Card className="border-border">
+                    <CardContent className="pt-4 space-y-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Settings
+                      </p>
+                      <a
+                        href="/billing"
+                        className="block text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Billing & subscription
+                      </a>
+                      <a
+                        href="/team/admin"
+                        className="block text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Team admin
+                      </a>
+                    </CardContent>
+                  </Card>
                 </>
               )}
             </>

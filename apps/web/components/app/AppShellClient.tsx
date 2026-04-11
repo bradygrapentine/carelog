@@ -1,27 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { AppTabBar } from "./AppTabBar";
 
-// Auth is intentionally client-side — matches DashboardClient pattern.
-// In local dev the session cookie name doesn't match what @supabase/ssr
-// expects; this resolves automatically on Supabase Cloud.
-export function AppShellClient({ children }: { children: React.ReactNode }) {
-  const [userInitials, setUserInitials] = useState("…");
+type Props = {
+  userInitials: string;
+  children: React.ReactNode;
+};
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "/signin";
-        return;
-      }
-      const email = user.email ?? "";
-      setUserInitials(email.slice(0, 2).toUpperCase());
-    });
-  }, []);
-
+export function AppShellClient({ userInitials, children }: Props) {
   function handleSignOut() {
     const supabase = createClient();
     supabase.auth.signOut().then(() => {

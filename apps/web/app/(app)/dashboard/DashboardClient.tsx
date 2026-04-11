@@ -4,32 +4,24 @@ import { useEffect, useState } from "react";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
-interface CareTeam {
+type CareTeam = {
   org: { id: string; name: string };
   recipientId: string;
-}
+};
 
-export function DashboardClient() {
-  const [user, setUser] = useState<User | null>(null);
+type Props = {
+  user: User;
+};
+
+export function DashboardClient({ user }: Props) {
   const [teams, setTeams] = useState<CareTeam[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // createClient() is the browser Supabase client (anon key).
-    // We use client-side auth here instead of a server component because in local
-    // dev the session cookie name (sb-127-auth-token) doesn't match what
-    // @supabase/ssr expects. This resolves automatically on Supabase Cloud.
     const supabase = createClient();
 
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "/signin";
-        return;
-      }
-      setUser(user);
-
+    (async () => {
       // Pending invite bridge: when a user visits /invite/TOKEN while not signed in,
       // the token is saved to sessionStorage before they're redirected to /signin.
       // After sign-in always lands here (/dashboard), we check for that saved token
@@ -41,6 +33,42 @@ export function DashboardClient() {
         // fresh on the invite page. router.push() could miss it.
         window.location.href = "/invite/" + pendingInvite;
         return;
+      }
+
+      // Pending billing bridge: pricing page stores selected plan in sessionStorage
+      // before redirecting to /signin. After sign-in, we check for it here and
+      // redirect to Stripe Checkout.
+      const pendingPlan = sessionStorage.getItem("pendingPlan");
+      if (pendingPlan) {
+        sessionStorage.removeItem("pendingPlan");
+        try {
+          const { interval } = JSON.parse(pendingPlan);
+          // Need org to create checkout — fetch memberships first, then use first org
+          const { data: memberships } = await supabase
+            .from("memberships")
+            .select("org_id")
+            .eq("user_id", user.id)
+            .not("accepted_at", "is", null)
+            .limit(1);
+
+          if (memberships && memberships[0]) {
+            const res = await fetch("/api/stripe/checkout", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                orgId: memberships[0].org_id,
+                interval: interval ?? "month",
+              }),
+            });
+            if (res.ok) {
+              const { url } = await res.json();
+              window.location.href = url;
+              return;
+            }
+          }
+        } catch {
+          // If checkout fails, continue to dashboard normally
+        }
       }
 
       // Only fetch accepted (active) memberships — pending invites have accepted_at = null.
@@ -81,8 +109,8 @@ export function DashboardClient() {
       }
 
       setLoading(false);
-    });
-  }, []);
+    })();
+  }, [user.id]);
 
   if (loading) {
     return (
@@ -92,27 +120,8 @@ export function DashboardClient() {
     );
   }
 
-  if (!user) return null;
-
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
-      <nav className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <span className="font-semibold text-foreground">Carelog</span>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">{user.email}</span>
-          <button
-            onClick={async () => {
-              const supabase = createClient();
-              await supabase.auth.signOut();
-              window.location.href = "/signin";
-            }}
-            className="text-sm text-muted-foreground hover:text-foreground/80"
-          >
-            Sign out
-          </button>
-        </div>
-      </nav>
-
       <div className="max-w-4xl mx-auto py-12 px-4">
         <h1 className="text-2xl font-semibold text-foreground mb-2">
           Your care teams
