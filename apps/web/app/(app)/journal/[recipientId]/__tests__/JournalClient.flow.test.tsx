@@ -34,12 +34,10 @@ vi.mock("@/lib/authenticatedFetch", () => ({
 }));
 
 // Mock supabase createClient
-const mockGetUser = vi.fn();
 const mockFrom = vi.fn();
 
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
-    auth: { getUser: mockGetUser },
     from: mockFrom,
   }),
 }));
@@ -109,9 +107,7 @@ vi.mock("../ExportButton", () => ({
 const MOCK_USER = { id: "user-1", email: "caregiver@example.com" };
 const MOCK_ORG = { id: "org-1", name: "Smith Family" };
 
-function setupAuth(user: typeof MOCK_USER | null = MOCK_USER) {
-  mockGetUser.mockResolvedValue({ data: { user } });
-
+function setupAuth() {
   // supabase.from('care_recipients').select(...).eq(...).single()
   const selectChain = {
     select: vi.fn().mockReturnThis(),
@@ -131,6 +127,7 @@ describe("JournalClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGet.mockReturnValue(null); // default: no ?panel= param
+    setupAuth();
 
     // Restore default authenticatedFetch implementation after clearAllMocks
     mockAuthFetch.mockImplementation(async (url: string) => {
@@ -154,16 +151,19 @@ describe("JournalClient", () => {
   });
 
   it("shows a loading spinner initially", () => {
-    // Auth resolves slowly — capture the pending promise
-    mockGetUser.mockReturnValue(new Promise(() => {}));
-    render(<JournalClient recipientId="r1" />);
+    // from() never resolves — component stays in loading state
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnValue(new Promise(() => {})),
+    });
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
     expect(document.querySelector(".animate-spin")).toBeTruthy();
   });
 
   it("renders the journal panel by default when no ?panel= param is set", async () => {
     mockGet.mockReturnValue(null);
-    setupAuth();
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
@@ -175,8 +175,7 @@ describe("JournalClient", () => {
 
   it("renders the medications panel when ?panel=medications", async () => {
     mockGet.mockReturnValue("medications");
-    setupAuth();
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("medication-panel")).toBeInTheDocument();
@@ -187,8 +186,7 @@ describe("JournalClient", () => {
 
   it("renders the team panel when ?panel=team", async () => {
     mockGet.mockReturnValue("team");
-    setupAuth();
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("team-panel")).toBeInTheDocument();
@@ -198,8 +196,7 @@ describe("JournalClient", () => {
 
   it("falls back to journal panel for an invalid ?panel= value", async () => {
     mockGet.mockReturnValue("invalid-panel");
-    setupAuth();
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
@@ -209,16 +206,6 @@ describe("JournalClient", () => {
 
   it("hides JournalEntryForm for supporter role and shows read-only notice", async () => {
     mockGet.mockReturnValue(null);
-    mockGetUser.mockResolvedValue({ data: { user: MOCK_USER } });
-
-    const selectChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { org_id: MOCK_ORG.id, organizations: MOCK_ORG },
-      }),
-    };
-    mockFrom.mockReturnValue(selectChain);
 
     // Override authenticatedFetch to return supporter role
     mockAuthFetch.mockImplementation(async (url: string) => {
@@ -240,7 +227,7 @@ describe("JournalClient", () => {
       return { json: async () => ({ events: [] }) } as Response;
     });
 
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(
@@ -254,28 +241,12 @@ describe("JournalClient", () => {
 
   it("shows the top-bar with org name and user email after auth resolves", async () => {
     mockGet.mockReturnValue(null);
-    setupAuth();
-    render(<JournalClient recipientId="r1" />);
+    render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("top-bar")).toBeInTheDocument();
       expect(screen.getByText("Smith Family")).toBeInTheDocument();
       expect(screen.getByText("caregiver@example.com")).toBeInTheDocument();
-    });
-  });
-
-  it("redirects to /signin when auth returns no user", async () => {
-    const assignSpy = vi.fn();
-    Object.defineProperty(window, "location", {
-      writable: true,
-      value: { href: "" },
-    });
-    mockGetUser.mockResolvedValue({ data: { user: null } });
-
-    render(<JournalClient recipientId="r1" />);
-
-    await waitFor(() => {
-      expect(window.location.href).toBe("/signin");
     });
   });
 });

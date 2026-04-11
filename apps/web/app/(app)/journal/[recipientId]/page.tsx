@@ -1,20 +1,26 @@
-'use client'
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createServerSupabase } from "@/lib/supabaseServer";
+import { ErrorBoundary } from "../../../../components/ErrorBoundary";
+import { JournalClient } from "./JournalClient";
 
-import { use, Suspense } from 'react'
-import { ErrorBoundary } from '../../../../components/ErrorBoundary'
-import { JournalClient } from './JournalClient'
-
-export default function JournalPage({
+export default async function JournalPage({
   params,
 }: Readonly<{
-  params: Promise<{ recipientId: string }>
+  params: Promise<{ recipientId: string }>;
 }>) {
-  const { recipientId } = use(params)
+  const { recipientId } = await params;
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/signin");
+
   return (
     <ErrorBoundary>
       <Suspense>
-        <JournalClient recipientId={recipientId} />
+        <JournalClient recipientId={recipientId} user={user} />
       </Suspense>
     </ErrorBoundary>
-  )
+  );
 }
