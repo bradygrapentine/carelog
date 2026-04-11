@@ -5,27 +5,9 @@ Do not work around them further — fix them properly when tackling production d
 
 ## Critical (must fix before real users)
 
-### 1. Auth is client-side only
+### ~~1. Auth is client-side only~~ FIXED
 
-**File:** all protected pages use `useEffect` + `createClient().auth.getUser()`
-
-**Problem:** `createServerSupabase()` can't read the session in local dev because
-the Supabase cookie name doesn't always match what `@supabase/ssr` expects. All
-protected pages use client-side auth as a workaround.
-
-**Note:** The `NEXT_PUBLIC_SUPABASE_URL` is now `http://localhost:54321` (not
-`127.0.0.1`) so cookie names are consistent. API routes work with server-side
-auth. Page-level auth (dashboard, journal) still uses the client-side pattern.
-
-**Impact:** No server-side rendering of protected content. Pages flash before
-auth check completes. SEO impossible for protected routes.
-
-**Fix:** Deploy to Supabase cloud. The cookie is set correctly in production
-and `createServerSupabase().auth.getUser()` will work. Then replace all
-`useEffect` auth patterns with proper server component auth checks.
-
-**Do not attempt to fix in local dev** — it works in production, and the fix
-would be complex and fragile in the local environment.
+Server-side auth migrated. The `(app)/layout.tsx` calls `createServerSupabase().auth.getUser()` and redirects unauthenticated users. All protected page components (`dashboard/page.tsx`, `journal/[recipientId]/page.tsx`, `team/admin/page.tsx`) are async server components that pass `user` as a non-null prop to their client components. No more `useEffect` auth, no more page flash.
 
 ---
 
@@ -106,18 +88,12 @@ Phase 5 routers (expenses, benefits, documents, eolPlan) now also have security 
 Member email resolution (memberships loop) was also N+1 — now deduped and parallelized.
 Both are resolved. Documented here for awareness of the pattern.
 
-### 14. Sentry PII config + missing client file + PostHog not wired
+### ~~14. Sentry PII config + missing client file + PostHog not wired~~ PARTIALLY FIXED
 
-**Services:** Sentry (partial), PostHog (not started)
-
-**Problem:**
-- `@sentry/nextjs` IS installed; `sentry.server.config.ts` and `sentry.edge.config.ts` exist but have `sendDefaultPii: true` — **critical PHI violation**
-- `sentry.client.config.ts` is missing (client-side errors not captured)
-- `posthog-js` is not installed, no provider exists
-- Stripe: `stripe` SDK installed, `/api/stripe/webhook` route and billing tRPC router do not exist
-
-**Fix:** See `docs/superpowers/plans/2026-04-09-before-launch.md` — Tasks B1, B3, D2–D6.
-Sentry PHI fix task file: `.worktrees/sentry-fix/AGENT_TASK.md`
+- ~~`sendDefaultPii: true` PHI violation~~ FIXED — all three Sentry configs now have `sendDefaultPii: false`, Replay disabled
+- ~~`sentry.client.config.ts` missing~~ FIXED — created via `instrumentation-client.ts` (App Router pattern)
+- ~~`posthog-js` not installed~~ FIXED — installed, provider wired, init in `instrumentation-client.ts`, proxy rewrites for ad-blocker resilience, server-side client for API routes
+- Stripe: `stripe` SDK installed, `/api/stripe/webhook` route exists but billing flow is in progress
 
 ---
 
