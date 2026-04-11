@@ -1,159 +1,193 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 type RequestData = {
-  id:           string
-  title:        string
-  description:  string | null
-  request_type: string
-  slots_total:  number
-  slots_filled: number
-  needed_by:    string | null
-  active:       boolean
-}
+  id: string;
+  title: string;
+  description: string | null;
+  request_type: string;
+  slots_total: number;
+  slots_filled: number;
+  needed_by: string | null;
+  active: boolean;
+};
 
 type PageState =
-  | { status: 'loading' }
-  | { status: 'not_found' }
-  | { status: 'ready'; data: RequestData }
-  | { status: 'claimed' }
-  | { status: 'full' }
+  | { status: "loading" }
+  | { status: "not_found" }
+  | { status: "ready"; data: RequestData }
+  | { status: "claimed" }
+  | { status: "full" };
 
 const TYPE_LABELS: Record<string, string> = {
-  meal:      'Meal',
-  transport: 'Transport',
-  errand:    'Errand',
-  visit:     'Visit',
-  other:     'Other',
-}
+  meal: "Meal",
+  transport: "Transport",
+  errand: "Errand",
+  visit: "Visit",
+  other: "Other",
+};
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-export default function OuterCirclePage({ params }: { params: Promise<{ shareToken: string }> }) {
-  const [shareToken, setShareToken] = useState<string | null>(null)
-  const [state,      setState]      = useState<PageState>({ status: 'loading' })
-  const [name,       setName]       = useState('')
-  const [email,      setEmail]      = useState('')
-  const [note,       setNote]       = useState('')
-  const [slotDate,   setSlotDate]   = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [formError,  setFormError]  = useState<string | null>(null)
+export default function OuterCirclePage({
+  params,
+}: {
+  params: Promise<{ shareToken: string }>;
+}) {
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [state, setState] = useState<PageState>({ status: "loading" });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [note, setNote] = useState("");
+  const [slotDate, setSlotDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    params.then(p => setShareToken(p.shareToken))
-  }, [params])
+    params.then((p) => setShareToken(p.shareToken));
+  }, [params]);
 
   useEffect(() => {
-    if (!shareToken) return
-    const url = '/api/outer-circle/' + shareToken
+    if (!shareToken) return;
+    const url = "/api/outer-circle/" + shareToken;
     fetch(url)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         if (data.error) {
-          setState({ status: 'not_found' })
+          setState({ status: "not_found" });
         } else if (data.slots_filled >= data.slots_total) {
-          setState({ status: 'full' })
+          setState({ status: "full" });
         } else {
-          setState({ status: 'ready', data })
+          setState({ status: "ready", data });
         }
       })
-      .catch(() => setState({ status: 'not_found' }))
-  }, [shareToken])
+      .catch(() => setState({ status: "not_found" }));
+  }, [shareToken]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     // Read all form values synchronously before any await
-    const n  = name
-    const em = email
-    const no = note
-    const sd = slotDate
+    const n = name;
+    const em = email;
+    const no = note;
+    const sd = slotDate;
 
-    if (!n || !em) { setFormError('Please enter your name and email.'); return }
+    if (!n || !em) {
+      setFormError("Please enter your name and email.");
+      return;
+    }
 
-    setSubmitting(true)
-    setFormError(null)
+    setSubmitting(true);
+    setFormError(null);
 
-    const claimUrl = '/api/outer-circle/' + shareToken + '/claim'
+    const claimUrl = "/api/outer-circle/" + shareToken + "/claim";
     const res = await fetch(claimUrl, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name: n, email: em, note: no || undefined, slot_date: sd || undefined }),
-    })
-    const data = await res.json()
-    setSubmitting(false)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: n,
+        email: em,
+        note: no || undefined,
+        slot_date: sd || undefined,
+      }),
+    });
+    const data = await res.json();
+    setSubmitting(false);
 
     if (res.status === 409) {
-      setState({ status: 'full' })
+      setState({ status: "full" });
     } else if (!res.ok) {
-      setFormError(data.error ?? 'Something went wrong. Please try again.')
+      setFormError(data.error ?? "Something went wrong. Please try again.");
     } else {
-      setState({ status: 'claimed' })
+      setState({ status: "claimed" });
     }
   }
 
-  if (state.status === 'loading') {
+  if (state.status === "loading") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
-    )
+    );
   }
 
-  if (state.status === 'not_found') {
+  if (state.status === "not_found") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
         <div className="max-w-md text-center">
-          <p className="text-gray-600">This request is no longer available.</p>
+          <p className="text-foreground/80">
+            This request is no longer available.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (state.status === 'claimed') {
+  if (state.status === "claimed") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
         <div className="max-w-md text-center">
           <div className="text-3xl mb-4">&#10084;</div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Thanks! You&apos;re helping out.</h1>
-          <p className="text-gray-500">You&apos;ll receive a confirmation email shortly. Your support means everything to this family.</p>
+          <h1 className="text-xl font-semibold text-foreground mb-2">
+            Thanks! You&apos;re helping out.
+          </h1>
+          <p className="text-muted-foreground">
+            You&apos;ll receive a confirmation email shortly. Your support means
+            everything to this family.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (state.status === 'full') {
+  if (state.status === "full") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
         <div className="max-w-md text-center">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">All slots have been filled.</h1>
-          <p className="text-gray-500">Thank you to everyone who helped!</p>
+          <h1 className="text-xl font-semibold text-foreground mb-2">
+            All slots have been filled.
+          </h1>
+          <p className="text-muted-foreground">
+            Thank you to everyone who helped!
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  const { data } = state
-  const slotsRemaining = data.slots_total - data.slots_filled
+  const { data } = state;
+  const slotsRemaining = data.slots_total - data.slots_filled;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-surface)]">
       <div className="max-w-lg mx-auto py-12 px-4">
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-6 border-b border-gray-100">
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-6 border-b border-border">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-medium text-gray-500 bg-gray-100 rounded-full px-2 py-1">
+              <span className="text-xs font-medium text-muted-foreground bg-[var(--color-surface)] rounded-full px-2 py-1">
                 {TYPE_LABELS[data.request_type] ?? data.request_type}
               </span>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">{data.title}</h1>
+            <h1 className="text-xl font-semibold text-foreground mb-2">
+              {data.title}
+            </h1>
             {data.description && (
-              <p className="text-sm text-gray-600 mb-3">{data.description}</p>
+              <p className="text-sm text-foreground/80 mb-3">
+                {data.description}
+              </p>
             )}
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>{slotsRemaining} of {data.slots_total} {data.slots_total === 1 ? 'slot' : 'slots'} remaining</span>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>
+                {slotsRemaining} of {data.slots_total}{" "}
+                {data.slots_total === 1 ? "slot" : "slots"} remaining
+              </span>
               {data.needed_by && (
                 <span>Needed by {formatDate(data.needed_by)}</span>
               )}
@@ -161,72 +195,100 @@ export default function OuterCirclePage({ params }: { params: Promise<{ shareTok
           </div>
 
           <form onSubmit={handleSubmit} className="px-6 py-6 space-y-4">
-            <p className="text-sm font-medium text-gray-700">Claim a slot</p>
+            <p className="text-sm font-medium text-foreground/80">
+              Claim a slot
+            </p>
 
             <div>
-              <label htmlFor="claimer-name" className="block text-xs text-gray-500 mb-1">Your name</label>
+              <label
+                htmlFor="claimer-name"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Your name
+              </label>
               <input
                 id="claimer-name"
                 type="text"
                 required
                 value={name}
-                onChange={e => { setName(e.target.value); setFormError(null) }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setFormError(null);
+                }}
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                 placeholder="Jane Smith"
               />
             </div>
 
             <div>
-              <label htmlFor="claimer-email" className="block text-xs text-gray-500 mb-1">Email address</label>
+              <label
+                htmlFor="claimer-email"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Email address
+              </label>
               <input
                 id="claimer-email"
                 type="email"
                 required
                 value={email}
-                onChange={e => { setEmail(e.target.value); setFormError(null) }}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFormError(null);
+                }}
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                 placeholder="jane@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="claimer-date" className="block text-xs text-gray-500 mb-1">Date (optional)</label>
+              <label
+                htmlFor="claimer-date"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Date (optional)
+              </label>
               <input
                 id="claimer-date"
                 type="date"
                 value={slotDate}
-                onChange={e => setSlotDate(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                onChange={(e) => setSlotDate(e.target.value)}
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
               />
             </div>
 
             <div>
-              <label htmlFor="claimer-note" className="block text-xs text-gray-500 mb-1">Note (optional)</label>
+              <label
+                htmlFor="claimer-note"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Note (optional)
+              </label>
               <textarea
                 id="claimer-note"
                 value={note}
-                onChange={e => setNote(e.target.value)}
+                onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 maxLength={500}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 resize-none"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary resize-none"
                 placeholder="Any details you want to share..."
               />
             </div>
 
             {formError && (
-              <p className="text-sm text-red-600">{formError}</p>
+              <p className="text-sm text-[var(--color-danger)]">{formError}</p>
             )}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting ? 'Claiming...' : 'Claim a slot'}
+              {submitting ? "Claiming..." : "Claim a slot"}
             </button>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }
