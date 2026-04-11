@@ -1,6 +1,6 @@
 # Carelog — Build Status
 
-Last updated: 2026-04-09 (Phase 3 complete)
+Last updated: 2026-04-10 (Phase 5 complete, deployed to Vercel)
 
 ## Completed and working
 
@@ -39,7 +39,7 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] /invite/[token] page — shows invite details, accept button
 - [x] Pending invite redirect — sessionStorage bridge, DashboardClient bounces to invite URL
 - [x] Entry detail view — full entry + reactions + flag status
-- [ ] Team member display names (partially done — `/api/members` resolves names, UI shows them)
+- [x] Team member display names — `/api/members` resolves `display_name` from `user_profiles`, fallback chain `display_name ?? email ?? "Team member"`
 
 ### Weekly digest
 - [x] Inngest wired — client at `apps/web/inngest/client.ts`, serve at `/api/inngest`
@@ -47,13 +47,13 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] Weekly digest function — cron Mon 8am UTC, per-org steps, HTML email
 
 ### Testing
-- [x] Vitest unit tests — 587 tests (all passing)
+- [x] Vitest unit tests — 737 tests across 97 files (all passing)
 - [x] pgTAP RLS tests — 11 test files, all passing
-- [x] Playwright E2E — journal flow, reactions, flagging, roles, invites (25+ tests)
+- [x] Playwright E2E — auth, journal, reactions, flagging, roles, invites (25+ tests)
 
-## Phase 1 remaining
+## Phase 1 — complete
 
-- [ ] Display name resolution — show actual names not "Team member" (API ready, UI wiring partial)
+- [x] Display name resolution — `user_profiles.email` column added, full fallback chain wired
 
 ## Phase 2 — Scheduler
 
@@ -131,30 +131,22 @@ Last updated: 2026-04-09 (Phase 3 complete)
 - [x] watchOS SwiftUI app — ContentView + WatchViewModel, receives WCSession context
 - [x] Config plugin — withCarelogWatch.ts adds Watch target + App Group entitlement via expo prebuild
 - [x] watchBridge.ts — re-exports from real native module (was no-op stub)
-=======
-## Mobile (in progress)
+## Before launch
 
-- [ ] Wave 1 — Expo Router, auth, tRPC, core screens, offline flush — plan: `docs/superpowers/plans/2026-04-10-mobile-wave1-foundation.md`
-- [ ] Wave 2 — Push notifications (APNs + FCM, push_tokens, Inngest wiring) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave2-notifications.md`
-- [ ] Wave 3 — Apple Watch complications (WidgetKit, CarelogWatch target) — plan: `docs/superpowers/plans/2026-04-10-mobile-wave3-watch.md`
-
-## Web UI Redesign (in progress)
-
-- [ ] Design token layer (Tailwind v4 @theme), shadcn/ui, icon sidebar, responsive mobile layout — plan: `docs/superpowers/plans/2026-04-10-ui-redesign.md`
-
-## Before launch (any phase)
-
-- [ ] Supabase cloud project
-- [ ] Vercel deploy + environment variables
-- [ ] Server-side auth fix (auto-resolves on Supabase cloud)
-- [ ] Domain + SSL
-- [ ] Stripe billing — $14/mo or $120/yr family plan (`stripe` SDK installed; `/api/stripe/webhook` route not yet created)
-- [ ] Inngest cloud setup
-- [ ] Resend transactional email
-- [ ] Sentry error tracking — @sentry/nextjs installed; server+edge configs exist but sentry.client.config.ts missing; sendDefaultPii: true is a PHI risk that must be fixed before launch
-- [ ] PostHog analytics (`posthog-js` not installed; no provider exists)
-- [x] Mobile app offline queue wired to tRPC — careEvents.insert with idempotencyKey, NetInfo-triggered flush
-- [x] Error boundaries — ErrorBoundary.tsx wraps DashboardClient and JournalClient
+- [x] Supabase cloud project — linked and deployed
+- [x] Vercel deploy + environment variables — deployed on `care-log.org`
+- [x] Server-side auth — `(app)/layout.tsx` uses `createServerSupabase().auth.getUser()`
+- [x] Domain + SSL — `care-log.org` via Vercel
+- [ ] Stripe billing — $14/mo or $120/yr family plan (SDK installed, webhook/checkout routes in progress)
+- [x] Inngest cloud setup — synced at `/api/inngest`
+- [x] Resend transactional email — domain verified, `digest@care-log.org`
+- [x] Sentry error tracking — `sendDefaultPii: false`, client/server/edge configs, source maps pending `SENTRY_AUTH_TOKEN`
+- [x] PostHog analytics — `posthog-js` + `posthog-node` installed, provider wired, `/ingest` proxy rewrites
+- [x] Upstash Redis rate limiting — wired, no-ops in local dev
+- [x] Mobile app offline queue wired to tRPC
+- [x] Error boundaries on all client pages
+- [x] 737 Vitest tests across 97 files, all passing
+- [x] pgTAP RLS tests — 11 files, all passing
 
 ## Runbooks
 

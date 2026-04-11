@@ -243,18 +243,16 @@ In Stripe dashboard (live mode):
 2. Scopes: `project:releases`, `org:read`
 3. Set `SENTRY_AUTH_TOKEN` in Vercel (used during Vercel build to upload source maps)
 
-### 7c. Wire Sentry into the app
+### 7c. Wire Sentry into the app — DONE
 
-Add to `apps/web/`:
+`@sentry/nextjs` is installed. Configs exist:
+- `instrumentation-client.ts` — client-side init with `sendDefaultPii: false`, Replay disabled
+- `sentry.server.config.ts` — server init with `sendDefaultPii: false`
+- `sentry.edge.config.ts` — edge init with `sendDefaultPii: false`
 
-```bash
-pnpm add @sentry/nextjs
-npx @sentry/wizard@latest -i nextjs
-```
+**Remaining:** Set `SENTRY_AUTH_TOKEN` in Vercel for source map uploads.
 
-This creates `sentry.client.config.ts`, `sentry.server.config.ts`, and updates `next.config.ts`.
-
-**Privacy note:** Sentry must never capture PHI. The identity vault tokenization ensures this — Sentry only sees UUIDs, never real names. Do not add `user.name` or `user.email` to Sentry context.
+**Privacy note:** Sentry must never capture PHI. `sendDefaultPii: false` in all configs. Do not add `user.name` or `user.email` to Sentry context.
 
 ---
 
@@ -266,37 +264,18 @@ This creates `sentry.client.config.ts`, `sentry.server.config.ts`, and updates `
 2. Name: `carelog`
 3. Copy the **Project API Key** → set `NEXT_PUBLIC_POSTHOG_KEY` in Vercel
 
-### 8b. Install the SDK
+### 8b. Install the SDK — DONE
 
-```bash
-pnpm add posthog-js
-```
+`posthog-js` and `posthog-node` are installed. Setup:
+- `instrumentation-client.ts` — `posthog.init()` with `/ingest` proxy, `person_profiles: 'identified_only'`
+- `components/providers/PostHogProvider.tsx` — React context wrapper in `layout.tsx`
+- `lib/posthog-server.ts` — server-side client singleton for API route events
+- `next.config.ts` — `/ingest` proxy rewrites to `us.i.posthog.com` (ad-blocker resilience)
+- Events instrumented: sign-in, onboarding, invite, journal entry, burnout, export, subscription cancel
 
-Add a PostHog provider to `apps/web/components/providers/` (or wrap in `layout.tsx`):
+**Remaining:** Set `NEXT_PUBLIC_POSTHOG_KEY` in Vercel.
 
-```tsx
-'use client'
-import posthog from 'posthog-js'
-import { PostHogProvider } from 'posthog-js/react'
-import { useEffect } from 'react'
-
-export function PHProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: 'identified_only',
-      capture_pageview: false, // manual for App Router
-    })
-  }, [])
-  return <PostHogProvider client={posthog}>{children}</PostHogProvider>
-}
-```
-
-**Privacy note:** PostHog must never receive real names. Identify users by their Supabase UUID only:
-
-```ts
-posthog.identify(user.id) // UUID only — no name, no email
-```
+**Privacy note:** `posthog.identify(user.id)` — UUID only, never email or name.
 
 ---
 
@@ -351,11 +330,12 @@ Work through this checklist after all services are connected:
 These items from `TECH_DEBT.md` and `BUILD_STATUS.md` must be complete:
 
 - [ ] Stripe billing wired — org must have active subscription to use the app
-- [ ] Server-side auth migration — replace `useEffect` auth pattern with server components now that Supabase cloud is live
-- [ ] Mobile offline queue wired to tRPC (`apps/mobile/hooks/useOfflineWrite.ts` TODO)
-- [ ] Error boundaries on all client pages
+- [x] Server-side auth migration — `(app)/layout.tsx` + all protected pages use `createServerSupabase()`
+- [x] Mobile offline queue wired to tRPC — `careEvents.insert` with idempotencyKey
+- [x] Error boundaries on all client pages
+- [x] Privacy policy and terms of service pages — `(marketing)/privacy` and `(marketing)/terms`
+- [ ] Stripe billing wired — org must have active subscription to use the app
 - [ ] Supabase HIPAA BAA signed (Pro plan required)
-- [ ] Privacy policy and terms of service pages
 
 ---
 
