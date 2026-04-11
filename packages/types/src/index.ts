@@ -1,3 +1,6 @@
+// Generated Supabase types — run `npx supabase gen types typescript --project-id <ref>` to update
+export type { Database } from "./supabase";
+
 export type OrgType = "family" | "agency" | "institution" | "employer";
 export type OrgPlan = "free" | "family" | "professional" | "enterprise";
 export type MemberRole = "coordinator" | "caregiver" | "supporter" | "aide";
@@ -117,4 +120,73 @@ export interface CareBriefContent {
   preferences: Record<string, unknown>;
   contacts: Array<{ name: string; relationship: string; phone: string }>;
   generated_at: string;
+}
+
+export type DocType =
+  | "hipaa_authorization"
+  | "power_of_attorney"
+  | "advance_directive"
+  | "insurance_card"
+  | "medication_list"
+  | "other";
+
+export interface Document {
+  id: string;
+  org_id: string;
+  recipient_id: string;
+  display_name: string;
+  doc_type: DocType;
+  storage_path: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_by: string;
+  created_at: string;
+}
+
+export interface BenefitsScreening {
+  id: string;
+  org_id: string;
+  recipient_id: string;
+  answers: Record<string, unknown>;
+  results: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+}
+
+export type ResuscitationPref =
+  | "full_code"
+  | "dnr"
+  | "comfort_only"
+  | "undecided";
+
+export interface EolPlan {
+  id: string;
+  org_id: string;
+  recipient_id: string;
+  healthcare_proxy: string | null;
+  resuscitation_pref: ResuscitationPref | null;
+  funeral_pref: string | null;
+  legacy_message: string | null;
+  attorney_name: string | null;
+  attorney_contact: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PushToken {
+  id: string;
+  user_id: string;
+  expo_token: string;
+  platform: "ios" | "android";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
 }
