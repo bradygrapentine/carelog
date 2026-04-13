@@ -34,6 +34,10 @@ export default function AppLayout() {
       <Tabs.Screen name="expenses/index" options={{ href: null }} />
       <Tabs.Screen name="expenses/add" options={{ href: null }} />
       <Tabs.Screen name="documents/index" options={{ href: null }} />
+      <Tabs.Screen name="outer-circle/index" options={{ href: null }} />
+      <Tabs.Screen name="care-brief/index" options={{ href: null }} />
+      <Tabs.Screen name="benefits/index" options={{ href: null }} />
+      <Tabs.Screen name="eol-planner/index" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -6,6 +6,10 @@ const ITEMS = [
   { title: "Burnout", route: "/burnout" as const, icon: "🔋" },
   { title: "Expenses", route: "/expenses" as const, icon: "💰" },
   { title: "Documents", route: "/documents" as const, icon: "📄" },
+  { title: "Volunteer Requests", route: "/outer-circle" as const, icon: "🤝" },
+  { title: "Care Brief", route: "/care-brief" as const, icon: "📋" },
+  { title: "Benefits", route: "/benefits" as const, icon: "🏥" },
+  { title: "End-of-Life", route: "/eol-planner" as const, icon: "📝" },
 ];
 
 export default function MoreScreen() {
