@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(5);
+SELECT plan(7);
 
 -- ─── fixtures ────────────────────────────────────────────────────────────────
 
@@ -56,14 +56,16 @@ VALUES (
 
 -- ─── tests ───────────────────────────────────────────────────────────────────
 
--- 1. Outsider CAN read outer_circle_requests — policy is USING (true) (public read)
+-- 1. R2-006 regression: outsider (authenticated non-member) CANNOT read
+--    outer_circle_requests. Old USING (true) policy allowed cross-org enumeration;
+--    new team-scoped policy restricts SELECT to accepted org members.
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
 
 SELECT results_eq(
   $$SELECT count(*)::int FROM outer_circle_requests WHERE id = '40000000-0000-0000-0000-000000000001'$$,
-  ARRAY[1]::int[],
-  'outsider can read outer_circle_requests (public read policy)'
+  ARRAY[0]::int[],
+  'outsider cannot read outer_circle_requests (R2-006 team-scoped)'
 );
 
 -- 2. Outsider cannot INSERT a request — policy requires created_by = auth.uid() AND
@@ -119,6 +121,25 @@ SELECT results_eq(
   $$SELECT count(*)::int FROM outer_circle_claims WHERE request_id = '40000000-0000-0000-0000-000000000001'$$,
   ARRAY[1]::int[],
   'coordinator can read claims for their org requests'
+);
+
+-- 6. R2-006 regression: team member (caregiver) CAN read their org's requests.
+SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002","role":"authenticated"}';
+
+SELECT results_eq(
+  $$SELECT count(*)::int FROM outer_circle_requests WHERE id = '40000000-0000-0000-0000-000000000001'$$,
+  ARRAY[1]::int[],
+  'team member can read their org outer_circle_requests'
+);
+
+-- 7. R2-006 regression: anon role sees ZERO rows in outer_circle_requests.
+SET LOCAL ROLE anon;
+SET LOCAL "request.jwt.claims" TO '{"role":"anon"}';
+
+SELECT results_eq(
+  $$SELECT count(*)::int FROM outer_circle_requests$$,
+  ARRAY[0]::int[],
+  'anon role sees zero rows in outer_circle_requests (R2-006 regression)'
 );
 
 SELECT * FROM finish();

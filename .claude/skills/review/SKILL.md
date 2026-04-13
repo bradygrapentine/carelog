@@ -55,7 +55,7 @@ All 3 agents MUST be dispatched in a single message (parallel execution).
 - `rateLimit` must no-op when Upstash env vars are absent.
 
 ### RLS Policy Correctness
-- Policies use scalar boolean functions, not set-returning (see ENTERPRISE_PRINCIPLES.md #9).
+- Policies use scalar boolean functions, not set-returning (see CODE_STANDARDS.md — RLS & Security).
 - `identity_vault` policy returns 0 rows for `authenticated` role.
 
 ---

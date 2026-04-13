@@ -11,8 +11,7 @@ All docs are in `docs/project-info/`.
 | `project-info/ARCHITECTURE.md`          | Directory tree, DB schema, tRPC router, RLS design, design rationale | Before touching data layer |
 | `project-info/BUILD_STATUS.md`          | What's done, in progress, full phase roadmap                         | Planning work              |
 | `project-info/TECH_DEBT.md`             | Known issues with file locations and fix descriptions                | Before production          |
-| `project-info/ENTERPRISE_PRINCIPLES.md` | 12 principles discovered through hard experience                     | Before writing code        |
-| `project-info/PATTERNS.md`              | Code conventions, anti-patterns, testing conventions                 | Before writing code        |
+| `project-info/technology/CODE_STANDARDS.md` | Coding rules, conventions, anti-patterns, testing conventions    | Before writing code        |
 | `project-info/UX_DECISIONS.md`          | Language choices, emotional framing, design philosophy               | Before UI changes          |
 | `project-info/TROUBLESHOOTING.md`       | Every local dev issue hit + exact fixes                              | When something breaks      |
 

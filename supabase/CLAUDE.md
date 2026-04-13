@@ -19,7 +19,7 @@ The `pgTAP` hook auto-runs `supabase test db` when auth/RLS/migration files are 
 
 ## URL Rule
 
-Use `http://localhost:54321` (not `127.0.0.1`) — cookie names differ between the two.
+Use `localhost:54321` for Supabase — see `docs/project-info/technology/CODE_STANDARDS.md` for rationale.
 
 ## Tooling
 

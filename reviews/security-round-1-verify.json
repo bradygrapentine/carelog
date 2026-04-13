@@ -1,0 +1,37 @@
+{
+  "round": 1,
+  "verified_at": "2026-04-13T00:00:00Z",
+  "results": [
+    {
+      "finding_id": "F-001",
+      "status": "fixed",
+      "evidence": "apps/web/app/api/contact/route.ts:4-41 — imports rateLimit, enforces 16KB body cap (L20-22, L27-29), zod schema with email().max(254), name.max(100), message.max(5000) (L8-12), safeParse gate returning 400 (L35-41). Regression tests in route.test.ts cover missing fields, invalid email, oversize field, 413 body cap, invalid JSON — all exercise the vulnerability path, not just happy path.",
+      "residual_risk": "No captcha/bot protection — spam at rate-limit ceiling still possible. reply_to is set to user-supplied email so reply-spoofing/phishing via the trusted sender remains feasible within rate limit. Also rateLimit no-ops when Upstash env vars are missing (per test comment), so local/misconfigured envs are unprotected."
+    },
+    {
+      "finding_id": "F-002",
+      "status": "fixed",
+      "evidence": "supabase/migrations/20260413010000_secure_prescription_images_bucket.sql:5-7 sets bucket public=false with ON CONFLICT DO UPDATE; L13-16 restricts storage.objects policy to service_role only. apps/web/app/api/ocr/upload/route.ts:117-127 stores filePath (storage path) in image_url column, no getPublicUrl call. Test at route.test.ts:168 asserts bucket.getPublicUrl is never called.",
+      "residual_risk": "Historical rows inserted prior to this migration may still contain public URLs in image_url; migration does not backfill. Downstream consumers reading image_url must be audited to ensure they treat it as a path and mint signed URLs — no regression test verifies any consumer path. Column name 'image_url' is now misleading (holds a path), inviting future misuse."
+    },
+    {
+      "finding_id": "F-003",
+      "status": "fixed",
+      "evidence": "supabase/migrations/20260413010000_harden_care_briefs_rls.sql:14 drops the 'briefs open read' policy (original USING (true)) and replaces with 'briefs readable by team' USING user_can_access_recipient(recipient_id) (L20-22). supabase/tests/care_briefs_rls.test.sql:64-71 explicitly asserts an outsider authenticated user gets 0 rows — exercises the exact Red Team attack (anon/authenticated direct PostgREST select).",
+      "residual_risk": "Test uses role 'authenticated' but not anon role explicitly; anon with anon key should also fail because user_can_access_recipient requires auth.uid() membership, but an explicit anon-role test case would be stronger defense-in-depth. API share-token flow relies on service role — unchanged and correct."
+    },
+    {
+      "finding_id": "F-010",
+      "status": "fixed",
+      "evidence": "apps/web/app/api/stripe/checkout/route.ts:85 — origin derived strictly from process.env.NEXT_PUBLIC_APP_URL with localhost fallback; request.headers.get('origin') removed. Regression test checkout.test.ts:201-219 sends Origin: https://evil.tld and asserts success_url and cancel_url do NOT contain evil.tld.",
+      "residual_risk": "Fallback to 'http://localhost:3000' when env unset means a production deploy missing NEXT_PUBLIC_APP_URL would silently send users to localhost (functional bug, not security). Consider throwing if env is missing in production."
+    },
+    {
+      "finding_id": "F-012",
+      "status": "fixed",
+      "evidence": "apps/web/app/api/ocr/upload/route.ts:78-104 — MIME_TO_EXT allowlist (jpeg/png/heic/heif/pdf); rejects unknown MIME with 400 (L86-91); filePath uses crypto.randomUUID() + '.' + ext with no reference to file.name. Regression test route.test.ts:194-224 uploads a file named '../../other-org/evil.png' and asserts the stored path does not contain traversal — exercises the exact Red Team payload. Additional test rejects disallowed MIME.",
+      "residual_risk": "Extension is driven by MIME header which is client-supplied; a malicious PDF could be uploaded as image/png and land with .png extension. Not a path-traversal risk, but content-type spoofing remains possible (mitigated by downstream Inngest OCR processing expectations). No magic-byte sniffing."
+    }
+  ],
+  "summary": { "fixed": 5, "partial": 0, "still_vulnerable": 0 }
+}
