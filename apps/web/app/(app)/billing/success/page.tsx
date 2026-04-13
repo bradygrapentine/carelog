@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function BillingSuccessPage() {
+function BillingSuccessInner() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams?.get("session_id") ?? null;
   const [status, setStatus] = useState<"loading" | "paid" | "error">("loading");
   const [interval, setInterval] = useState("month");
 
@@ -87,5 +87,21 @@ export default function BillingSuccessPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function BillingSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-[var(--color-muted)]">
+            Confirming your subscription...
+          </p>
+        </div>
+      }
+    >
+      <BillingSuccessInner />
+    </Suspense>
   );
 }
