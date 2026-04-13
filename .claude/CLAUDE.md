@@ -51,80 +51,42 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - `/schedule` — schedule Claude on a cron, up to a week
 - `/btw` — side query without interrupting current work
 
-## Codex
+## Ollama Dispatch
 
-Codex is a separate GPT-5.4-based agent with its own terminal. Default sandbox: `workspace-execute` (can run commands) with `--approval-policy confirm` (asks before each command).
+Local (and cloud) Ollama models are the primary backend for parallel, mechanical, or exploratory subtasks. Claude Code stays as the orchestrator.
 
-### Commands
+### When to dispatch to `/ollama`
 
-| Command | Purpose |
-|---------|---------|
-| `/codex:rescue [prompt]` | General-purpose: diagnosis, implementation, research |
-| `/codex:fix-tests [--unit\|--rls\|--e2e\|--all]` | Fix failing tests; `--rls` runs `supabase test db` |
-| `/codex:review` | Standard code review against local git state |
-| `/codex:adversarial-review [focus]` | Challenges design choices — prefer `/review` skill instead (uses parallel subagents, more reliable) |
-| `/codex:security-review` | PHI-boundary review — prefer `/review` skill instead |
-| `/codex:plan-review [plan-file]` | Compare diff against plan in `docs/superpowers/plans/` |
-| `/codex:status` | Check background job progress |
-| `/codex:result [job-id]` | Fetch completed job output |
-| `/codex:cancel [job-id]` | Cancel a running job |
+- 3+ independent subtasks that can run in parallel
+- Exploration: reading many files, enumerating matches, summarizing docs
+- Known-pattern boilerplate: test scaffolds, component shells, migration stubs
+- Bulk mechanical work where correctness is cheap to verify afterward
 
-### Background Workflow (most underutilized pattern)
+### When to keep in Claude Code
 
-Codex runs in parallel — dispatch it and keep working:
-
-```
-/codex:rescue --background [task]   # dispatches detached
-# ... continue other work ...
-/codex:status                        # check progress
-/codex:result                        # fetch output when done
-```
-
-Use `--background` by default for anything that will take >30 seconds.
-
-### Thread Continuity
-
-Codex maintains a thread per repository. `--resume` continues the last thread (same context, iterative fixes). `--fresh` always starts clean. Use `--resume` when following up on a previous Codex run.
-
-### Effort Levels
-
-| Flag | Use for |
-|------|---------|
-| `--effort low` | Simple one-file fixes, known patterns |
-| `--effort medium` | Default for `fix-tests`, `plan-review` |
-| `--effort high` | Complex multi-file work, security review, architecture |
-| `--effort xhigh` | Deep investigation, stuck bugs |
-
-### Model Selection
-
-- Default (GPT-5.4): all substantive tasks
-- `--model spark` (GPT-5.3-Codex-Spark): fast/cheap — quick reviews, exploratory diagnosis
-
-### Approval Policy
-
-- `--approval-policy on-request` (default): prompts before each command — use for write tasks
-- `--approval-policy never`: fully autonomous — use for read-only/research tasks
-- `--approval-policy untrusted`: blocks all shell commands
-- `--approval-policy on-failure`: auto-approves unless a command fails
-
-### Proactive Dispatch Triggers
-
-Dispatch Codex *without being asked* when:
-- Test suite has >2 failures and root cause isn't obvious
-- Task requires running code to verify a fix (not just reading)
-- Security/RLS review needed before merging
-- Implementation is stuck after 2 attempts
+- Multi-file architecture decisions
+- RLS / security / auth changes
+- Plugin orchestration and skill invocation
+- Anything that needs full project context
 
 ### Routing Guide
 
 | Task | Use |
 |------|-----|
-| Failing tests | `/codex:fix-tests` |
-| Security/RLS review | `/codex:security-review` |
-| Multi-file implementation | `/codex:rescue --background` |
-| Quick inline edit | Continue.dev |
-| Architecture / planning | Claude Code |
-| Known-pattern boilerplate | Continue.dev or `/create-migration` |
+| Failing tests (batch fix) | `/ollama` with fix prompts per file |
+| Security/RLS review | `/review` skill |
+| Multi-file architecture | Claude Code (this agent) |
+| Parallel boilerplate / exploration | `/ollama` |
+| Known-pattern code gen in bulk | `/ollama` with `qwen3-coder` |
+| Migration + pgTAP scaffold | `/create-migration` |
+
+### Health check before dispatch
+
+```bash
+curl -sf http://localhost:11434/api/tags > /dev/null && echo "ollama ok" || echo "ollama not running — start with 'ollama serve' or use a :cloud model"
+```
+
+If local Ollama is unreachable, fall back to `glm-4.7:cloud` (default cloud alternative).
 
 ## Headless Scripts
 
@@ -144,7 +106,7 @@ Run Claude non-interactively for automated QA:
 - `docs/project-info/product/BUILD_STATUS.md` — what's done / in progress / next
 - `docs/project-info/technology/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
 - `docs/project-info/runbooks/HARNESS_USAGE.md` — how the Claude Code harness actually runs here; debugging silent hook failures
-- `docs/project-info/runbooks/TOKEN_DISCIPLINE.md` — Continue.dev routing, handoff plan format
+- `docs/project-info/runbooks/TOKEN_DISCIPLINE.md` — Ollama dispatch patterns, handoff plan format
 
 ## Things Claude Should NOT Do
 
@@ -161,8 +123,8 @@ Run Claude non-interactively for automated QA:
 ## Adversarial Reviews
 
 - When asked for a review, DO NOT edit files — produce review output only
-- If Codex CLI fails (rate limit, empty output), report immediately rather than retrying silently
-- Suppress Codex Stop hook on markdown-only changes
+- Prefer the `/review` skill (parallel subagents) over any single-agent review path
+- If a dispatched review agent stalls or returns empty, report immediately rather than retrying silently
 
 ## General Rules
 
@@ -187,7 +149,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 |-------|---------|
 | `/create-migration` | Scaffold Supabase migration + pgTAP test with hard-won rules baked in |
 | `/review` | Adversarial security review for PHI/RLS/auth code |
-| `/plan-with-tests` | Write a Continue.dev handoff plan (failing tests first) |
+| `/plan-with-tests` | Write a test-first handoff plan for a subordinate agent (/ollama or subagent) |
 | `/expo` | Expo/React Native patterns for the mobile app |
 | `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
 | `/ollama` | Dispatch parallel tasks to local Ollama models (Opus/Sonnet stays as orchestrator) |
@@ -209,18 +171,18 @@ Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
 | tsc | PostToolUse Edit/Write | `npx tsc --noEmit` in apps/web |
 | ESLint | PostToolUse Edit/Write | `npx eslint --cache --quiet` in apps/web |
 | Prettier | PostToolUse Edit/Write | Auto-formats `.ts/.tsx/.js/.jsx` |
-| pgTAP | PostToolUse Edit/Write | `supabase test db` when auth/RLS/migration files change; auto-dispatches `codex fix-tests` in background on failure |
+| pgTAP | PostToolUse Edit/Write | `supabase test db` when auth/RLS/migration files change; prints hint to invoke `/ollama` on failure |
 | `.env` guard | PreToolUse Edit/Write | Blocks edits to `.env*` files (allows `.env.example`) |
 | Lock file guard | PreToolUse Edit/Write | Blocks edits to `pnpm-lock.yaml` and `package-lock.json` |
 | supabaseAdmin guard | PreToolUse Edit/Write | Warns when editing files outside `server/` or `app/api/` that contain `supabaseAdmin` |
-| PR security review | PreToolUse Bash | Auto-dispatches `codex security-review --effort high` in background on `gh pr create` |
+| PR security review reminder | PreToolUse Bash | Prints hint to run `/review` before `gh pr create` |
 
 ## Plugin Priority
 
 1. **memsearch** — recall memory before exploring codebase
 2. **context-mode** — `ctx_execute` for output >20 lines; never Bash/Read for analysis
 3. **superpowers** — invoke matching skill before any response (includes `frontend-design`)
-4. **codex** — fallback for isolated, well-scoped code generation
+4. **/ollama** — dispatch parallel/mechanical/exploratory work to local or cloud Ollama models
 5. **context7** — fetch live library docs before answering framework/API questions
 6. **chrome-devtools-mcp** — browser debugging, LCP, a11y audits on live app
 7. **commit-commands** — `/commit`, `/commit-push-pr` for all git commits
@@ -228,5 +190,6 @@ Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
 ## Token Discipline
 
 - Response cap: ≤350 tokens unless the task demands more
-- Mechanical work (autocomplete, single-file refactor, known-pattern tests) → route to Continue.dev
+- Mechanical work (boilerplate, single-file refactor, known-pattern tests, bulk exploration) → dispatch to `/ollama`
+- 3+ independent subtasks → parallel fan-out via `/ollama` rather than serial Claude work
 - Full routing, self-check signals, and handoff plan format: `docs/project-info/runbooks/TOKEN_DISCIPLINE.md`

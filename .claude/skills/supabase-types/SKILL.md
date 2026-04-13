@@ -40,4 +40,4 @@ If typecheck fails, the schema change likely broke existing code — review the 
 
 - After every `supabase db push` or new migration
 - After `supabase/CLAUDE.md` reminds you post-migration
-- Before handing off to Continue.dev if the task touches DB types
+- Before dispatching DB-touching tasks to `/ollama` or a subagent (types must be regenerated first so the subordinate sees current schema)

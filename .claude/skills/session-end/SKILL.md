@@ -28,12 +28,9 @@ Write relevant entries to `/Users/bradygrapentine/.claude/projects/-Users-bradyg
 ### 3. Summarize decisions
 Print a brief (≤5 bullet) summary of key decisions made this session — things that affect future work.
 
-### 4. Run Codex review
-If there are uncommitted changes, dispatch a Codex review in the foreground:
-```
-/codex:review --wait
-```
-Review findings before committing. Do not auto-fix — present issues and ask which to address.
+### 4. Optional adversarial review
+If there are uncommitted changes, optionally run the `/review` skill (parallel subagents) for a security pass on the session's diff. For small sessions, dispatch a lighter review via `/ollama` with a review prompt instead.
+Present findings before committing. Do not auto-fix — ask which to address.
 
 ### 5. Prompt to commit
 Check `git status`. If there are uncommitted changes, ask:
