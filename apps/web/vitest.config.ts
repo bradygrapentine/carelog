@@ -17,7 +17,10 @@ export default defineConfig({
     projects: [
       {
         // Browser project — React component and flow tests (.tsx)
-        plugins: [react(), tsconfigPaths({ root: __dirname })],
+        plugins: [
+          react(),
+          tsconfigPaths({ root: __dirname, projects: ["./tsconfig.json"] }),
+        ],
         define: {
           global: "globalThis",
           "process.env": "{}",
@@ -57,14 +60,20 @@ export default defineConfig({
       },
       {
         // Node project — server routers and API routes (require Node.js / @trpc/server)
-        plugins: [tsconfigPaths({ root: __dirname })],
+        plugins: [
+          tsconfigPaths({ root: __dirname, projects: ["./tsconfig.json"] }),
+        ],
         resolve: {
           alias: { "@": path.resolve(__dirname, ".") },
         },
         test: {
           name: "node",
           environment: "node",
-          include: ["server/**/*.test.ts", "app/api/**/*.test.ts"],
+          include: [
+            "server/**/*.test.ts",
+            "app/api/**/*.test.ts",
+            "inngest/**/*.test.ts",
+          ],
           setupFiles: ["./vitest.setup.node.ts"],
           globals: true,
         },
