@@ -5,21 +5,21 @@ import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 const TAB_PANELS: Record<string, string> = {
-  journal:     "journal",
+  journal: "journal",
   medications: "medications",
-  team:        "team",
-  shifts:      "shifts",
-  documents:   "documents",
-  more:        "more",
+  team: "team",
+  shifts: "shifts",
+  documents: "documents",
+  more: "more",
 };
 
 const TABS: { id: string; label: string; icon: string }[] = [
-  { id: "journal",     label: "Journal",     icon: "📋" },
+  { id: "journal", label: "Journal", icon: "📋" },
   { id: "medications", label: "Medications", icon: "💊" },
-  { id: "team",        label: "Team",        icon: "👥" },
-  { id: "shifts",      label: "Shifts",      icon: "📅" },
-  { id: "documents",   label: "Documents",   icon: "📁" },
-  { id: "more",        label: "More",        icon: "⋯" },
+  { id: "team", label: "Team", icon: "👥" },
+  { id: "shifts", label: "Shifts", icon: "📅" },
+  { id: "documents", label: "Documents", icon: "📁" },
+  { id: "more", label: "More", icon: "⋯" },
 ];
 
 type Props = {
@@ -39,12 +39,8 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   const activeTab = panelParam in TAB_PANELS ? panelParam : "journal";
 
   function handleTabClick(tabId: string) {
-    if (!recipientId) {
-      router.push("/dashboard");
-      return;
-    }
-    const tabUrl = "/journal/" + recipientId + "?panel=" + tabId;
-    router.push(tabUrl);
+    if (!recipientId) return;
+    router.push("/journal/" + recipientId + "?panel=" + tabId);
   }
 
   return (
@@ -52,37 +48,42 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center gap-2 py-3">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]" aria-hidden="true" />
+          <span
+            className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]"
+            aria-hidden="true"
+          />
           <span className="text-sm font-bold text-white">Carelog</span>
         </div>
 
-        {/* Tab list — desktop */}
-        <nav
-          role="tablist"
-          aria-label="App navigation"
-          className="hidden items-center overflow-x-auto md:flex"
-        >
-          {TABS.map(({ id, label }) => {
-            const isActive = id === activeTab;
-            return (
-              <button
-                key={id}
-                role="tab"
-                aria-selected={isActive}
-                aria-controls={id + "-panel"}
-                onClick={() => handleTabClick(id)}
-                className={cn(
-                  "flex items-center gap-1.5 border-b-2 px-4 py-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
-                  isActive
-                    ? "border-[var(--color-primary-light)] text-white"
-                    : "border-transparent text-violet-300 hover:text-white"
-                )}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Tab list — desktop (only inside a team context) */}
+        {recipientId && (
+          <nav
+            role="tablist"
+            aria-label="App navigation"
+            className="hidden items-center overflow-x-auto md:flex"
+          >
+            {TABS.map(({ id, label }) => {
+              const isActive = id === activeTab;
+              return (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={id + "-panel"}
+                  onClick={() => handleTabClick(id)}
+                  className={cn(
+                    "flex items-center gap-1.5 border-b-2 px-4 py-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
+                    isActive
+                      ? "border-[var(--color-primary-light)] text-white"
+                      : "border-transparent text-violet-300 hover:text-white",
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         {/* User avatar */}
         <button
@@ -94,34 +95,36 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
         </button>
       </div>
 
-      {/* Mobile tab strip */}
-      <div
-        role="tablist"
-        aria-label="App navigation"
-        className="flex overflow-x-auto border-t border-white/10 md:hidden"
-      >
-        {TABS.map(({ id, label, icon }) => {
-          const isActive = id === activeTab;
-          return (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={id + "-panel"}
-              onClick={() => handleTabClick(id)}
-              className={cn(
-                "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
-                isActive
-                  ? "border-[var(--color-primary-light)] text-white"
-                  : "border-transparent text-violet-300 hover:text-white"
-              )}
-            >
-              <span aria-hidden="true">{icon}</span>
-              <span>{label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Mobile tab strip — only inside a team context */}
+      {recipientId && (
+        <div
+          role="tablist"
+          aria-label="App navigation"
+          className="flex overflow-x-auto border-t border-white/10 md:hidden"
+        >
+          {TABS.map(({ id, label, icon }) => {
+            const isActive = id === activeTab;
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={id + "-panel"}
+                onClick={() => handleTabClick(id)}
+                className={cn(
+                  "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+                  isActive
+                    ? "border-[var(--color-primary-light)] text-white"
+                    : "border-transparent text-violet-300 hover:text-white",
+                )}
+              >
+                <span aria-hidden="true">{icon}</span>
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }
