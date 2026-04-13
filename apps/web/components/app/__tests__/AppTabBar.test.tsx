@@ -3,25 +3,42 @@ import { vi } from "vitest";
 import { AppTabBar } from "../AppTabBar";
 
 const mockPush = vi.fn();
+let mockPathname = "/journal/recipient-123";
+let mockSearch = "panel=journal";
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/journal/recipient-123",
-  useSearchParams: () => new URLSearchParams("panel=journal"),
+  usePathname: () => mockPathname,
+  useSearchParams: () => new URLSearchParams(mockSearch),
   useRouter: () => ({ push: mockPush }),
 }));
 
-describe("AppTabBar", () => {
+describe("AppTabBar — inside team context", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPathname = "/journal/recipient-123";
+    mockSearch = "panel=journal";
   });
 
   it("renders all tab labels", () => {
     render(<AppTabBar userInitials="BG" />);
-    expect(screen.getAllByRole("tab", { name: /journal/i })[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("tab", { name: /medications/i })[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("tab", { name: /team/i })[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("tab", { name: /shifts/i })[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("tab", { name: /documents/i })[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("tab", { name: /more/i })[0]).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /journal/i })[0],
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /medications/i })[0],
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /team/i })[0],
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /shifts/i })[0],
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /documents/i })[0],
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("tab", { name: /more/i })[0],
+    ).toBeInTheDocument();
   });
 
   it("marks the active tab with aria-selected based on URL", () => {
@@ -39,6 +56,25 @@ describe("AppTabBar", () => {
   });
 
   it("renders user initials in avatar", () => {
+    render(<AppTabBar userInitials="BG" />);
+    expect(screen.getByText("BG")).toBeInTheDocument();
+  });
+});
+
+describe("AppTabBar — outside team context (dashboard)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPathname = "/dashboard";
+    mockSearch = "";
+  });
+
+  it("does not render tab buttons on the dashboard", () => {
+    render(<AppTabBar userInitials="BG" />);
+    expect(screen.queryByRole("tab", { name: /medications/i })).toBeNull();
+    expect(screen.queryByRole("tab", { name: /journal/i })).toBeNull();
+  });
+
+  it("still renders the user avatar", () => {
     render(<AppTabBar userInitials="BG" />);
     expect(screen.getByText("BG")).toBeInTheDocument();
   });
