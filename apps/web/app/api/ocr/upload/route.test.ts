@@ -63,12 +63,14 @@ function uploadRequest(
   orgId = ORG_ID,
   recipientId = REC_ID,
   includeFile = true,
+  fileName = "rx.png",
+  fileType = "image/png",
 ) {
   const fd = new FormData();
   fd.append("orgId", orgId);
   fd.append("recipientId", recipientId);
   if (includeFile) {
-    const file = new File(["data"], "rx.png", { type: "image/png" });
+    const file = new File(["data"], fileName, { type: fileType });
     // stub arrayBuffer so the route doesn't hang on stream parsing in tests
     Object.defineProperty(file, "arrayBuffer", {
       value: () => Promise.resolve(new ArrayBuffer(4)),
@@ -187,5 +189,55 @@ describe("POST /api/ocr/upload", () => {
       new RegExp("^" + ORG_ID + "/" + REC_ID + "/"),
     );
     expect(inserted.image_url).not.toMatch(/^https?:\/\//);
+  });
+
+  // F-012 regression: malicious filenames must not influence the storage path.
+  it("ignores user-supplied filename — no path traversal in storage path", async () => {
+    const insertChain = makeInsertChain({
+      data: { id: JOB_ID },
+      error: null,
+    });
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { role: "coordinator" }, error: null }) as any,
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { id: REC_ID }, error: null }) as any,
+      )
+      .mockReturnValueOnce(insertChain as any);
+    const bucket = makeStorageBucket();
+    vi.mocked(supabaseAdmin.storage.from).mockReturnValue(bucket as any);
+
+    const malicious = "../../other-org/evil.png";
+    const res = await POST(
+      uploadRequest(ORG_ID, REC_ID, true, malicious, "image/png"),
+    );
+    expect(res.status).toBe(200);
+    const inserted = (insertChain as any).__lastInsert as { image_url: string };
+    expect(inserted.image_url).not.toContain("..");
+    expect(inserted.image_url).not.toContain("other-org");
+    expect(inserted.image_url).not.toContain("evil");
+    // Path must remain rooted under the validated org/recipient prefix.
+    expect(inserted.image_url.startsWith(ORG_ID + "/" + REC_ID + "/")).toBe(
+      true,
+    );
+  });
+
+  // F-012: disallowed MIME types must be rejected (no extension fallback).
+  it("rejects unsupported MIME types", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { role: "coordinator" }, error: null }) as any,
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { id: REC_ID }, error: null }) as any,
+      );
+    vi.mocked(supabaseAdmin.storage.from).mockReturnValue(
+      makeStorageBucket() as any,
+    );
+    const res = await POST(
+      uploadRequest(ORG_ID, REC_ID, true, "rx.exe", "application/x-msdownload"),
+    );
+    expect(res.status).toBe(400);
   });
 });

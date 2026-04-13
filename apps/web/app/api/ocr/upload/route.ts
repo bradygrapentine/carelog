@@ -71,10 +71,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // F-012: Never embed user-supplied file.name in the storage path —
+    // path-traversal payloads (e.g. "../other-org/evil.pdf") could land
+    // objects in sibling org prefixes. Use a random UUID with an extension
+    // derived strictly from the MIME type allowlist.
+    const MIME_TO_EXT: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/heic": "heic",
+      "image/heif": "heif",
+      "application/pdf": "pdf",
+    };
+    const ext = MIME_TO_EXT[file.type];
+    if (!ext) {
+      return NextResponse.json(
+        { error: "Unsupported file type" },
+        { status: 400 },
+      );
+    }
+
     // Upload file to Supabase Storage
     const fileBuffer = await file.arrayBuffer();
     const filePath =
-      validOrgId + "/" + validRecipientId + "/" + Date.now() + "-" + file.name;
+      validOrgId +
+      "/" +
+      validRecipientId +
+      "/" +
+      Date.now() +
+      "-" +
+      crypto.randomUUID() +
+      "." +
+      ext;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("prescription-images")
