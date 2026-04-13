@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getPostHogClient } from "@/lib/posthog-server";
 
 const portalSchema = z.object({
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     process.env.NEXT_PUBLIC_APP_URL ??
     "http://localhost:3000";
 
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: org.stripe_id,
     return_url: origin + "/billing",
   });

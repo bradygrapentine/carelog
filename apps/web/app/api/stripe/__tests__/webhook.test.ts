@@ -4,11 +4,11 @@ import { NextRequest } from "next/server";
 // --- Mocks ---
 const mockConstructEvent = vi.fn();
 vi.mock("@/lib/stripe", () => ({
-  stripe: {
+  getStripe: () => ({
     webhooks: {
       constructEvent: (...args: unknown[]) => mockConstructEvent(...args),
     },
-  },
+  }),
 }));
 
 const mockUpdate = vi.fn().mockReturnValue({

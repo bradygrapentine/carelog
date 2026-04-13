@@ -16,12 +16,12 @@ vi.mock("@/server/supabaseAdmin.server", () => ({
 const mockCheckoutCreate = vi.fn();
 const mockCustomerCreate = vi.fn();
 vi.mock("@/lib/stripe", () => ({
-  stripe: {
+  getStripe: () => ({
     checkout: {
       sessions: { create: (...args: unknown[]) => mockCheckoutCreate(...args) },
     },
     customers: { create: (...args: unknown[]) => mockCustomerCreate(...args) },
-  },
+  }),
 }));
 
 const TEST_ORG_ID = "00000000-0000-0000-0000-000000000001";

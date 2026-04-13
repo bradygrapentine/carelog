@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getRequestUser } from "@/lib/supabaseServer";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     // Verify the caller is a member of the org in session metadata
     const orgId = session.metadata?.orgId;
