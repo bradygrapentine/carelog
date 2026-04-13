@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { playwright } from "@vitest/browser-playwright";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   test: {
@@ -16,7 +17,7 @@ export default defineConfig({
     projects: [
       {
         // Browser project — React component and flow tests (.tsx)
-        plugins: [react()],
+        plugins: [react(), tsconfigPaths({ root: __dirname })],
         define: {
           global: "globalThis",
           "process.env": "{}",
@@ -56,6 +57,7 @@ export default defineConfig({
       },
       {
         // Node project — server routers and API routes (require Node.js / @trpc/server)
+        plugins: [tsconfigPaths({ root: __dirname })],
         resolve: {
           alias: { "@": path.resolve(__dirname, ".") },
         },
