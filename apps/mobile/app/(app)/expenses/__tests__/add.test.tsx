@@ -1,8 +1,10 @@
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import ExpenseAddScreen from "../add";
 
+const mockBack = jest.fn();
+
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: jest.fn(), push: jest.fn() }),
+  useRouter: () => ({ back: mockBack, push: jest.fn() }),
 }));
 
 jest.mock("../../../../context/AppContext", () => ({
@@ -17,17 +19,20 @@ jest.mock("../../../../utils/wave5Utils", () => ({
   EXPENSE_CATEGORIES: [
     { key: "medication", label: "Medication" },
     { key: "supplies", label: "Supplies" },
+    { key: "transport", label: "Transport" },
   ],
 }));
 
 jest.mock("@react-native-community/datetimepicker", () => "DateTimePicker");
+
+const mockMutateAsync = jest.fn().mockResolvedValue({});
 
 jest.mock("../../../../utils/trpc", () => ({
   trpc: {
     expenses: {
       create: {
         useMutation: jest.fn(() => ({
-          mutateAsync: jest.fn().mockResolvedValue({}),
+          mutateAsync: mockMutateAsync,
           isPending: false,
         })),
       },
@@ -35,9 +40,7 @@ jest.mock("../../../../utils/trpc", () => ({
   },
 }));
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+beforeEach(() => jest.clearAllMocks());
 
 describe("ExpenseAddScreen", () => {
   it("renders without crash", () => {
@@ -55,16 +58,65 @@ describe("ExpenseAddScreen", () => {
     expect(getByLabelText("Cancel")).toBeTruthy();
   });
 
-  it("submit button is enabled with valid inputs", () => {
+  it("Cancel calls router.back()", () => {
+    const { getByLabelText } = render(<ExpenseAddScreen />);
+    fireEvent.press(getByLabelText("Cancel"));
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("Save expense button is disabled when amount is empty", () => {
+    const { getByLabelText } = render(<ExpenseAddScreen />);
+    const btn = getByLabelText("Save expense");
+    expect(btn.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it("Save expense button is disabled when description is empty", () => {
     const { getByPlaceholderText, getByLabelText } = render(
       <ExpenseAddScreen />,
     );
     fireEvent.changeText(getByPlaceholderText("$0.00"), "25.00");
+    const btn = getByLabelText("Save expense");
+    expect(btn.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it("calls create mutation with correct args on submit", async () => {
+    const { getByPlaceholderText, getByLabelText } = render(
+      <ExpenseAddScreen />,
+    );
+    fireEvent.changeText(getByPlaceholderText("$0.00"), "42.50");
     fireEvent.changeText(
       getByPlaceholderText("What was this for?"),
-      "Test description",
+      "Prescriptions",
     );
-    // Button should be accessible (not disabled label)
-    expect(getByLabelText("Save expense")).toBeTruthy();
+    fireEvent.press(getByLabelText("Save expense"));
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          org_id: "org-1",
+          recipient_id: "r-1",
+          amount: 42.5,
+          category: "medication",
+          description: "Prescriptions",
+        }),
+      );
+    });
+  });
+
+  it("submits with selected category", async () => {
+    const { getByPlaceholderText, getByLabelText } = render(
+      <ExpenseAddScreen />,
+    );
+    fireEvent.press(getByLabelText("Supplies category"));
+    fireEvent.changeText(getByPlaceholderText("$0.00"), "10.00");
+    fireEvent.changeText(
+      getByPlaceholderText("What was this for?"),
+      "Gauze pads",
+    );
+    fireEvent.press(getByLabelText("Save expense"));
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ category: "supplies" }),
+      );
+    });
   });
 });
