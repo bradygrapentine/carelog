@@ -37,6 +37,7 @@ export default defineConfig({
             "@trpc/react-query",
             "@base-ui/react/input",
             "@base-ui/react/merge-props",
+            "@base-ui/react/separator",
             "@base-ui/react/use-render",
           ],
         },
