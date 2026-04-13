@@ -1,6 +1,15 @@
+import { z } from "zod";
 import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
 import { sendPushToUser } from "../pushNotification";
+
+// Validated at handler entry — defense-in-depth against forged events (R2-014)
+export const ocrDocumentCreatedEventSchema = z
+  .object({ jobId: z.string().uuid() })
+  .strict();
+export type OcrDocumentCreatedEvent = z.infer<
+  typeof ocrDocumentCreatedEventSchema
+>;
 
 export type OcrFieldType = "text" | "number" | "date" | "currency";
 export type DocumentType =
@@ -79,7 +88,7 @@ export const ocrDocument = inngest.createFunction(
   { id: "ocr-document" },
   { event: "ocr/document.created" },
   async ({ event, step }) => {
-    const { jobId } = event.data as { jobId: string };
+    const { jobId } = ocrDocumentCreatedEventSchema.parse(event.data);
 
     await step.run("mark-processing", async () => {
       await supabaseAdmin
