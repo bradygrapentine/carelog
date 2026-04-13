@@ -1,41 +1,903 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
+  <file path="app/(app)/dashboard/__tests__/DashboardClient.flow.test.tsx">
+    <testCase name="DashboardClient (flow) - loads and displays care team cards after data loads" duration="12" />
+    <testCase name="DashboardClient (flow) - clicking a care team card navigates to the journal URL" duration="8" />
+    <testCase name="DashboardClient (flow) - shows &apos;Set up a care team&apos; link for a new user with no teams" duration="2" />
+    <testCase name="DashboardClient (flow) - pending invite from sessionStorage triggers redirect to invite URL" duration="1" />
+  </file>
+  <file path="app/(app)/dashboard/__tests__/DashboardClient.test.tsx">
+    <testCase name="DashboardClient - shows loading state initially" duration="2" />
+    <testCase name="DashboardClient - renders &apos;Your care teams&apos; heading when user is authenticated" duration="4" />
+    <testCase name="DashboardClient - shows empty state when no teams exist" duration="1" />
+    <testCase name="DashboardClient - shows care team cards when teams exist" duration="2" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/BenefitsNavigator.test.tsx">
+    <testCase name="BenefitsNavigator — role gating - returns null for caregiver" duration="2" />
+    <testCase name="BenefitsNavigator — role gating - returns null for supporter" duration="1" />
+    <testCase name="BenefitsNavigator — collapsed state - shows &quot;Benefits navigator&quot; button when collapsed" duration="4" />
+    <testCase name="BenefitsNavigator — expanded, no prior screening - shows Start screener button when no prior results" duration="3" />
+    <testCase name="BenefitsNavigator — expanded, no prior screening - shows questions after clicking Start screener" duration="4" />
+    <testCase name="BenefitsNavigator — screener submission - calls screen.mutate when Find matching programs is clicked" duration="5" />
+    <testCase name="BenefitsNavigator — expanded, prior results available - shows matching program from last screening" duration="2" />
+    <testCase name="BenefitsNavigator — expanded, prior results available - shows run screener again option" duration="2" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/BurnoutCheckin.test.tsx">
+    <testCase name="BurnoutCheckin — role gating - returns null for supporter role" duration="2" />
+    <testCase name="BurnoutCheckin — role gating - returns null for aide role" duration="1" />
+    <testCase name="BurnoutCheckin — coordinator renders - renders with &quot;How are you doing this week?&quot; heading for coordinator" duration="6" />
+    <testCase name="BurnoutCheckin — coordinator renders - renders three range sliders for coordinator" duration="3" />
+    <testCase name="BurnoutCheckin — form submission - calls burnout.checkIn.mutate on submit with correct fields including week_stamp format" duration="13" />
+    <testCase name="BurnoutCheckin — form submission - shows &quot;Saved!&quot; confirmation text after successful mutation" duration="9" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/DocumentVault.test.tsx">
+    <testCase name="DocumentVault — collapsed state - shows &quot;Document vault&quot; button" duration="3" />
+    <testCase name="DocumentVault — expanded empty state - shows &quot;No documents uploaded yet&quot; when empty" duration="5" />
+    <testCase name="DocumentVault — expanded with documents - shows document display name" duration="3" />
+    <testCase name="DocumentVault — expanded with documents - shows download button for all roles" duration="2" />
+    <testCase name="DocumentVault — expanded with documents - shows delete button for coordinator" duration="5" />
+    <testCase name="DocumentVault — expanded with documents - hides delete button for supporter" duration="2" />
+    <testCase name="DocumentVault — upload form - shows upload form for coordinator" duration="2" />
+    <testCase name="DocumentVault — upload form - hides upload form for supporter" duration="1" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/EolPlanner.test.tsx">
+    <testCase name="EolPlanner — role gating - returns null for caregiver" duration="2" />
+    <testCase name="EolPlanner — role gating - returns null for supporter" duration="0" />
+    <testCase name="EolPlanner — collapsed state - shows &quot;End-of-life plan&quot; button" duration="4" />
+    <testCase name="EolPlanner — collapsed state - shows coordinator-only badge" duration="1" />
+    <testCase name="EolPlanner — expanded, no plan - shows &quot;Create plan&quot; button when no plan exists" duration="3" />
+    <testCase name="EolPlanner — expanded, no plan - shows edit form after clicking Create plan" duration="7" />
+    <testCase name="EolPlanner — expanded, plan exists - shows healthcare proxy value" duration="2" />
+    <testCase name="EolPlanner — expanded, plan exists - shows resuscitation preference label" duration="2" />
+    <testCase name="EolPlanner — expanded, plan exists - shows &quot;Edit plan&quot; button" duration="2" />
+    <testCase name="EolPlanner — advance directive documents - shows only advance_directive documents" duration="2" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/ExpensePanel.test.tsx">
+    <testCase name="ExpensePanel — collapsed state - shows collapsed &quot;Shared expenses&quot; button" duration="5" />
+    <testCase name="ExpensePanel — collapsed state - does not show form initially" duration="1" />
+    <testCase name="ExpensePanel — expanded empty state - shows &quot;No expenses logged yet&quot; when empty" duration="5" />
+    <testCase name="ExpensePanel — expanded with data - shows expense description" duration="4" />
+    <testCase name="ExpensePanel — expanded with data - shows formatted amount" duration="3" />
+    <testCase name="ExpensePanel — expanded with data - shows delete button for coordinator" duration="4" />
+    <testCase name="ExpensePanel — expanded with data - hides delete button for supporter" duration="2" />
+    <testCase name="ExpensePanel — role gating for form - shows log form for coordinator" duration="3" />
+    <testCase name="ExpensePanel — role gating for form - shows log form for caregiver" duration="3" />
+    <testCase name="ExpensePanel — role gating for form - hides log form for supporter" duration="1" />
+    <testCase name="ExpensePanel — form submission - submits form with correct values" duration="7" />
+    <testCase name="ExpensePanel — 30-day totals - shows 30-day category totals" duration="4" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/ExportButton.test.tsx">
+    <testCase name="ExportButton — role gating - returns null for caregiver role" duration="2" />
+    <testCase name="ExportButton — role gating - returns null for supporter role" duration="0" />
+    <testCase name="ExportButton — coordinator render - renders form with expected elements for coordinator" duration="5" />
+    <testCase name="ExportButton — coordinator render - JSON button is aria-pressed=true by default, PDF is aria-pressed=false" duration="2" />
+    <testCase name="ExportButton — coordinator render - clicking PDF flips aria-pressed state" duration="3" />
+    <testCase name="ExportButton — submit behaviour - calls authenticatedFetch with correct body on submit" duration="6" />
+    <testCase name="ExportButton — submit behaviour - includes since as ISO string when date is set" duration="6" />
+    <testCase name="ExportButton — submit behaviour - shows &quot;Preparing...&quot; and disables button while loading" duration="3" />
+    <testCase name="ExportButton — submit behaviour - shows error alert when response is not ok" duration="6" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/JournalClient.flow.test.tsx">
+    <testCase name="JournalClient - shows a loading spinner initially" duration="3" />
+    <testCase name="JournalClient - renders the journal panel by default when no ?panel= param is set" duration="4" />
+    <testCase name="JournalClient - renders the medications panel when ?panel=medications" duration="2" />
+    <testCase name="JournalClient - renders the team panel when ?panel=team" duration="1" />
+    <testCase name="JournalClient - falls back to journal panel for an invalid ?panel= value" duration="1" />
+    <testCase name="JournalClient - hides JournalEntryForm for supporter role and shows read-only notice" duration="1" />
+    <testCase name="JournalClient - shows the top-bar with org name and user email after auth resolves" duration="1" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/JournalEntryForm.test.tsx">
+    <testCase name="JournalEntryForm - renders a collapsed textarea with the correct placeholder" duration="4" />
+    <testCase name="JournalEntryForm - expands when the textarea receives focus" duration="4" />
+    <testCase name="JournalEntryForm - expands when text is typed" duration="2" />
+    <testCase name="JournalEntryForm - shows prompt suggestions when expanded and text is empty" duration="2" />
+    <testCase name="JournalEntryForm - hides prompt suggestions once the user types text" duration="3" />
+    <testCase name="JournalEntryForm - shows mood buttons after expansion" duration="2" />
+    <testCase name="JournalEntryForm - selects a mood when clicked" duration="3" />
+    <testCase name="JournalEntryForm - deselects a mood when clicked twice" duration="5" />
+    <testCase name="JournalEntryForm - switches mood when a different mood is clicked" duration="4" />
+    <testCase name="JournalEntryForm - resets all state when Cancel is clicked" duration="6" />
+    <testCase name="JournalEntryForm - submit button is disabled when textarea is empty" duration="5" />
+    <testCase name="JournalEntryForm - submit button is disabled when textarea contains only whitespace" duration="2" />
+    <testCase name="JournalEntryForm - calls onPost with trimmed text and selected mood on submit" duration="13" />
+    <testCase name="JournalEntryForm - calls onPost with empty mood when no mood is selected" duration="6" />
+    <testCase name="JournalEntryForm - resets the form after a successful submit" duration="3" />
+    <testCase name="JournalEntryForm - shows &quot;Sharing...&quot; on the submit button while posting" duration="2" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/JournalTimeline.test.tsx">
+    <testCase name="JournalTimeline — empty state - shows caregiver prompt when canFlag is true" duration="2" />
+    <testCase name="JournalTimeline — empty state - shows supporter message when canFlag is false" duration="1" />
+    <testCase name="JournalTimeline — human journal entries - navigates to detail page when a journal card is clicked" duration="6" />
+    <testCase name="JournalTimeline — human journal entries - renders the entry text" duration="3" />
+    <testCase name="JournalTimeline — human journal entries - renders mood badge when mood is set" duration="3" />
+    <testCase name="JournalTimeline — human journal entries - omits mood badge when mood is absent" duration="2" />
+    <testCase name="JournalTimeline — human journal entries - shows &quot;Flag for doctor&quot; button when canFlag is true" duration="2" />
+    <testCase name="JournalTimeline — human journal entries - hides flag button when canFlag is false" duration="2" />
+    <testCase name="JournalTimeline — human journal entries - shows &quot;Flagged for doctor&quot; badge and Unflag button when entry is flagged" duration="2" />
+    <testCase name="JournalTimeline — human journal entries - calls onFlag with eventId and new flagged value when flag button is clicked" duration="2" />
+    <testCase name="JournalTimeline — human journal entries - renders four reaction buttons" duration="2" />
+    <testCase name="JournalTimeline — system events - renders system events as compact display, not as journal card" duration="2" />
+    <testCase name="JournalTimeline — system events - does not show flag button for system events" duration="1" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/MedicationChecklist.test.tsx">
+    <testCase name="MedicationChecklist — null state - returns null (renders nothing) when no schedules" duration="3" />
+    <testCase name="MedicationChecklist — null state - returns null when schedules is undefined" duration="1" />
+    <testCase name="MedicationChecklist — rendered list - shows &quot;Today&apos;s medications&quot; header when schedules exist" duration="5" />
+    <testCase name="MedicationChecklist — rendered list - shows medication label: Lisinopril 10mg — 08:00:00" duration="3" />
+    <testCase name="MedicationChecklist — rendered list - both &quot;Gave it&quot; and &quot;Missed&quot; buttons are enabled for coordinator with no logs" duration="2" />
+    <testCase name="MedicationChecklist — disabled states - both buttons are disabled when medication is already logged" duration="1" />
+    <testCase name="MedicationChecklist — disabled states - both buttons are disabled for supporter regardless of log state" duration="1" />
+    <testCase name="MedicationChecklist — mutation - calls logAdministration.mutate with action: &quot;given&quot; when &quot;Gave it&quot; clicked" duration="1" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/MedicationPanel.test.tsx">
+    <testCase name="MedicationPanel — collapsed - renders &quot;Medications&quot; button in collapsed state" duration="4" />
+    <testCase name="MedicationPanel — collapsed - expands when &quot;Medications&quot; button clicked" duration="3" />
+    <testCase name="MedicationPanel — loading and empty - shows &quot;Loading...&quot; when isLoading is true and expanded" duration="1" />
+    <testCase name="MedicationPanel — loading and empty - shows &quot;No medications added yet&quot; when data is empty and expanded" duration="1" />
+    <testCase name="MedicationPanel — medication list - shows medication name, dosage, and &quot;Low supply&quot; badge when supply_days_remaining &lt;= 7" duration="2" />
+    <testCase name="MedicationPanel — medication list - does NOT show &quot;Low supply&quot; badge when supply_days_remaining is 8+" duration="1" />
+    <testCase name="MedicationPanel — coordinator controls - shows &quot;+ Add medication&quot; button for coordinator" duration="1" />
+    <testCase name="MedicationPanel — coordinator controls - does NOT show &quot;+ Add medication&quot; button for supporter" duration="1" />
+    <testCase name="MedicationPanel — coordinator controls - calls deleteMutation.mutate when &quot;Remove&quot; clicked (coordinator only)" duration="2" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/OcrReviewPanel.test.tsx">
+    <testCase name="OcrReviewPanel — initial state - shows &quot;Scan label&quot; upload button initially" duration="10" />
+    <testCase name="OcrReviewPanel — initial state - shows &quot;No scans pending review&quot; empty state when no jobs" duration="6" />
+    <testCase name="OcrReviewPanel — initial state - shows loading state before data arrives" duration="2" />
+    <testCase name="OcrReviewPanel — review card - renders a pending review card with editable drug_name field" duration="24" />
+    <testCase name="OcrReviewPanel — review card - renders dosage and instructions fields" duration="8" />
+    <testCase name="OcrReviewPanel — confirm and discard - clicking &quot;Confirm&quot; calls authenticatedFetch to /api/ocr/confirm" duration="11" />
+    <testCase name="OcrReviewPanel — confirm and discard - clicking &quot;Discard&quot; calls authenticatedFetch to /api/ocr/discard" duration="6" />
+    <testCase name="OcrReviewPanel — confirm and discard - removes job from list after successful confirm" duration="5" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/OuterCirclePanel.test.tsx">
+    <testCase name="OuterCirclePanel — collapsed state - shows &quot;Volunteer requests&quot; collapsed button initially" duration="4" />
+    <testCase name="OuterCirclePanel — expanded empty state - expands and shows &quot;No volunteer requests&quot; when list is empty" duration="2" />
+    <testCase name="OuterCirclePanel — request list - shows request title and slot counts when data exists" duration="2" />
+    <testCase name="OuterCirclePanel — request list - calls deactivate.mutate when &quot;Deactivate&quot; button clicked (coordinator)" duration="2" />
+    <testCase name="OuterCirclePanel — coordinator vs supporter - shows &quot;+ New request&quot; button for coordinator" duration="1" />
+    <testCase name="OuterCirclePanel — coordinator vs supporter - renders nothing for supporter role" duration="0" />
+    <testCase name="OuterCirclePanel — coordinator vs supporter - renders nothing for caregiver role" duration="0" />
+    <testCase name="OuterCirclePanel — create form - shows the create form when &quot;+ New request&quot; is clicked" duration="9" />
+    <testCase name="OuterCirclePanel — create form - calls create mutation with form values on submit" duration="19" />
+    <testCase name="OuterCirclePanel — create form - does not call create when title is empty" duration="9" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/ShiftForm.test.tsx">
+    <testCase name="ShiftForm — collapsed - renders a &quot;+ Schedule a shift&quot; trigger button when collapsed" duration="9" />
+    <testCase name="ShiftForm — collapsed - expands the form when the trigger is clicked" duration="13" />
+    <testCase name="ShiftForm — assignee dropdown - shows caregivers and coordinators in the assignee dropdown" duration="6" />
+    <testCase name="ShiftForm — assignee dropdown - excludes supporters from the assignee dropdown" duration="5" />
+    <testCase name="ShiftForm — submit button - is disabled when no assignee is selected" duration="7" />
+    <testCase name="ShiftForm — submit button - is enabled once assignee and start time are filled" duration="17" />
+    <testCase name="ShiftForm — duration - hides end time input when a fixed duration is selected" duration="5" />
+    <testCase name="ShiftForm — duration - shows end time input when Custom duration is selected" duration="9" />
+    <testCase name="ShiftForm — submission - calls shifts.create with correctly computed start_at and end_at for fixed duration" duration="27" />
+    <testCase name="ShiftForm — submission - collapses the form and calls onSuccess after successful submit" duration="28" />
+    <testCase name="ShiftForm — submission - shows conflict error message when CONFLICT TRPCError is thrown" duration="29" />
+    <testCase name="ShiftForm — submission - shows generic error message for non-CONFLICT errors" duration="25" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/ShiftList.test.tsx">
+    <testCase name="ShiftList — empty state - renders &quot;No shifts scheduled&quot; when list is empty" duration="5" />
+    <testCase name="ShiftList — shift cards - renders shift cards with assignee names" duration="2" />
+    <testCase name="ShiftList — shift cards - shows notes when present" duration="2" />
+    <testCase name="ShiftList — Your shift label - shows &quot;Your shift&quot; for current user&apos;s shifts" duration="1" />
+    <testCase name="ShiftList — Your shift label - does not show &quot;Your shift&quot; for other user&apos;s shifts" duration="1" />
+    <testCase name="ShiftList — cancel button - shows cancel button for coordinator role" duration="2" />
+    <testCase name="ShiftList — cancel button - hides cancel button for caregiver role" duration="2" />
+    <testCase name="ShiftList — cancel button - hides cancel button for cancelled shifts" duration="1" />
+    <testCase name="ShiftList — cancel button - calls shifts.cancel.mutate with correct args when cancel is clicked" duration="2" />
+    <testCase name="ShiftList — week navigation - renders prev and next week buttons" duration="1" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/SymptomPanel.test.tsx">
+    <testCase name="SymptomPanel — collapsed state - shows collapsed &quot;Symptom readings&quot; button initially" duration="7" />
+    <testCase name="SymptomPanel — expanded empty state - expands and shows &quot;No readings recorded yet&quot; for empty data" duration="2" />
+    <testCase name="SymptomPanel — readings list - shows pain level and mood when data exists" duration="3" />
+    <testCase name="SymptomPanel — coordinator vs supporter - shows &quot;+ Log reading&quot; button for coordinator" duration="2" />
+    <testCase name="SymptomPanel — coordinator vs supporter - does not show &quot;+ Log reading&quot; button for supporter" duration="1" />
+    <testCase name="SymptomPanel — log form - shows log form with pain range input and mood pill buttons when &quot;+ Log reading&quot; clicked" duration="8" />
+    <testCase name="SymptomPanel — log form - calls symptoms.log.mutate on form submit with correct values" duration="17" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/__tests__/TeamPanel.test.tsx">
+    <testCase name="TeamPanel — member list - shows member display names" duration="6" />
+    <testCase name="TeamPanel — member list - shows role labels" duration="2" />
+    <testCase name="TeamPanel — member list - shows &quot;you&quot; label next to the current user" duration="1" />
+    <testCase name="TeamPanel — member list - does not show &quot;you&quot; label for other members" duration="1" />
+    <testCase name="TeamPanel — member list - shows &quot;No team members yet&quot; when members list is empty" duration="1" />
+    <testCase name="TeamPanel — member list - shows member count in header" duration="1" />
+    <testCase name="TeamPanel — member list - falls back to &quot;?&quot; avatar initial when email is null" duration="1" />
+    <testCase name="TeamPanel — invite button - hides invite button when canInvite is false" duration="1" />
+    <testCase name="TeamPanel — invite button - shows invite button when canInvite is true" duration="2" />
+    <testCase name="TeamPanel — invite button - calls onToggleInvite when invite button is clicked" duration="1" />
+    <testCase name="TeamPanel — invite button - shows &quot;Cancel&quot; label on invite button when form is open" duration="3" />
+    <testCase name="TeamPanel — invite form - shows invite form when showInvite is true" duration="2" />
+    <testCase name="TeamPanel — invite form - disables send button when email is empty" duration="2" />
+    <testCase name="TeamPanel — invite form - calls onInvite with email and role on submit" duration="5" />
+    <testCase name="TeamPanel — invite form - shows &quot;Sending...&quot; while the invite is in flight" duration="4" />
+    <testCase name="TeamPanel — invite form - resets email field after successful invite" duration="9" />
+  </file>
+  <file path="app/(app)/journal/[recipientId]/entry/[eventId]/__tests__/page.test.tsx">
+    <testCase name="EntryDetailClient - redirects to /journal/{recipientId} when event is not in list" duration="4" />
+    <testCase name="EntryDetailClient - renders event text when event is found" duration="3" />
+    <testCase name="EntryDetailClient - shows flag button for coordinator role" duration="2" />
+    <testCase name="EntryDetailClient - does not show flag button for supporter role" duration="10" />
+  </file>
+  <file path="app/(app)/subscriptions/__tests__/page.test.tsx">
+    <testCase name="SubscriptionsPage - renders page heading" duration="5" />
+    <testCase name="SubscriptionsPage - shows Family Plan name" duration="2" />
+    <testCase name="SubscriptionsPage - shows $14/mo price" duration="1" />
+    <testCase name="SubscriptionsPage - shows cancel subscription option" duration="1" />
+  </file>
+  <file path="app/(app)/team/admin/__tests__/page.test.tsx">
+    <testCase name="TeamAdminClient - renders page heading when members load" duration="13" />
+    <testCase name="TeamAdminClient - renders role badge for coordinator member" duration="2" />
+    <testCase name="TeamAdminClient - does not show Remove button for coordinator" duration="1" />
+  </file>
+  <file path="app/api/brief/[shareToken]/revoke/route.test.ts">
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 401 when not authenticated" duration="48" />
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 404 when brief not found" duration="55" />
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 200 when caller is the brief creator" duration="24" />
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 200 when caller is a coordinator (not the creator)" duration="12" />
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 403 when caller is neither creator nor coordinator" duration="3" />
+    <testCase name="POST /api/brief/[shareToken]/revoke - returns 500 when DB update fails" duration="5" />
+  </file>
+  <file path="app/api/brief/[shareToken]/route.test.ts">
+    <testCase name="GET /api/brief/[shareToken] - returns 404 when brief not found" duration="12" />
+    <testCase name="GET /api/brief/[shareToken] - returns 410 when brief is expired" duration="6" />
+    <testCase name="GET /api/brief/[shareToken] - returns 200 with brief content on success" duration="2" />
+    <testCase name="GET /api/brief/[shareToken] - does not expose the revoked field in the response" duration="2" />
+  </file>
+  <file path="app/api/brief/route.test.ts">
+    <testCase name="POST /api/brief - returns 401 when user not authenticated" duration="17" />
+    <testCase name="POST /api/brief - returns 400 when org_id is not a UUID" duration="15" />
+    <testCase name="POST /api/brief - returns 400 when recipient_id is not a UUID" duration="13" />
+    <testCase name="POST /api/brief - returns 403 when caller is not a coordinator" duration="10" />
+    <testCase name="POST /api/brief - returns 403 when membership not found" duration="5" />
+    <testCase name="POST /api/brief - returns 404 when care_recipient not found" duration="3" />
+    <testCase name="POST /api/brief - returns 200 with { share_token, id } on success" duration="7" />
+  </file>
+  <file path="app/api/contact/route.test.ts">
+    <testCase name="POST /api/contact - returns 400 when name is missing" duration="13" />
+    <testCase name="POST /api/contact - returns 400 when email is missing" duration="3" />
+    <testCase name="POST /api/contact - returns 400 when message is missing" duration="1" />
+    <testCase name="POST /api/contact - returns 400 when email is not a valid address" duration="1" />
+    <testCase name="POST /api/contact - returns 400 when fields exceed max lengths" duration="1" />
+    <testCase name="POST /api/contact - returns 413 when body exceeds 16KB" duration="1" />
+    <testCase name="POST /api/contact - returns 400 on invalid JSON" duration="1" />
+    <testCase name="POST /api/contact - returns 200 on valid submission" duration="1" />
+  </file>
+  <file path="app/api/documents/[documentId]/download/route.test.ts">
+    <testCase name="GET /api/documents/[documentId]/download — auth - returns 401 when no user" duration="13" />
+    <testCase name="GET /api/documents/[documentId]/download — not found - returns 404 when document does not exist" duration="2" />
+    <testCase name="GET /api/documents/[documentId]/download — role check - returns 404 when user is not an org member" duration="3" />
+    <testCase name="GET /api/documents/[documentId]/download — signed URL - redirects to signed URL when everything is valid" duration="3" />
+  </file>
+  <file path="app/api/documents/upload/route.test.ts">
+    <testCase name="POST /api/documents/upload — auth - returns 401 when no user" duration="12" />
+    <testCase name="POST /api/documents/upload — role check - returns 403 when user is not coordinator" duration="14" />
+    <testCase name="POST /api/documents/upload — validation - returns 400 when displayName is missing" duration="1" />
+  </file>
+  <file path="app/api/export/route.test.ts">
+    <testCase name="POST /api/export — auth - returns 401 when no user" duration="9" />
+    <testCase name="POST /api/export — validation - returns 400 for missing orgId" duration="5" />
+    <testCase name="POST /api/export — validation - returns 400 for invalid format value" duration="2" />
+    <testCase name="POST /api/export — validation - returns 400 for invalid since (non-ISO)" duration="4" />
+    <testCase name="POST /api/export — validation - returns 400 for missing recipientId" duration="1" />
+    <testCase name="POST /api/export — role - returns 403 when role is caregiver" duration="3" />
+    <testCase name="POST /api/export — role - returns 403 when membership is null (non-member)" duration="1" />
+    <testCase name="POST /api/export — role - returns 403 when coordinator has pending invite (accepted_at is null)" duration="2" />
+    <testCase name="POST /api/export — data fetching - returns 404 when care_recipient not found" duration="1" />
+    <testCase name="POST /api/export — data fetching - returns 404 when identity vault not found" duration="1" />
+    <testCase name="POST /api/export — JSON format - returns 200 application/json with correct top-level keys" duration="3" />
+    <testCase name="POST /api/export — JSON format - includes since in response body when provided" duration="2" />
+    <testCase name="POST /api/export — PDF format - returns 200 with application/pdf content-type" duration="60" />
+  </file>
+  <file path="app/api/journal/[eventId]/flag/route.test.ts">
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 400 for an invalid eventId" duration="40" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 400 when flagged field is missing" duration="1" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 404 when the event does not exist" duration="1" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 403 when caller has no membership" duration="2" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 403 when caller is a supporter" duration="4" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 200 and flags the entry for a caregiver" duration="2" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 200 and unflagged for a coordinator" duration="1" />
+    <testCase name="PATCH /api/journal/[eventId]/flag - returns 200 for an aide" duration="1" />
+  </file>
+  <file path="app/api/ocr/confirm/route.test.ts">
+    <testCase name="POST /api/ocr/confirm - returns 401 when not authenticated" duration="17" />
+    <testCase name="POST /api/ocr/confirm - returns 400 when jobId is not a UUID" duration="4" />
+    <testCase name="POST /api/ocr/confirm - returns 403 when caller is not a coordinator" duration="4" />
+    <testCase name="POST /api/ocr/confirm - returns 404 when job not found" duration="1" />
+    <testCase name="POST /api/ocr/confirm - returns 200 { ok: true } on success" duration="5" />
+  </file>
+  <file path="app/api/ocr/discard/route.test.ts">
+    <testCase name="POST /api/ocr/discard - returns 401 when not authenticated" duration="17" />
+    <testCase name="POST /api/ocr/discard - returns 400 when jobId missing" duration="5" />
+    <testCase name="POST /api/ocr/discard - returns 403 when caller is not a coordinator" duration="5" />
+    <testCase name="POST /api/ocr/discard - returns 500 when DB update fails" duration="5" />
+    <testCase name="POST /api/ocr/discard - returns 200 { ok: true } on success" duration="2" />
+  </file>
+  <file path="app/api/ocr/job/[jobId]/__tests__/route.test.ts">
+    <testCase name="GET /api/ocr/job/[jobId] - returns 401 when unauthenticated" duration="54" />
+    <testCase name="GET /api/ocr/job/[jobId] - returns 404 when job not found" duration="21" />
+    <testCase name="GET /api/ocr/job/[jobId] - returns job when found and owned by user" duration="5" />
+    <testCase name="GET /api/ocr/job/[jobId] - returns 403 when user does not own job" duration="1" />
+  </file>
+  <file path="app/api/ocr/review/route.test.ts">
+    <testCase name="GET /api/ocr/review - returns 401 when not authenticated" duration="13" />
+    <testCase name="GET /api/ocr/review - returns 400 when orgId missing from query" duration="67" />
+    <testCase name="GET /api/ocr/review - returns 403 when caller is not a coordinator" duration="4" />
+    <testCase name="GET /api/ocr/review - returns 200 with empty array when no pending reviews" duration="10" />
+    <testCase name="GET /api/ocr/review - returns 200 with jobs array on success" duration="8" />
+  </file>
+  <file path="app/api/ocr/save-fields/__tests__/route.test.ts">
+    <testCase name="POST /api/ocr/save-fields - returns 401 when unauthenticated" duration="15" />
+    <testCase name="POST /api/ocr/save-fields - returns 400 on invalid body" duration="4" />
+    <testCase name="POST /api/ocr/save-fields - returns 403 when user is not the uploader" duration="9" />
+    <testCase name="POST /api/ocr/save-fields - saves fields and returns ok" duration="3" />
+  </file>
+  <file path="app/api/ocr/upload/route.test.ts">
+    <testCase name="POST /api/ocr/upload - returns 401 when not authenticated" duration="58" />
+    <testCase name="POST /api/ocr/upload - returns 400 when file is missing" duration="4" />
+    <testCase name="POST /api/ocr/upload - returns 400 when orgId is not a valid UUID" duration="6" />
+    <testCase name="POST /api/ocr/upload - returns 403 when caller is not a coordinator" duration="8" />
+    <testCase name="POST /api/ocr/upload - returns 403 when recipient does not belong to org" duration="8" />
+    <testCase name="POST /api/ocr/upload - returns 500 when storage upload fails" duration="4" />
+    <testCase name="POST /api/ocr/upload - returns 200 with jobId on success" duration="3" />
+    <testCase name="POST /api/ocr/upload - does not call getPublicUrl and stores the storage path (not a public URL)" duration="5" />
+    <testCase name="POST /api/ocr/upload - ignores user-supplied filename — no path traversal in storage path" duration="2" />
+    <testCase name="POST /api/ocr/upload - rejects bytes that don&apos;t match the declared MIME (e.g. HTML posing as PNG)" duration="2" />
+    <testCase name="POST /api/ocr/upload - rejects unsupported MIME types" duration="1" />
+  </file>
+  <file path="app/api/outer-circle/[shareToken]/claim/route.test.ts">
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 400 when name is missing" duration="14" />
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 400 when email is missing" duration="1" />
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 404 when share_token not found" duration="1" />
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 410 when request is inactive" duration="1" />
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 409 when rpc returns slot_unavailable error" duration="10" />
+    <testCase name="POST /api/outer-circle/[shareToken]/claim - returns 200 { claimed: true } on success" duration="3" />
+  </file>
+  <file path="app/api/push/register/route.test.ts">
+    <testCase name="POST /api/push/register - returns 400 for invalid platform" duration="15" />
+    <testCase name="POST /api/push/register - returns 400 for missing token" duration="2" />
+    <testCase name="POST /api/push/register - returns 401 when unauthenticated" duration="1" />
+    <testCase name="POST /api/push/register - upserts token and returns 200" duration="4" />
+  </file>
   <file path="app/api/stripe/__tests__/checkout.test.ts">
-    <testCase name="POST /api/stripe/checkout - returns 401 without auth" duration="18" />
-    <testCase name="POST /api/stripe/checkout - returns 403 for non-coordinator" duration="1" />
-    <testCase name="POST /api/stripe/checkout - returns 400 if org already on paid plan" duration="0" />
-    <testCase name="POST /api/stripe/checkout - creates Stripe customer if none exists" duration="3" />
-    <testCase name="POST /api/stripe/checkout - reuses existing Stripe customer" duration="1" />
-    <testCase name="POST /api/stripe/checkout - returns checkout URL" duration="1" />
-    <testCase name="POST /api/stripe/checkout - uses monthly price for interval=month" duration="1" />
-    <testCase name="POST /api/stripe/checkout - uses annual price for interval=year" duration="0" />
-    <testCase name="POST /api/stripe/checkout - returns 400 for invalid input (missing orgId)" duration="0" />
-    <testCase name="POST /api/stripe/checkout - returns 400 for invalid input (bad interval)" duration="0" />
-    <testCase name="POST /api/stripe/checkout - ignores attacker-controlled Origin header when building redirect URLs" duration="0" />
-    <testCase name="POST /api/stripe/checkout - returns 404 when org not found" duration="0" />
+    <testCase name="POST /api/stripe/checkout - returns 401 without auth" duration="57" />
+    <testCase name="POST /api/stripe/checkout - returns 403 for non-coordinator" duration="53" />
+    <testCase name="POST /api/stripe/checkout - returns 400 if org already on paid plan" duration="5" />
+    <testCase name="POST /api/stripe/checkout - creates Stripe customer if none exists" duration="20" />
+    <testCase name="POST /api/stripe/checkout - reuses existing Stripe customer" duration="5" />
+    <testCase name="POST /api/stripe/checkout - returns checkout URL" duration="4" />
+    <testCase name="POST /api/stripe/checkout - uses monthly price for interval=month" duration="4" />
+    <testCase name="POST /api/stripe/checkout - uses annual price for interval=year" duration="5" />
+    <testCase name="POST /api/stripe/checkout - returns 400 for invalid input (missing orgId)" duration="2" />
+    <testCase name="POST /api/stripe/checkout - returns 400 for invalid input (bad interval)" duration="2" />
+    <testCase name="POST /api/stripe/checkout - ignores attacker-controlled Origin header when building redirect URLs" duration="4" />
+    <testCase name="POST /api/stripe/checkout - returns 404 when org not found" duration="6" />
   </file>
   <file path="app/api/stripe/__tests__/portal.test.ts">
-    <testCase name="POST /api/stripe/portal - returns 401 without auth" duration="17" />
-    <testCase name="POST /api/stripe/portal - returns 400 for invalid input (missing orgId)" duration="1" />
-    <testCase name="POST /api/stripe/portal - returns 403 for non-coordinator" duration="0" />
-    <testCase name="POST /api/stripe/portal - returns 400 if org has no stripe_id" duration="0" />
-    <testCase name="POST /api/stripe/portal - returns portal URL" duration="2" />
+    <testCase name="POST /api/stripe/portal - returns 401 without auth" duration="121" />
+    <testCase name="POST /api/stripe/portal - returns 400 for invalid input (missing orgId)" duration="11" />
+    <testCase name="POST /api/stripe/portal - returns 403 for non-coordinator" duration="2" />
+    <testCase name="POST /api/stripe/portal - returns 400 if org has no stripe_id" duration="2" />
+    <testCase name="POST /api/stripe/portal - returns portal URL" duration="18" />
   </file>
   <file path="app/api/stripe/__tests__/verify.test.ts">
-    <testCase name="GET /api/stripe/verify - returns 401 when user not authenticated" duration="12" />
-    <testCase name="GET /api/stripe/verify - returns 400 when session_id query param is missing" duration="0" />
-    <testCase name="GET /api/stripe/verify - returns 403 when user is not a member of the org in session metadata" duration="0" />
-    <testCase name="GET /api/stripe/verify - returns payment status and interval on success" duration="1" />
-    <testCase name="GET /api/stripe/verify - returns default interval &apos;month&apos; when metadata.interval is missing" duration="0" />
-    <testCase name="GET /api/stripe/verify - returns 404 when Stripe session not found" duration="0" />
+    <testCase name="GET /api/stripe/verify - returns 401 when user not authenticated" duration="44" />
+    <testCase name="GET /api/stripe/verify - returns 400 when session_id query param is missing" duration="5" />
+    <testCase name="GET /api/stripe/verify - returns 403 when user is not a member of the org in session metadata" duration="19" />
+    <testCase name="GET /api/stripe/verify - returns payment status and interval on success" duration="3" />
+    <testCase name="GET /api/stripe/verify - returns default interval &apos;month&apos; when metadata.interval is missing" duration="1" />
+    <testCase name="GET /api/stripe/verify - returns 404 when Stripe session not found" duration="1" />
   </file>
   <file path="app/api/stripe/__tests__/webhook.test.ts">
-    <testCase name="POST /api/stripe/webhook - rejects invalid signature" duration="17" />
-    <testCase name="POST /api/stripe/webhook - checkout.session.completed updates org to family plan" duration="3" />
-    <testCase name="POST /api/stripe/webhook - customer.subscription.deleted resets org to free" duration="0" />
-    <testCase name="POST /api/stripe/webhook - invoice.payment_failed returns 200 without DB change" duration="0" />
-    <testCase name="POST /api/stripe/webhook - unknown event returns 200" duration="0" />
-    <testCase name="POST /api/stripe/webhook - checkout.session.completed with no orgId in metadata does nothing" duration="0" />
-    <testCase name="POST /api/stripe/webhook - customer.subscription.deleted when org lookup returns null does nothing" duration="0" />
+    <testCase name="POST /api/stripe/webhook - rejects invalid signature" duration="43" />
+    <testCase name="POST /api/stripe/webhook - checkout.session.completed updates org to family plan" duration="8" />
+    <testCase name="POST /api/stripe/webhook - customer.subscription.deleted resets org to free" duration="27" />
+    <testCase name="POST /api/stripe/webhook - invoice.payment_failed returns 200 without DB change" duration="24" />
+    <testCase name="POST /api/stripe/webhook - unknown event returns 200" duration="7" />
+    <testCase name="POST /api/stripe/webhook - checkout.session.completed with no orgId in metadata does nothing" duration="12" />
+    <testCase name="POST /api/stripe/webhook - customer.subscription.deleted when org lookup returns null does nothing" duration="2" />
+  </file>
+  <file path="app/invite/[token]/__tests__/InvitePage.flow.test.tsx">
+    <testCase name="InvitePage - shows invite details when token is valid" duration="29" />
+    <testCase name="InvitePage - calls POST accept when accept button is clicked" duration="43" />
+    <testCase name="InvitePage - shows &apos;joined the team&apos; after successful acceptance" duration="42" />
+    <testCase name="InvitePage - shows error state for invalid or expired token" duration="23" />
+  </file>
+  <file path="app/onboarding/__tests__/OnboardingForm.flow.test.tsx">
+    <testCase name="OnboardingForm - renders recipient name and org name fields" duration="16" />
+    <testCase name="OnboardingForm - calls authenticatedFetch with correct body on submit" duration="57" />
+    <testCase name="OnboardingForm - redirects to /dashboard on success" duration="56" />
+    <testCase name="OnboardingForm - shows error message on API error response" duration="9" />
+  </file>
+  <file path="app/signin/__tests__/SignInForm.flow.test.tsx">
+    <testCase name="SignInForm - renders email input and Continue with email button" duration="4" />
+    <testCase name="SignInForm - shows OTP step after submitting email" duration="13" />
+    <testCase name="SignInForm - calls router.replace with /dashboard on valid OTP" duration="60" />
+    <testCase name="SignInForm - shows error message on wrong OTP" duration="8" />
+    <testCase name="SignInForm - button is disabled while submitting email" duration="4" />
+    <testCase name="SignInForm - shows error when supabase returns error on email submit" duration="3" />
+  </file>
+  <file path="components/__tests__/ErrorBoundary.test.tsx">
+    <testCase name="ErrorBoundary - renders children when no error occurs" duration="2" />
+    <testCase name="ErrorBoundary - renders fallback UI when child throws" duration="3" />
+    <testCase name="ErrorBoundary - does not render the throwing child&apos;s content" duration="1" />
+  </file>
+  <file path="components/app/__tests__/AppTabBar.test.tsx">
+    <testCase name="AppTabBar — inside team context - renders all tab labels" duration="9" />
+    <testCase name="AppTabBar — inside team context - marks the active tab with aria-selected based on URL" duration="2" />
+    <testCase name="AppTabBar — inside team context - calls router.push with correct URL when a tab is clicked" duration="2" />
+    <testCase name="AppTabBar — inside team context - renders user initials in avatar" duration="2" />
+    <testCase name="AppTabBar — outside team context (dashboard) - does not render tab buttons on the dashboard" duration="1" />
+    <testCase name="AppTabBar — outside team context (dashboard) - still renders the user avatar" duration="1" />
+  </file>
+  <file path="components/marketing/__tests__/ContactForm.test.tsx">
+    <testCase name="ContactForm - renders all form fields" duration="3" />
+    <testCase name="ContactForm - shows success message after submit" duration="6" />
+  </file>
+  <file path="components/marketing/__tests__/HeroSection.test.tsx">
+    <testCase name="HeroSection - renders the main headline" duration="4" />
+    <testCase name="HeroSection - renders primary CTA with correct href" duration="2" />
+    <testCase name="HeroSection - marks floating cards as decorative" duration="1" />
+  </file>
+  <file path="components/marketing/__tests__/MarketingNav.test.tsx">
+    <testCase name="MarketingNav - renders Carelog logo text" duration="3" />
+    <testCase name="MarketingNav - renders all nav links" duration="2" />
+    <testCase name="MarketingNav - renders sign in CTA" duration="2" />
+  </file>
+  <file path="components/marketing/__tests__/PricingCards.test.tsx">
+    <testCase name="PricingCards - renders both plan tiers" duration="5" />
+    <testCase name="PricingCards - shows the $14/mo price by default (monthly)" duration="2" />
+    <testCase name="PricingCards - switches to annual price when Annual toggle clicked" duration="4" />
+    <testCase name="PricingCards - marks family plan as most popular" duration="2" />
+    <testCase name="PricingCards - Subscribe button stores pendingPlan in sessionStorage and navigates to /signin" duration="3" />
+    <testCase name="PricingCards - Subscribe with annual interval stores correct interval" duration="3" />
+    <testCase name="PricingCards - Free tier Get started links to /signin" duration="2" />
+  </file>
+  <file path="components/sidebar/__tests__/SidebarContext.test.tsx">
+    <testCase name="SidebarContext - reads the URL &quot;?panel=&quot; param as the source of truth" duration="2" />
+    <testCase name="SidebarContext - falls back to &quot;journal&quot; when no panel param is set" duration="1" />
+    <testCase name="SidebarContext - writes to the URL via router.replace when setActiveDestination is called" duration="1" />
+  </file>
+  <file path="components/sidebar/__tests__/SidebarNav.test.tsx">
+    <testCase name="SidebarNav - renders all 6 nav items" duration="3" />
+    <testCase name="SidebarNav - marks the active destination with aria-current" duration="1" />
+    <testCase name="SidebarNav - calls setActiveDestination when a nav item is clicked" duration="1" />
+    <testCase name="SidebarNav - calls onNavigate prop (no args) when a nav item is clicked" duration="1" />
+  </file>
+  <file path="components/sidebar/__tests__/SidebarRail.test.tsx">
+    <testCase name="SidebarRail - renders with sidebar-rail testid" duration="4" />
+    <testCase name="SidebarRail - is hidden on mobile and visible on md+" duration="1" />
+  </file>
+  <file path="components/sidebar/__tests__/SidebarSheet.test.tsx">
+    <testCase name="SidebarSheet - renders a trigger button with accessible name &quot;Menu&quot;" duration="10" />
+    <testCase name="SidebarSheet - opens the sheet and shows &quot;Carelog&quot; when the trigger is clicked" duration="40" />
+  </file>
+  <file path="components/ui/__tests__/RoleBadge.test.tsx">
+    <testCase name="RoleBadge - renders coordinator with violet style" duration="3" />
+    <testCase name="RoleBadge - renders caregiver with amber style" duration="1" />
+    <testCase name="RoleBadge - renders supporter with gray style" duration="1" />
+    <testCase name="RoleBadge - renders aide with slate style" duration="0" />
+  </file>
+  <file path="inngest/__tests__/pushNotification.test.ts">
+    <testCase name="sendPushToUser - sends push to user token" duration="6" />
+    <testCase name="sendPushToUser - no-ops when user has no push token" duration="1" />
+  </file>
+  <file path="inngest/functions/__tests__/burnoutAlert.test.ts">
+    <testCase name="detectBurnoutRisk - returns user_id when stress_score &gt;= 4 for 2 consecutive weeks" duration="30" />
+    <testCase name="detectBurnoutRisk - does NOT flag user with only 1 high-stress week" duration="1" />
+    <testCase name="detectBurnoutRisk - does NOT flag user with stress_score of exactly 3 (threshold is &gt;= 4)" duration="0" />
+    <testCase name="detectBurnoutRisk - resets streak when a low-stress week breaks the run" duration="0" />
+    <testCase name="detectBurnoutRisk - handles multiple users independently" duration="0" />
+    <testCase name="detectBurnoutRisk - returns empty array for empty input" duration="0" />
+    <testCase name="detectBurnoutRisk - flags at streak of exactly 2 (boundary condition)" duration="0" />
+  </file>
+  <file path="inngest/functions/__tests__/gapDetector.test.ts">
+    <testCase name="detectGaps - returns empty array when all windows are covered" duration="5" />
+    <testCase name="detectGaps - returns gap when no shifts exist" duration="1" />
+    <testCase name="detectGaps - ignores windows for other days of week" duration="0" />
+    <testCase name="detectGaps - ignores cancelled shifts when checking coverage" duration="0" />
+    <testCase name="detectGaps - partial overlap counts as covered" duration="0" />
+    <testCase name="detectGaps - shift before window does not count as coverage" duration="0" />
+    <testCase name="detectGaps - handles multiple windows, detects only uncovered ones" duration="0" />
+  </file>
+  <file path="inngest/functions/__tests__/journalFlagAlert.test.ts">
+    <testCase name="handleFlagAlert - calls sendPushToOrgCoordinators with correct args" duration="4" />
+    <testCase name="journalFlaggedEventSchema (R2-014) - accepts valid event payload" duration="2" />
+    <testCase name="journalFlaggedEventSchema (R2-014) - rejects non-UUID orgId (forged event)" duration="1" />
+    <testCase name="journalFlaggedEventSchema (R2-014) - rejects missing recipientId" duration="1" />
+    <testCase name="journalFlaggedEventSchema (R2-014) - rejects unknown extra keys (strict)" duration="1" />
+  </file>
+  <file path="inngest/functions/__tests__/ocrDocument.test.ts">
+    <testCase name="ocrDocumentCreatedEventSchema (R2-014) - accepts a valid jobId UUID" duration="5" />
+    <testCase name="ocrDocumentCreatedEventSchema (R2-014) - rejects non-UUID jobId (forged event)" duration="2" />
+    <testCase name="ocrDocumentCreatedEventSchema (R2-014) - rejects unknown extra keys (strict)" duration="1" />
+    <testCase name="classifyDocument - detects lab result" duration="0" />
+    <testCase name="classifyDocument - detects bill" duration="0" />
+    <testCase name="classifyDocument - detects appointment summary" duration="1" />
+    <testCase name="classifyDocument - detects pharmacy receipt" duration="0" />
+    <testCase name="classifyDocument - falls back to bill for unrecognized text" duration="0" />
+    <testCase name="extractFields - returns an array of OcrField objects" duration="2" />
+    <testCase name="extractFields - marks short values as high confidence" duration="0" />
+  </file>
+  <file path="inngest/functions/__tests__/ocrPrescription.test.ts">
+    <testCase name="ocrJobCreatedEventSchema (R2-014) - accepts a valid jobId UUID" duration="9" />
+    <testCase name="ocrJobCreatedEventSchema (R2-014) - rejects non-UUID jobId (forged event)" duration="4" />
+    <testCase name="ocrJobCreatedEventSchema (R2-014) - rejects missing jobId" duration="1" />
+    <testCase name="ocrJobCreatedEventSchema (R2-014) - rejects unknown extra keys (strict)" duration="1" />
+    <testCase name="parseOcrText - extracts drug name from the first line" duration="1" />
+    <testCase name="parseOcrText - extracts dosage in mg" duration="0" />
+    <testCase name="parseOcrText - extracts instructions containing &quot;take&quot;" duration="0" />
+    <testCase name="parseOcrText - handles mcg dosage units" duration="0" />
+    <testCase name="parseOcrText - returns null dosage when no dosage found" duration="0" />
+    <testCase name="parseOcrText - returns null instructions when no instruction keywords found" duration="0" />
+    <testCase name="parseOcrText - returns Unknown for empty first line" duration="0" />
+    <testCase name="parseOcrText - strips dosage from drug_name" duration="0" />
+    <testCase name="parseOcrText - matches &quot;daily&quot; instruction pattern" duration="0" />
+    <testCase name="parseOcrText - matches &quot;with food&quot; instruction pattern" duration="1" />
+  </file>
+  <file path="inngest/functions/__tests__/refillAlert.test.ts">
+    <testCase name="detectLowSupply - returns medications with supply_days_remaining &lt;= 7" duration="3" />
+    <testCase name="detectLowSupply - returns empty array when all medications have sufficient supply" duration="0" />
+    <testCase name="detectLowSupply - returns empty array for empty input" duration="0" />
+    <testCase name="detectLowSupply - includes medications with exactly 7 days remaining" duration="0" />
+    <testCase name="detectLowSupply - excludes medications with exactly 8 days remaining" duration="0" />
+  </file>
+  <file path="inngest/functions/__tests__/weeklyDigest.shifts.test.ts">
+    <testCase name="digestHtml — shifts section - includes shift section when shifts exist" duration="67" />
+    <testCase name="digestHtml — shifts section - omits shift section when no shifts" duration="2" />
+  </file>
+  <file path="lib/__tests__/benefitsEligibility.test.ts">
+    <testCase name="eligibility — no matches - returns empty array when no criteria match" duration="3" />
+    <testCase name="eligibility — Medicare Part D Extra Help - matches when age65plus + lowIncome + medicareEnrolled" duration="1" />
+    <testCase name="eligibility — Medicare Part D Extra Help - does NOT match when not on Medicare" duration="0" />
+    <testCase name="eligibility — Medicaid HCBS Waiver - matches when age65plus + lowIncome (Medicaid-eligible)" duration="0" />
+    <testCase name="eligibility — Medicaid HCBS Waiver - does NOT match when income is not low" duration="0" />
+    <testCase name="eligibility — VA Aid &amp; Attendance - matches when veteran + age65plus" duration="0" />
+    <testCase name="eligibility — VA Aid &amp; Attendance - does NOT match non-veteran" duration="0" />
+    <testCase name="eligibility — PACE Program - matches when age65plus + medicaidEnrolled" duration="0" />
+    <testCase name="eligibility — PACE Program - does NOT match without Medicaid" duration="0" />
+    <testCase name="eligibility — SHIP Counseling - matches when age65plus (always available to seniors)" duration="0" />
+    <testCase name="eligibility — SHIP Counseling - does NOT match for non-seniors" duration="1" />
+    <testCase name="eligibility — result shape - each result has key, name, description, applyUrl" duration="1" />
+  </file>
+  <file path="lib/__tests__/fileMagic.test.ts">
+    <testCase name="sniffMime - detects JPEG" duration="2" />
+    <testCase name="sniffMime - detects PNG" duration="0" />
+    <testCase name="sniffMime - detects PDF" duration="0" />
+    <testCase name="sniffMime - detects HEIC (ftyp+heic)" duration="0" />
+    <testCase name="sniffMime - returns null for unknown / text disguised as png" duration="0" />
+    <testCase name="mimeMatches - accepts exact matches" duration="0" />
+    <testCase name="mimeMatches - accepts heic&lt;-&gt;heif equivalence" duration="0" />
+    <testCase name="mimeMatches - rejects declared png when bytes are jpeg" duration="0" />
+    <testCase name="mimeMatches - rejects when sniff returned null" duration="0" />
+  </file>
+  <file path="lib/__tests__/proxy.test.ts">
+    <testCase name="proxy middleware - exports a `proxy` function and a matcher config" duration="175" />
+    <testCase name="proxy middleware - calls supabase.auth.getUser() so sessions are refreshed per request" duration="2" />
+  </file>
+  <file path="lib/__tests__/rateLimit.test.ts">
+    <testCase name="getClientIp - prefers x-real-ip over x-forwarded-for" duration="3" />
+    <testCase name="getClientIp - returns the last x-forwarded-for entry when no x-real-ip" duration="0" />
+    <testCase name="getClientIp - handles a single x-forwarded-for entry" duration="0" />
+    <testCase name="getClientIp - returns unknown when neither header is present" duration="0" />
+    <testCase name="rateLimit fail-closed behavior - no-ops in dev when Upstash env vars are missing" duration="2" />
+    <testCase name="rateLimit fail-closed behavior - returns 503 in production when Upstash env vars are missing (fail-closed)" duration="11" />
+    <testCase name="rateLimit fail-closed behavior - returns 503 when VERCEL_ENV=production and creds missing" duration="2" />
+  </file>
+  <file path="server/repositories/__tests__/membershipsRepository.test.ts">
+    <testCase name="acceptInvite state machine - throws &quot;Invalid invite token&quot; when no invite is found" duration="9" />
+    <testCase name="acceptInvite state machine - throws when the token has already been consumed" duration="4" />
+    <testCase name="acceptInvite state machine - throws when the token has expired" duration="5" />
+    <testCase name="acceptInvite state machine - throws when the accepting user email does not match" duration="0" />
+    <testCase name="acceptInvite state machine - accepts when invite email has different casing than accepting user" duration="1" />
+    <testCase name="acceptInvite state machine - resolves and fires both updates on the happy path" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/benefits.logic.test.ts">
+    <testCase name="benefits.screen — business logic - returns { ok: true } when insert succeeds" duration="10" />
+    <testCase name="benefits.screen — business logic - inserts with created_by: ctx.user.id" duration="6" />
+    <testCase name="benefits.screen — business logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="5" />
+    <testCase name="benefits.latest — business logic - returns most recent screening when one exists" duration="1" />
+    <testCase name="benefits.latest — business logic - returns null when no screening exists (PGRST116)" duration="1" />
+    <testCase name="benefits.latest — business logic - throws INTERNAL_SERVER_ERROR when DB read fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/burnout.logic.test.ts">
+    <testCase name="burnout.checkIn — logic - upserts a check-in and returns { upserted: true }" duration="8" />
+    <testCase name="burnout.checkIn — logic - uses upsert with onConflict user_id,week_stamp" duration="5" />
+    <testCase name="burnout.checkIn — logic - throws INTERNAL_SERVER_ERROR when upsert fails" duration="2" />
+    <testCase name="burnout.myHistory — logic - returns check-ins for the authenticated user" duration="1" />
+    <testCase name="burnout.myHistory — logic - returns empty array when no history exists" duration="1" />
+    <testCase name="burnout.myHistory — logic - throws INTERNAL_SERVER_ERROR on query error" duration="1" />
+    <testCase name="burnout.orgSummary — logic - aggregates check-ins by week and returns averages" duration="2" />
+    <testCase name="burnout.orgSummary — logic - suppresses weeks with fewer than 3 check-ins (de-anonymization guard)" duration="1" />
+    <testCase name="burnout.orgSummary — logic - returns empty array when no check-ins exist" duration="1" />
+    <testCase name="burnout.orgSummary — logic - throws INTERNAL_SERVER_ERROR when query fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/burnoutRouter.security.test.ts">
+    <testCase name="burnout.checkIn — authorization - throws FORBIDDEN when input.user_id !== ctx.user.id" duration="11" />
+    <testCase name="burnout.checkIn — authorization - succeeds when user_id matches ctx.user.id" duration="3" />
+    <testCase name="burnout.orgSummary — authorization - throws FORBIDDEN for non-coordinator" duration="1" />
+    <testCase name="burnout.orgSummary — authorization - throws FORBIDDEN when membership is null" duration="1" />
+    <testCase name="burnout.orgSummary — authorization - returns aggregated data for coordinator (minimum 3 check-ins per week to prevent de-anonymization)" duration="3" />
+    <testCase name="burnout.myHistory — user isolation - returns only the current user rows (filtered by ctx.user.id)" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/careEvents.logic.test.ts">
+    <testCase name="careEvents.timeline — argument passing - passes recipientId, eventType, limit, and before to getTimeline and returns result" duration="8" />
+    <testCase name="careEvents.timeline — argument passing - passes default limit of 50 when limit is not specified" duration="11" />
+    <testCase name="careEvents.insert — argument passing - calls insertEvent with correct args including actorId from ctx.user.id" duration="1" />
+    <testCase name="careEvents.insert — argument passing - calls insertEventIdempotent (not insertEvent) when idempotencyKey is provided" duration="1" />
+    <testCase name="careEvents.insert — argument passing - throws FORBIDDEN when recipient does not belong to org" duration="12" />
+    <testCase name="careEvents.flagged — argument passing - calls getFlaggedEvents with recipientId and returns result" duration="1" />
+    <testCase name="careEvents.getOne — return value and error handling - returns event data from supabase on success" duration="1" />
+    <testCase name="careEvents.getOne — return value and error handling - throws NOT_FOUND when event does not exist" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/careEvents.reactions.test.ts">
+    <testCase name="careEvents.react - calls upsert on journal_reactions with correct args" duration="11" />
+    <testCase name="careEvents.react - throws INTERNAL_SERVER_ERROR on supabase error" duration="8" />
+    <testCase name="careEvents.unreact - calls delete with correct event_id and user_id filters" duration="3" />
+    <testCase name="careEvents.reactions - returns correct counts and myReaction when user has reacted" duration="1" />
+    <testCase name="careEvents.reactions - returns null myReaction when user has not reacted" duration="1" />
+    <testCase name="careEvents.reactions - returns empty counts when no reactions exist" duration="1" />
+    <testCase name="careEvents.flag - allows coordinator to flag without throwing" duration="2" />
+    <testCase name="careEvents.flag - throws FORBIDDEN for non-coordinator" duration="1" />
+    <testCase name="careEvents.flag - throws NOT_FOUND for missing event" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/careEventsRouter.security.test.ts">
+    <testCase name="careEvents.insert — org/recipient consistency check - throws FORBIDDEN when recipient is not found in the specified org" duration="10" />
+    <testCase name="careEvents.insert — org/recipient consistency check - throws FORBIDDEN when supabase returns an error on recipient lookup" duration="1" />
+    <testCase name="careEvents.insert — org/recipient consistency check - does not call insertEvent when recipient check fails" duration="1" />
+    <testCase name="careEvents.insert — org/recipient consistency check - calls insertEvent when recipient belongs to org" duration="3" />
+    <testCase name="careEvents.insert — org/recipient consistency check - queries care_recipients with both recipientId and orgId" duration="2" />
+    <testCase name="careEvents.insert — org/recipient consistency check - calls insertEventIdempotent (not insertEvent) when idempotencyKey is provided" duration="2" />
+    <testCase name="careEvents.getOne — authorization - throws NOT_FOUND when supabase returns an error" duration="1" />
+    <testCase name="careEvents.getOne — authorization - throws NOT_FOUND when event data is null" duration="1" />
+    <testCase name="careEvents.getOne — authorization - returns event data on success" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/coverageWindows.logic.test.ts">
+    <testCase name="coverageWindows.list — logic - returns empty array when no windows exist" duration="5" />
+    <testCase name="coverageWindows.list — logic - returns windows ordered by day_of_week" duration="2" />
+    <testCase name="coverageWindows.list — logic - throws INTERNAL_SERVER_ERROR on supabase error" duration="5" />
+    <testCase name="coverageWindows.list — logic - rejects invalid org_id (not UUID)" duration="21" />
+    <testCase name="coverageWindows.create — logic - creates a coverage window as coordinator" duration="7" />
+    <testCase name="coverageWindows.create — logic - throws FORBIDDEN when user is not a coordinator" duration="1" />
+    <testCase name="coverageWindows.create — logic - throws FORBIDDEN when membership not found" duration="1" />
+    <testCase name="coverageWindows.create — logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="1" />
+    <testCase name="coverageWindows.create — logic - rejects ends_at before starts_at (schema validation)" duration="1" />
+    <testCase name="coverageWindows.create — logic - rejects invalid HH:MM format" duration="1" />
+    <testCase name="coverageWindows.create — logic - rejects day_of_week out of range" duration="1" />
+    <testCase name="coverageWindows.delete — logic - deletes a coverage window as coordinator" duration="1" />
+    <testCase name="coverageWindows.delete — logic - throws FORBIDDEN when user is not a coordinator" duration="1" />
+    <testCase name="coverageWindows.delete — logic - throws INTERNAL_SERVER_ERROR when delete fails" duration="1" />
+    <testCase name="coverageWindows.delete — logic - rejects non-UUID id" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/coverageWindowsRouter.security.test.ts">
+    <testCase name="coverageWindows.create — authorization - throws UNAUTHORIZED when no user in context" duration="6" />
+    <testCase name="coverageWindows.create — authorization - throws FORBIDDEN when caller is not a coordinator" duration="15" />
+    <testCase name="coverageWindows.create — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="1" />
+    <testCase name="coverageWindows.delete — authorization - throws UNAUTHORIZED when no user in context" duration="0" />
+    <testCase name="coverageWindows.delete — authorization - throws FORBIDDEN when caller is not a coordinator" duration="1" />
+    <testCase name="coverageWindows.list — authentication - throws UNAUTHORIZED when no user in context" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/documents.logic.test.ts">
+    <testCase name="documents.list — business logic - returns documents for the given recipient" duration="9" />
+    <testCase name="documents.list — business logic - returns empty array when no documents exist" duration="1" />
+    <testCase name="documents.list — business logic - throws INTERNAL_SERVER_ERROR when DB read fails" duration="3" />
+    <testCase name="documents.delete — business logic - deletes storage object before removing DB row" duration="10" />
+    <testCase name="documents.delete — business logic - throws NOT_FOUND when doc fetch returns no data" duration="1" />
+    <testCase name="documents.delete — business logic - throws INTERNAL_SERVER_ERROR when DB delete fails" duration="5" />
+  </file>
+  <file path="server/routers/__tests__/documentsRouter.security.test.ts">
+    <testCase name="documents.list — authentication - throws UNAUTHORIZED when no user in context" duration="11" />
+    <testCase name="documents.list — authorization - returns documents for any authenticated org member" duration="3" />
+    <testCase name="documents.list — authorization - throws FORBIDDEN when caller is not an org member" duration="1" />
+    <testCase name="documents.list — authorization - supporter role can list documents" duration="1" />
+    <testCase name="documents.delete — authentication - throws UNAUTHORIZED when no user in context" duration="2" />
+    <testCase name="documents.delete — authorization - throws FORBIDDEN when role is caregiver" duration="2" />
+    <testCase name="documents.delete — authorization - throws FORBIDDEN when role is supporter" duration="1" />
+    <testCase name="documents.delete — authorization - throws FORBIDDEN when caller is not an org member" duration="2" />
+    <testCase name="documents.delete — authorization - throws NOT_FOUND when doc does not belong to org" duration="1" />
+    <testCase name="documents.delete — authorization - deletes storage object and DB row when coordinator" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/eolPlan.logic.test.ts">
+    <testCase name="eolPlan.get — business logic - returns plan data when it exists" duration="5" />
+    <testCase name="eolPlan.get — business logic - returns null when no plan exists (PGRST116)" duration="1" />
+    <testCase name="eolPlan.get — business logic - throws INTERNAL_SERVER_ERROR when DB returns a non-PGRST116 error" duration="2" />
+    <testCase name="eolPlan.upsert — business logic - returns { ok: true } when upsert succeeds" duration="4" />
+    <testCase name="eolPlan.upsert — business logic - sends created_by: ctx.user.id in the upsert payload" duration="3" />
+    <testCase name="eolPlan.upsert — business logic - throws INTERNAL_SERVER_ERROR when upsert fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/eolPlanRouter.security.test.ts">
+    <testCase name="eolPlan.get — authentication - throws UNAUTHORIZED when no user in context" duration="9" />
+    <testCase name="eolPlan.get — coordinator-only access - throws FORBIDDEN when role is caregiver" duration="3" />
+    <testCase name="eolPlan.get — coordinator-only access - throws FORBIDDEN when role is supporter" duration="1" />
+    <testCase name="eolPlan.get — coordinator-only access - throws FORBIDDEN when caller is not an org member" duration="1" />
+    <testCase name="eolPlan.get — coordinator-only access - returns null when coordinator but no plan exists (PGRST116)" duration="1" />
+    <testCase name="eolPlan.get — coordinator-only access - returns plan data when coordinator and plan exists" duration="1" />
+    <testCase name="eolPlan.upsert — authentication - throws UNAUTHORIZED when no user in context" duration="0" />
+    <testCase name="eolPlan.upsert — coordinator-only access - throws FORBIDDEN when role is caregiver" duration="1" />
+    <testCase name="eolPlan.upsert — coordinator-only access - throws FORBIDDEN when role is supporter" duration="1" />
+    <testCase name="eolPlan.upsert — IDOR prevention - throws FORBIDDEN when recipient_id does not belong to org_id" duration="2" />
+    <testCase name="eolPlan.upsert — IDOR prevention - succeeds when coordinator and recipient belongs to org" duration="10" />
+  </file>
+  <file path="server/routers/__tests__/expenses.logic.test.ts">
+    <testCase name="expenses.list — business logic - returns expenses for the org/recipient" duration="7" />
+    <testCase name="expenses.list — business logic - returns empty array when no expenses exist" duration="1" />
+    <testCase name="expenses.list — business logic - applies since filter when provided" duration="2" />
+    <testCase name="expenses.list — business logic - throws INTERNAL_SERVER_ERROR when DB read fails" duration="5" />
+    <testCase name="expenses.create — business logic - inserts expense with logged_by set to ctx.user.id" duration="4" />
+    <testCase name="expenses.create — business logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="3" />
+    <testCase name="expenses.delete — business logic - removes expense by id and org_id, returns ok" duration="1" />
+    <testCase name="expenses.delete — business logic - throws INTERNAL_SERVER_ERROR when delete fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/expensesRouter.security.test.ts">
+    <testCase name="expenses.list — authorization - throws FORBIDDEN when user is not a member (membership returns null)" duration="9" />
+    <testCase name="expenses.list — authorization - returns data when user is a member (any role)" duration="3" />
+    <testCase name="expenses.create — role enforcement - allows coordinator to create" duration="2" />
+    <testCase name="expenses.create — role enforcement - allows caregiver to create" duration="1" />
+    <testCase name="expenses.create — role enforcement - blocks supporter from creating" duration="3" />
+    <testCase name="expenses.delete — role enforcement - allows coordinator to delete" duration="3" />
+    <testCase name="expenses.delete — role enforcement - blocks caregiver from deleting" duration="1" />
+    <testCase name="expenses.delete — role enforcement - blocks non-member from deleting" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/inputSchemas.test.ts">
+    <testCase name="protectedProcedure — unauthorized - rejects unauthenticated calls to careEvents.timeline" duration="7" />
+    <testCase name="protectedProcedure — unauthorized - rejects unauthenticated calls to memberships.list" duration="1" />
+    <testCase name="careEvents.timeline input validation - rejects a non-uuid recipientId" duration="4" />
+    <testCase name="careEvents.timeline input validation - rejects limit = 0 (below minimum)" duration="1" />
+    <testCase name="careEvents.timeline input validation - rejects limit = 101 (above maximum)" duration="1" />
+    <testCase name="careEvents.flagged input validation - rejects a non-uuid recipientId" duration="1" />
+    <testCase name="memberships.invite input validation - rejects a non-uuid orgId" duration="1" />
+    <testCase name="memberships.invite input validation - rejects an invalid email" duration="1" />
+    <testCase name="memberships.invite input validation - rejects an invalid role" duration="3" />
+    <testCase name="memberships.accept input validation - rejects a token that is too short" duration="1" />
+    <testCase name="memberships.accept input validation - rejects a token that is too long" duration="1" />
+    <testCase name="organizations.get input validation - rejects a non-uuid orgId" duration="0" />
+    <testCase name="organizations.create input validation - rejects empty orgName" duration="0" />
+    <testCase name="organizations.create input validation - rejects orgName over 100 characters" duration="0" />
+    <testCase name="organizations.create input validation - rejects empty recipientName" duration="0" />
+  </file>
+  <file path="server/routers/__tests__/medications.dedup.test.ts">
+    <testCase name="medications.logAdministration dedup pattern - returns existing event when duplicate within 30-min window" duration="5" />
+    <testCase name="medications.logAdministration dedup pattern - returns null when no duplicate exists" duration="5" />
+  </file>
+  <file path="server/routers/__tests__/medications.logic.test.ts">
+    <testCase name="medications.list — logic - returns empty array when no medications exist" duration="10" />
+    <testCase name="medications.list — logic - returns medications filtered by org_id and recipient_id" duration="3" />
+    <testCase name="medications.list — logic - throws INTERNAL_SERVER_ERROR on supabase error" duration="7" />
+    <testCase name="medications.create — logic - inserts medication and returns created record" duration="7" />
+    <testCase name="medications.create — logic - sets scan_source to &quot;manual&quot; and active to true" duration="1" />
+    <testCase name="medications.create — logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="1" />
+    <testCase name="medications.update — logic - updates medication and returns updated record" duration="1" />
+    <testCase name="medications.update — logic - throws INTERNAL_SERVER_ERROR when update fails" duration="1" />
+    <testCase name="medications.delete — logic - soft-deletes medication by setting active=false and returns success" duration="15" />
+    <testCase name="medications.delete — logic - throws INTERNAL_SERVER_ERROR when delete fails" duration="5" />
+    <testCase name="medications.logAdministration — logic - inserts a care event with event_type=medication and returns it" duration="11" />
+    <testCase name="medications.logAdministration — logic - returns existing event without inserting when duplicate within 30-min window" duration="1" />
+    <testCase name="medications.logAdministration — logic - throws INTERNAL_SERVER_ERROR when care_events insert fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/medicationsRouter.security.test.ts">
+    <testCase name="medications.create — authorization - throws UNAUTHORIZED when no user in context" duration="5" />
+    <testCase name="medications.create — authorization - throws FORBIDDEN when caller is caregiver" duration="25" />
+    <testCase name="medications.create — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="1" />
+    <testCase name="medications.update — authorization - throws UNAUTHORIZED when no user in context" duration="1" />
+    <testCase name="medications.update — authorization - throws FORBIDDEN when caller is caregiver" duration="14" />
+    <testCase name="medications.update — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="3" />
+    <testCase name="medications.delete — authorization - throws UNAUTHORIZED when no user in context" duration="1" />
+    <testCase name="medications.delete — authorization - throws FORBIDDEN when caller is caregiver" duration="1" />
+    <testCase name="medications.delete — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="2" />
+    <testCase name="medications.logAdministration — authorization - throws UNAUTHORIZED when no user in context" duration="1" />
+    <testCase name="medications.logAdministration — authorization - throws FORBIDDEN when caller has supporter role" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/memberships.logic.test.ts">
+    <testCase name="memberships.list — logic - returns memberships for an org" duration="7" />
+    <testCase name="memberships.list — logic - returns empty array when no memberships exist" duration="1" />
+    <testCase name="memberships.list — logic - filters by recipientId when provided" duration="1" />
+    <testCase name="memberships.list — logic - rejects invalid orgId (not UUID)" duration="5" />
+    <testCase name="memberships.invite — logic - creates invite as coordinator and returns membershipId + inviteUrl" duration="2" />
+    <testCase name="memberships.invite — logic - throws FORBIDDEN when user is not a coordinator" duration="2" />
+    <testCase name="memberships.invite — logic - throws FORBIDDEN when membership not found" duration="1" />
+    <testCase name="memberships.invite — logic - throws FORBIDDEN when membership has no accepted_at" duration="1" />
+    <testCase name="memberships.invite — logic - rejects invalid email" duration="1" />
+    <testCase name="memberships.invite — logic - rejects invalid role" duration="16" />
+    <testCase name="memberships.invite — logic - accepts null recipientId" duration="3" />
+    <testCase name="memberships.accept — logic - accepts a valid invite token" duration="8" />
+    <testCase name="memberships.accept — logic - throws INTERNAL_SERVER_ERROR on rpc error" duration="32" />
+    <testCase name="memberships.accept — logic - throws FORBIDDEN when invite not found" duration="1" />
+    <testCase name="memberships.accept — logic - throws FORBIDDEN when email mismatches" duration="1" />
+    <testCase name="memberships.accept — logic - throws CONFLICT when invite already used" duration="0" />
+    <testCase name="memberships.accept — logic - throws INTERNAL_SERVER_ERROR on unknown rpc error" duration="2" />
+    <testCase name="memberships.accept — logic - rejects token shorter than 64 chars" duration="2" />
+    <testCase name="memberships.accept — logic - rejects token longer than 64 chars" duration="8" />
+  </file>
+  <file path="server/routers/__tests__/membershipsRouter.security.test.ts">
+    <testCase name="memberships.invite — coordinator authorization - throws FORBIDDEN when caller has no membership in org" duration="6" />
+    <testCase name="memberships.invite — coordinator authorization - throws FORBIDDEN when caller role is caregiver" duration="12" />
+    <testCase name="memberships.invite — coordinator authorization - throws FORBIDDEN when caller role is supporter" duration="1" />
+    <testCase name="memberships.invite — coordinator authorization - throws FORBIDDEN when caller is coordinator but invite not yet accepted" duration="1" />
+    <testCase name="memberships.invite — coordinator authorization - succeeds and returns inviteUrl when caller is accepted coordinator" duration="1" />
+    <testCase name="memberships.accept — RPC error mapping - throws FORBIDDEN when RPC returns not_found" duration="1" />
+    <testCase name="memberships.accept — RPC error mapping - throws FORBIDDEN when RPC returns email_mismatch" duration="1" />
+    <testCase name="memberships.accept — RPC error mapping - throws CONFLICT when RPC returns already_used" duration="2" />
+    <testCase name="memberships.accept — RPC error mapping - throws INTERNAL_SERVER_ERROR on Supabase transport error" duration="7" />
+    <testCase name="memberships.accept — RPC error mapping - returns { success: true } on happy path" duration="1" />
+    <testCase name="memberships.accept — RPC error mapping - calls accept_invite RPC with correct params" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/organizations.logic.test.ts">
+    <testCase name="organizations.list — logic - returns orgs for the current user" duration="7" />
+    <testCase name="organizations.list — logic - returns empty array when user has no orgs" duration="0" />
+    <testCase name="organizations.get — logic - returns an org by id" duration="6" />
+    <testCase name="organizations.get — logic - returns null when org not found" duration="1" />
+    <testCase name="organizations.get — logic - rejects invalid orgId (not UUID)" duration="3" />
+    <testCase name="organizations.create — logic - creates org, recipient, and coordinator membership" duration="17" />
+    <testCase name="organizations.create — logic - uses default orgType=family when not specified" duration="1" />
+    <testCase name="organizations.create — logic - throws when recipient creation fails" duration="15" />
+    <testCase name="organizations.create — logic - throws when membership creation fails" duration="3" />
+    <testCase name="organizations.create — logic - rejects empty orgName" duration="1" />
+    <testCase name="organizations.create — logic - rejects orgName exceeding 100 chars" duration="1" />
+    <testCase name="organizations.create — logic - rejects invalid orgType" duration="1" />
+    <testCase name="organizations.create — logic - creates without recipientDob (optional field)" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/organizationsRouter.security.test.ts">
+    <testCase name="organizations.list — authentication - throws UNAUTHORIZED when no user in context" duration="4" />
+    <testCase name="organizations.list — authentication - returns only orgs the user belongs to (delegates to repository)" duration="3" />
+    <testCase name="organizations.get — authentication - throws UNAUTHORIZED when no user in context" duration="1" />
+    <testCase name="organizations.get — authentication - returns org when found (delegates to repository)" duration="2" />
+  </file>
+  <file path="server/routers/__tests__/outerCircle.logic.test.ts">
+    <testCase name="outerCircle.create — business logic - returns the inserted row on success" duration="8" />
+    <testCase name="outerCircle.create — business logic - sets created_by: ctx.user.id in the insert payload" duration="3" />
+    <testCase name="outerCircle.create — business logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="6" />
+    <testCase name="outerCircle.list — business logic - returns active requests via ctx.supabase" duration="1" />
+    <testCase name="outerCircle.list — business logic - returns empty array when no requests exist" duration="1" />
+    <testCase name="outerCircle.list — business logic - throws INTERNAL_SERVER_ERROR when ctx.supabase read fails" duration="1" />
+    <testCase name="outerCircle.deactivate — business logic - returns the updated row with active: false" duration="1" />
+    <testCase name="outerCircle.deactivate — business logic - throws INTERNAL_SERVER_ERROR when update fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/outerCircleRouter.security.test.ts">
+    <testCase name="outerCircle.create — authorization - throws UNAUTHORIZED when no user in context" duration="8" />
+    <testCase name="outerCircle.create — authorization - throws FORBIDDEN when caller is caregiver" duration="5" />
+    <testCase name="outerCircle.create — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="1" />
+    <testCase name="outerCircle.deactivate — authorization - throws UNAUTHORIZED when no user in context" duration="0" />
+    <testCase name="outerCircle.deactivate — authorization - throws FORBIDDEN when caller is caregiver" duration="1" />
+    <testCase name="outerCircle.list — authorization - throws UNAUTHORIZED when no user in context" duration="0" />
+    <testCase name="outerCircle.list — authorization - returns data for authenticated user" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/shifts.logic.test.ts">
+    <testCase name="shifts.list — logic - returns empty array when no shifts exist" duration="6" />
+    <testCase name="shifts.list — logic - returns shifts within date range" duration="2" />
+    <testCase name="shifts.list — logic - throws INTERNAL_SERVER_ERROR on supabase error" duration="22" />
+    <testCase name="shifts.create (single) — logic - creates a single shift with status=scheduled" duration="16" />
+    <testCase name="shifts.create (single) — logic - throws CONFLICT when assignee has overlapping shift" duration="6" />
+    <testCase name="shifts.create (single) — logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="1" />
+    <testCase name="shifts.create (recurring) — logic - bulk-inserts N shifts for a recurring series" duration="19" />
+    <testCase name="shifts.update — logic - updates shift status and returns updated record" duration="34" />
+    <testCase name="shifts.update — logic - throws INTERNAL_SERVER_ERROR when update fails" duration="4" />
+  </file>
+  <file path="server/routers/__tests__/shiftsRouter.security.test.ts">
+    <testCase name="shifts.cancel — authorization - throws UNAUTHORIZED when no user in context" duration="5" />
+    <testCase name="shifts.cancel — authorization - throws FORBIDDEN when caller has no membership" duration="2" />
+    <testCase name="shifts.cancel — authorization - throws FORBIDDEN when caller is caregiver" duration="5" />
+    <testCase name="shifts.cancel — authorization - throws FORBIDDEN when caller is supporter" duration="1" />
+    <testCase name="shifts.cancel — authorization - throws FORBIDDEN when coordinator invite not yet accepted" duration="1" />
+    <testCase name="shifts.create — authorization - throws UNAUTHORIZED when no user in context" duration="1" />
+    <testCase name="shifts.create — authorization - throws FORBIDDEN when caller is not a coordinator" duration="2" />
+    <testCase name="shifts.update — authorization - throws UNAUTHORIZED when no user in context" duration="0" />
+    <testCase name="shifts.update — authorization - throws FORBIDDEN when caller is supporter" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/symptoms.logic.test.ts">
+    <testCase name="symptoms.list — business logic - returns readings for the given recipient in descending order" duration="20" />
+    <testCase name="symptoms.list — business logic - returns empty array when no readings exist" duration="5" />
+    <testCase name="symptoms.list — business logic - throws INTERNAL_SERVER_ERROR when DB read fails" duration="11" />
+    <testCase name="symptoms.log — business logic - inserts a reading with logged_by set to ctx.user.id" duration="12" />
+    <testCase name="symptoms.log — business logic - returns ok without inserting when duplicate within 30-min window" duration="1" />
+    <testCase name="symptoms.log — business logic - throws INTERNAL_SERVER_ERROR when insert fails" duration="1" />
+  </file>
+  <file path="server/routers/__tests__/symptomsRouter.security.test.ts">
+    <testCase name="symptoms.list — any org member can read - returns data for any authenticated org member" duration="5" />
+    <testCase name="symptoms.list — any org member can read - throws FORBIDDEN when caller is not an org member" duration="6" />
+    <testCase name="symptoms.log — authorization - throws FORBIDDEN when role is supporter" duration="2" />
+    <testCase name="symptoms.log — authorization - succeeds when role is coordinator" duration="15" />
+    <testCase name="symptoms.log — authorization - succeeds when role is caregiver" duration="5" />
   </file>
 </testExecutions>

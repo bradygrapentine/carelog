@@ -1,5 +1,7 @@
 # Phase 6 Mobile — Missing Screens + Test Coverage Implementation Plan
 
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add 4 missing mobile screens (outer circle, care brief, benefits, EOL planner), wire them into the More tab, and write Jest test skeletons for all screens currently missing coverage.
