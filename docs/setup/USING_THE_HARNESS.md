@@ -34,7 +34,7 @@ The most important decision is which system handles the work.
 
 ```
 Is the task mechanical? (rename, format, <50 lines, single file, known pattern)
-  → Continue.dev, or /ollama for bulk/parallel mechanical work
+  → /ollama for bulk/parallel mechanical work
 
 Is the task multi-file or architectural?
   → Claude Code (interactive session)
@@ -50,14 +50,9 @@ Is it a security or design review?
 - Multi-file architecture and RLS/schema changes
 - Plugin orchestration and skill invocation
 - UI component design
-- Writing plans for Continue.dev handoff
+- Writing plans for ollama handoff
 - Any task requiring judgment across the full codebase
 
-### Continue.dev handles:
-- Autocomplete and inline edits (<50 lines)
-- Single-file refactors
-- Writing tests to a known pattern
-- Known-error debugging
 
 ### Parallel subagents + `/ollama` handle:
 - 3+ independent subtasks that can run in parallel
@@ -77,7 +72,7 @@ Skills are loaded via the `Skill` tool before responding. If a skill might apply
 |-------|-------------|
 | `test` | Writing any pgTAP, Vitest, or Playwright tests |
 | `review` | Adversarial security review (parallel subagents) |
-| `plan-with-tests` | Building a Continue.dev handoff plan (use instead of writing-plans) |
+| `plan-with-tests` | Building a test-first handoff plan for a Sonnet subagent or `/ollama` (use instead of writing-plans) |
 | `ollama` | Dispatching mechanical/parallel subtasks to local models |
 | `superpowers:writing-plans` | Building a superpowers-style plan for subagent execution |
 | `superpowers:brainstorming` | Starting any new feature — before touching code |
@@ -121,15 +116,15 @@ Parallel subagents via `superpowers:dispatching-parallel-agents` are the primary
 
 ## The plan-with-tests Workflow
 
-For any multi-step feature handed off to Continue.dev:
+For any multi-step feature handed off to a subordinate agent (Sonnet subagent via `Task`, or `/ollama` per file):
 
 1. Invoke `plan-with-tests` skill
 2. Read the spec/task
 3. Write minimal failing tests for each step's flows (happy path, error cases, auth boundaries)
 4. Run `pnpm test` to confirm tests **fail** before committing
-5. Commit the failing tests: Continue.dev starts with a red suite
+5. Commit the failing tests so the subordinate agent starts with a red suite
 6. Generate the JSON plan with `description`, `files`, `verify`, and `do_not` for each step
-7. Paste the JSON plan + handoff prompt into Continue.dev
+7. Dispatch: pass the JSON plan + handoff prompt to a Sonnet subagent via the `Task` tool (moderate multi-file work) or to `/ollama` per file (mechanical work). Opus stays as orchestrator
 
 The `verify.passes_when` strings must exactly match test names as they appear in Vitest output.
 
@@ -191,7 +186,7 @@ When approaching the context limit:
 ### Self-check signals (from CLAUDE.md)
 - Response likely >400 tokens → use JSON instead of prose
 - Reading a 3rd file in a row for analysis → switch to `ctx_execute_file`
-- Task is purely mechanical → route to Continue.dev or `/ollama`
+- Task is purely mechanical → route to ollama agents
 - Approaching session end → run `/compact`, save key decisions to memory
 
 ---
@@ -199,7 +194,7 @@ When approaching the context limit:
 ## Token Discipline
 
 - **Response cap: ≤350 tokens** unless the user asks for more
-- Implementation tasks: output a plan, then "→ Implement in Continue.dev"
+- Implementation tasks: output a plan, then "→ Implement via Sonnet subagent or `/ollama`"
 - Use JSON over prose when responses would be long
 - Never restate what the user said — act on it
 
@@ -283,7 +278,7 @@ See `.claude/skills/worktree-subagents/SKILL.md` for the full pattern with exact
 ## Quick Reference
 
 ```
-New feature idea                  → superpowers:brainstorming → plan-with-tests → Continue.dev
+New feature idea                  → superpowers:brainstorming → plan-with-tests → Sonnet subagent (Task) or /ollama
 Failing tests (batch)             → /ollama with fix prompt per file
 Security audit                    → /review skill (parallel subagents)
 Design review / challenge         → /review skill

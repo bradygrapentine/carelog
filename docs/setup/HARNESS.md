@@ -15,7 +15,7 @@
 |-------|------|---------|
 | `test` | `.claude/skills/test/SKILL.md` | pgTAP fixtures, Vitest patterns, Playwright helpers, Zod rules |
 | `review` | `.claude/skills/review/SKILL.md` | Adversarial security review — PHI leakage, IDOR, RLS, invite TOCTOU |
-| `plan-with-tests` | `.claude/skills/plan-with-tests/SKILL.md` | Continue.dev handoff plans with TDD verify steps |
+| `plan-with-tests` | `.claude/skills/plan-with-tests/SKILL.md` | ollama handoff plans with TDD verify steps |
 | `worktree-subagents` | `.claude/skills/worktree-subagents/SKILL.md` | Parallel subagents with isolated file state via git worktrees |
 | `ollama` | `.claude/skills/ollama/SKILL.md` | Dispatch parallel tasks to local Ollama models |
 | `expo` | `.claude/skills/expo/SKILL.md` | Expo/React Native patterns for `apps/mobile/` — navigation, auth, styling, tRPC, testing |

@@ -9,8 +9,8 @@
 | Multiple independent failures                                   | Parallel subagents via `superpowers:dispatching-parallel-agents`; prefer `/ollama` per file  |
 | Cross-layer work (auth change affecting mobile + web + backend) | Parallel Agent tool calls in one session                                                     |
 | Research / codebase exploration                                 | Spawn an `Explore` subagent (or `/ollama`) to protect main context                           |
-| Mechanical edits (<50 lines, single file, known pattern)        | Continue.dev handoff or `/ollama`                                                            |
-| Multi-file implementation with tests                            | Claude Code + `plan-with-tests` skill → Continue.dev handoff                                 |
+| Mechanical edits (<50 lines, single file, known pattern)        | `/ollama`                                                            |
+| Multi-file implementation with tests                            | Claude Code + `plan-with-tests` skill → Sonnet subagent (`Task` tool) or `/ollama` per-file |
 
 ## Parallel Agent tool calls
 
@@ -25,12 +25,6 @@ Example: auth refactor touching three layers
 - Agent 3: "Update the API routes in apps/web/app/api/..."
 
 All three run in parallel. Synthesize their results back in the main session.
-
-## Continue.dev handoff
-
-Route to Continue.dev when the task is mechanical: autocomplete, inline edits (<50 lines), single-file refactors, known-error debugging, writing tests to a known pattern.
-
-Use the `plan-with-tests` skill to generate a JSON handoff plan with TDD verify steps. Commit failing tests first — Continue.dev must start with a red suite.
 
 ## Session limit prevention
 
