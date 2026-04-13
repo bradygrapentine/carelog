@@ -33,6 +33,12 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Pour energy into the plan → 1-shot implementation
 - When something goes sideways, re-plan — don't keep pushing
 
+## Branch Hygiene
+
+- Always verify current branch with `git branch --show-current` before any commit
+- When dispatching subagents, explicitly pass the target branch name and instruct them to verify it before committing
+- Never commit directly to main/master without confirmation
+
 ## Parallel Work
 
 - Subagents only for genuinely independent tasks (different files, no shared state)
@@ -151,10 +157,21 @@ Run Claude non-interactively for automated QA:
 - When asked to perform a 'review' or 'adversarial review': ONLY read and analyze code. Do NOT edit files or make implementation changes unless explicitly asked to fix issues afterward.
 - When the user confirms 'Yes' or similar affirmation: treat it as confirmation of the previously proposed action — not as answering a question.
 
+## Adversarial Reviews
+
+- When asked for a review, DO NOT edit files — produce review output only
+- If Codex CLI fails (rate limit, empty output), report immediately rather than retrying silently
+- Suppress Codex Stop hook on markdown-only changes
+
 ## General Rules
 
 - When instructed to read docs or follow a specific document: read those files FIRST before exploring the codebase. Do not autonomously explore code when directed to consult documentation.
 - Do not present option menus or ask clarifying questions when the user has given a clear, specific request. Execute directly. If the request names specific deliverables (e.g., 'create three runbooks'), produce them without stalling.
+
+## Task Execution
+
+- When the user requests specific named deliverables (e.g., "create these 3 runbooks"), produce them directly without option menus or clarifying questions unless truly blocked
+- Read referenced docs FIRST before exploring the codebase
 
 ## Self-Improvement
 
