@@ -75,12 +75,10 @@ describe("EolPlanner — role gating", () => {
   });
 });
 
-describe("EolPlanner — collapsed state", () => {
-  it('shows "End-of-life plan" button', () => {
+describe("EolPlanner — renders expanded by default", () => {
+  it('shows "End-of-life plan" header', () => {
     renderPlanner();
-    expect(
-      screen.getByRole("button", { name: /end-of-life plan/i }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText(/end-of-life plan/i).length).toBeGreaterThan(0);
   });
 
   it("shows coordinator-only badge", () => {
@@ -89,10 +87,9 @@ describe("EolPlanner — collapsed state", () => {
   });
 });
 
-describe("EolPlanner — expanded, no plan", () => {
+describe("EolPlanner — no plan", () => {
   it('shows "Create plan" button when no plan exists', () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     expect(
       screen.getByRole("button", { name: /create plan/i }),
     ).toBeInTheDocument();
@@ -100,7 +97,6 @@ describe("EolPlanner — expanded, no plan", () => {
 
   it("shows edit form after clicking Create plan", () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     fireEvent.click(screen.getByRole("button", { name: /create plan/i }));
     expect(
       screen.getByRole("button", { name: /save plan/i }),
@@ -111,26 +107,23 @@ describe("EolPlanner — expanded, no plan", () => {
   });
 });
 
-describe("EolPlanner — expanded, plan exists", () => {
+describe("EolPlanner — plan exists", () => {
   beforeEach(() => {
     mockGetUseQuery.mockReturnValue({ data: samplePlan, isLoading: false });
   });
 
   it("shows healthcare proxy value", () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     expect(screen.getByText("Jane Smith - 555-0199")).toBeInTheDocument();
   });
 
   it("shows resuscitation preference label", () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     expect(screen.getByText(/do not resuscitate/i)).toBeInTheDocument();
   });
 
   it('shows "Edit plan" button', () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     expect(
       screen.getByRole("button", { name: /edit plan/i }),
     ).toBeInTheDocument();
@@ -158,7 +151,6 @@ describe("EolPlanner — advance directive documents", () => {
 
   it("shows only advance_directive documents", () => {
     renderPlanner();
-    fireEvent.click(screen.getByRole("button", { name: /end-of-life plan/i }));
     expect(screen.getByText("Living Will →")).toBeInTheDocument();
     expect(screen.queryByText("Insurance Card →")).toBeNull();
   });

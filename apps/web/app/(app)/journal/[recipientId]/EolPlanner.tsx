@@ -36,7 +36,6 @@ const RESUS_OPTS = [
 
 export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
   // Hooks must be called unconditionally — role guard applied after
-  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,12 +44,12 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
 
   const { data: plan, isLoading: planLoading } = trpc.eolPlan.get.useQuery(
     { org_id: orgId, recipient_id: recipientId },
-    { enabled: open && currentUserRole === "coordinator" },
+    { enabled: currentUserRole === "coordinator" },
   );
 
   const { data: allDocs = [] } = trpc.documents.list.useQuery(
     { org_id: orgId, recipient_id: recipientId },
-    { enabled: open && currentUserRole === "coordinator" },
+    { enabled: currentUserRole === "coordinator" },
   );
 
   const upsertMutation = trpc.eolPlan.upsert.useMutation({
@@ -99,18 +98,9 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
     });
   }
 
-  const chevronClass =
-    "w-4 h-4 text-muted-foreground transition-transform " +
-    (open ? "rotate-180" : "");
-
   return (
     <Card className="border-red-50">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full px-4 py-3 flex items-center justify-between text-left"
-        aria-expanded={open}
-      >
+      <div className="w-full px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground/80">
             End-of-life plan
@@ -119,257 +109,242 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
             Coordinator only
           </span>
         </div>
-        <svg
-          className={chevronClass}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+      </div>
 
-      {open && (
-        <div className="px-4 pb-4 border-t border-border space-y-4">
-          {planLoading && (
-            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
-          )}
+      <div className="px-4 pb-4 border-t border-border space-y-4">
+        {planLoading && (
+          <p className="text-sm text-muted-foreground pt-3">Loading...</p>
+        )}
 
-          {!planLoading && !editing && (
-            <>
-              {!plan ? (
-                <div className="pt-3">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    No end-of-life plan on file yet. Create one to document
-                    wishes, preferences, and key contacts.
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => setEditing(true)}
-                  >
-                    Create plan
-                  </Button>
-                </div>
-              ) : (
-                <div className="pt-3 space-y-3">
-                  {saved && (
-                    <p className="text-xs text-emerald-600">
-                      Saved. The team will never see this until you share it.
-                    </p>
-                  )}
-                  <dl className="space-y-2 text-sm">
-                    {plan.healthcare_proxy && (
-                      <div>
-                        <dt className="text-xs font-medium text-muted-foreground">
-                          Healthcare proxy
-                        </dt>
-                        <dd className="text-foreground/80">
-                          {plan.healthcare_proxy}
-                        </dd>
-                      </div>
-                    )}
-                    {plan.resuscitation_pref && (
-                      <div>
-                        <dt className="text-xs font-medium text-muted-foreground">
-                          Resuscitation preference
-                        </dt>
-                        <dd className="text-foreground/80">
-                          {RESUS_OPTS.find(
-                            (o) => o.value === plan.resuscitation_pref,
-                          )?.label ?? plan.resuscitation_pref}
-                        </dd>
-                      </div>
-                    )}
-                    {plan.funeral_pref && (
-                      <div>
-                        <dt className="text-xs font-medium text-muted-foreground">
-                          Funeral preferences
-                        </dt>
-                        <dd className="text-foreground/80">
-                          {plan.funeral_pref}
-                        </dd>
-                      </div>
-                    )}
-                    {plan.legacy_message && (
-                      <div>
-                        <dt className="text-xs font-medium text-muted-foreground">
-                          Legacy message
-                        </dt>
-                        <dd className="text-foreground/80 whitespace-pre-wrap">
-                          {plan.legacy_message}
-                        </dd>
-                      </div>
-                    )}
-                    {(plan.attorney_name || plan.attorney_contact) && (
-                      <div>
-                        <dt className="text-xs font-medium text-muted-foreground">
-                          Attorney
-                        </dt>
-                        <dd className="text-foreground/80">
-                          {[plan.attorney_name, plan.attorney_contact]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-
-                  {advanceDocs.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">
-                        Advance directives on file
-                      </p>
-                      <ul className="space-y-1">
-                        {advanceDocs.map((doc) => {
-                          const href = "/api/documents/" + doc.id + "/download";
-                          const label = doc.display_name + " →";
-                          return (
-                            <li key={doc.id}>
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-primary hover:underline"
-                              >
-                                {label}
-                              </a>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
-                  >
-                    Edit plan
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-
-          {!planLoading && editing && (
-            <form onSubmit={handleSubmit} className="pt-3 space-y-3">
-              {error && (
-                <p className="text-xs text-[var(--color-danger)]">{error}</p>
-              )}
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Healthcare proxy (name + contact)
-                </label>
-                <Input
-                  name="healthcare_proxy"
-                  type="text"
-                  defaultValue={plan?.healthcare_proxy ?? ""}
-                  placeholder="e.g. Jane Smith — 555-0199"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="resuscitation_pref"
-                  className="block text-xs font-medium text-muted-foreground mb-1"
-                >
-                  Resuscitation preference
-                </label>
-                <select
-                  id="resuscitation_pref"
-                  name="resuscitation_pref"
-                  defaultValue={plan?.resuscitation_pref ?? ""}
-                  className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
-                >
-                  <option value="">Not specified</option>
-                  {RESUS_OPTS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Funeral preferences
-                </label>
-                <Textarea
-                  name="funeral_pref"
-                  defaultValue={plan?.funeral_pref ?? ""}
-                  rows={2}
-                  placeholder="Cremation, burial location, service preferences..."
-                  className="resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Legacy message to the family
-                </label>
-                <Textarea
-                  name="legacy_message"
-                  defaultValue={plan?.legacy_message ?? ""}
-                  rows={3}
-                  placeholder="A personal message..."
-                  className="resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Attorney name
-                </label>
-                <Input
-                  name="attorney_name"
-                  type="text"
-                  defaultValue={plan?.attorney_name ?? ""}
-                  placeholder="Attorney name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Attorney contact
-                </label>
-                <Input
-                  name="attorney_contact"
-                  type="text"
-                  defaultValue={plan?.attorney_contact ?? ""}
-                  placeholder="Email or phone"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  disabled={upsertMutation.isPending}
-                  className="flex-1"
-                  size="sm"
-                >
-                  {upsertMutation.isPending ? "Saving..." : "Save plan"}
-                </Button>
+        {!planLoading && !editing && (
+          <>
+            {!plan ? (
+              <div className="pt-3">
+                <p className="text-sm text-muted-foreground mb-3">
+                  No end-of-life plan on file yet. Create one to document
+                  wishes, preferences, and key contacts.
+                </p>
                 <Button
                   type="button"
-                  variant="outline"
                   size="sm"
-                  onClick={() => setEditing(false)}
+                  onClick={() => setEditing(true)}
                 >
-                  Cancel
+                  Create plan
                 </Button>
               </div>
-            </form>
-          )}
-        </div>
-      )}
+            ) : (
+              <div className="pt-3 space-y-3">
+                {saved && (
+                  <p className="text-xs text-emerald-600">
+                    Saved. The team will never see this until you share it.
+                  </p>
+                )}
+                <dl className="space-y-2 text-sm">
+                  {plan.healthcare_proxy && (
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Healthcare proxy
+                      </dt>
+                      <dd className="text-foreground/80">
+                        {plan.healthcare_proxy}
+                      </dd>
+                    </div>
+                  )}
+                  {plan.resuscitation_pref && (
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Resuscitation preference
+                      </dt>
+                      <dd className="text-foreground/80">
+                        {RESUS_OPTS.find(
+                          (o) => o.value === plan.resuscitation_pref,
+                        )?.label ?? plan.resuscitation_pref}
+                      </dd>
+                    </div>
+                  )}
+                  {plan.funeral_pref && (
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Funeral preferences
+                      </dt>
+                      <dd className="text-foreground/80">
+                        {plan.funeral_pref}
+                      </dd>
+                    </div>
+                  )}
+                  {plan.legacy_message && (
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Legacy message
+                      </dt>
+                      <dd className="text-foreground/80 whitespace-pre-wrap">
+                        {plan.legacy_message}
+                      </dd>
+                    </div>
+                  )}
+                  {(plan.attorney_name || plan.attorney_contact) && (
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Attorney
+                      </dt>
+                      <dd className="text-foreground/80">
+                        {[plan.attorney_name, plan.attorney_contact]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+
+                {advanceDocs.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      Advance directives on file
+                    </p>
+                    <ul className="space-y-1">
+                      {advanceDocs.map((doc) => {
+                        const href = "/api/documents/" + doc.id + "/download";
+                        const label = doc.display_name + " →";
+                        return (
+                          <li key={doc.id}>
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline"
+                            >
+                              {label}
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
+                >
+                  Edit plan
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {!planLoading && editing && (
+          <form onSubmit={handleSubmit} className="pt-3 space-y-3">
+            {error && (
+              <p className="text-xs text-[var(--color-danger)]">{error}</p>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Healthcare proxy (name + contact)
+              </label>
+              <Input
+                name="healthcare_proxy"
+                type="text"
+                defaultValue={plan?.healthcare_proxy ?? ""}
+                placeholder="e.g. Jane Smith — 555-0199"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="resuscitation_pref"
+                className="block text-xs font-medium text-muted-foreground mb-1"
+              >
+                Resuscitation preference
+              </label>
+              <select
+                id="resuscitation_pref"
+                name="resuscitation_pref"
+                defaultValue={plan?.resuscitation_pref ?? ""}
+                className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
+              >
+                <option value="">Not specified</option>
+                {RESUS_OPTS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Funeral preferences
+              </label>
+              <Textarea
+                name="funeral_pref"
+                defaultValue={plan?.funeral_pref ?? ""}
+                rows={2}
+                placeholder="Cremation, burial location, service preferences..."
+                className="resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Legacy message to the family
+              </label>
+              <Textarea
+                name="legacy_message"
+                defaultValue={plan?.legacy_message ?? ""}
+                rows={3}
+                placeholder="A personal message..."
+                className="resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Attorney name
+              </label>
+              <Input
+                name="attorney_name"
+                type="text"
+                defaultValue={plan?.attorney_name ?? ""}
+                placeholder="Attorney name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Attorney contact
+              </label>
+              <Input
+                name="attorney_contact"
+                type="text"
+                defaultValue={plan?.attorney_contact ?? ""}
+                placeholder="Email or phone"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                disabled={upsertMutation.isPending}
+                className="flex-1"
+                size="sm"
+              >
+                {upsertMutation.isPending ? "Saving..." : "Save plan"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
     </Card>
   );
 }

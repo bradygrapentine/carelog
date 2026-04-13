@@ -9,6 +9,14 @@
   --color-primary-light:  #a78bfa;   /* Violet 400 */
   --color-primary-subtle: #ede9fe;   /* Violet 100 */
 
+  /* Secondary — warm amber (hope, warmth) — complements violet */
+  --color-secondary:        #d97706;   /* Amber 600 */
+  --color-secondary-light:  #f59e0b;   /* Amber 500 */
+  --color-secondary-subtle: #fef3c7;   /* Amber 100 */
+
+  /* Accent — soft rose, for decorative surfaces */
+  --color-accent-soft:    #fde4e4;
+
   /* Ink & surface */
   --color-ink:     #1e0a3c;   /* Deep plum — headings, app tab bar bg */
   --color-surface: #faf5ff;   /* Violet 50 — page backgrounds */

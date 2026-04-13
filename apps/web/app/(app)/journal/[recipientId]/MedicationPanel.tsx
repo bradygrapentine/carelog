@@ -17,7 +17,6 @@ export function MedicationPanel({
   recipientId,
   currentUserRole,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
@@ -29,10 +28,10 @@ export function MedicationPanel({
   const isCoordinator = currentUserRole === "coordinator";
   const utils = trpc.useUtils();
 
-  const { data, isLoading } = trpc.medications.list.useQuery(
-    { org_id: orgId, recipient_id: recipientId },
-    { enabled: expanded },
-  );
+  const { data, isLoading } = trpc.medications.list.useQuery({
+    org_id: orgId,
+    recipient_id: recipientId,
+  });
 
   const createMutation = trpc.medications.create.useMutation({
     onSuccess: () => {
@@ -74,33 +73,10 @@ export function MedicationPanel({
     });
   }
 
-  if (!expanded) {
-    return (
-      <Card>
-        <CardContent className="pt-4">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-muted)] hover:text-muted-foreground transition-colors w-full text-left"
-          >
-            Medications
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+    <Card className="shadow-sm">
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm">Medications</CardTitle>
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          className="text-xs text-[var(--color-muted)] hover:text-muted-foreground"
-        >
-          Collapse
-        </button>
       </CardHeader>
 
       <CardContent>
@@ -115,7 +91,7 @@ export function MedicationPanel({
         )}
 
         {medications.length > 0 && (
-          <div className="space-y-2 mb-4">
+          <div className="grid gap-2 mb-4 md:grid-cols-2">
             {medications.map((med: Record<string, unknown>) => {
               const medId = med.id as string;
               const name = med.drug_name as string;
@@ -128,7 +104,7 @@ export function MedicationPanel({
               return (
                 <div
                   key={medId}
-                  className="flex items-start justify-between py-2 border-b border-border last:border-0"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border bg-[var(--color-surface)] p-3"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

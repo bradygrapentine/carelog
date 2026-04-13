@@ -55,7 +55,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
-  const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("other");
   const [error, setError] = useState<string | null>(null);
 
@@ -65,10 +64,10 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
 
   const utils = trpc.useUtils();
 
-  const { data: expenses = [], isLoading } = trpc.expenses.list.useQuery(
-    { org_id: orgId, recipient_id: recipientId },
-    { enabled: open },
-  );
+  const { data: expenses = [], isLoading } = trpc.expenses.list.useQuery({
+    org_id: orgId,
+    recipient_id: recipientId,
+  });
 
   const createMutation = trpc.expenses.create.useMutation({
     onSuccess: () => {
@@ -140,187 +139,162 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
 
   return (
     <Card>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full px-4 py-3 flex items-center justify-between text-left"
-        aria-expanded={open}
-      >
+      <div className="w-full px-4 py-3 flex items-center justify-between">
         <span className="text-sm font-medium text-foreground/80">
           Shared expenses
         </span>
-        <svg
-          className={
-            "w-4 h-4 text-muted-foreground transition-transform " +
-            (open ? "rotate-180" : "")
-          }
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+      </div>
 
-      {open && (
-        <div className="px-4 pb-4 border-t border-border space-y-4">
-          {isLoading && (
-            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
-          )}
+      <div className="px-4 pb-4 border-t border-border space-y-4">
+        {isLoading && (
+          <p className="text-sm text-muted-foreground pt-3">Loading...</p>
+        )}
 
-          {!isLoading && expenses.length === 0 && (
-            <p className="text-sm text-muted-foreground pt-3">
-              No expenses logged yet.
-            </p>
-          )}
+        {!isLoading && expenses.length === 0 && (
+          <p className="text-sm text-muted-foreground pt-3">
+            No expenses logged yet.
+          </p>
+        )}
 
-          {!isLoading && expenses.length > 0 && (
-            <>
-              <ul className="divide-y divide-border pt-2">
-                {expenses.map((expense: ExpenseRow) => (
-                  <li
-                    key={expense.id}
-                    className="py-2 flex items-start justify-between gap-2"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className={
-                            "text-xs px-2 py-0.5 rounded-full font-medium " +
-                            (CATEGORY_COLORS[expense.category] ??
-                              "bg-[var(--color-surface)] text-foreground/80")
-                          }
-                        >
-                          {expense.category.replaceAll("_", " ")}
-                        </span>
-                        <span className="text-sm font-medium text-foreground">
-                          {"$" + Number(expense.amount).toFixed(2)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground/80 mt-0.5 truncate">
-                        {expense.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {expense.incurred_at}
-                        {expense.paid_by_name
-                          ? " · " + expense.paid_by_name
-                          : ""}
-                      </p>
-                    </div>
-                    {canDelete && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          deleteMutation.mutate({
-                            id: expense.id,
-                            org_id: orgId,
-                          })
-                        }
-                        className="text-muted-foreground/50 hover:text-[var(--color-danger)] transition-colors flex-shrink-0"
-                        aria-label="Delete expense"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-
-              {totalCategories.length > 0 && (
-                <div className="bg-[var(--color-surface)] rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    Last 30 days by category
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {totalCategories.map(([cat, total]) => (
-                      <span key={cat} className="text-xs text-foreground/80">
-                        {cat.replaceAll("_", " ")}: {"$" + total.toFixed(2)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {canWrite && (
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-2 pt-2 border-t border-border"
-            >
-              <p className="text-xs font-medium text-muted-foreground">
-                Log expense
-              </p>
-              {error && (
-                <p className="text-xs text-[var(--color-danger)]">{error}</p>
-              )}
-              <div className="flex gap-2">
-                <Input
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="Amount"
-                  required
-                  className="w-24"
-                />
-                <select
-                  name="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="flex-1 text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
+        {!isLoading && expenses.length > 0 && (
+          <>
+            <ul className="divide-y divide-border pt-2">
+              {expenses.map((expense: ExpenseRow) => (
+                <li
+                  key={expense.id}
+                  className="py-2 flex items-start justify-between gap-2"
                 >
-                  {CATEGORY_OPTS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={
+                          "text-xs px-2 py-0.5 rounded-full font-medium " +
+                          (CATEGORY_COLORS[expense.category] ??
+                            "bg-[var(--color-surface)] text-foreground/80")
+                        }
+                      >
+                        {expense.category.replaceAll("_", " ")}
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        {"$" + Number(expense.amount).toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/80 mt-0.5 truncate">
+                      {expense.description}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {expense.incurred_at}
+                      {expense.paid_by_name ? " · " + expense.paid_by_name : ""}
+                    </p>
+                  </div>
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        deleteMutation.mutate({
+                          id: expense.id,
+                          org_id: orgId,
+                        })
+                      }
+                      className="text-muted-foreground/50 hover:text-[var(--color-danger)] transition-colors flex-shrink-0"
+                      aria-label="Delete expense"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            {totalCategories.length > 0 && (
+              <div className="bg-[var(--color-surface)] rounded-lg px-3 py-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  Last 30 days by category
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {totalCategories.map(([cat, total]) => (
+                    <span key={cat} className="text-xs text-foreground/80">
+                      {cat.replaceAll("_", " ")}: {"$" + total.toFixed(2)}
+                    </span>
                   ))}
-                </select>
+                </div>
               </div>
+            )}
+          </>
+        )}
+
+        {canWrite && (
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-2 pt-2 border-t border-border"
+          >
+            <p className="text-xs font-medium text-muted-foreground">
+              Log expense
+            </p>
+            {error && (
+              <p className="text-xs text-[var(--color-danger)]">{error}</p>
+            )}
+            <div className="flex gap-2">
               <Input
-                name="description"
-                type="text"
-                placeholder="Description"
+                name="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                placeholder="Amount"
                 required
+                className="w-24"
               />
-              <div className="flex gap-2">
-                <Input
-                  name="paid_by_name"
-                  type="text"
-                  placeholder="Paid by (optional)"
-                  className="flex-1"
-                />
-                <Input name="incurred_at" type="date" defaultValue={todayStr} />
-              </div>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-                className="w-full"
-                size="sm"
+              <select
+                name="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="flex-1 text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-foreground"
               >
-                {createMutation.isPending ? "Saving..." : "Log expense"}
-              </Button>
-            </form>
-          )}
-        </div>
-      )}
+                {CATEGORY_OPTS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Input
+              name="description"
+              type="text"
+              placeholder="Description"
+              required
+            />
+            <div className="flex gap-2">
+              <Input
+                name="paid_by_name"
+                type="text"
+                placeholder="Paid by (optional)"
+                className="flex-1"
+              />
+              <Input name="incurred_at" type="date" defaultValue={todayStr} />
+            </div>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="w-full"
+              size="sm"
+            >
+              {createMutation.isPending ? "Saving..." : "Log expense"}
+            </Button>
+          </form>
+        )}
+      </div>
     </Card>
   );
 }

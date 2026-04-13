@@ -48,7 +48,6 @@ function formatBytes(bytes: number | null): string {
 }
 
 export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
-  const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [docType, setDocType] = useState("other");
@@ -57,10 +56,10 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
 
   const utils = trpc.useUtils();
 
-  const { data: docs = [], isLoading } = trpc.documents.list.useQuery(
-    { org_id: orgId, recipient_id: recipientId },
-    { enabled: open },
-  );
+  const { data: docs = [], isLoading } = trpc.documents.list.useQuery({
+    org_id: orgId,
+    recipient_id: recipientId,
+  });
 
   const deleteMutation = trpc.documents.delete.useMutation({
     onSuccess: () => utils.documents.list.invalidate(),
@@ -120,171 +119,148 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full px-4 py-3 flex items-center justify-between text-left"
-        aria-expanded={open}
-      >
+      <div className="w-full px-4 py-3 flex items-center justify-between">
         <span className="text-sm font-medium text-foreground/80">
           Document vault
         </span>
-        <svg
-          className={
-            "w-4 h-4 text-muted-foreground transition-transform " +
-            (open ? "rotate-180" : "")
-          }
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+      </div>
 
-      {open && (
-        <div className="px-4 pb-4 border-t border-border space-y-4">
-          {isLoading && (
-            <p className="text-sm text-muted-foreground pt-3">Loading...</p>
-          )}
+      <div className="px-4 pb-4 border-t border-border space-y-4">
+        {isLoading && (
+          <p className="text-sm text-muted-foreground pt-3">Loading...</p>
+        )}
 
-          {!isLoading && docs.length === 0 && (
-            <p className="text-sm text-muted-foreground pt-3">
-              No documents uploaded yet.
-            </p>
-          )}
+        {!isLoading && docs.length === 0 && (
+          <p className="text-sm text-muted-foreground pt-3">
+            No documents uploaded yet.
+          </p>
+        )}
 
-          {!isLoading && docs.length > 0 && (
-            <ul className="divide-y divide-border pt-2">
-              {docs.map((doc: DocRow) => {
-                const colorClass =
-                  DOC_TYPE_COLORS[doc.doc_type] ??
-                  "bg-[var(--color-surface)] text-foreground/80";
-                const sizeLabel = formatBytes(doc.file_size);
-                const dateLabel = new Date(doc.created_at).toLocaleDateString();
-                const metaLabel = sizeLabel
-                  ? dateLabel + " · " + sizeLabel
-                  : dateLabel;
-                const downloadAriaLabel = "Download " + doc.display_name;
-                const deleteAriaLabel = "Delete " + doc.display_name;
-                return (
-                  <li
-                    key={doc.id}
-                    className="py-2 flex items-center justify-between gap-2"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className={
-                            "text-xs px-2 py-0.5 rounded-full font-medium " +
-                            colorClass
-                          }
-                        >
-                          {doc.doc_type.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-sm font-medium text-foreground truncate">
-                          {doc.display_name}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {metaLabel}
-                      </p>
+        {!isLoading && docs.length > 0 && (
+          <ul className="divide-y divide-border pt-2">
+            {docs.map((doc: DocRow) => {
+              const colorClass =
+                DOC_TYPE_COLORS[doc.doc_type] ??
+                "bg-[var(--color-surface)] text-foreground/80";
+              const sizeLabel = formatBytes(doc.file_size);
+              const dateLabel = new Date(doc.created_at).toLocaleDateString();
+              const metaLabel = sizeLabel
+                ? dateLabel + " · " + sizeLabel
+                : dateLabel;
+              const downloadAriaLabel = "Download " + doc.display_name;
+              const deleteAriaLabel = "Delete " + doc.display_name;
+              return (
+                <li
+                  key={doc.id}
+                  className="py-2 flex items-center justify-between gap-2"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={
+                          "text-xs px-2 py-0.5 rounded-full font-medium " +
+                          colorClass
+                        }
+                      >
+                        {doc.doc_type.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {doc.display_name}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {metaLabel}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload(doc.id)}
+                      className="text-xs text-primary hover:underline"
+                      aria-label={downloadAriaLabel}
+                    >
+                      Download
+                    </button>
+                    {isCoordinator && (
                       <button
                         type="button"
-                        onClick={() => handleDownload(doc.id)}
-                        className="text-xs text-primary hover:underline"
-                        aria-label={downloadAriaLabel}
+                        onClick={() =>
+                          deleteMutation.mutate({ id: doc.id, org_id: orgId })
+                        }
+                        className="text-muted-foreground hover:text-[var(--color-danger)] transition-colors"
+                        aria-label={deleteAriaLabel}
                       >
-                        Download
-                      </button>
-                      {isCoordinator && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            deleteMutation.mutate({ id: doc.id, org_id: orgId })
-                          }
-                          className="text-muted-foreground hover:text-[var(--color-danger)] transition-colors"
-                          aria-label={deleteAriaLabel}
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
-          {isCoordinator && (
-            <form
-              onSubmit={handleUpload}
-              className="space-y-2 pt-2 border-t border-border"
-            >
-              <p className="text-xs font-medium text-muted-foreground">
-                Upload document
+        {isCoordinator && (
+          <form
+            onSubmit={handleUpload}
+            className="space-y-2 pt-2 border-t border-border"
+          >
+            <p className="text-xs font-medium text-muted-foreground">
+              Upload document
+            </p>
+            {uploadError && (
+              <p className="text-xs text-[var(--color-danger)]">
+                {uploadError}
               </p>
-              {uploadError && (
-                <p className="text-xs text-[var(--color-danger)]">
-                  {uploadError}
-                </p>
-              )}
-              <Input
-                name="displayName"
-                type="text"
-                placeholder="Display name (e.g. Mom's POA)"
-                required
-                className="w-full text-sm"
-              />
-              <select
-                name="docType"
-                value={docType}
-                onChange={(e) => setDocType(e.target.value)}
-                className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                {DOC_TYPE_OPTS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="file"
-                type="file"
-                required
-                className="w-full text-sm text-foreground/80"
-              />
-              <Button
-                type="submit"
-                disabled={uploading}
-                className="w-full"
-                size="sm"
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </Button>
-            </form>
-          )}
-        </div>
-      )}
+            )}
+            <Input
+              name="displayName"
+              type="text"
+              placeholder="Display name (e.g. Mom's POA)"
+              required
+              className="w-full text-sm"
+            />
+            <select
+              name="docType"
+              value={docType}
+              onChange={(e) => setDocType(e.target.value)}
+              className="w-full text-sm border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {DOC_TYPE_OPTS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <input
+              name="file"
+              type="file"
+              required
+              className="w-full text-sm text-foreground/80"
+            />
+            <Button
+              type="submit"
+              disabled={uploading}
+              className="w-full"
+              size="sm"
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </Button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

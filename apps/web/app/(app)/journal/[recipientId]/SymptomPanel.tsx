@@ -75,7 +75,6 @@ function painColor(n: number): string {
 }
 
 export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [painLevel, setPainLevel] = useState(5);
   const [mood, setMood] = useState<MoodVal>("");
@@ -88,10 +87,10 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
     currentUserRole === "coordinator" || currentUserRole === "caregiver";
   const utils = trpc.useUtils();
 
-  const { data, isLoading } = trpc.symptoms.list.useQuery(
-    { org_id: orgId, recipient_id: recipientId },
-    { enabled: expanded },
-  );
+  const { data, isLoading } = trpc.symptoms.list.useQuery({
+    org_id: orgId,
+    recipient_id: recipientId,
+  });
 
   const logMutation = trpc.symptoms.log.useMutation({
     onSuccess: () => {
@@ -128,63 +127,19 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
     setError(null);
   }
 
-  if (!expanded) {
-    return (
-      <Card>
-        <CardContent className="py-3">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            aria-expanded="false"
-            aria-controls="symptom-panel-body"
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors w-full text-left flex items-center justify-between"
-          >
-            <span>Symptom readings</span>
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm">Symptom readings</CardTitle>
-            {readings.length > 0 && (
-              <span
-                className="text-xs bg-[var(--color-surface)] text-muted-foreground rounded-full px-2 py-0.5"
-                aria-label={readings.length + " recent readings"}
-              >
-                {readings.length}
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            aria-expanded="true"
-            aria-controls="symptom-panel-body"
-            aria-label="Collapse symptom readings"
-            className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            Collapse
-          </button>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm">Symptom readings</CardTitle>
+          {readings.length > 0 && (
+            <span
+              className="text-xs bg-[var(--color-surface)] text-muted-foreground rounded-full px-2 py-0.5"
+              aria-label={readings.length + " recent readings"}
+            >
+              {readings.length}
+            </span>
+          )}
         </div>
       </CardHeader>
 

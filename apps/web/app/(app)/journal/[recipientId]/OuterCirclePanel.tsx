@@ -26,7 +26,6 @@ export function OuterCirclePanel({
   orgId,
   currentUserRole,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +40,7 @@ export function OuterCirclePanel({
 
   const { data: requests = [] } = trpc.outerCircle.list.useQuery(
     { org_id: orgId, recipient_id: recipientId },
-    { enabled: expanded && currentUserRole === "coordinator" },
+    { enabled: currentUserRole === "coordinator" },
   );
 
   const createMutation = trpc.outerCircle.create.useMutation();
@@ -95,33 +94,10 @@ export function OuterCirclePanel({
     }
   }
 
-  if (!expanded) {
-    return (
-      <Card>
-        <CardContent className="pt-4">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="text-sm text-[var(--color-muted)] hover:text-foreground transition-colors"
-          >
-            + Volunteer requests
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+    <Card className="shadow-sm">
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm">Volunteer requests</CardTitle>
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          className="text-xs text-[var(--color-muted)] hover:text-foreground"
-        >
-          Collapse
-        </button>
       </CardHeader>
 
       <CardContent>

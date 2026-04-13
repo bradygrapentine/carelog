@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { DocumentVault } from "../DocumentVault";
 
 const {
@@ -63,37 +63,32 @@ beforeEach(() => {
   });
 });
 
-describe("DocumentVault — collapsed state", () => {
-  it('shows "Document vault" button', () => {
+describe("DocumentVault — renders expanded by default", () => {
+  it('shows "Document vault" header', () => {
     renderVault();
-    expect(
-      screen.getByRole("button", { name: /document vault/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/document vault/i)).toBeInTheDocument();
   });
 });
 
-describe("DocumentVault — expanded empty state", () => {
+describe("DocumentVault — empty state", () => {
   it('shows "No documents uploaded yet" when empty', () => {
     renderVault();
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(screen.getByText(/no documents uploaded yet/i)).toBeInTheDocument();
   });
 });
 
-describe("DocumentVault — expanded with documents", () => {
+describe("DocumentVault — with documents", () => {
   beforeEach(() => {
     mockListUseQuery.mockReturnValue({ data: sampleDocs, isLoading: false });
   });
 
   it("shows document display name", () => {
     renderVault();
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(screen.getAllByText("Power of Attorney").length).toBeGreaterThan(0);
   });
 
   it("shows download button for all roles", () => {
     renderVault({ currentUserRole: "supporter" });
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(
       screen.getByRole("button", { name: /download power of attorney/i }),
     ).toBeInTheDocument();
@@ -101,7 +96,6 @@ describe("DocumentVault — expanded with documents", () => {
 
   it("shows delete button for coordinator", () => {
     renderVault();
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(
       screen.getByRole("button", { name: /delete power of attorney/i }),
     ).toBeInTheDocument();
@@ -109,7 +103,6 @@ describe("DocumentVault — expanded with documents", () => {
 
   it("hides delete button for supporter", () => {
     renderVault({ currentUserRole: "supporter" });
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
   });
 });
@@ -117,7 +110,6 @@ describe("DocumentVault — expanded with documents", () => {
 describe("DocumentVault — upload form", () => {
   it("shows upload form for coordinator", () => {
     renderVault();
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(
       screen.getByRole("button", { name: /^upload$/i }),
     ).toBeInTheDocument();
@@ -125,7 +117,6 @@ describe("DocumentVault — upload form", () => {
 
   it("hides upload form for supporter", () => {
     renderVault({ currentUserRole: "supporter" });
-    fireEvent.click(screen.getByRole("button", { name: /document vault/i }));
     expect(screen.queryByRole("button", { name: /^upload$/i })).toBeNull();
   });
 });

@@ -286,7 +286,7 @@ function JournalLayout({
         </header>
 
         {/* Panel content */}
-        <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-6">
+        <main className="flex-1 max-w-2xl lg:max-w-6xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
           {activeDestination === "journal" && (
             <>
               {currentUserRole !== "supporter" ? (
