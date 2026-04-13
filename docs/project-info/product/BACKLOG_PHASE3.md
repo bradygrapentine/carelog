@@ -305,6 +305,25 @@ TODO
 
 ---
 
+## E2E Test Gaps (lower-priority)
+
+These flows are not yet covered by Playwright specs. Implement when the feature is stable
+and the E2E suite has reliable infra (mailpit, Supabase local, Chromium warm).
+
+| Gap | File to create | Notes |
+|-----|---------------|-------|
+| Expenses list — coordinator adds expense, appears in list | `e2e/expenses.spec.ts` | tRPC-backed; use `page.route('**/trpc/expenses*')` for fast path |
+| Team admin remove-member flow | `e2e/team-admin.spec.ts` (extend) | Requires multi-user context; coordinator removes caregiver |
+| Outer circle creation from coordinator side | `e2e/outer-circle.spec.ts` (extend) | Coordinator opens request form; mocked `page.route('**/api/outer-circle')` |
+| Care brief generation and share URL | `e2e/care-brief.spec.ts` | Mock `/api/brief` POST; verify share URL appears in coordinator "More" panel |
+| EOL planner save flow (coordinator) | `e2e/eol-planner.spec.ts` | EolPlanner component on "More" panel; fill fields and verify save confirmation |
+| Benefits navigator coordinator view | `e2e/benefits.spec.ts` | BenefitsNavigator in "More" panel; coordinator-only |
+| Contact page form submission | `e2e/contact.spec.ts` | Public page `/contact`; submit form, verify success message |
+| Burnout privacy suppression | Extend `e2e/burnout.spec.ts` | Requires seeding 1–2 check-ins; verify coordinator summary never shows raw scores |
+| OCR review panel — review and confirm | `e2e/ocr-review.spec.ts` | Coordinator flow; mock OCR job list via `page.route('**/trpc/documents*')` |
+
+---
+
 ## Definition of Done (all stories)
 
 - [ ] Feature works end-to-end in local dev

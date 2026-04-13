@@ -14,11 +14,27 @@ function roleEmail(role: string) {
   return "e2e-sym-" + role + "-" + Date.now() + "@test.com";
 }
 
-async function goToSymptomsTab(page: import("@playwright/test").Page) {
+/**
+ * Navigate to the "More" panel and expand the symptom readings section.
+ * The panel is collapsed by default — click "Symptom readings" to expand.
+ */
+async function goToSymptomsPanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  // TODO: add data-testid="symptoms-tab" to the tab component
-  await page.getByRole("tab", { name: /symptoms/i }).click();
-  await expect(page).toHaveURL(/panel=symptoms/, { timeout: 8000 });
+  await page.getByRole("button", { name: "More" }).click();
+  // Expand the symptom readings accordion
+  await page.getByRole("button", { name: "Symptom readings" }).click();
+  await expect(page.getByLabel("Pain level")).toBeVisible({ timeout: 8000 });
+}
+
+/**
+ * Log a symptom reading using the form that appears after clicking "+ Log reading".
+ * Selects "Good" mood and submits with default pain level (5/10).
+ */
+async function logSymptomReading(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: "+ Log reading" }).click();
+  // Select mood via pill button (aria-pressed)
+  await page.getByRole("button", { name: "Good" }).click();
+  await page.getByRole("button", { name: "Save reading" }).click();
 }
 
 test.beforeEach(async () => {
@@ -26,36 +42,28 @@ test.beforeEach(async () => {
 });
 
 test.describe("Symptoms", () => {
+  test("coordinator sees symptom readings panel on More panel", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await navigateToJournal(page);
+    await page.getByRole("button", { name: "More" }).click();
+    // Collapsed state shows the expand button
+    await expect(
+      page.getByRole("button", { name: "Symptom readings" }),
+    ).toBeVisible({ timeout: 8000 });
+  });
+
   test("coordinator logs a symptom reading — appears in list", async ({
     page,
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
-    await goToSymptomsTab(page);
+    await goToSymptomsPanel(page);
+    await logSymptomReading(page);
 
-    // TODO: add data-testid="log-symptom-btn" to component
-    await page
-      .getByRole("button", { name: /log symptom|add reading/i })
-      .click();
-
-    // TODO: add data-testid="symptom-type-select" to component
-    await page
-      .getByRole("combobox", { name: /symptom|type/i })
-      .selectOption({ index: 1 });
-
-    // TODO: add data-testid="symptom-value-input" to component
-    const valueInput = page.getByRole("spinbutton").first();
-    await valueInput.fill("7");
-
-    // TODO: add data-testid="symptom-notes-input" to component
-    const notesInput = page.getByPlaceholder(/notes|observation/i);
-    if ((await notesInput.count()) > 0) {
-      await notesInput.fill("E2E test reading");
-    }
-
-    await page.getByRole("button", { name: /save|log|submit/i }).click();
-
-    // TODO: add data-testid="symptom-reading-row" to component
-    await expect(page.getByText("7")).toBeVisible({ timeout: 8000 });
+    // After save the form closes; the reading list updates
+    // Pain level 5/10 is shown as "5/10" in the list
+    await expect(page.getByText("5/10")).toBeVisible({ timeout: 8000 });
   });
 
   test("caregiver logs a symptom reading", async ({ browser }) => {
@@ -76,22 +84,9 @@ test.describe("Symptoms", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await goToSymptomsTab(caregiverPage);
-
-        await caregiverPage
-          .getByRole("button", { name: /log symptom|add reading/i })
-          .click();
-        await caregiverPage
-          .getByRole("combobox", { name: /symptom|type/i })
-          .selectOption({ index: 1 });
-
-        const valueInput = caregiverPage.getByRole("spinbutton").first();
-        await valueInput.fill("5");
-        await caregiverPage
-          .getByRole("button", { name: /save|log|submit/i })
-          .click();
-
-        await expect(caregiverPage.getByText("5")).toBeVisible({
+        await goToSymptomsPanel(caregiverPage);
+        await logSymptomReading(caregiverPage);
+        await expect(caregiverPage.getByText("5/10")).toBeVisible({
           timeout: 8000,
         });
       } finally {
@@ -102,7 +97,7 @@ test.describe("Symptoms", () => {
     }
   });
 
-  test("supporter sees symptom readings (read-only, no log button)", async ({
+  test("supporter sees symptom panel but not the log button", async ({
     browser,
   }) => {
     const email = roleEmail("supporter");
@@ -122,20 +117,16 @@ test.describe("Symptoms", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await goToSymptomsTab(supporterPage);
+        await supporterPage.getByRole("button", { name: "More" }).click();
+        // Expand the panel
+        await supporterPage
+          .getByRole("button", { name: "Symptom readings" })
+          .click();
 
-        // Supporters should not be able to log symptoms
+        // Supporters should not see the log reading button
         await expect(
-          supporterPage.getByRole("button", {
-            name: /log symptom|add reading/i,
-          }),
-        ).not.toBeVisible();
-
-        // But the symptom list/panel should still render
-        // TODO: add data-testid="symptoms-panel" to component
-        await expect(
-          supporterPage.getByRole("tab", { name: /symptoms/i }),
-        ).toBeVisible();
+          supporterPage.getByRole("button", { name: "+ Log reading" }),
+        ).not.toBeVisible({ timeout: 5000 });
       } finally {
         await supporterCtx.close();
       }

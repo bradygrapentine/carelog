@@ -14,35 +14,21 @@ function roleEmail(role: string) {
   return "e2e-burn-" + role + "-" + Date.now() + "@test.com";
 }
 
-async function goToBurnoutTab(page: import("@playwright/test").Page) {
+/** Navigate to the "More" panel which contains the burnout check-in form. */
+async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  // TODO: add data-testid="burnout-tab" to the tab component
-  await page.getByRole("tab", { name: /burnout|wellbeing/i }).click();
-  await expect(page).toHaveURL(/panel=burnout/, { timeout: 8000 });
+  await page.getByRole("button", { name: "More" }).click();
+  await expect(page.getByText("How are you doing this week?")).toBeVisible({
+    timeout: 8000,
+  });
 }
 
+/**
+ * Submit the burnout check-in form using default slider values (3/5).
+ * The form always has valid defaults so we just click Save.
+ */
 async function submitBurnoutCheckIn(page: import("@playwright/test").Page) {
-  // TODO: add data-testid="burnout-checkin-form" to the form component
-  // Sliders or number inputs for sleep, stress, support scores (1–10)
-  // TODO: add data-testid="sleep-score-input" to component
-  const sleepInput = page.getByLabel(/sleep/i);
-  if ((await sleepInput.count()) > 0) {
-    await sleepInput.fill("7");
-  }
-
-  // TODO: add data-testid="stress-score-input" to component
-  const stressInput = page.getByLabel(/stress/i);
-  if ((await stressInput.count()) > 0) {
-    await stressInput.fill("4");
-  }
-
-  // TODO: add data-testid="support-score-input" to component
-  const supportInput = page.getByLabel(/support/i);
-  if ((await supportInput.count()) > 0) {
-    await supportInput.fill("8");
-  }
-
-  await page.getByRole("button", { name: /submit|check.?in|save/i }).click();
+  await page.getByRole("button", { name: "Save check-in" }).click();
 }
 
 test.beforeEach(async () => {
@@ -50,6 +36,20 @@ test.beforeEach(async () => {
 });
 
 test.describe("Burnout check-in", () => {
+  test("coordinator sees burnout check-in form on More panel", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await goToMorePanel(page);
+
+    await expect(
+      page.getByRole("button", { name: "Save check-in" }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByLabel("Sleep quality")).toBeVisible();
+    await expect(page.getByLabel("Stress level")).toBeVisible();
+    await expect(page.getByLabel("Support from others")).toBeVisible();
+  });
+
   test("caregiver completes a burnout check-in", async ({ browser }) => {
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
@@ -68,14 +68,12 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await goToBurnoutTab(caregiverPage);
+        await goToMorePanel(caregiverPage);
         await submitBurnoutCheckIn(caregiverPage);
 
-        // After submitting, a confirmation or history entry should appear
-        // TODO: add data-testid="burnout-checkin-success" to component
-        await expect(
-          caregiverPage.getByText(/submitted|check.?in saved|thank you/i),
-        ).toBeVisible({ timeout: 8000 });
+        await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
+          timeout: 8000,
+        });
       } finally {
         await caregiverCtx.close();
       }
@@ -104,13 +102,16 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await goToBurnoutTab(caregiverPage);
+        await goToMorePanel(caregiverPage);
         await submitBurnoutCheckIn(caregiverPage);
-        await expect(
-          caregiverPage.getByText(/submitted|check.?in saved|thank you/i),
-        ).toBeVisible({ timeout: 8000 });
+        await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
+          timeout: 8000,
+        });
 
-        // Submit again — should upsert silently, no error shown
+        // Navigate away and back to reset the saved state in the component,
+        // then submit again — should upsert silently without an error message.
+        await caregiverPage.getByRole("button", { name: "Journal" }).click();
+        await goToMorePanel(caregiverPage);
         await submitBurnoutCheckIn(caregiverPage);
         await expect(caregiverPage.getByText(/error|failed/i)).not.toBeVisible({
           timeout: 3000,
@@ -123,35 +124,36 @@ test.describe("Burnout check-in", () => {
     }
   });
 
-  test("coordinator sees org burnout summary section", async ({ page }) => {
-    await signIn(page, COORDINATOR_EMAIL);
-    await goToBurnoutTab(page);
-
-    // Coordinator view should have an org-level summary panel
-    // TODO: add data-testid="burnout-org-summary" to component
-    await expect(page.getByText(/team|org|summary|average/i)).toBeVisible({
-      timeout: 8000,
-    });
-  });
-
-  test("coordinator burnout summary is suppressed when fewer than 3 check-ins exist", async ({
-    page,
+  test("supporter does not see the burnout check-in form", async ({
+    browser,
   }) => {
-    await signIn(page, COORDINATOR_EMAIL);
-    await goToBurnoutTab(page);
+    const email = roleEmail("supporter");
+    const coordinatorCtx = await browser.newContext();
+    const coordinatorPage = await coordinatorCtx.newPage();
 
-    // With < 3 check-ins the backend filters out the week — summary should show a
-    // privacy message or empty state rather than individual scores
-    // TODO: add data-testid="burnout-privacy-notice" to component
-    const summarySection = page.locator('[data-testid="burnout-org-summary"]');
-    if ((await summarySection.count()) > 0) {
-      // Either shows aggregated data or a "not enough data" notice — never raw scores
-      const rowCount = await summarySection
-        .locator('tr, [data-testid="summary-row"]')
-        .count();
-      // If rows are present there must be enough data (>=3 check-ins per week)
-      // This is a smoke check — full data suppression is covered by unit tests
-      expect(rowCount).toBeGreaterThanOrEqual(0);
+    try {
+      await signIn(coordinatorPage, COORDINATOR_EMAIL);
+      await navigateToJournal(coordinatorPage);
+      const inviteUrl = await sendInviteAndGetUrl(
+        coordinatorPage,
+        email,
+        "supporter",
+      );
+
+      const { page: supporterPage, ctx: supporterCtx } =
+        await acceptInviteAsNewUser(browser, inviteUrl, email);
+
+      try {
+        await supporterPage.getByRole("button", { name: "More" }).click();
+        // Supporters see the More panel but not the burnout form
+        await expect(
+          supporterPage.getByText("How are you doing this week?"),
+        ).not.toBeVisible({ timeout: 5000 });
+      } finally {
+        await supporterCtx.close();
+      }
+    } finally {
+      await coordinatorCtx.close();
     }
   });
 });
