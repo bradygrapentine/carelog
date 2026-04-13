@@ -48,6 +48,10 @@ export default defineConfig({
             // @ts-ignore — pnpm resolves vitest@4.1.2+jsdom alongside 4.1.4+browser-playwright causing type divergence
             provider: playwright(),
             instances: [{ browser: "chromium" }],
+            // 60s default was tripping on cold chromium boots when the
+            // pre-commit hook ran alongside other dev processes. 180s
+            // eliminates the flake without hiding a real failure.
+            connectTimeout: 180_000,
           },
           include: [
             "**/__tests__/**/*.test.tsx",

@@ -1,19 +1,24 @@
 import { test, expect } from "@playwright/test";
+import { signIn, clearMailpit, navigateToJournal } from "./helpers";
 
 // Smoke test: verifies the redesigned layout renders without errors
 // after a logged-in user navigates to their journal.
-// This test requires a seeded test user — see e2e/CLAUDE.md for setup.
+
+const SMOKE_EMAIL = "e2e-smoke@test.com";
+
+test.beforeEach(async () => {
+  await clearMailpit();
+});
 
 test.describe("UI layout smoke", () => {
   test("sidebar rail is present on desktop", async ({ page }) => {
-    await page.goto("/signin");
-    await page.fill('[name="email"]', process.env.E2E_USER_EMAIL ?? "");
-    await page.fill('[name="password"]', process.env.E2E_USER_PASSWORD ?? "");
-    await page.click('[type="submit"]');
-    await page.waitForURL(/\/journal\//);
+    await signIn(page, SMOKE_EMAIL);
+    await navigateToJournal(page);
 
-    await expect(page.getByTestId("sidebar-rail")).toBeVisible();
-    await expect(page.getByTestId("top-bar")).toBeVisible();
+    await expect(page.getByTestId("sidebar-rail")).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.getByTestId("top-bar")).toBeVisible({ timeout: 10000 });
 
     const errors: string[] = [];
     page.on("console", (msg) => {
@@ -25,18 +30,17 @@ test.describe("UI layout smoke", () => {
 
   test("hamburger menu opens sidebar on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/signin");
-    await page.fill('[name="email"]', process.env.E2E_USER_EMAIL ?? "");
-    await page.fill('[name="password"]', process.env.E2E_USER_PASSWORD ?? "");
-    await page.click('[type="submit"]');
-    await page.waitForURL(/\/journal\//);
+    await signIn(page, SMOKE_EMAIL);
+    await navigateToJournal(page);
 
-    await expect(page.getByTestId("sidebar-rail")).not.toBeVisible();
+    await expect(page.getByTestId("sidebar-rail")).not.toBeVisible({
+      timeout: 10000,
+    });
 
     const hamburger = page.getByRole("button", { name: /menu/i });
-    await expect(hamburger).toBeVisible();
+    await expect(hamburger).toBeVisible({ timeout: 10000 });
 
     await hamburger.click();
-    await expect(page.getByText("Carelog")).toBeVisible();
+    await expect(page.getByText("Carelog")).toBeVisible({ timeout: 5000 });
   });
 });

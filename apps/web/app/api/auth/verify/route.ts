@@ -11,7 +11,10 @@ const verifySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const limited = await rateLimit(request, "auth/verify");
+  // OTP verify: allow 30 attempts per 15 minutes. Legitimate users retry
+  // after mistyping the 6-digit code, checking a second device, or after the
+  // first email hits spam and they request a new one.
+  const limited = await rateLimit(request, "auth/verify", { max: 30 });
   if (limited) return limited;
 
   const { data: body, error: bodyError } = await parseBody(

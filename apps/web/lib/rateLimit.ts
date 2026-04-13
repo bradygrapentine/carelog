@@ -1,11 +1,13 @@
 import { Redis } from "@upstash/redis";
 import { NextResponse, type NextRequest } from "next/server";
 
-// 5 requests per 15-minute fixed window per IP per endpoint.
+// Default: 5 requests per 15-minute fixed window per IP per endpoint.
+// Callers can override per-call via the `options` arg — auth/OTP endpoints
+// use a looser limit because legitimate users retry after a mistyped code.
 // In production, throws when Upstash env vars are missing so rate limits are
 // never silently disabled. In dev/test, no-ops with a clear log line.
-const WINDOW_SECONDS = 15 * 60;
-const MAX_REQUESTS = 5;
+const DEFAULT_WINDOW_SECONDS = 15 * 60;
+const DEFAULT_MAX_REQUESTS = 5;
 
 let redis: Redis | null = null;
 let devWarned = false;
@@ -58,11 +60,20 @@ export function getClientIp(request: NextRequest): string {
   return "unknown";
 }
 
+type RateLimitOptions = {
+  max?: number;
+  windowSeconds?: number;
+};
+
 // Returns null when the request is allowed, or a 503/429 response when appropriate.
 export async function rateLimit(
   request: NextRequest,
   endpoint: string,
+  options: RateLimitOptions = {},
 ): Promise<NextResponse | null> {
+  const max = options.max ?? DEFAULT_MAX_REQUESTS;
+  const windowSeconds = options.windowSeconds ?? DEFAULT_WINDOW_SECONDS;
+
   let client: Redis | null;
   try {
     client = getRedis();
@@ -83,13 +94,17 @@ export async function rateLimit(
 
   const count = await client.incr(key);
   if (count === 1) {
-    await client.expire(key, WINDOW_SECONDS);
+    await client.expire(key, windowSeconds);
   }
 
-  if (count > MAX_REQUESTS) {
+  if (count > max) {
+    const minutes = Math.max(1, Math.round(windowSeconds / 60));
     return NextResponse.json(
-      { error: "Too many requests. Please try again in 15 minutes." },
-      { status: 429, headers: { "Retry-After": String(WINDOW_SECONDS) } },
+      {
+        error:
+          "Too many requests. Please try again in " + minutes + " minutes.",
+      },
+      { status: 429, headers: { "Retry-After": String(windowSeconds) } },
     );
   }
 
