@@ -40,11 +40,10 @@ Linked from `.claude/CLAUDE.md`:
 | Doc | Purpose |
 |-----|---------|
 | `docs/project-info/technology/ARCHITECTURE.md` | Data model, system design, design rationale |
-| `docs/project-info/technology/ENTERPRISE_PRINCIPLES.md` | Hard-won coding rules (12 numbered principles) |
+| `docs/project-info/technology/CODE_STANDARDS.md` | Hard-won coding rules, conventions, testing patterns, git format |
 | `docs/project-info/product/UX_DECISIONS.md` | Language, tone, emotional framing decisions |
 | `docs/project-info/technology/TECH_DEBT.md` | Known issues before production |
 | `docs/project-info/product/BUILD_STATUS.md` | What's done / in progress / next |
-| `docs/project-info/technology/PATTERNS.md` | Code conventions, testing patterns, git format |
 | `docs/project-info/technology/TROUBLESHOOTING.md` | Local dev fixes (Supabase, auth, Turbopack) |
 
 ## MCP Servers

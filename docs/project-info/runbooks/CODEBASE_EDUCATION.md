@@ -76,13 +76,9 @@ PHI boundary, service role isolation, RLS design, token security. **Read before 
 
 Read before writing any code.
 
-### 9. `docs/project-info/technology/ENTERPRISE_PRINCIPLES.md`
+### 9. `docs/project-info/technology/CODE_STANDARDS.md`
 
-12 principles discovered through hard experience. Covers Supabase gotchas, form handling, auth edge cases, RLS design, migration discipline. These rules exist because something broke without them.
-
-### 10. `docs/project-info/technology/PATTERNS.md`
-
-Code conventions and anti-patterns for:
+Hard-won coding rules plus code conventions and anti-patterns. Covers Supabase gotchas, form handling, auth edge cases, RLS design, migration discipline, and conventions for:
 
 - TypeScript (`type` over `interface`, no `enum`)
 - JSX (no template literals in props)

@@ -19,46 +19,22 @@ Next.js 16 replaces `middleware.ts` with `proxy.ts`. Export a named `proxy` func
 ## No experimental.turbo in next.config.ts
 Turbopack is the default bundler. The `experimental.turbo` config key is removed — throws if present.
 
-## Turbopack JSX rules
-- Never use template literals in JSX props — compute URLs as variables first
-- Keep JSX opening tags single-line when they have dynamic props
-```tsx
-// WRONG
-<a href={`/journal/${recipientId}`}>...</a>
-// RIGHT
-const url = '/journal/' + recipientId
-<a href={url}>...</a>
-```
+## Code rules
+See `docs/project-info/technology/CODE_STANDARDS.md` for Turbopack/JSX rules, auth
+patterns, form handling, and API route conventions.
 
-## Auth pattern — IMPORTANT
-Auth is server-side. Protected pages use `createServerSupabase().auth.getUser()` in async
-server components and pass `user` as a non-null prop to client components.
-The `(app)/layout.tsx` provides auth for the entire app shell.
+## Service role key
+See `docs/project-info/technology/SECURITY_MODEL.md` for service role isolation rules.
 
-Client components that need Supabase for data queries still use `createClient()` (browser)
-for RLS-scoped reads and mutations.
-
-Use API routes (not server actions) for any operation writing cookies + redirecting.
-Server actions don't reliably propagate cookie writes before redirect.
-
-## Service role key rule
-`supabaseAdmin` used ONLY in `server/` and `app/api/` directories. Never in client components.
-File has a runtime window guard — throws if accidentally imported client-side.
-
-## Form values must be read before async calls
-`e.currentTarget` becomes null after any `await`. Read all form values synchronously first.
-```tsx
-// RIGHT
-async function handleSubmit(e) {
-  const form = e.currentTarget
-  const name = (form.elements.namedItem('name') as HTMLInputElement).value
-  // Now safe to await
-}
-```
+## App shell auth
+The `(app)/layout.tsx` provides server-side auth for the entire app shell. Protected
+pages receive `user` as a non-null prop. Client components that need Supabase for data
+queries use `createClient()` (browser) for RLS-scoped reads and mutations.
 
 ## Testing
-When writing tests: plan with expected counts per file first, check off each item as you complete it.
-See `docs/project-info/ENTERPRISE_PRINCIPLES.md` for RLS and pgTAP patterns.
+When writing tests: plan with expected counts per file first, check off each item as
+you complete it. See `docs/project-info/technology/CODE_STANDARDS.md` for RLS and
+pgTAP patterns.
 
 ## Screenshot Workflow
 - Install Puppeteer and Chrome Cache

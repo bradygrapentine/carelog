@@ -8,7 +8,7 @@ Expo managed workflow. Plans: `docs/superpowers/plans/2026-04-10-mobile-wave*.md
 
 ## Env vars
 `apps/mobile/.env.local`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_API_URL`
-Use `http://localhost:54321` for Supabase (not `127.0.0.1`) for cookie name consistency.
+Use `localhost:54321` for Supabase — see `docs/project-info/technology/CODE_STANDARDS.md` for rationale.
 
 ## Design system
 Colors, typography, spacing → `apps/mobile/constants/tokens.ts` (mirrors web CSS vars in `apps/web/app/globals.css`).

@@ -59,7 +59,7 @@ carelog/
 ├── ARCHITECTURE.md                     ← this file
 ├── BUILD_STATUS.md
 ├── TECH_DEBT.md
-└── ENTERPRISE_PRINCIPLES.md
+└── CODE_STANDARDS.md
 ```
 
 ## Database schema — 16 tables
