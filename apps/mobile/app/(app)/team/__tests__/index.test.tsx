@@ -1,4 +1,5 @@
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import TeamScreen from "../index";
 
 jest.mock("../../../../context/AppContext", () => ({
@@ -139,5 +140,43 @@ describe("TeamScreen", () => {
     fireEvent.press(getByLabelText("Invite team member"));
     const btn = getByLabelText("Send invite");
     expect(btn.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it("inviteMut onSuccess closes modal and shows Invite sent alert", () => {
+    jest.spyOn(Alert, "alert");
+    const { trpc } = require("../../../../utils/trpc");
+    let capturedOpts: { onSuccess?: () => void } | undefined;
+    trpc.memberships.invite.useMutation.mockImplementation(
+      (opts: { onSuccess?: () => void }) => {
+        capturedOpts = opts;
+        return { mutateAsync: mockMutateAsync, isPending: false };
+      },
+    );
+    const { getByLabelText, queryByText } = render(<TeamScreen />);
+    fireEvent.press(getByLabelText("Invite team member"));
+    act(() => {
+      capturedOpts?.onSuccess?.();
+    });
+    expect(Alert.alert).toHaveBeenCalledWith("Invite sent");
+    expect(queryByText("Invite team member")).toBeNull();
+  });
+
+  it("inviteMut onError shows error alert", () => {
+    jest.spyOn(Alert, "alert");
+    const { trpc } = require("../../../../utils/trpc");
+    let capturedOpts:
+      | { onError?: (err: { message: string }) => void }
+      | undefined;
+    trpc.memberships.invite.useMutation.mockImplementation(
+      (opts: { onError?: (err: { message: string }) => void }) => {
+        capturedOpts = opts;
+        return { mutateAsync: mockMutateAsync, isPending: false };
+      },
+    );
+    render(<TeamScreen />);
+    act(() => {
+      capturedOpts?.onError?.({ message: "Already invited" });
+    });
+    expect(Alert.alert).toHaveBeenCalledWith("Error", "Already invited");
   });
 });

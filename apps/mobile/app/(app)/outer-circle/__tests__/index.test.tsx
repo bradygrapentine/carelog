@@ -1,4 +1,5 @@
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import OuterCircleScreen from "../index";
 
 jest.mock("expo-router", () => ({
@@ -156,5 +157,63 @@ describe("OuterCircleScreen", () => {
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
       expect.stringContaining("abc123"),
     );
+  });
+
+  it("handleClose shows confirm Alert and calls deactivate on Close", async () => {
+    jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<OuterCircleScreen />);
+    fireEvent.press(getByLabelText("Close request"));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Close request?",
+        expect.any(String),
+        expect.any(Array),
+      ),
+    );
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    await act(async () => {
+      buttons.find((b) => b.text === "Close")?.onPress?.();
+    });
+    expect(mockDeactivate).toHaveBeenCalledWith({
+      id: "req-1",
+      org_id: "org-1",
+    });
+  });
+
+  it("createMut.onSuccess resets modal state", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    let createOpts: { onSuccess?: () => void } | undefined;
+    trpc.outerCircle.create.useMutation.mockImplementation(
+      (opts: { onSuccess?: () => void }) => {
+        createOpts = opts;
+        return { mutate: mockCreate, isPending: false };
+      },
+    );
+    const { getByLabelText, queryByText } = render(<OuterCircleScreen />);
+    fireEvent.press(getByLabelText("Add volunteer request"));
+    act(() => {
+      createOpts?.onSuccess?.();
+    });
+    expect(queryByText("New Volunteer Request")).toBeNull();
+  });
+
+  it("deactivateMut.onSuccess does not crash", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    let deactivateOpts: { onSuccess?: () => void } | undefined;
+    trpc.outerCircle.deactivate.useMutation.mockImplementation(
+      (opts: { onSuccess?: () => void }) => {
+        deactivateOpts = opts;
+        return { mutate: mockDeactivate, isPending: false };
+      },
+    );
+    render(<OuterCircleScreen />);
+    expect(() => {
+      act(() => {
+        deactivateOpts?.onSuccess?.();
+      });
+    }).not.toThrow();
   });
 });
