@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import ExpensesScreen from "../index";
 
 jest.mock("expo-router", () => ({
@@ -53,6 +54,7 @@ jest.mock("../../../../utils/trpc", () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.spyOn(Alert, "alert");
 });
 
 describe("ExpensesScreen", () => {
@@ -75,6 +77,37 @@ describe("ExpensesScreen", () => {
   it("shows Add expense button for coordinator", () => {
     const { getByLabelText } = render(<ExpensesScreen />);
     expect(getByLabelText("Add expense")).toBeTruthy();
+  });
+
+  it("renders section header for expense month", () => {
+    const { getByText } = render(<ExpensesScreen />);
+    expect(getByText("March 2026")).toBeTruthy();
+  });
+
+  it("long press expense shows delete confirm and calls mutation", async () => {
+    const { getByLabelText } = render(<ExpensesScreen />);
+    fireEvent(
+      getByLabelText("$50.00 Prescriptions, long press to delete"),
+      "longPress",
+    );
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Delete expense?",
+        "This cannot be undone.",
+        expect.any(Array),
+      );
+    });
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    await act(async () => {
+      buttons.find((b) => b.text === "Delete")?.onPress?.();
+    });
+    expect(mockDeleteMutate).toHaveBeenCalledWith({
+      id: "e1",
+      org_id: "org-1",
+    });
   });
 
   it("hides Add expense button for viewer", () => {

@@ -1,4 +1,5 @@
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import ExpenseAddScreen from "../add";
 
 const mockBack = jest.fn();
@@ -40,7 +41,10 @@ jest.mock("../../../../utils/trpc", () => ({
   },
 }));
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.spyOn(Alert, "alert");
+});
 
 describe("ExpenseAddScreen", () => {
   it("renders without crash", () => {
@@ -100,6 +104,55 @@ describe("ExpenseAddScreen", () => {
         }),
       );
     });
+  });
+
+  it("createMut onSuccess calls router.back()", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    let capturedOpts: {
+      onSuccess?: () => void;
+      onError?: (err: { message: string }) => void;
+    };
+    trpc.expenses.create.useMutation.mockImplementation(
+      (opts: typeof capturedOpts) => {
+        capturedOpts = opts;
+        return { mutateAsync: mockMutateAsync, isPending: false };
+      },
+    );
+    render(<ExpenseAddScreen />);
+    act(() => capturedOpts?.onSuccess?.());
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("createMut onError shows error alert", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    let capturedOpts: {
+      onSuccess?: () => void;
+      onError?: (err: { message: string }) => void;
+    };
+    trpc.expenses.create.useMutation.mockImplementation(
+      (opts: typeof capturedOpts) => {
+        capturedOpts = opts;
+        return { mutateAsync: mockMutateAsync, isPending: false };
+      },
+    );
+    render(<ExpenseAddScreen />);
+    act(() => capturedOpts?.onError?.({ message: "Quota exceeded" }));
+    expect(Alert.alert).toHaveBeenCalledWith("Error", "Quota exceeded");
+  });
+
+  it("pressing Select date shows DateTimePicker", () => {
+    const { getByLabelText, UNSAFE_queryAllByType } = render(
+      <ExpenseAddScreen />,
+    );
+    // DateTimePicker is not rendered before press
+    expect(
+      UNSAFE_queryAllByType("DateTimePicker" as unknown as React.ComponentType),
+    ).toHaveLength(0);
+    fireEvent.press(getByLabelText("Select date"));
+    // After press showDatePicker = true, DateTimePicker renders
+    expect(
+      UNSAFE_queryAllByType("DateTimePicker" as unknown as React.ComponentType),
+    ).toHaveLength(1);
   });
 
   it("submits with selected category", async () => {
