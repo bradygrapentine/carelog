@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 function BillingSuccessInner() {
   const searchParams = useSearchParams();
@@ -57,9 +57,9 @@ function BillingSuccessInner() {
               We couldn&apos;t confirm your subscription. Please check your
               email for a receipt from Stripe.
             </p>
-            <Button asChild>
-              <a href="/dashboard">Go to dashboard</a>
-            </Button>
+            <a href="/dashboard" className={buttonVariants()}>
+              Go to dashboard
+            </a>
           </CardContent>
         </Card>
       </div>
@@ -81,9 +81,9 @@ function BillingSuccessInner() {
             Your subscription ({planLabel}) is active. Your entire care team now
             has full access.
           </p>
-          <Button asChild>
-            <a href="/dashboard">Go to dashboard</a>
-          </Button>
+          <a href="/dashboard" className={buttonVariants()}>
+            Go to dashboard
+          </a>
         </CardContent>
       </Card>
     </div>
