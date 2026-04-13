@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getPostHogClient } from "@/lib/posthog-server";
 
 const checkoutSchema = z.object({
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   // Get or create Stripe customer
   let customerId = org.stripe_id;
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user.email ?? undefined,
       name: org.name,
       metadata: { orgId },
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
   // app URL.
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],

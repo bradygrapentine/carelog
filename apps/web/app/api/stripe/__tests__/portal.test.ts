@@ -13,11 +13,11 @@ vi.mock("@/server/supabaseAdmin.server", () => ({
 
 const mockPortalCreate = vi.fn();
 vi.mock("@/lib/stripe", () => ({
-  stripe: {
+  getStripe: () => ({
     billingPortal: {
       sessions: { create: (...args: unknown[]) => mockPortalCreate(...args) },
     },
-  },
+  }),
 }));
 
 const TEST_ORG_ID = "00000000-0000-0000-0000-000000000001";

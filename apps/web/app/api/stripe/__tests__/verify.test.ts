@@ -9,13 +9,13 @@ vi.mock("@/lib/supabaseServer", () => ({
 
 const mockSessionRetrieve = vi.fn();
 vi.mock("@/lib/stripe", () => ({
-  stripe: {
+  getStripe: () => ({
     checkout: {
       sessions: {
         retrieve: (...args: unknown[]) => mockSessionRetrieve(...args),
       },
     },
-  },
+  }),
 }));
 
 const mockSingle = vi.fn();
