@@ -17,21 +17,22 @@
 | `review` | `.claude/skills/review/SKILL.md` | Adversarial security review — PHI leakage, IDOR, RLS, invite TOCTOU |
 | `plan-with-tests` | `.claude/skills/plan-with-tests/SKILL.md` | Continue.dev handoff plans with TDD verify steps |
 | `worktree-subagents` | `.claude/skills/worktree-subagents/SKILL.md` | Parallel subagents with isolated file state via git worktrees |
+| `ollama` | `.claude/skills/ollama/SKILL.md` | Dispatch parallel tasks to local Ollama models |
 | `expo` | `.claude/skills/expo/SKILL.md` | Expo/React Native patterns for `apps/mobile/` — navigation, auth, styling, tRPC, testing |
 
-## Codex Commands
+## Parallel Subagents & Ollama Dispatch
 
-| Command | Purpose |
-|---------|---------|
-| `/codex:rescue` | Delegate investigation or multi-file fix to Codex |
-| `/codex:fix-tests` | Run failing tests and fix them with Codex |
-| `/codex:security-review` | PHI-boundary review: identity vault, supabaseAdmin, RLS, auth bypasses |
-| `/codex:adversarial-review` | Challenge implementation design, tradeoffs, and assumptions |
-| `/codex:review` | Standard code review |
-| `/codex:plan-review` | Compare implementation diff against a plan in `docs/superpowers/plans/` |
-| `/codex:status` | Check background job progress |
-| `/codex:result [job-id]` | Fetch completed job output |
-| `/codex:cancel [job-id]` | Cancel a running job |
+Parallel subagents via `superpowers:dispatching-parallel-agents` are the primary background-work mechanism. Use `/ollama` for local model dispatch on mechanical/exploratory subtasks; keep Claude Code as the orchestrator.
+
+| Task | Use |
+|------|-----|
+| Failing tests (batch fix) | `/ollama` with fix prompts per file |
+| Security/RLS review | `/review` skill (parallel subagents) |
+| Multi-file architecture | Claude Code (this agent) |
+| Parallel boilerplate / exploration | `/ollama` |
+| Known-pattern code gen in bulk | `/ollama` with `qwen3-coder` |
+| Plan implementation check | Task subagent: diff HEAD vs `docs/superpowers/plans/<file>` |
+| Migration + pgTAP scaffold | `/create-migration` |
 
 ## Reference Docs (load on demand)
 
@@ -59,7 +60,7 @@ Linked from `.claude/CLAUDE.md`:
 
 | Doc | Purpose |
 |-----|---------|
-| `docs/project-info/claude/USING_THE_HARNESS.md` | **Start here** — task routing, skill invocation, Codex commands, hooks, memory, token discipline |
+| `docs/project-info/claude/USING_THE_HARNESS.md` | **Start here** — task routing, skill invocation, parallel-subagent dispatch, hooks, memory, token discipline |
 
 ## Additional Docs (not auto-loaded)
 
