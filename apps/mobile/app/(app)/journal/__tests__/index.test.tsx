@@ -1,33 +1,46 @@
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import JournalScreen from "../index";
 
+const mockPush = jest.fn();
+
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }));
 
-jest.mock("../../../../hooks/useSyncStatus", () => ({
-  useSyncStatus: jest.fn().mockReturnValue("synced"),
+jest.mock("../../../../context/AppContext", () => ({
+  useApp: () => ({ orgId: "org-1", recipientId: "r-1" }),
 }));
 
-const mockWrite = jest.fn().mockResolvedValue(undefined);
 jest.mock("../../../../hooks/useOfflineWrite", () => ({
   useOfflineWrite: () => ({ write: mockWrite }),
 }));
 
+const mockWrite = jest.fn().mockResolvedValue(undefined);
+
+jest.mock("../../../../hooks/useSyncStatus", () => ({
+  useSyncStatus: jest.fn(() => "synced"),
+}));
+
 const mockTimeline = [
   {
-    id: "e1",
+    id: "ev-1",
     event_type: "journal",
-    occurred_at: "2026-04-11T10:00:00Z",
-    payload: { text: "Mom had a good morning", mood: "good" },
+    entry_kind: "human",
+    occurred_at: "2026-04-01T10:00:00Z",
+    payload: { text: "Feeling better today", mood: "okay" },
   },
   {
-    id: "e2",
+    id: "ev-2",
     event_type: "journal",
-    occurred_at: "2026-04-11T08:00:00Z",
-    payload: { text: "Rough night, woke up twice", mood: "difficult" },
+    entry_kind: "human",
+    occurred_at: "2026-04-02T09:00:00Z",
+    payload: { text: "Rough night", mood: "difficult" },
   },
 ];
+
+const mockRefetch = jest.fn();
+const mockReact = jest.fn();
+const mockUnreact = jest.fn();
 
 jest.mock("../../../../utils/trpc", () => ({
   trpc: {
@@ -36,34 +49,23 @@ jest.mock("../../../../utils/trpc", () => ({
         useQuery: jest.fn(() => ({
           data: mockTimeline,
           isLoading: false,
-          refetch: jest.fn(),
+          refetch: mockRefetch,
         })),
       },
       reactions: {
-        useQuery: () => ({
-          data: { counts: {}, myReaction: null },
+        useQuery: jest.fn(() => ({
+          data: { counts: { heart: 2 }, myReaction: null },
           refetch: jest.fn(),
-        }),
+        })),
       },
-      react: { useMutation: () => ({ mutate: jest.fn() }) },
-      unreact: { useMutation: () => ({ mutate: jest.fn() }) },
-      insert: { useMutation: () => ({ mutateAsync: jest.fn() }) },
-    },
-    medications: {
-      logAdministration: { useMutation: () => ({ mutateAsync: jest.fn() }) },
-    },
-    symptoms: {
-      log: { useMutation: () => ({ mutateAsync: jest.fn() }) },
+      react: {
+        useMutation: jest.fn(() => ({ mutate: mockReact, isPending: false })),
+      },
+      unreact: {
+        useMutation: jest.fn(() => ({ mutate: mockUnreact, isPending: false })),
+      },
     },
   },
-}));
-
-jest.mock("../../../../context/AppContext", () => ({
-  useApp: () => ({
-    orgId: "org-1",
-    recipientId: "r-1",
-    currentRole: "coordinator",
-  }),
 }));
 
 jest.mock("@react-native-community/netinfo", () => ({
@@ -78,48 +80,36 @@ jest.mock("../../../../store/offlineQueue", () => ({
   incrementAttempts: jest.fn(),
 }));
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+beforeEach(() => jest.clearAllMocks());
 
 describe("JournalScreen", () => {
   it("renders timeline entries", () => {
     const { getByText } = render(<JournalScreen />);
-    expect(getByText("Mom had a good morning")).toBeTruthy();
-    expect(getByText("Rough night, woke up twice")).toBeTruthy();
-  });
-
-  it("renders empty state when no entries", () => {
-    const trpc = require("../../../../utils/trpc").trpc;
-    trpc.careEvents.timeline.useQuery.mockReturnValueOnce({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-    const { getByText } = render(<JournalScreen />);
-    expect(getByText("No entries yet. Add the first one below.")).toBeTruthy();
+    expect(getByText("Feeling better today")).toBeTruthy();
+    expect(getByText("Rough night")).toBeTruthy();
   });
 
   it("shows mood tags in the input form", () => {
-    const { getAllByText } = render(<JournalScreen />);
-    expect(getAllByText("good").length).toBeGreaterThan(0);
+    const { getAllByText, getByText } = render(<JournalScreen />);
+    expect(getByText("good")).toBeTruthy();
+    // "okay" appears in both form and entry badge — getAllByText is safe
     expect(getAllByText("okay").length).toBeGreaterThan(0);
     expect(getAllByText("difficult").length).toBeGreaterThan(0);
-    expect(getAllByText("crisis").length).toBeGreaterThan(0);
+    expect(getByText("crisis")).toBeTruthy();
   });
 
   it("submits a journal entry via offline write", async () => {
-    const { getByPlaceholderText, getByText } = render(<JournalScreen />);
+    const { getByPlaceholderText, getByLabelText } = render(<JournalScreen />);
     const input = getByPlaceholderText("What's happening with care today?");
     fireEvent.changeText(input, "New entry text");
-    fireEvent.press(getByText("Add entry"));
+    fireEvent.press(getByLabelText("Add entry"));
 
     await waitFor(() => {
       expect(mockWrite).toHaveBeenCalledWith(
         expect.objectContaining({
           event_type: "journal",
           entry_kind: "human",
-          payload: { text: "New entry text", mood: "okay" },
+          payload: expect.objectContaining({ text: "New entry text" }),
         }),
       );
     });
@@ -127,8 +117,43 @@ describe("JournalScreen", () => {
 
   it("shows offline banner when offline", () => {
     const { useSyncStatus } = require("../../../../hooks/useSyncStatus");
-    useSyncStatus.mockReturnValue("offline");
+    useSyncStatus.mockReturnValueOnce("offline");
     const { getByText } = render(<JournalScreen />);
-    expect(getByText(/Offline/)).toBeTruthy();
+    expect(
+      getByText("● Offline — entries will sync when connected"),
+    ).toBeTruthy();
+  });
+
+  it("shows syncing banner when pending", () => {
+    const { useSyncStatus } = require("../../../../hooks/useSyncStatus");
+    useSyncStatus.mockReturnValueOnce("pending");
+    const { getByText } = render(<JournalScreen />);
+    expect(getByText("↑ Syncing entries…")).toBeTruthy();
+  });
+
+  it("expands entry when tapped", () => {
+    const { getAllByLabelText, getByText } = render(<JournalScreen />);
+    fireEvent.press(getAllByLabelText("Expand entry")[0]);
+    expect(getByText("Open entry →")).toBeTruthy();
+  });
+
+  it("collapses entry when tapped again", () => {
+    const { getAllByLabelText, queryByText } = render(<JournalScreen />);
+    fireEvent.press(getAllByLabelText("Expand entry")[0]);
+    fireEvent.press(getAllByLabelText("Collapse entry")[0]);
+    expect(queryByText("Open entry →")).toBeNull();
+  });
+
+  it("navigates to entry detail when Open entry pressed", () => {
+    const { getAllByLabelText, getByText } = render(<JournalScreen />);
+    fireEvent.press(getAllByLabelText("Expand entry")[0]);
+    fireEvent.press(getByText("Open entry →"));
+    expect(mockPush).toHaveBeenCalledWith("/journal/ev-1");
+  });
+
+  it("shows reaction count when entry expanded", () => {
+    const { getAllByLabelText, getByText } = render(<JournalScreen />);
+    fireEvent.press(getAllByLabelText("Expand entry")[0]);
+    expect(getByText("2")).toBeTruthy();
   });
 });

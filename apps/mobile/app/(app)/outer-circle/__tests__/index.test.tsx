@@ -91,4 +91,70 @@ describe("OuterCircleScreen", () => {
     const { queryByText } = render(<OuterCircleScreen />);
     expect(queryByText("Add Request")).toBeNull();
   });
+
+  it("opens modal when Add Request pressed", () => {
+    const { getByLabelText, getByText } = render(<OuterCircleScreen />);
+    fireEvent.press(getByLabelText("Add volunteer request"));
+    expect(getByText("New Volunteer Request")).toBeTruthy();
+  });
+
+  it("closes modal when Cancel pressed", () => {
+    const { getByLabelText, getByText, queryByText } = render(
+      <OuterCircleScreen />,
+    );
+    fireEvent.press(getByLabelText("Add volunteer request"));
+    fireEvent.press(getByText("Cancel"));
+    expect(queryByText("New Volunteer Request")).toBeNull();
+  });
+
+  it("submits form by pressing Submit button", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    const mutate = jest.fn();
+    trpc.outerCircle.create.useMutation.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+    const { getByLabelText, getByPlaceholderText, getByText } = render(
+      <OuterCircleScreen />,
+    );
+    fireEvent.press(getByLabelText("Add volunteer request"));
+    fireEvent.changeText(getByPlaceholderText("e.g. Grocery run"), "Meal prep");
+    fireEvent.changeText(getByPlaceholderText("1"), "2");
+    fireEvent.press(getByText("Submit"));
+    expect(mutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Meal prep",
+        slots_total: 2,
+        request_type: "volunteer",
+        org_id: "org-1",
+        recipient_id: "r-1",
+      }),
+    );
+  });
+
+  it("does not submit when title is empty", () => {
+    const { trpc } = require("../../../../utils/trpc");
+    const mutate = jest.fn();
+    trpc.outerCircle.create.useMutation.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+    const { getByLabelText, getByPlaceholderText, getByText } = render(
+      <OuterCircleScreen />,
+    );
+    fireEvent.press(getByLabelText("Add volunteer request"));
+    fireEvent.changeText(getByPlaceholderText("1"), "2");
+    fireEvent.press(getByText("Submit"));
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("calls Clipboard.setStringAsync when Copy link pressed", () => {
+    const Clipboard = require("expo-clipboard");
+    Clipboard.setStringAsync.mockResolvedValue(undefined);
+    const { getByLabelText } = render(<OuterCircleScreen />);
+    fireEvent.press(getByLabelText("Copy volunteer link"));
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
+      expect.stringContaining("abc123"),
+    );
+  });
 });
