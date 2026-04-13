@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function DashboardClient({ user }: Props) {
+  const router = useRouter();
   const [teams, setTeams] = useState<CareTeam[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,9 +31,7 @@ export function DashboardClient({ user }: Props) {
       const pendingInvite = sessionStorage.getItem("pending_invite");
       if (pendingInvite) {
         sessionStorage.removeItem("pending_invite");
-        // window.location.href (hard navigate) ensures the session cookie is read
-        // fresh on the invite page. router.push() could miss it.
-        window.location.href = "/invite/" + pendingInvite;
+        router.push("/invite/" + pendingInvite);
         return;
       }
 
@@ -62,7 +62,7 @@ export function DashboardClient({ user }: Props) {
             });
             if (res.ok) {
               const { url } = await res.json();
-              window.location.href = url;
+              router.push(url);
               return;
             }
           }
@@ -151,8 +151,7 @@ export function DashboardClient({ user }: Props) {
                 key={team.org.id}
                 className="cursor-pointer hover:border-border/80 transition-colors"
                 onClick={() => {
-                  // Hard navigate so the session cookie is always fresh on the journal page.
-                  window.location.href = "/journal/" + team.recipientId;
+                  router.push("/journal/" + team.recipientId);
                 }}
               >
                 <CardHeader className="pb-0" />

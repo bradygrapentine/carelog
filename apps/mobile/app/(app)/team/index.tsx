@@ -13,6 +13,9 @@ import {
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { canInvite } from "../../../utils/wave5Utils";
+import type { Membership } from "@carelog/types";
+
+type MemberRow = Membership & { display_name?: string; email?: string };
 
 const ROLES = ["coordinator", "caregiver", "aide", "supporter"] as const;
 
@@ -73,7 +76,7 @@ export default function TeamScreen() {
         <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
       ) : (
         <FlatList
-          data={members ?? []}
+          data={(members ?? []) as MemberRow[]}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {

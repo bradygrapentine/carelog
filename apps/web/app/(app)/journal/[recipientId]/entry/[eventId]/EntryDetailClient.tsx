@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../../../lib/authenticatedFetch";
 
@@ -53,6 +54,7 @@ export default function EntryDetailClient({
   eventId,
   userId,
 }: Props) {
+  const router = useRouter();
   const [event, setEvent] = useState<JournalEvent | null>(null);
   const [canFlag, setCanFlag] = useState(false);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -72,7 +74,7 @@ export default function EntryDetailClient({
       if (data.events) {
         const found = data.events.find((e: JournalEvent) => e.id === eventId);
         if (!found) {
-          window.location.href = "/journal/" + recipientId;
+          router.push("/journal/" + recipientId);
           return;
         }
         setEvent(found);
@@ -177,7 +179,7 @@ export default function EntryDetailClient({
       <nav className="bg-card border-b border-border px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => {
-            window.location.href = backUrl;
+            router.push(backUrl);
           }}
           className="text-muted-foreground hover:text-foreground/80"
         >

@@ -49,11 +49,23 @@ export function useOfflineWrite(orgId: string) {
       return symptomsLog.mutateAsync({
         org_id: org,
         recipient_id: write.recipient_id,
-        ...(p.pain_level != null && { pain_level: p.pain_level as number }),
-        ...(p.mood && { mood: p.mood as string }),
-        ...(p.appetite && { appetite: p.appetite as string }),
-        ...(p.mobility && { mobility: p.mobility as string }),
-        ...(p.notes && { notes: p.notes as string }),
+        ...(p.pain_level != null ? { pain_level: p.pain_level as number } : {}),
+        ...(p.mood
+          ? { mood: p.mood as "good" | "okay" | "difficult" | "crisis" }
+          : {}),
+        ...(p.appetite
+          ? { appetite: p.appetite as "none" | "normal" | "reduced" | "poor" }
+          : {}),
+        ...(p.mobility
+          ? {
+              mobility: p.mobility as
+                | "normal"
+                | "limited"
+                | "assisted"
+                | "bedbound",
+            }
+          : {}),
+        ...(p.notes ? { notes: p.notes as string } : {}),
       });
     },
   };

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import posthog from "posthog-js";
 
 export function SignInForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,7 @@ export function SignInForm() {
       posthog.identify(data.user.id); // UUID only — never email (PHI)
       posthog.capture("sign_in_completed");
     }
-    window.location.replace("/dashboard");
+    router.replace("/dashboard");
   }
 
   if (sent) {
@@ -99,7 +101,11 @@ export function SignInForm() {
             className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2 text-center text-2xl font-mono tracking-widest text-sm text-[var(--color-ink)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           />
         </div>
-        {error && <p className="text-sm text-[var(--color-danger)] text-center">{error}</p>}
+        {error && (
+          <p className="text-sm text-[var(--color-danger)] text-center">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
           disabled={loading || otp.length !== 6}

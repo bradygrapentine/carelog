@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SignInForm } from "../SignInForm";
 
-const { mockSignInWithOtp, mockVerifyOtp } = vi.hoisted(() => ({
+const { mockSignInWithOtp, mockVerifyOtp, mockReplace } = vi.hoisted(() => ({
   mockSignInWithOtp: vi.fn(),
   mockVerifyOtp: vi.fn(),
+  mockReplace: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -14,6 +15,10 @@ vi.mock("@/lib/supabase", () => ({
       verifyOtp: mockVerifyOtp,
     },
   }),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 beforeEach(() => {
@@ -46,7 +51,7 @@ describe("SignInForm", () => {
     expect(screen.getByLabelText("Enter your code")).toBeInTheDocument();
   });
 
-  it("calls window.location.replace with /dashboard on valid OTP", async () => {
+  it("calls router.replace with /dashboard on valid OTP", async () => {
     mockSignInWithOtp.mockResolvedValue({ error: null });
     mockVerifyOtp.mockResolvedValue({
       data: { user: { id: "user-123" } },
@@ -69,7 +74,7 @@ describe("SignInForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     await waitFor(() => {
-      expect(window.location.replace).toHaveBeenCalledWith("/dashboard");
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard");
     });
   });
 

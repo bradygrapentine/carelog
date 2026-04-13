@@ -1,0 +1,128 @@
+{
+  "round": 1,
+  "timestamp": "2026-04-13T00:00:00Z",
+  "findings": [
+    {
+      "id": "F-001",
+      "category": "auth",
+      "severity": "high",
+      "file": "apps/web/app/api/contact/route.ts:4",
+      "description": "Contact form POST has no auth, no rate limit, no email validation. Accepts any name/email/message and relays via Resend from a trusted sender address.",
+      "exploit_sketch": "Attacker POSTs arbitrary bodies in a loop to spam hello@carelog.app, exhaust Resend quota, and abuse the trusted reply-to header to spoof/phish correspondents. Also no zod parsing of shape — oversized payloads accepted.",
+      "fix_hint": "Add rateLimit(request, 'contact'), zod schema (email(), max lengths), and consider requiring a captcha or session for unauthenticated submissions."
+    },
+    {
+      "id": "F-002",
+      "category": "input",
+      "severity": "high",
+      "file": "apps/web/app/api/ocr/upload/route.ts:90-94",
+      "description": "OCR upload uses supabaseAdmin.storage.getPublicUrl() on 'prescription-images' bucket and stores the resulting public URL in ocr_jobs.image_url. Bucket is not declared in migrations — if public (Supabase default on manual create), PHI prescription images are world-readable by URL guess/leak.",
+      "exploit_sketch": "Uploaded URLs follow pattern orgId/recipientId/timestamp-filename.ext. Any leak (logs, referer, shared via brief content, OCR review JSON) becomes a permanent PHI read. URLs are also not signed/expiring.",
+      "fix_hint": "Declare prescription-images bucket as private in a migration (mirror care-documents pattern). Replace getPublicUrl with createSignedUrl at serve-time; store storage_path not image_url."
+    },
+    {
+      "id": "F-003",
+      "category": "rls",
+      "severity": "high",
+      "file": "supabase/migrations/20260327234330_core_schema.sql:548-550",
+      "description": "care_briefs SELECT policy is `USING (true)` — anyone (including anon) can SELECT any row via supabase-js/anon key, not just via API route.",
+      "exploit_sketch": "With the public anon key, `supabase.from('care_briefs').select('*')` dumps all briefs including PHI content (recipient name, DOB, medications, journal entries). The API route's share_token check is bypassed by hitting PostgREST directly.",
+      "fix_hint": "Restrict SELECT to `share_token = current_setting('request.jwt.claims',true)::jsonb->>'share_token'` or drop anon SELECT entirely and serve exclusively through the API with service role."
+    },
+    {
+      "id": "F-004",
+      "category": "rls",
+      "severity": "medium",
+      "file": "supabase/migrations/20260327234330_core_schema.sql:520-522",
+      "description": "outer_circle_requests SELECT policy is `USING (true)` — all requests readable by anon.",
+      "exploit_sketch": "Anon client can enumerate every outer-circle request across all orgs, including titles/descriptions that may contain sensitive care context (needed_by dates, request notes).",
+      "fix_hint": "Require SELECT only via share_token matching, or restrict anon to minimal columns needed by the public view."
+    },
+    {
+      "id": "F-005",
+      "category": "input",
+      "severity": "medium",
+      "file": "apps/web/app/api/brief/[shareToken]/route.ts:4-16",
+      "description": "Brief share-token GET has no rate limit. Endpoint returns full PHI payload (name, DOB, medications, journal entries) keyed only on a token.",
+      "exploit_sketch": "Token is a UUID/random, but with no rate limit an attacker can brute-force tokens or scrape leaked tokens at high throughput; also no cache-control, so tokens appearing in referer/logs get harvested.",
+      "fix_hint": "Add rateLimit(request, 'brief/view') and Cache-Control: no-store, private."
+    },
+    {
+      "id": "F-006",
+      "category": "input",
+      "severity": "medium",
+      "file": "apps/web/app/api/brief/route.ts:12",
+      "description": "Brief creation POST has no rate limit.",
+      "exploit_sketch": "Coordinator account compromise or insider can mass-create briefs (each de-tokenizes identity_vault) to exfiltrate PHI en masse.",
+      "fix_hint": "Add rateLimit(request, 'brief/create') to match other POST endpoints."
+    },
+    {
+      "id": "F-007",
+      "category": "input",
+      "severity": "medium",
+      "file": "apps/web/app/api/outer-circle/[shareToken]/claim/route.ts:16-28",
+      "description": "Outer-circle claim accepts name/email with no zod validation, no email format check, no length limits, no captcha.",
+      "exploit_sketch": "Spammer can fill all slots with fake claims, block legitimate helpers, and pollute coordinator inbox with bogus emails; oversized name/note fields can DoS display.",
+      "fix_hint": "Add zod schema (email().max(254), name.max(100), note.max(500)) and integrate captcha or Resend suppression list on claim."
+    },
+    {
+      "id": "F-008",
+      "category": "IDOR",
+      "severity": "medium",
+      "file": "apps/web/app/api/invite/[token]/route.ts:15-30",
+      "description": "GET /api/invite/[token] returns invitee email to anyone who has the token, with rate limit but no auth.",
+      "exploit_sketch": "If an invite URL is leaked (e.g. in shared email/slack), anyone can retrieve the associated email address (PII) without any ownership check. Combined with F-005 pattern, invite token enumeration could map emails.",
+      "fix_hint": "Consider not returning email, or return only a masked form (e.g. 'j***@example.com'). Enforce strong token entropy and short expiry."
+    },
+    {
+      "id": "F-009",
+      "category": "auth",
+      "severity": "medium",
+      "file": "apps/web/app/api/ocr/job/[jobId]/route.ts:28-30",
+      "description": "OCR job GET authorizes by `created_by == user.id` only. A coordinator who did not upload the job cannot view it — but more importantly, there is no org_id check after fetching; if created_by is NULL or equals another user's id from a different org, it still scopes correctly, so low-risk. However mixing with the access model elsewhere (org-scoped) may expose jobs to the original uploader even after org removal.",
+      "exploit_sketch": "An ex-coordinator removed from the org still passes created_by check and can read OCR job data (raw_text, parsed_data) indefinitely via jobId.",
+      "fix_hint": "Also verify active membership in job.org_id, not only created_by equality."
+    },
+    {
+      "id": "F-010",
+      "category": "input",
+      "severity": "low",
+      "file": "apps/web/app/api/stripe/checkout/route.ts:82-84",
+      "description": "success_url/cancel_url use `request.headers.get('origin')` which is attacker-controllable. Stripe will redirect to this origin after checkout.",
+      "exploit_sketch": "Attacker sends a crafted POST with Origin: https://evil.tld, gets a Checkout Session whose success_url points at evil.tld/billing/success?session_id=... — phishes the legitimate customer into leaking session_id or tricks them into a fake success page.",
+      "fix_hint": "Ignore the request Origin header; use only process.env.NEXT_PUBLIC_APP_URL (or a strict allowlist)."
+    },
+    {
+      "id": "F-011",
+      "category": "auth",
+      "severity": "low",
+      "file": "apps/web/app/api/debug-session/route.ts:6-8",
+      "description": "debug-session route is gated by NODE_ENV !== 'development'. If NODE_ENV is ever misconfigured in preview/staging, cookie names, user email, and Supabase URL are leaked.",
+      "exploit_sketch": "Vercel preview deploys sometimes run with NODE_ENV=development; attacker hitting /api/debug-session gets session cookie list + user email, enabling targeted session fixation.",
+      "fix_hint": "Remove the route before production, or gate on an explicit DEBUG_ROUTES=1 env set only locally."
+    },
+    {
+      "id": "F-012",
+      "category": "input",
+      "severity": "low",
+      "file": "apps/web/app/api/ocr/upload/route.ts:76-77",
+      "description": "Upload path includes user-supplied filename: `filePath = orgId + '/' + recipientId + '/' + Date.now() + '-' + file.name`. No sanitization of file.name — path traversal (`..`) or unicode tricks can place the object in sibling prefixes.",
+      "exploit_sketch": "Malicious filename like `../other-org/evil.pdf` may normalize into another org's prefix inside Supabase Storage, enabling cross-org write/overwrite of keys where same-named paths exist.",
+      "fix_hint": "Replace file.name with a hash or crypto.randomUUID() + extension sanitized via allowlist (as done in documents/upload)."
+    },
+    {
+      "id": "F-013",
+      "category": "input",
+      "severity": "low",
+      "file": "apps/web/app/api/invite/route.ts:98-102",
+      "description": "Invite email template concatenates inviteUrl directly into HTML string without encoding. The url comes from env + generated token so benign today, but if NEXT_PUBLIC_APP_URL ever contains user-influenced data, HTML injection is possible.",
+      "exploit_sketch": "Defensive finding — any future code path that lets a user influence the base URL or token format would yield XSS in the email body.",
+      "fix_hint": "Use a templating helper that escapes variables; or harden a schema on NEXT_PUBLIC_APP_URL at boot."
+    }
+  ],
+  "summary": {
+    "total": 13,
+    "by_severity": { "critical": 0, "high": 3, "medium": 6, "low": 4 },
+    "by_category": { "IDOR": 1, "auth": 3, "rls": 2, "secret": 0, "input": 7 }
+  }
+}

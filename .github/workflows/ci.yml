@@ -58,6 +58,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
       - name: Run tests with coverage
         run: pnpm test:coverage
         working-directory: apps/web
