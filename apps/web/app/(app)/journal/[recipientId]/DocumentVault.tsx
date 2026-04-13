@@ -51,6 +51,7 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [docType, setDocType] = useState("other");
+  const [search, setSearch] = useState("");
 
   const isCoordinator = currentUserRole === "coordinator";
 
@@ -60,6 +61,12 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
     org_id: orgId,
     recipient_id: recipientId,
   });
+
+  const filteredDocs = search.trim()
+    ? docs.filter((d: DocRow) =>
+        d.display_name.toLowerCase().includes(search.trim().toLowerCase()),
+      )
+    : docs;
 
   const deleteMutation = trpc.documents.delete.useMutation({
     onSuccess: () => utils.documents.list.invalidate(),
@@ -137,8 +144,25 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
         )}
 
         {!isLoading && docs.length > 0 && (
+          <Input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search documents by name…"
+            aria-label="Search documents"
+            className="w-full text-sm"
+          />
+        )}
+
+        {!isLoading && docs.length > 0 && filteredDocs.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No documents match your search.
+          </p>
+        )}
+
+        {!isLoading && filteredDocs.length > 0 && (
           <ul className="divide-y divide-border pt-2">
-            {docs.map((doc: DocRow) => {
+            {filteredDocs.map((doc: DocRow) => {
               const colorClass =
                 DOC_TYPE_COLORS[doc.doc_type] ??
                 "bg-[var(--color-surface)] text-foreground/80";

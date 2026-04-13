@@ -7,8 +7,9 @@ import {
   type ScreenerAnswers,
   type BenefitProgram,
 } from "../../../../lib/benefitsEligibility";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   orgId: string;
@@ -79,29 +80,52 @@ export function BenefitsNavigator({
     },
   ];
 
+  const screenerForm = (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Answer a few yes/no questions to find government and non-profit benefit
+        programs the care recipient may qualify for.
+      </p>
+      {QUESTIONS.map((q) => (
+        <label key={q.key} className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={answers[q.key]}
+            onChange={() => handleToggleAnswer(q.key)}
+            className="rounded border-border"
+          />
+          <span className="text-sm text-foreground/80">{q.label}</span>
+        </label>
+      ))}
+
+      <Separator />
+
+      <Button
+        type="button"
+        onClick={() => {
+          handleRunScreener();
+          setShowForm(false);
+        }}
+        disabled={screenMutation.isPending}
+        className="w-full"
+      >
+        {screenMutation.isPending ? "Saving..." : "Find matching programs"}
+      </Button>
+    </div>
+  );
+
   return (
     <Card>
-      <div className="w-full px-4 py-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-foreground/80">
-          Benefits navigator
-        </span>
-      </div>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Benefits navigator</CardTitle>
+      </CardHeader>
 
-      <div className="px-4 pb-4 border-t border-border space-y-4">
-        {!showForm && displayResults === null && (
-          <div className="pt-3">
-            <p className="text-sm text-muted-foreground mb-3">
-              Answer a few questions to find matching benefit programs for the
-              care recipient.
-            </p>
-            <Button type="button" onClick={() => setShowForm(true)} size="sm">
-              Start screener
-            </Button>
-          </div>
-        )}
+      <Separator />
 
+      <CardContent className="pt-4 space-y-4">
+        {/* Results view */}
         {!showForm && displayResults !== null && (
-          <div className="pt-3 space-y-3">
+          <div className="space-y-3">
             {displayResults.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No matching programs found based on the answers provided.
@@ -152,41 +176,35 @@ export function BenefitsNavigator({
           </div>
         )}
 
-        {showForm && (
-          <div className="pt-3 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">
-              Eligibility screener
+        {/* No results yet — show Start screener button on mobile only */}
+        {!showForm && displayResults === null && (
+          <div className="lg:hidden">
+            <p className="text-sm text-muted-foreground mb-3">
+              Answer a few questions to find matching benefit programs for the
+              care recipient.
             </p>
-            {QUESTIONS.map((q) => (
-              <label
-                key={q.key}
-                className="flex items-center gap-3 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={answers[q.key]}
-                  onChange={() => handleToggleAnswer(q.key)}
-                  className="rounded border-border"
-                />
-                <span className="text-sm text-foreground/80">{q.label}</span>
-              </label>
-            ))}
-            <Button
-              type="button"
-              onClick={() => {
-                handleRunScreener();
-                setShowForm(false);
-              }}
-              disabled={screenMutation.isPending}
-              className="w-full"
-            >
-              {screenMutation.isPending
-                ? "Saving..."
-                : "Find matching programs"}
+            <Button type="button" onClick={() => setShowForm(true)} size="sm">
+              Start screener
             </Button>
           </div>
         )}
-      </div>
+
+        {/* Screener form:
+            - Mobile: shown when showForm is true OR no results yet on desktop
+            - Desktop: always shown when no prior results or when showForm is active
+            Single DOM instance — class toggles visibility. */}
+        <div
+          className={
+            displayResults === null || showForm
+              ? showForm
+                ? "block"
+                : "hidden lg:block"
+              : "hidden"
+          }
+        >
+          {screenerForm}
+        </div>
+      </CardContent>
     </Card>
   );
 }

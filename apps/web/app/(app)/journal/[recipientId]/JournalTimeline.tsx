@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const MOOD_DOT: Record<string, string> = {
   good: "bg-green-500",
@@ -265,6 +267,44 @@ function dateKey(iso: string) {
   return new Date(iso).toDateString();
 }
 
+type MoodFilter = "good" | "okay" | "difficult" | "crisis";
+type KindFilter = "human" | "system";
+
+const MOOD_CHIP_CLS: Record<MoodFilter, string> = {
+  good: "bg-green-100 text-green-800 border-green-300",
+  okay: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  difficult: "bg-orange-100 text-orange-800 border-orange-300",
+  crisis: "bg-red-100 text-red-800 border-red-300",
+};
+
+function Chip({
+  label,
+  active,
+  activeCls,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  activeCls: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        "px-2.5 py-1 text-xs rounded-full border transition-all font-medium " +
+        (active
+          ? activeCls
+          : "bg-card text-muted-foreground border-border hover:text-foreground/80")
+      }
+      aria-pressed={active}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function JournalTimeline({
   events,
   currentUserId,
@@ -272,60 +312,195 @@ export function JournalTimeline({
   recipientId,
   onFlag,
 }: Props) {
-  if (events.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-[var(--color-muted)] text-sm">
-          {canFlag
-            ? "No entries yet. Share how today is going above."
-            : "No entries have been shared yet."}
-        </p>
-      </div>
-    );
+  const [search, setSearch] = useState("");
+  const [moodFilters, setMoodFilters] = useState<Set<MoodFilter>>(new Set());
+  const [kindFilters, setKindFilters] = useState<Set<KindFilter>>(new Set());
+  const [sortDesc, setSortDesc] = useState(true);
+
+  function toggleMood(m: MoodFilter) {
+    setMoodFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(m)) next.delete(m);
+      else next.add(m);
+      return next;
+    });
   }
 
-  const seenDates = new Set<string>();
+  function toggleKind(k: KindFilter) {
+    setKindFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
+
+  const filtered = useMemo(() => {
+    let result = [...events];
+
+    // Sort
+    result.sort((a, b) => {
+      const diff =
+        new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime();
+      return sortDesc ? -diff : diff;
+    });
+
+    // Search — case-insensitive match on payload.text
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter((e) =>
+        (e.payload?.text ?? "").toLowerCase().includes(q),
+      );
+    }
+
+    // Kind filter
+    if (kindFilters.size > 0) {
+      result = result.filter((e) => {
+        const kind: KindFilter = e.entry_kind === "human" ? "human" : "system";
+        return kindFilters.has(kind);
+      });
+    }
+
+    // Mood filter
+    if (moodFilters.size > 0) {
+      result = result.filter((e) => {
+        const mood = e.payload?.mood as MoodFilter | undefined;
+        return mood ? moodFilters.has(mood) : false;
+      });
+    }
+
+    return result;
+  }, [events, search, moodFilters, kindFilters, sortDesc]);
+
+  const hasActiveFilters =
+    search.trim() !== "" || moodFilters.size > 0 || kindFilters.size > 0;
 
   return (
     <div className="space-y-4">
-      {events.map((event) => {
-        const isHuman = event.entry_kind === "human";
-        const dk = dateKey(event.occurred_at);
-        const showHeader = !seenDates.has(dk);
-        if (showHeader) seenDates.add(dk);
-
-        return (
-          <div key={event.id}>
-            {showHeader && (
-              <div className="flex items-center gap-3 py-2">
-                <span className="text-xs font-medium text-[var(--color-muted)] uppercase tracking-wide">
-                  {formatDateHeader(event.occurred_at)}
-                </span>
-                <div className="flex-1 h-px bg-[var(--color-border)]" />
-              </div>
-            )}
-            {isHuman && event.event_type === "journal" ? (
-              <JournalCard
-                event={event}
-                currentUserId={currentUserId}
-                canFlag={canFlag}
-                recipientId={recipientId}
-                onFlag={onFlag}
-              />
-            ) : (
-              <div className="flex items-center gap-3 py-2 px-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-border)] shrink-0" />
-                <p className="text-xs text-[var(--color-muted)] flex-1">
-                  {event.event_type} logged
-                </p>
-                <p className="text-xs text-[var(--color-muted)]">
-                  {formatTime(event.occurred_at)}
-                </p>
-              </div>
-            )}
+      {/* Search / filter / sort toolbar */}
+      <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex-1">
+            <Input
+              type="search"
+              placeholder="Search entries..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="text-sm h-8"
+              aria-label="Search journal entries"
+            />
           </div>
-        );
-      })}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setSortDesc((v) => !v)}
+            className="text-xs shrink-0 h-8"
+            aria-label={sortDesc ? "Sort: newest first" : "Sort: oldest first"}
+          >
+            {sortDesc ? "Newest first" : "Oldest first"}
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted-foreground mr-1">Filter:</span>
+          <Chip
+            label="Personal"
+            active={kindFilters.has("human")}
+            activeCls="bg-[var(--color-primary-subtle)] text-primary border-primary/30"
+            onClick={() => toggleKind("human")}
+          />
+          <Chip
+            label="System"
+            active={kindFilters.has("system")}
+            activeCls="bg-[var(--color-surface)] text-foreground/80 border-border"
+            onClick={() => toggleKind("system")}
+          />
+          <span className="text-xs text-muted-foreground mx-1">Mood:</span>
+          {(["good", "okay", "difficult", "crisis"] as MoodFilter[]).map(
+            (m) => (
+              <Chip
+                key={m}
+                label={m.charAt(0).toUpperCase() + m.slice(1)}
+                active={moodFilters.has(m)}
+                activeCls={MOOD_CHIP_CLS[m]}
+                onClick={() => toggleMood(m)}
+              />
+            ),
+          )}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setMoodFilters(new Set());
+                setKindFilters(new Set());
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground/80 ml-1 transition-colors"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-[var(--color-muted)] text-sm">
+            {hasActiveFilters
+              ? "No entries match your filters."
+              : canFlag
+                ? "No entries yet. Share how today is going above."
+                : "No entries have been shared yet."}
+          </p>
+        </div>
+      )}
+
+      {filtered.length > 0 && (
+        <div className="space-y-4">
+          {(() => {
+            const seenDates = new Set<string>();
+            return filtered.map((event) => {
+              const isHuman = event.entry_kind === "human";
+              const dk = dateKey(event.occurred_at);
+              const showHeader = !seenDates.has(dk);
+              if (showHeader) seenDates.add(dk);
+
+              return (
+                <div key={event.id}>
+                  {showHeader && (
+                    <div className="flex items-center gap-3 py-2">
+                      <span className="text-xs font-medium text-[var(--color-muted)] uppercase tracking-wide">
+                        {formatDateHeader(event.occurred_at)}
+                      </span>
+                      <div className="flex-1 h-px bg-[var(--color-border)]" />
+                    </div>
+                  )}
+                  {isHuman && event.event_type === "journal" ? (
+                    <JournalCard
+                      event={event}
+                      currentUserId={currentUserId}
+                      canFlag={canFlag}
+                      recipientId={recipientId}
+                      onFlag={onFlag}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3 py-2 px-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-border)] shrink-0" />
+                      <p className="text-xs text-[var(--color-muted)] flex-1">
+                        {event.event_type} logged
+                      </p>
+                      <p className="text-xs text-[var(--color-muted)]">
+                        {formatTime(event.occurred_at)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          })()}
+        </div>
+      )}
     </div>
   );
 }

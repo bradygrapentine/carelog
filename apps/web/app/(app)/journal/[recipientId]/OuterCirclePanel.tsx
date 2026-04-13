@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const REQUEST_TYPES = [
   { label: "Meal", value: "meal" },
@@ -94,13 +95,154 @@ export function OuterCirclePanel({
     }
   }
 
+  const requestForm = (
+    <form onSubmit={handleCreate} className="space-y-3">
+      <div>
+        <label
+          htmlFor="oc-title"
+          className="block text-xs font-medium text-foreground/80 mb-1"
+        >
+          Title *
+        </label>
+        <Input
+          id="oc-title"
+          type="text"
+          required
+          maxLength={200}
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setError(null);
+          }}
+          placeholder="Meals needed this week"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          A short, clear description volunteers will see when they open the
+          link.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="oc-description"
+          className="block text-xs font-medium text-foreground/80 mb-1"
+        >
+          Description{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <Textarea
+          id="oc-description"
+          maxLength={1000}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          className="resize-none"
+          placeholder="Any details helpers should know..."
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Dietary restrictions, parking notes, preferred times, etc.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label
+            htmlFor="oc-type"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Request type
+          </label>
+          <select
+            id="oc-type"
+            value={requestType}
+            onChange={(e) =>
+              setRequestType(e.target.value as typeof requestType)
+            }
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
+          >
+            {REQUEST_TYPES.map((rt) => (
+              <option key={rt.value} value={rt.value}>
+                {rt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="oc-slots"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Slots needed
+          </label>
+          <select
+            id="oc-slots"
+            value={slotsTotal}
+            onChange={(e) => setSlotsTotal(e.target.value)}
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
+          >
+            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={String(n)}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            How many volunteers are needed.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="oc-needed-by"
+          className="block text-xs font-medium text-foreground/80 mb-1"
+        >
+          Needed by{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <Input
+          id="oc-needed-by"
+          type="date"
+          value={neededBy}
+          onChange={(e) => setNeededBy(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Deadline shown to volunteers on the sign-up page.
+        </p>
+      </div>
+
+      {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+
+      <Separator />
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => {
+            setShowForm(false);
+            setError(null);
+          }}
+          className="text-sm text-muted-foreground hover:text-foreground/80 lg:hidden"
+        >
+          Cancel
+        </button>
+        <Button type="submit" size="sm" disabled={createMutation.isPending}>
+          {createMutation.isPending ? "Creating..." : "Create request"}
+        </Button>
+      </div>
+    </form>
+  );
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm">Volunteer requests</CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <Separator />
+
+      <CardContent className="pt-4">
         {requests.filter((r) => r.active).length > 0 && (
           <div className="mb-4 space-y-3">
             {requests
@@ -144,144 +286,25 @@ export function OuterCirclePanel({
                   </div>
                 );
               })}
+            <Separator />
           </div>
         )}
 
-        {!showForm ? (
+        {/* Toggle button: mobile only */}
+        {!showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
           >
             + New request
           </button>
-        ) : (
-          <form onSubmit={handleCreate} className="space-y-3">
-            <div>
-              <label
-                htmlFor="oc-title"
-                className="block text-xs text-muted-foreground mb-1"
-              >
-                Title
-              </label>
-              <Input
-                id="oc-title"
-                type="text"
-                required
-                maxLength={200}
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setError(null);
-                }}
-                placeholder="Meals needed this week"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="oc-description"
-                className="block text-xs text-muted-foreground mb-1"
-              >
-                Description (optional)
-              </label>
-              <Textarea
-                id="oc-description"
-                maxLength={1000}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="resize-none"
-                placeholder="Any details helpers should know..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label
-                  htmlFor="oc-type"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Type
-                </label>
-                <select
-                  id="oc-type"
-                  value={requestType}
-                  onChange={(e) =>
-                    setRequestType(e.target.value as typeof requestType)
-                  }
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
-                >
-                  {REQUEST_TYPES.map((rt) => (
-                    <option key={rt.value} value={rt.value}>
-                      {rt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="oc-slots"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Slots needed
-                </label>
-                <select
-                  id="oc-slots"
-                  value={slotsTotal}
-                  onChange={(e) => setSlotsTotal(e.target.value)}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-ring bg-card text-foreground"
-                >
-                  {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={String(n)}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="oc-needed-by"
-                className="block text-xs text-muted-foreground mb-1"
-              >
-                Needed by (optional)
-              </label>
-              <Input
-                id="oc-needed-by"
-                type="date"
-                value={neededBy}
-                onChange={(e) => setNeededBy(e.target.value)}
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-[var(--color-danger)]">{error}</p>
-            )}
-
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setError(null);
-                }}
-                className="text-sm text-muted-foreground hover:text-foreground/80"
-              >
-                Cancel
-              </button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={createMutation.isPending}
-              >
-                {createMutation.isPending ? "Creating..." : "Create request"}
-              </Button>
-            </div>
-          </form>
         )}
+
+        {/* Form: on mobile shown when showForm; on desktop always shown */}
+        <div className={showForm ? "block" : "hidden lg:block"}>
+          {requestForm}
+        </div>
       </CardContent>
     </Card>
   );

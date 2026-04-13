@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
@@ -46,14 +47,18 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   return (
     <header className="sticky top-0 z-50 w-full bg-[var(--color-ink)] shadow-md">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 md:px-6">
-        {/* Logo */}
-        <div className="flex items-center gap-2 py-3">
+        {/* Logo — returns to dashboard */}
+        <Link
+          href="/dashboard"
+          aria-label="Go to dashboard"
+          className="flex items-center gap-2 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-2 focus:ring-offset-[var(--color-ink)]"
+        >
           <span
             className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]"
             aria-hidden="true"
           />
           <span className="text-sm font-bold text-white">Carelog</span>
-        </div>
+        </Link>
 
         {/* Tab list — desktop (only inside a team context) */}
         {recipientId && (

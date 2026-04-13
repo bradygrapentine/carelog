@@ -4,6 +4,7 @@ import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   orgId: string;
@@ -127,6 +128,215 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
     setError(null);
   }
 
+  const logForm = canLog ? (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Pain level */}
+      <fieldset>
+        <legend className="block text-xs font-medium text-foreground/80 mb-1">
+          Pain level
+        </legend>
+        <p className="text-xs text-muted-foreground mb-2">
+          Rate the care recipient&apos;s current pain from 0 (none) to 10
+          (maximum).
+        </p>
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <input
+              id="symptom-pain"
+              type="range"
+              min={0}
+              max={10}
+              value={painLevel}
+              onChange={(e) => setPainLevel(parseInt(e.target.value, 10))}
+              className="w-full accent-gray-700"
+              aria-label="Pain level"
+              aria-valuemin={0}
+              aria-valuemax={10}
+              aria-valuenow={painLevel}
+              aria-valuetext={
+                painLevel + " out of 10 — " + painLabel(painLevel)
+              }
+            />
+            <div
+              className="flex justify-between text-xs text-muted-foreground mt-0.5"
+              aria-hidden="true"
+            >
+              <span>None</span>
+              <span>Severe</span>
+            </div>
+          </div>
+          <div className="text-center shrink-0 w-14" aria-hidden="true">
+            <p
+              className={
+                "text-2xl font-bold tabular-nums leading-none " +
+                painColor(painLevel)
+              }
+            >
+              {painLevel}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {painLabel(painLevel)}
+            </p>
+          </div>
+        </div>
+      </fieldset>
+
+      <Separator />
+
+      {/* Mood */}
+      <fieldset>
+        <legend className="block text-xs font-medium text-foreground/80 mb-1">
+          Mood
+        </legend>
+        <p className="text-xs text-muted-foreground mb-2">
+          Overall emotional state of the care recipient right now.
+        </p>
+        <div className="flex flex-wrap gap-2" role="group">
+          {MOOD_OPTS.map((opt) => {
+            const isSelected = mood === opt.value;
+            const activeCls =
+              MOOD_ACTIVE_CLS[opt.value] ??
+              "bg-[var(--color-surface)] text-foreground/80 border-border";
+            const cls =
+              "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
+              (isSelected
+                ? activeCls
+                : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() =>
+                  setMood(isSelected ? "" : (opt.value as MoodVal))
+                }
+                className={cls}
+                aria-pressed={isSelected}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <Separator />
+
+      {/* Appetite + Mobility */}
+      <div className="grid grid-cols-2 gap-4">
+        <fieldset>
+          <legend className="block text-xs font-medium text-foreground/80 mb-1">
+            Appetite
+          </legend>
+          <p className="text-xs text-muted-foreground mb-2">
+            Food intake compared to normal.
+          </p>
+          <div className="flex flex-wrap gap-1.5" role="group">
+            {APPETITE_OPTS.map((opt) => {
+              const isSelected = appetite === opt.value;
+              const cls =
+                "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
+                (isSelected
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setAppetite(isSelected ? "" : (opt.value as AppetiteVal))
+                  }
+                  className={cls}
+                  aria-pressed={isSelected}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="block text-xs font-medium text-foreground/80 mb-1">
+            Mobility
+          </legend>
+          <p className="text-xs text-muted-foreground mb-2">
+            Ability to move around independently.
+          </p>
+          <div className="flex flex-wrap gap-1.5" role="group">
+            {MOBILITY_OPTS.map((opt) => {
+              const isSelected = mobility === opt.value;
+              const cls =
+                "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
+                (isSelected
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setMobility(isSelected ? "" : (opt.value as MobilityVal))
+                  }
+                  className={cls}
+                  aria-pressed={isSelected}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      </div>
+
+      <Separator />
+
+      {/* Notes */}
+      <div>
+        <label
+          htmlFor="symptom-notes"
+          className="block text-xs font-medium text-foreground/80 mb-1"
+        >
+          Notes{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <p className="text-xs text-muted-foreground mb-1">
+          Any additional observations — symptoms, context, or changes to
+          routine.
+        </p>
+        <textarea
+          id="symptom-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={1000}
+          rows={2}
+          className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border focus:border-transparent resize-none placeholder:text-muted-foreground"
+          placeholder="Any additional observations..."
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {error}
+        </p>
+      )}
+
+      <Separator />
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={resetForm}
+          className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+        >
+          Cancel
+        </button>
+        <Button type="submit" disabled={logMutation.isPending}>
+          {logMutation.isPending ? "Saving..." : "Save reading"}
+        </Button>
+      </div>
+    </form>
+  ) : null;
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-2">
@@ -143,7 +353,9 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent id="symptom-panel-body">
+      <Separator />
+
+      <CardContent id="symptom-panel-body" className="pt-4">
         {isLoading && (
           <div
             className="flex items-center gap-2 py-2"
@@ -223,204 +435,24 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
           </ul>
         )}
 
-        {canLog && !showForm && (
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            + Log reading
-          </button>
-        )}
-
-        {canLog && showForm && (
-          <form onSubmit={handleSubmit} className="mt-2 space-y-5">
-            {/* Pain level */}
-            <fieldset>
-              <legend className="block text-xs font-medium text-foreground/80 mb-2">
-                Pain level
-              </legend>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <input
-                    id="symptom-pain"
-                    type="range"
-                    min={0}
-                    max={10}
-                    value={painLevel}
-                    onChange={(e) => setPainLevel(parseInt(e.target.value, 10))}
-                    className="w-full accent-gray-700"
-                    aria-label="Pain level"
-                    aria-valuemin={0}
-                    aria-valuemax={10}
-                    aria-valuenow={painLevel}
-                    aria-valuetext={
-                      painLevel + " out of 10 — " + painLabel(painLevel)
-                    }
-                  />
-                  <div
-                    className="flex justify-between text-xs text-muted-foreground mt-0.5"
-                    aria-hidden="true"
-                  >
-                    <span>None</span>
-                    <span>Severe</span>
-                  </div>
-                </div>
-                <div className="text-center shrink-0 w-14" aria-hidden="true">
-                  <p
-                    className={
-                      "text-2xl font-bold tabular-nums leading-none " +
-                      painColor(painLevel)
-                    }
-                  >
-                    {painLevel}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {painLabel(painLevel)}
-                  </p>
-                </div>
-              </div>
-            </fieldset>
-
-            {/* Mood */}
-            <fieldset>
-              <legend className="block text-xs font-medium text-foreground/80 mb-2">
-                Mood
-              </legend>
-              <div className="flex flex-wrap gap-2" role="group">
-                {MOOD_OPTS.map((opt) => {
-                  const isSelected = mood === opt.value;
-                  const activeCls =
-                    MOOD_ACTIVE_CLS[opt.value] ??
-                    "bg-[var(--color-surface)] text-foreground/80 border-border";
-                  const cls =
-                    "px-3 py-1.5 text-xs font-medium rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
-                    (isSelected
-                      ? activeCls
-                      : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        setMood(isSelected ? "" : (opt.value as MoodVal))
-                      }
-                      className={cls}
-                      aria-pressed={isSelected}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            {/* Appetite + Mobility */}
-            <div className="grid grid-cols-2 gap-4">
-              <fieldset>
-                <legend className="block text-xs font-medium text-foreground/80 mb-2">
-                  Appetite
-                </legend>
-                <div className="flex flex-wrap gap-1.5" role="group">
-                  {APPETITE_OPTS.map((opt) => {
-                    const isSelected = appetite === opt.value;
-                    const cls =
-                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
-                      (isSelected
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() =>
-                          setAppetite(
-                            isSelected ? "" : (opt.value as AppetiteVal),
-                          )
-                        }
-                        className={cls}
-                        aria-pressed={isSelected}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend className="block text-xs font-medium text-foreground/80 mb-2">
-                  Mobility
-                </legend>
-                <div className="flex flex-wrap gap-1.5" role="group">
-                  {MOBILITY_OPTS.map((opt) => {
-                    const isSelected = mobility === opt.value;
-                    const cls =
-                      "px-2.5 py-1 text-xs rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border " +
-                      (isSelected
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-card text-muted-foreground border-border hover:border-border hover:text-foreground/80");
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() =>
-                          setMobility(
-                            isSelected ? "" : (opt.value as MobilityVal),
-                          )
-                        }
-                        className={cls}
-                        aria-pressed={isSelected}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label
-                htmlFor="symptom-notes"
-                className="block text-xs font-medium text-foreground/80 mb-1"
-              >
-                Notes{" "}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <textarea
-                id="symptom-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                maxLength={1000}
-                rows={2}
-                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-border focus:border-transparent resize-none placeholder:text-muted-foreground"
-                placeholder="Any additional observations..."
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-[var(--color-danger)]" role="alert">
-                {error}
-              </p>
-            )}
-
-            <div className="flex items-center justify-between pt-1">
+        {canLog && (
+          <>
+            {/* Toggle button: mobile only, hidden on lg+ */}
+            {!showForm && (
               <button
                 type="button"
-                onClick={resetForm}
-                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
+                onClick={() => setShowForm(true)}
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
               >
-                Cancel
+                + Log reading
               </button>
-              <Button type="submit" disabled={logMutation.isPending}>
-                {logMutation.isPending ? "Saving..." : "Save reading"}
-              </Button>
+            )}
+            {/* Form: on mobile shown when showForm; on desktop always shown via lg:block */}
+            <div className={"mt-2 " + (showForm ? "block" : "hidden lg:block")}>
+              {readings.length > 0 && <Separator className="mb-4" />}
+              {logForm}
             </div>
-          </form>
+          </>
         )}
       </CardContent>
     </Card>

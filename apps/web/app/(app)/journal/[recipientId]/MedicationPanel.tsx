@@ -5,6 +5,7 @@ import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   orgId: string;
@@ -73,13 +74,156 @@ export function MedicationPanel({
     });
   }
 
+  const addForm = isCoordinator ? (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label
+            htmlFor="med-drug"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Drug name *
+          </label>
+          <Input
+            id="med-drug"
+            type="text"
+            value={drugName}
+            onChange={(e) => setDrugName(e.target.value)}
+            required
+            placeholder="e.g. Lisinopril"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="med-dosage"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Dosage *
+          </label>
+          <Input
+            id="med-dosage"
+            type="text"
+            value={dosage}
+            onChange={(e) => setDosage(e.target.value)}
+            required
+            placeholder="e.g. 10mg once daily"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            e.g. 10mg, 1 tablet, 5ml
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="med-instructions"
+          className="block text-xs font-medium text-foreground/80 mb-1"
+        >
+          Instructions{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <Input
+          id="med-instructions"
+          type="text"
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          placeholder="Take with food"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          When and how to administer — e.g. "Take with food", "Morning only".
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label
+            htmlFor="med-pharmacy"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Pharmacy{" "}
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
+          </label>
+          <Input
+            id="med-pharmacy"
+            type="text"
+            value={pharmacy}
+            onChange={(e) => setPharmacy(e.target.value)}
+            placeholder="CVS on Main St"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="med-supply"
+            className="block text-xs font-medium text-foreground/80 mb-1"
+          >
+            Days remaining{" "}
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
+          </label>
+          <Input
+            id="med-supply"
+            type="number"
+            min="0"
+            value={supply}
+            onChange={(e) => setSupply(e.target.value)}
+            placeholder="30"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Days of medication left before a refill is needed.
+          </p>
+        </div>
+      </div>
+
+      {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+
+      <Separator />
+
+      <div className="flex items-center justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setShowForm(false);
+            setError(null);
+          }}
+          className="lg:hidden"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!drugName || !dosage || createMutation.isPending}
+        >
+          {createMutation.isPending ? "Adding..." : "Add medication"}
+        </Button>
+      </div>
+    </form>
+  ) : null;
+
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm">Medications</CardTitle>
+        {/* Mobile-only toggle */}
+        {isCoordinator && !showForm && (
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+          >
+            + Add
+          </button>
+        )}
       </CardHeader>
 
-      <CardContent>
+      <Separator />
+
+      <CardContent className="pt-4">
         {isLoading && (
           <p className="text-sm text-muted-foreground">Loading...</p>
         )}
@@ -154,128 +298,24 @@ export function MedicationPanel({
           </div>
         )}
 
-        {isCoordinator && !showForm && (
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            + Add medication
-          </button>
-        )}
-
-        {isCoordinator && showForm && (
-          <form onSubmit={handleSubmit} className="mt-2 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label
-                  htmlFor="med-drug"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Drug name *
-                </label>
-                <Input
-                  id="med-drug"
-                  type="text"
-                  value={drugName}
-                  onChange={(e) => setDrugName(e.target.value)}
-                  required
-                  placeholder="e.g. Lisinopril"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="med-dosage"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Dosage *
-                </label>
-                <Input
-                  id="med-dosage"
-                  type="text"
-                  value={dosage}
-                  onChange={(e) => setDosage(e.target.value)}
-                  required
-                  placeholder="e.g. 10mg once daily"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="med-instructions"
-                className="block text-xs text-muted-foreground mb-1"
-              >
-                Instructions
-              </label>
-              <Input
-                id="med-instructions"
-                type="text"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Take with food"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label
-                  htmlFor="med-pharmacy"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Pharmacy
-                </label>
-                <Input
-                  id="med-pharmacy"
-                  type="text"
-                  value={pharmacy}
-                  onChange={(e) => setPharmacy(e.target.value)}
-                  placeholder="CVS on Main St"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="med-supply"
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  Days remaining
-                </label>
-                <Input
-                  id="med-supply"
-                  type="number"
-                  min="0"
-                  value={supply}
-                  onChange={(e) => setSupply(e.target.value)}
-                  placeholder="30"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-sm text-[var(--color-danger)]">{error}</p>
-            )}
-
-            <div className="flex items-center justify-between pt-1">
-              <Button
+        {isCoordinator && (
+          <>
+            {/* Toggle button: mobile only */}
+            {!showForm && (
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowForm(false);
-                  setError(null);
-                }}
+                onClick={() => setShowForm(true)}
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={!drugName || !dosage || createMutation.isPending}
-              >
-                {createMutation.isPending ? "Adding..." : "Add medication"}
-              </Button>
+                + Add medication
+              </button>
+            )}
+            {/* Form: on mobile shown when showForm; on desktop always shown */}
+            <div className={"mt-2 " + (showForm ? "block" : "hidden lg:block")}>
+              {medications.length > 0 && <Separator className="mb-4" />}
+              {addForm}
             </div>
-          </form>
+          </>
         )}
       </CardContent>
     </Card>

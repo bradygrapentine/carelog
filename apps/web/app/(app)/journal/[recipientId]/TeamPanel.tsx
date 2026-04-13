@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 type Member = {
   id: string;
@@ -40,6 +41,13 @@ const ROLE_LABELS: Record<string, string> = {
   aide: "Aide",
 };
 
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  caregiver: "Provides hands-on day-to-day care",
+  coordinator: "Manages the care team and has full access",
+  supporter: "Family or friend who can read and react to updates",
+  aide: "Professional or paid aide with caregiver-level access",
+};
+
 export function TeamPanel({
   members,
   currentUserId,
@@ -72,47 +80,88 @@ export function TeamPanel({
             {" members"}
           </span>
         </CardTitle>
+        {/* Toggle button: visible only on < lg; desktop always shows the form */}
         {canInvite && (
           <Button
             variant="outline"
             size="sm"
             onClick={onToggleInvite}
-            className="text-xs"
+            className="text-xs lg:hidden"
           >
             {showInvite ? "Cancel" : "Invite someone"}
           </Button>
         )}
       </CardHeader>
 
+      <Separator />
+
       <CardContent className="p-0">
-        {showInvite && (
+        {/* Invite form:
+            - On mobile (<lg): shown only when showInvite is true
+            - On desktop (lg+): always shown via `lg:block`
+            Single DOM instance keeps tests and behaviour consistent. */}
+        {canInvite && (
           <form
             onSubmit={handleInvite}
-            className="px-4 py-3 border-b border-border bg-[var(--color-surface)]"
+            className={
+              "px-4 py-3 border-b border-border bg-[var(--color-surface)] " +
+              (showInvite ? "block" : "hidden lg:block")
+            }
           >
+            <p className="text-xs font-medium text-foreground/80 mb-1">
+              Invite someone
+            </p>
             <p className="text-xs text-muted-foreground mb-3">
               They will receive an invite link to join this care team.
             </p>
-            <div className="flex gap-2 mb-2">
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                required
-                className="flex-1 text-sm"
-              />
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="caregiver">Caregiver</option>
-                <option value="coordinator">Coordinator</option>
-                <option value="supporter">Supporter</option>
-                <option value="aide">Aide</option>
-              </select>
+
+            <div className="space-y-2">
+              <div>
+                <label
+                  htmlFor="team-invite-email"
+                  className="block text-xs text-muted-foreground mb-1"
+                >
+                  Email address
+                </label>
+                <Input
+                  id="team-invite-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  required
+                  className="text-sm"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="team-invite-role"
+                  className="block text-xs text-muted-foreground mb-1"
+                >
+                  Role
+                </label>
+                <select
+                  id="team-invite-role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
+                >
+                  <option value="caregiver">Caregiver</option>
+                  <option value="coordinator">Coordinator</option>
+                  <option value="supporter">Supporter</option>
+                  <option value="aide">Aide</option>
+                </select>
+                {role && ROLE_DESCRIPTIONS[role] && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {ROLE_DESCRIPTIONS[role]}
+                  </p>
+                )}
+              </div>
             </div>
+
+            <Separator className="my-3" />
+
             <Button
               type="submit"
               disabled={sending || !email.trim()}
