@@ -143,6 +143,8 @@ Run Claude non-interactively for automated QA:
 - `docs/project-info/technology/TECH_DEBT.md` — known issues before production
 - `docs/project-info/product/BUILD_STATUS.md` — what's done / in progress / next
 - `docs/project-info/technology/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
+- `docs/project-info/runbooks/HARNESS_USAGE.md` — how the Claude Code harness actually runs here; debugging silent hook failures
+- `docs/project-info/runbooks/TOKEN_DISCIPLINE.md` — Continue.dev routing, handoff plan format
 
 ## Things Claude Should NOT Do
 
@@ -184,9 +186,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | Skill | Purpose |
 |-------|---------|
 | `/create-migration` | Scaffold Supabase migration + pgTAP test with hard-won rules baked in |
-| `/frontend-design` | Production-grade UI components with design system |
 | `/review` | Adversarial security review for PHI/RLS/auth code |
-| `/test` | Vitest + pgTAP test writing patterns |
 | `/plan-with-tests` | Write a Continue.dev handoff plan (failing tests first) |
 | `/expo` | Expo/React Native patterns for the mobile app |
 | `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
@@ -219,68 +219,14 @@ Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
 
 1. **memsearch** — recall memory before exploring codebase
 2. **context-mode** — `ctx_execute` for output >20 lines; never Bash/Read for analysis
-3. **superpowers** — invoke matching skill before any response
-4. **frontend-design** — only for explicit UI/design requests (`/frontend-design`)
-5. **codex** — fallback for isolated, well-scoped code generation
-6. **context7** — fetch live library docs before answering framework/API questions
-7. **pr-review-toolkit** — run `/pr-review-toolkit:review-pr` before merging any PR
-8. **chrome-devtools-mcp** — browser debugging, LCP, a11y audits on live app
-9. **commit-commands** — `/commit`, `/commit-push-pr` for all git commits
-10. **claude-md-management** — `/claude-md-management:revise-claude-md` after sessions with corrections
+3. **superpowers** — invoke matching skill before any response (includes `frontend-design`)
+4. **codex** — fallback for isolated, well-scoped code generation
+5. **context7** — fetch live library docs before answering framework/API questions
+6. **chrome-devtools-mcp** — browser debugging, LCP, a11y audits on live app
+7. **commit-commands** — `/commit`, `/commit-push-pr` for all git commits
 
 ## Token Discipline
 
-- Response cap: ≤350 tokens unless user asks for more
-- Purely implementation tasks: output plan → **"→ Implement in Continue.dev"**
-- Switch to Continue.dev when approaching usage limit
-
-**Handoff to Continue.dev:** autocomplete, inline edits (<50 lines), single-file refactors, known-error debugging, writing tests to a known pattern
-
-**Stay in Claude Code:** multi-file architecture, plugin orchestration, superpowers skills, RLS/schema changes, UI component design
-
-**Self-check signals:**
-- Response likely >400 tokens → use JSON instead of prose
-- Reading a 3rd file in a row for analysis → switch to `ctx_execute_file`
-- Task is purely mechanical (rename, format, boilerplate) → route to Continue.dev
-- Approaching end of session → run `/compact`, save key decisions to memory
-
-**Structured plan format for Continue.dev handoff:**
-```json
-{
-  "task": "human-readable description of the full deliverable",
-  "steps": [
-    {
-      "description": "what to implement — specific, not vague",
-      "files": ["exact/path/to/file.tsx"],
-      "verify": {
-        "command": "pnpm test FileName",
-        "passes_when": [
-          "exact test name string 1",
-          "exact test name string 2"
-        ]
-      },
-      "do_not": ["explicit scope boundary 1", "explicit scope boundary 2"]
-    }
-  ]
-}
-```
-
-`passes_when` strings must exactly match test names as they appear in Vitest output. All must pass.
-For pgTAP steps: use `supabase test db` as the command.
-Commit failing tests before handing off — Continue.dev must start with a red suite.
-
-**Continue.dev handoff prompt:**
-```
-Implement this plan step by step. After each step, run the verify command
-and confirm every string in passes_when appears in the output before proceeding.
-Do not move to the next step until all verify strings pass.
-Respect the do_not constraints exactly.
-
-[paste JSON plan here]
-```
-
-A few notes:                                                                    
-  - Bash(*) allows all shell commands without approval — including destructive ones like rm -rf. If you want to be more selective, use patterns like Bash(grep:*), Bash(find:*), Bash(cat:*).
-  - Read, Grep, Glob are read-only and safe to blanket-allow.                           
-  - Edit and Write allow file modifications without approval.
-  - For project-level only, put the same block in .claude/settings.json inside the repo. 
+- Response cap: ≤350 tokens unless the task demands more
+- Mechanical work (autocomplete, single-file refactor, known-pattern tests) → route to Continue.dev
+- Full routing, self-check signals, and handoff plan format: `docs/project-info/runbooks/TOKEN_DISCIPLINE.md`
