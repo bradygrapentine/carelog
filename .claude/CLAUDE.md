@@ -69,34 +69,30 @@ Local (and cloud) Ollama models are the primary backend for parallel, mechanical
 - Plugin orchestration and skill invocation
 - Anything that needs full project context
 
+### Model Hierarchy (cheapest capable model wins)
+
+| Tier | Model | Use for |
+|------|-------|---------|
+| 1 — Opus | this session | Planning, architecture, security/RLS/PHI, coordination, final verification |
+| 2 — Sonnet | `Task` tool | Multi-file implementation (2–6 files), moderate refactors, mid-tier orchestration |
+| 3 — Haiku | `Task` tool | Single-file changes, known-pattern tasks, review, fast exploration |
+| 4 — Ollama | `/ollama` | Boilerplate shells, grep/glob searches, single-function stubs, bulk parallel work |
+
 ### Routing Guide
 
 | Task | Use |
 |------|-----|
-| Failing tests (batch fix) | `/ollama` with fix prompts per file |
-| Security/RLS review | `/review` skill |
-| Multi-file architecture / RLS | Claude Code Opus (this agent) |
-| Moderate multi-file implementation | Sonnet subagent via `Task` tool |
+| Planning / architecture / RLS | Opus (this session) |
+| Multi-file implementation (spec ready) | Sonnet via `Task` tool |
+| Single-file change / known pattern | Haiku via `Task` tool |
+| Code review | Haiku via `Task` tool |
 | Parallel boilerplate / exploration | `/ollama` |
-| Known-pattern code gen in bulk | `/ollama` with `qwen3-coder` |
+| Bulk mechanical work (batch fix, stubs) | `/ollama` with `qwen3-coder` |
 | Migration + pgTAP scaffold | `/create-migration` |
 
-## Sonnet as Subagent
+**Rule:** Before starting any subtask, ask: can this go one tier lower? Delegate until the task genuinely needs judgment or full project context. Opus never does mechanical work directly.
 
-Sonnet (claude-sonnet-4-6) is the default workhorse for subagent dispatch. Use it more aggressively — it's faster and cheaper than Opus while handling most implementation work well.
-
-**Dispatch Sonnet via the `Task` tool when:**
-- Implementation spans 2–6 files with a clear spec (plan-with-tests handoff)
-- Moderate refactors that need judgment but not architectural reasoning
-- Writing tests to an existing pattern
-- Coordinating a batch of `/ollama` calls (Sonnet as mid-tier orchestrator under Opus)
-
-**Keep in Opus (this session) when:**
-- RLS/security/PHI boundary changes
-- Architectural trade-offs or plan authoring
-- Cross-layer orchestration requiring full project context
-
-**Pattern — Sonnet + ollama handoff:**
+**Pattern — Sonnet + Ollama handoff:**
 Opus writes the plan → dispatch Sonnet subagent with the plan → Sonnet fans out mechanical pieces to `/ollama` and synthesizes results. This keeps Opus's context window clean.
 
 ### Health check before dispatch

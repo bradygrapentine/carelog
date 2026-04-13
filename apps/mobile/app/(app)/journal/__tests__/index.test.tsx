@@ -118,7 +118,7 @@ describe("JournalScreen", () => {
       expect(mockWrite).toHaveBeenCalledWith(
         expect.objectContaining({
           event_type: "journal",
-          entry_kind: "journal_entry",
+          entry_kind: "human",
           payload: { text: "New entry text", mood: "okay" },
         }),
       );
