@@ -12,7 +12,6 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(echo \"VITEST_EXIT:$?\")",
       "Bash(echo \"GIT_EXIT:$?\")",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog diff b5725a19ab248a4b3e9bf09649961153edbc4d0e HEAD -- apps/web/app/globals.css apps/web/app/layout.tsx)",
       "Bash(grep -n \"color-brand\\\\|color-sidebar\\\\|color-text-muted\\\\|color-surface-raised\\\\|color-surface-muted\" /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/TeamPanel.tsx /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/JournalClient.tsx)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm type-check:*)",
@@ -24,15 +23,11 @@
       "Bash(ls *.config.ts vitest.workspace*)",
       "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog branch --show-current)",
       "Edit(/.claude/skills/deploy-autopilot/**)",
-      "Bash(pnpm -C apps/web exec vitest run --changed)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog commit --no-verify -m \"docs\\(claude\\): add branch hygiene, adversarial review, task execution rules from /insights\")",
+      "Bash(pnpm -C apps/web exec vitest run --related:*)",
       "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log -1 --oneline)",
       "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short plans/)",
       "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log --oneline -10)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short)",
-      "Bash(wait 1943)",
-      "Bash(kill -0 1943)",
-      "Bash(:)"
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short)"
     ]
   },
   "hooks": {
@@ -46,7 +41,7 @@
           },
           {
             "type": "command",
-            "command": "cmd=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\"); if echo \"$cmd\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit([[:space:]]|$)'; then cd /Users/bradygrapentine/Documents/projects/carelog && pnpm -C apps/web exec vitest run --changed; ec=$?; if [ $ec -ne 0 ]; then echo '[blocked] Pre-commit test failures — fix tests before committing' >&2; exit 2; fi; fi; exit 0"
+            "command": "cmd=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\"); if echo \"$cmd\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit([[:space:]]|$)'; then cd /Users/bradygrapentine/Documents/projects/carelog && files=$(git diff --cached --name-only --diff-filter=ACM | tr '\\n' ' '); if [ -n \"$files\" ]; then pnpm -C apps/web exec vitest run --related $files; else pnpm -C apps/web exec vitest run; fi; ec=$?; if [ $ec -ne 0 ]; then echo '[blocked] Pre-commit test failures — fix tests before committing' >&2; exit 2; fi; fi; exit 0"
           }
         ]
       },
