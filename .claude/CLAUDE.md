@@ -82,13 +82,24 @@ Local (and cloud) Ollama models are the primary backend for parallel, mechanical
 
 | Task | Use |
 |------|-----|
-| Planning / architecture / RLS | Opus (this session) |
-| Multi-file implementation (spec ready) | Sonnet via `Task` tool |
+| Planning / architecture / RLS / PHI | Opus (this session) |
+| Cross-layer orchestration, plan authoring | Opus (this session) |
+| Final verification before PR/merge | Opus (this session) |
+| Multi-file implementation (spec ready, 2–6 files) | Sonnet via `Task` tool |
+| Moderate refactor with judgment calls | Sonnet via `Task` tool |
+| Sonnet orchestrating Ollama fan-out | Sonnet via `Task` tool |
 | Single-file change / known pattern | Haiku via `Task` tool |
-| Code review | Haiku via `Task` tool |
-| Parallel boilerplate / exploration | `/ollama` |
-| Bulk mechanical work (batch fix, stubs) | `/ollama` with `qwen3-coder` |
+| Code review (style, logic, standards) | Haiku via `Task` tool |
+| Writing tests to an existing pattern | Haiku via `Task` tool |
+| Adding types/Zod schemas to existing file | Haiku via `Task` tool |
+| Parallel boilerplate (component shells, stubs) | `/ollama` |
+| Codebase exploration (grep/glob, file enumeration) | `/ollama` |
+| Bulk mechanical fixes (batch test failures) | `/ollama` with `qwen3-coder` |
+| Single-function stubs with clear signature | `/ollama` |
+| Doc comment / JSDoc generation | `/ollama` |
+| Summarizing docs or reference files | `/ollama` |
 | Migration + pgTAP scaffold | `/create-migration` |
+| Security / adversarial review | `/review` skill |
 
 **Rule:** Before starting any subtask, ask: can this go one tier lower? Delegate until the task genuinely needs judgment or full project context. Opus never does mechanical work directly.
 

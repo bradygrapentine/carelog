@@ -77,7 +77,7 @@ P3-06 Care brief          ─── parallel with medical module
 
 ### P3-02 — Medication administration log
 
-**Agent:** Claude Code + Continue.dev
+**Agent:** Claude Code
 
 **Scan findings:**
 
@@ -161,7 +161,7 @@ P3-06 Care brief          ─── parallel with medical module
 
 ### P3-04 — Refill alert
 
-**Agent:** Continue.dev (follows gapDetector.ts pattern)
+TODO
 
 **Scan findings:**
 

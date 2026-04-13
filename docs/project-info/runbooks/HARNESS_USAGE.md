@@ -103,7 +103,7 @@ If this fails, `/ollama` dispatch will silently stall. Start Ollama (`ollama ser
 | `/frontend-design` | Designing production UI | "build a dashboard card" |
 | `/review` | PHI/RLS/auth code complete | "review this before I merge" |
 | `/test` | Writing Vitest or pgTAP | "add tests for X" |
-| `/plan-with-tests` | Continue.dev handoff | "write a plan for feature Y" |
+| `/plan-with-tests` | TODO handoff | "write a plan for feature Y" |
 | `/expo` | Mobile feature work | "add offline queue support" |
 | `/worktree-subagents` | Parallel independent work | "split this into web + rls tasks" |
 | `/session-end` | Closing a session | "wrap up" |

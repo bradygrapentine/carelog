@@ -46,7 +46,7 @@ No further work needed.
 
 ### P1-02 — Pending invite redirect after sign-in ⚠️ PARTIAL
 
-**Agent:** Continue.dev / Qwen3.5
+**Agent:** Qwen3.5
 
 **Scan findings:**
 
@@ -74,7 +74,7 @@ No further work needed.
 
 ### P1-03 — Entry detail view ❌ NOT STARTED
 
-**Agent:** Continue.dev / Qwen3.5
+**Agent:** Qwen3.5
 
 **Scan findings:** No detail page, no `getOne` query, timeline entries are not clickable. Fully unimplemented.
 
@@ -181,7 +181,7 @@ No further work needed.
 
 ### ~~P2-03 — Shift list / caregiver view~~ ✅ DONE
 
-**Agent:** Continue.dev / Qwen3.5
+**Agent:** Qwen3.5
 
 **Technical details:**
 
@@ -214,7 +214,7 @@ No further work needed.
 
 ### ~~P2-04 — Coverage window UI~~ ✅ DONE
 
-**Agent:** Continue.dev / Qwen3.5
+**Agent:** Qwen3.5
 
 **Technical details:**
 
@@ -318,7 +318,7 @@ No further work needed.
 
 ### ~~P2-07 — Shift section in weekly digest~~ ✅ DONE
 
-**Agent:** Continue.dev / Qwen3.5
+**Agent:** Qwen3.5
 
 **Technical details:**
 
@@ -353,8 +353,8 @@ No further work needed.
 | Story                      | Status  | Agent                         | Reason                                      |
 | -------------------------- | ------- | ----------------------------- | ------------------------------------------- |
 | P1-01 Display names        | ✅ DONE | —                             | Complete                                    |
-| P1-02 Invite redirect      | ✅ DONE | Continue.dev / Qwen3.5        | OnboardingForm missing sessionStorage check |
-| P1-03 Entry detail         | ✅ DONE | Continue.dev / Qwen3.5        | New page, no architecture decisions         |
+| P1-02 Invite redirect      | ✅ DONE | Qwen3.5        | OnboardingForm missing sessionStorage check |
+| P1-03 Entry detail         | ✅ DONE | Qwen3.5        | New page, no architecture decisions         |
 | P2-01 Shift tRPC + schema  | ✅ DONE | Claude Code                   | RLS-adjacent, multi-file, new router        |
 | P2-02 Shift creation UI    | ✅ DONE | Claude Code + frontend-design | Coordinator form, role enforcement          |
 | P2-03 Shift list           | ✅ DONE | —                             | Complete                                    |

@@ -1,6 +1,6 @@
 # Token Discipline
 
-How to split work between Opus (planning, orchestration, complex multi-file changes), Sonnet subagents via the `Task` tool (moderate multi-file implementation), and `/ollama` (mechanical edits, bulk boilerplate, exploration).
+How to split work between Claude Code (planning, orchestration, complex multi-file changes) and Ollama (mechanical edits, autocompletes, single-file work).
 
 ## Budget
 

@@ -62,7 +62,7 @@ Invoke with `/skill-name` in Claude Code.
 | `/frontend-design` | Design a production-grade UI component using the design system |
 | `/review` | Adversarial security review: PHI leakage, IDOR, supabaseAdmin misuse, RLS gaps |
 | `/test` | Write Vitest unit tests or pgTAP RLS tests following project patterns |
-| `/plan-with-tests` | Write a Continue.dev handoff plan (failing tests first, then implementation) |
+| `/plan-with-tests` | Write a TODO handoff plan (failing tests first, then implementation) |
 | `/expo` | Expo/React Native patterns: NativeWind, SecureStore, offline queue, Expo Router |
 | `/worktree-subagents` | Dispatch parallel Claude subagents with isolated git worktrees |
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
@@ -196,11 +196,11 @@ Dispatch parallel subagents (via `superpowers:dispatching-parallel-agents`) with
 | Security/RLS review | `/review` skill (parallel subagents) |
 | Multi-file implementation | Task subagent, or `/ollama` for scoped work |
 | Diff vs plan file | Task subagent comparing diff against `docs/superpowers/plans/<plan>.md` |
-| Quick inline edit (<50 lines) | Continue.dev |
+| Quick inline edit (<50 lines) | TODO |
 | Architecture / planning | Claude Code |
-| Known-pattern boilerplate | Continue.dev or `/create-migration` |
+| Known-pattern boilerplate | TODO or `/create-migration` |
 | New migration + RLS + pgTAP | `/create-migration` skill |
-| Mobile feature | `/expo` skill → Continue.dev handoff |
+| Mobile feature | `/expo` skill → TODO handoff |
 | Bulk parallel mechanical work | `/ollama` |
 
 ---
