@@ -192,6 +192,17 @@ export default function DocumentsScreen() {
 
   return (
     <View style={styles.container}>
+      {canUploadDocument(currentRole) && (
+        <TouchableOpacity
+          style={styles.scanButton}
+          onPress={() => router.push("/(app)/documents/scan")}
+          accessibilityRole="button"
+          accessibilityLabel="Scan a document"
+        >
+          <Text style={styles.scanButtonText}>Scan Document</Text>
+        </TouchableOpacity>
+      )}
+
       {isLoading ? (
         <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
       ) : (
@@ -317,6 +328,17 @@ export default function DocumentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
+  scanButton: {
+    margin: 16,
+    marginBottom: 0,
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: "#f0f9ff",
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+    alignItems: "center",
+  },
+  scanButtonText: { color: "#0369a1", fontWeight: "600", fontSize: 15 },
   loader: { marginTop: 48 },
   list: { padding: 16, paddingBottom: 80 },
   row: {
