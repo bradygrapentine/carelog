@@ -5,6 +5,7 @@ import { getRequestUser } from "@/lib/supabaseServer";
 import { inngest } from "@/inngest/client";
 import { rateLimit } from "@/lib/rateLimit";
 import { sniffMime, mimeMatches } from "@/lib/fileMagic";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const uploadBodySchema = z.object({
   orgId: z.string().uuid(),
@@ -158,6 +159,21 @@ export async function POST(request: NextRequest) {
         ? "ocr/job.created"
         : "ocr/document.created";
     await inngest.send({ name: eventName, data: { jobId: job.id } });
+
+    try {
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: user.id,
+        event: "ocr_job_started",
+        properties: {
+          org_id: validOrgId,
+          document_id: filePath,
+          job_id: job.id,
+        },
+      });
+    } catch {
+      // analytics failure must not break the endpoint
+    }
 
     return NextResponse.json({ jobId: job.id });
   } catch (e: unknown) {

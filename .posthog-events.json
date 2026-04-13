@@ -1,0 +1,62 @@
+[
+  {
+    "event": "checkout_started",
+    "description": "User clicked subscribe / initiated Stripe checkout session from subscriptions page",
+    "file": "apps/web/app/(app)/subscriptions/page.tsx"
+  },
+  {
+    "event": "checkout_completed",
+    "description": "Stripe webhook confirmed a successful subscription checkout (server-side, canonical conversion event)",
+    "file": "apps/web/app/api/stripe/webhook/route.ts"
+  },
+  {
+    "event": "subscription_updated",
+    "description": "Stripe webhook fired customer.subscription.updated — tracks plan changes / churn signals",
+    "file": "apps/web/app/api/stripe/webhook/route.ts"
+  },
+  {
+    "event": "billing_portal_opened",
+    "description": "User opened the Stripe billing portal (churn risk signal)",
+    "file": "apps/web/app/api/stripe/portal/route.ts"
+  },
+  {
+    "event": "document_uploaded",
+    "description": "Caregiver uploaded a document (medical record, insurance card, etc.)",
+    "file": "apps/web/app/api/documents/upload/route.ts"
+  },
+  {
+    "event": "ocr_job_started",
+    "description": "OCR processing job kicked off after document upload",
+    "file": "apps/web/app/api/ocr/upload/route.ts"
+  },
+  {
+    "event": "ocr_review_confirmed",
+    "description": "User confirmed OCR-extracted fields — completes doc ingest funnel",
+    "file": "apps/web/app/api/ocr/confirm/route.ts"
+  },
+  {
+    "event": "push_notification_registered",
+    "description": "User registered a push notification token — engagement / retention signal",
+    "file": "apps/web/app/api/push/register/route.ts"
+  },
+  {
+    "event": "care_team_member_added",
+    "description": "A member was added to a care team via the members API",
+    "file": "apps/web/app/api/members/route.ts"
+  },
+  {
+    "event": "contact_form_submitted",
+    "description": "Visitor submitted the contact form (marketing funnel)",
+    "file": "apps/web/app/api/contact/route.ts"
+  },
+  {
+    "event": "daily_brief_viewed",
+    "description": "Top-of-funnel view event for the AI daily brief (justified pageview — retention metric)",
+    "file": "apps/web/app/brief/[shareToken]/page.tsx"
+  },
+  {
+    "event": "dashboard_viewed",
+    "description": "Top-of-funnel view event for the authenticated dashboard landing",
+    "file": "apps/web/app/(app)/dashboard/page.tsx"
+  }
+]

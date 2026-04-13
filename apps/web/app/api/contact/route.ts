@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { resend } from "../../../server/resend.server";
 import { rateLimit } from "@/lib/rateLimit";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const MAX_BODY_BYTES = 16 * 1024; // 16 KB cap — contact form should not exceed this
 
@@ -50,6 +51,17 @@ export async function POST(request: NextRequest) {
       subject: "Contact form: " + name,
       text: "From: " + name + " <" + email + ">\n\n" + message,
     });
+  }
+
+  try {
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: email,
+      event: "contact_form_submitted",
+      properties: { has_email: !!email },
+    });
+  } catch {
+    // analytics failure should not break the endpoint
   }
 
   return NextResponse.json({ ok: true });

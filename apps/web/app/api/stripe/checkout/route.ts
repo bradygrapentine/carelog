@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { stripe } from "@/lib/stripe";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const checkoutSchema = z.object({
   orgId: z.string().uuid(),
@@ -92,6 +93,22 @@ export async function POST(request: NextRequest) {
     cancel_url: origin + "/pricing",
     metadata: { orgId, interval },
   });
+
+  try {
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "checkout_started",
+      properties: {
+        org_id: orgId,
+        price_id: priceId,
+        plan: interval === "year" ? "annual" : "monthly",
+        interval,
+      },
+    });
+  } catch (e) {
+    console.warn("[stripe/checkout] posthog capture failed:", e);
+  }
 
   return NextResponse.json({ url: session.url });
 }
