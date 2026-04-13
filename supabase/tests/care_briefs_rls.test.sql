@@ -58,24 +58,24 @@ VALUES (
 
 -- ─── tests ───────────────────────────────────────────────────────────────────
 
--- 1. Authenticated user can read brief by share_token where revoked = false
---    Policy: "briefs open read" — USING (true) — any authenticated user can SELECT
+-- 1. F-003 regression: outsider (no membership) CANNOT read care_briefs via RLS.
+--    The old `USING (true)` policy let any anon/authenticated user dump PHI; the
+--    new "briefs readable by team" policy scopes SELECT to org members.
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
 
 SELECT results_eq(
   $$SELECT count(*)::int FROM care_briefs WHERE share_token = 'brieftoken001' AND revoked = false$$,
-  ARRAY[1]::int[],
-  'authenticated user can read care_brief by share_token where revoked = false'
+  ARRAY[0]::int[],
+  'outsider without membership cannot SELECT care_briefs (F-003 regression)'
 );
 
--- 2. Revoked brief is not visible when filtering revoked = false
---    Update to revoked=true as postgres, then re-query as authenticated user
+-- 2. Revoked brief is not visible to team members when filtering revoked = false
 SET LOCAL ROLE postgres;
 UPDATE care_briefs SET revoked = true WHERE id = '50000000-0000-0000-0000-000000000001';
 
 SET LOCAL ROLE authenticated;
-SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
+SET LOCAL "request.jwt.claims" TO '{"sub":"aaaa0001-0000-0000-0000-000000000001","role":"authenticated"}';
 
 SELECT results_eq(
   $$SELECT count(*)::int FROM care_briefs WHERE share_token = 'brieftoken001' AND revoked = false$$,
@@ -125,9 +125,8 @@ SELECT lives_ok(
   'coordinator can insert care_brief'
 );
 
--- 5. Org member (caregiver) can also read brief by share_token
---    Policy is open read (USING true), so org membership is not required for SELECT.
---    This confirms the open read policy applies to all authenticated users.
+-- 5. Org member (caregiver) assigned to this recipient CAN read the brief —
+--    user_can_access_recipient returns true for their accepted membership.
 SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT results_eq(
