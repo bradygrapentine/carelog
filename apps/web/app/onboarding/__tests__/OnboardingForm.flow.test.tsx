@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { OnboardingForm } from "../OnboardingForm";
 
-const { mockGetUser, mockAuthenticatedFetch } = vi.hoisted(() => ({
+const { mockGetUser, mockAuthenticatedFetch, mockReplace } = vi.hoisted(() => ({
   mockGetUser: vi.fn(),
   mockAuthenticatedFetch: vi.fn(),
+  mockReplace: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -22,6 +27,7 @@ vi.mock("@/lib/authenticatedFetch", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetUser.mockResolvedValue({ data: { user: { id: "user-abc" } } });
+  vi.spyOn(Storage.prototype, "getItem").mockReturnValue(null);
 });
 
 describe("OnboardingForm", () => {
@@ -84,7 +90,7 @@ describe("OnboardingForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create care team" }));
 
     await waitFor(() => {
-      expect(window.location.href).toBe("/dashboard");
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard");
     });
   });
 

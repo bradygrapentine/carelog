@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -136,6 +137,7 @@ function JournalCard({
   recipientId,
   onFlag,
 }: CardProps) {
+  const router = useRouter();
   const payload = event.payload ?? {};
   const { counts, myReaction, toggle } = useReactions(event.id, currentUserId);
 
@@ -152,7 +154,7 @@ function JournalCard({
       data-testid="journal-entry"
       className="cursor-pointer hover:shadow-md transition-shadow"
       onClick={() => {
-        window.location.href = detailUrl;
+        router.push(detailUrl);
       }}
     >
       <CardContent className="p-4">

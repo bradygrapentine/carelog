@@ -6,25 +6,26 @@ import { JournalClient } from "../JournalClient";
 // Module mocks
 // ---------------------------------------------------------------------------
 
-// Mock authenticatedFetch — used for /api/journal and /api/members.
-// Default returns a coordinator member so JournalEntryForm is visible.
-const mockAuthFetch = vi.fn().mockImplementation(async (url: string) => {
-  if (typeof url === "string" && url.includes("members")) {
-    return {
-      json: async () => ({
-        members: [
-          {
-            id: "m1",
-            role: "coordinator",
-            user_id: "user-1",
-            display_name: null,
-            email: null,
-          },
-        ],
-      }),
-    };
-  }
-  return { json: async () => ({ events: [] }) };
+const { mockAuthFetch, mockFrom, mockGet } = vi.hoisted(() => {
+  const mockAuthFetch = vi.fn().mockImplementation(async (url: string) => {
+    if (typeof url === "string" && url.includes("members")) {
+      return {
+        json: async () => ({
+          members: [
+            {
+              id: "m1",
+              role: "coordinator",
+              user_id: "user-1",
+              display_name: null,
+              email: null,
+            },
+          ],
+        }),
+      };
+    }
+    return { json: async () => ({ events: [] }) };
+  });
+  return { mockAuthFetch, mockFrom: vi.fn(), mockGet: vi.fn() };
 });
 
 vi.mock("@/lib/authenticatedFetch", () => ({
@@ -33,17 +34,12 @@ vi.mock("@/lib/authenticatedFetch", () => ({
   },
 }));
 
-// Mock supabase createClient
-const mockFrom = vi.fn();
-
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
     from: mockFrom,
   }),
 }));
 
-// Mock next/navigation
-const mockGet = vi.fn();
 vi.mock("next/navigation", () => ({
   useSearchParams: () => ({ get: mockGet }),
   usePathname: () => "/journal/r1",

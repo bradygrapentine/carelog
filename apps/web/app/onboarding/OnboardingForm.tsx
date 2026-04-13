@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { authenticatedFetch } from "../../lib/authenticatedFetch";
 import posthog from "posthog-js";
 
 export function OnboardingForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +33,7 @@ export function OnboardingForm() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.location.href = "/signin";
+      router.replace("/signin");
       return;
     }
 
@@ -55,9 +57,7 @@ export function OnboardingForm() {
 
     posthog.capture("care_team_created", { org_id: data.orgId });
     const pendingInvite = sessionStorage.getItem("pending_invite");
-    window.location.href = pendingInvite
-      ? "/invite/" + pendingInvite
-      : "/dashboard";
+    router.replace(pendingInvite ? "/invite/" + pendingInvite : "/dashboard");
   }
 
   return (

@@ -3,7 +3,7 @@ import { render, screen, act } from "@testing-library/react";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-const { mockFrom, mockAuthenticatedFetch } = vi.hoisted(() => {
+const { mockFrom, mockAuthenticatedFetch, mockPush } = vi.hoisted(() => {
   const mockFrom = vi.fn(() => {
     const chain: any = { select: () => chain, eq: () => chain };
     chain.single = vi
@@ -12,8 +12,13 @@ const { mockFrom, mockAuthenticatedFetch } = vi.hoisted(() => {
     return chain;
   });
   const mockAuthenticatedFetch = vi.fn();
-  return { mockFrom, mockAuthenticatedFetch };
+  const mockPush = vi.fn();
+  return { mockFrom, mockAuthenticatedFetch, mockPush };
 });
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 vi.mock("../../../../../../../lib/supabase", () => ({
   createClient: vi.fn(() => ({
@@ -69,7 +74,7 @@ function mockApis({
 }
 
 beforeEach(() => {
-  vi.stubGlobal("location", { href: "" });
+  mockPush.mockClear();
   mockAuthenticatedFetch.mockReset();
   mockFrom.mockClear();
 });
@@ -93,7 +98,7 @@ describe("EntryDetailClient", () => {
       );
     });
     await act(async () => {});
-    expect(window.location.href).toBe("/journal/" + RECIPIENT_ID);
+    expect(mockPush).toHaveBeenCalledWith("/journal/" + RECIPIENT_ID);
   });
 
   it("renders event text when event is found", async () => {

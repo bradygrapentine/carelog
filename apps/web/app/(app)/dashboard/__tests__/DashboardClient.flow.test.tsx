@@ -6,7 +6,10 @@ import { DashboardClient } from "../DashboardClient";
 // Module mocks
 // ---------------------------------------------------------------------------
 
-const mockFrom = vi.fn();
+const { mockFrom, mockPush } = vi.hoisted(() => ({
+  mockFrom: vi.fn(),
+  mockPush: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
@@ -15,7 +18,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
   usePathname: () => "/dashboard",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -71,10 +74,6 @@ function setupNoTeams() {
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
-  Object.defineProperty(window, "location", {
-    writable: true,
-    value: { href: "" },
-  });
 });
 
 describe("DashboardClient (flow)", () => {
@@ -109,7 +108,7 @@ describe("DashboardClient (flow)", () => {
       screen.getByText("Smith Family").closest("[class*='cursor-pointer']")!,
     );
 
-    expect(window.location.href).toBe("/journal/rec-42");
+    expect(mockPush).toHaveBeenCalledWith("/journal/rec-42");
   });
 
   it("shows 'Set up a care team' link for a new user with no teams", async () => {
@@ -133,7 +132,7 @@ describe("DashboardClient (flow)", () => {
     render(<DashboardClient user={MOCK_USER} />);
 
     await waitFor(() => {
-      expect(window.location.href).toBe("/invite/token-xyz");
+      expect(mockPush).toHaveBeenCalledWith("/invite/token-xyz");
     });
 
     // Token is consumed — should be removed from sessionStorage

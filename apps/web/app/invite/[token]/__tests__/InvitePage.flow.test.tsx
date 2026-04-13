@@ -13,7 +13,10 @@ import InvitePage from "../page";
 // Module mocks
 // ---------------------------------------------------------------------------
 
-const mockGetUser = vi.fn();
+const { mockGetUser, mockAuthenticatedFetch } = vi.hoisted(() => ({
+  mockGetUser: vi.fn(),
+  mockAuthenticatedFetch: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
@@ -21,7 +24,6 @@ vi.mock("@/lib/supabase", () => ({
   }),
 }));
 
-const mockAuthenticatedFetch = vi.fn();
 vi.mock("@/lib/authenticatedFetch", () => ({
   get authenticatedFetch() {
     return mockAuthenticatedFetch;
@@ -73,10 +75,6 @@ function mockInvalidInvite() {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers({ shouldAdvanceTime: true });
-  Object.defineProperty(window, "location", {
-    writable: true,
-    value: { href: "" },
-  });
   sessionStorage.clear();
 });
 
