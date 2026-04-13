@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useState } from "react";
+import { createContext, useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export type Destination =
   | "journal"
@@ -9,6 +10,15 @@ export type Destination =
   | "shifts"
   | "documents"
   | "more";
+
+const VALID: readonly Destination[] = [
+  "journal",
+  "medications",
+  "team",
+  "shifts",
+  "documents",
+  "more",
+];
 
 type SidebarContextType = {
   activeDestination: Destination;
@@ -20,6 +30,10 @@ export const SidebarContext = createContext<SidebarContextType>({
   setActiveDestination: () => {},
 });
 
+// The URL's `?panel=` query param is the single source of truth. Both the
+// top-bar tabs (AppTabBar) and the sidebar nav go through this context, so
+// clicks stay in sync with the URL and a page reload on `?panel=medications`
+// renders the correct panel immediately.
 export function SidebarProvider({
   children,
   defaultDestination,
@@ -27,8 +41,28 @@ export function SidebarProvider({
   children: React.ReactNode;
   defaultDestination?: Destination;
 }) {
-  const [activeDestination, setActiveDestination] =
-    useState<Destination>(defaultDestination ?? "journal");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const panelParam = searchParams?.get("panel") ?? null;
+  const activeDestination: Destination = (VALID as readonly string[]).includes(
+    panelParam ?? "",
+  )
+    ? (panelParam as Destination)
+    : (defaultDestination ?? "journal");
+
+  const setActiveDestination = useCallback(
+    (dest: Destination) => {
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
+      params.set("panel", dest);
+      router.replace((pathname ?? "") + "?" + params.toString(), {
+        scroll: false,
+      });
+    },
+    [router, pathname, searchParams],
+  );
+
   return (
     <SidebarContext.Provider
       value={{ activeDestination, setActiveDestination }}
