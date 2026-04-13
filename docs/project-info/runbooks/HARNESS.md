@@ -6,7 +6,7 @@ Everything the harness does automatically, how to use it deliberately, and how t
 
 ## What the Harness Is
 
-The Claude Code harness is a set of hooks, local skills, agents, and Codex integrations that run automatically as you work. It enforces code quality, prevents common mistakes, and routes work to the right tool without requiring you to remember checklists.
+The Claude Code harness is a set of hooks, local skills, agents, and parallel-subagent dispatch patterns that run automatically as you work. It enforces code quality, prevents common mistakes, and routes work to the right tool without requiring you to remember checklists.
 
 **Core principle:** The harness catches things before they become bugs. Read this guide so you know what's running and why.
 
@@ -26,7 +26,7 @@ These block writes that would cause problems.
 | Lock file guard | Any Edit/Write | Blocks edits to `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock` |
 | iOS prebuild guard | Any Edit/Write | Blocks direct edits to `apps/mobile/ios/` except `Info.plist`, `entitlements`, `CarelogWatch/` |
 | `supabaseAdmin` warn | Any Edit/Write | Prints a warning if you write `supabaseAdmin` outside `server/` or `app/api/` |
-| PR security review | `gh pr create` | Auto-dispatches Codex security review in background before PR opens |
+| PR security review | `gh pr create` | Prints a hint to invoke `/review` skill (parallel subagents) before PR opens |
 
 **Why each guard exists:**
 
@@ -45,12 +45,10 @@ These validate and format code automatically.
 | ESLint | Any file in `apps/web/` | Runs `npx eslint --cache --quiet` and prints first 15 warnings |
 | Prettier | `.ts`, `.tsx`, `.js`, `.jsx` | Auto-formats the file in-place |
 | Mobile TypeScript check | Any file in `apps/mobile/` | Runs `npx tsc --noEmit` in mobile, prints first 10 errors |
-| pgTAP auto-run | Auth/RLS/migration files | Runs `supabase test db`; on failure, auto-dispatches Codex fix in background |
+| pgTAP auto-run | Auth/RLS/migration files | Runs `supabase test db`; on failure, prints `/ollama` hint (see `.claude/settings.json`) |
 
 **pgTAP trigger keywords** — any of these in the file path triggers pgTAP:
 `auth`, `rls`, `migration`, `policy`, `supabase/tests`
-
-**Codex auto-dispatch on pgTAP failure** — when the pgTAP hook fails, it dispatches a Codex agent (`--effort medium`) to fix the failing tests. Check `/codex:status` to see if it's running.
 
 ---
 
@@ -98,64 +96,26 @@ Never bypass a "do not commit" verdict without explicitly fixing the cited issue
 
 ---
 
-## Codex Integration
+## Parallel Subagent Dispatch
 
-Codex is a separate GPT-5.4-based agent with its own terminal. It runs independently from Claude Code.
+Parallel subagents via the `superpowers:dispatching-parallel-agents` skill handle background work. Prefer local `/ollama` dispatch for mechanical, scoped subtasks; Claude Code stays as the orchestrator.
 
-### When Codex runs automatically
+### When parallel subagents run
 
-- pgTAP hook fails → Codex dispatched to fix failing tests
-- `gh pr create` command detected → Codex dispatched for security review
+- pgTAP hook fails → hook prints `/ollama` hint; dispatch parallel subagents to fix each failing test file (prefer `/ollama` for mechanical fixes)
+- `gh pr create` detected → invoke `/review` skill (parallel subagents) for PHI/RLS/auth review
+- Failing tests, stuck bugs, or multi-file work → spawn a Task subagent or dispatch `/ollama` for scoped work
+- Comparing a diff against a plan file → dispatch a Task subagent to compare diff against `docs/superpowers/plans/<plan>.md`
 
-### Manual Codex commands
+### Ollama dispatch
 
-| Command | When to use |
-|---------|-------------|
-| `/codex:rescue [prompt]` | General diagnosis, research, multi-file implementation |
-| `/codex:fix-tests [--unit\|--rls\|--e2e\|--all]` | Fix failing tests without diagnosis overhead |
-| `/codex:review` | Standard code review against current git diff |
-| `/codex:adversarial-review [focus]` | Challenges design choices and assumptions |
-| `/codex:security-review` | PHI-boundary review: always runs at `--effort high` |
-| `/codex:plan-review [plan-file]` | Compare implementation diff against a plan doc |
-| `/codex:status` | Check background job progress |
-| `/codex:result [job-id]` | Fetch completed job output |
-| `/codex:cancel [job-id]` | Cancel a running job |
+Use `/ollama` for:
 
-### Effort levels
+- 3+ independent mechanical tasks (bulk boilerplate, file enumeration, per-file summaries)
+- Fan-out test repair across unrelated files
+- Exploratory reads where speed matters more than depth
 
-| Flag | Use for |
-|------|---------|
-| `--effort low` | Simple one-file fixes, known patterns |
-| `--effort medium` | Default for fix-tests, plan-review |
-| `--effort high` | Multi-file work, security review, architecture |
-| `--effort xhigh` | Deep investigation, stuck bugs |
-
-### Approval policies
-
-| Flag | Behavior |
-|------|---------|
-| `--approval-policy on-request` | Prompts before each command (default for write tasks) |
-| `--approval-policy never` | Fully autonomous (use for read-only/research tasks) |
-| `--approval-policy on-failure` | Auto-approves unless a command fails |
-| `--approval-policy untrusted` | Blocks all shell commands |
-
-### Background workflow
-
-Codex runs in parallel — dispatch and keep working:
-
-```bash
-/codex:rescue --background [task]   # dispatches detached
-# ... continue other work ...
-/codex:status                        # check progress
-/codex:result                        # fetch output when done
-```
-
-Use `--background` by default for anything that will take >30 seconds.
-
-### Thread continuity
-
-- `--resume` continues the last thread (same context — for iterative fixes)
-- `--fresh` always starts clean
+Claude Code remains the orchestrator and merges the results.
 
 ---
 
@@ -219,12 +179,12 @@ git worktree prune
 
 ## Proactive Dispatch Triggers
 
-Dispatch Codex without being asked when:
+Dispatch parallel subagents (via `superpowers:dispatching-parallel-agents`) without being asked when:
 
-- Test suite has >2 failures and root cause isn't obvious
-- Task requires running code to verify a fix (not just reading)
-- Security/RLS review needed before merging
-- Implementation is stuck after 2 attempts
+- Test suite has >2 failures and root cause isn't obvious → fan out one subagent per failing file; prefer `/ollama` for mechanical fixes
+- Task requires running code to verify a fix (not just reading) → spawn a Task subagent
+- Security/RLS review needed before merging → invoke `/review` skill (parallel subagents)
+- Implementation is stuck after 2 attempts → spawn a Task subagent with a fresh context, or dispatch `/ollama` for scoped work
 
 ---
 
@@ -232,14 +192,16 @@ Dispatch Codex without being asked when:
 
 | Task | Right tool |
 |------|-----------|
-| Failing tests | `/codex:fix-tests` |
-| Security/RLS review | `/codex:security-review` |
-| Multi-file implementation | `/codex:rescue --background` |
+| Failing tests | Dispatch parallel subagents via superpowers; prefer `/ollama` for mechanical fixes |
+| Security/RLS review | `/review` skill (parallel subagents) |
+| Multi-file implementation | Task subagent, or `/ollama` for scoped work |
+| Diff vs plan file | Task subagent comparing diff against `docs/superpowers/plans/<plan>.md` |
 | Quick inline edit (<50 lines) | Continue.dev |
 | Architecture / planning | Claude Code |
 | Known-pattern boilerplate | Continue.dev or `/create-migration` |
 | New migration + RLS + pgTAP | `/create-migration` skill |
 | Mobile feature | `/expo` skill → Continue.dev handoff |
+| Bulk parallel mechanical work | `/ollama` |
 
 ---
 
