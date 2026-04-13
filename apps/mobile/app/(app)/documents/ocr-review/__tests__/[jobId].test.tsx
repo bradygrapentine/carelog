@@ -126,4 +126,18 @@ describe("OcrReviewScreen", () => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
     });
   });
+
+  it("shows error alert when initial fetch throws", async () => {
+    (global.fetch as jest.Mock).mockReset();
+    (global.fetch as jest.Mock).mockRejectedValueOnce(
+      new Error("Network error"),
+    );
+    render(<OcrReviewScreen />);
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        expect.stringContaining("Network error"),
+      );
+    });
+  });
 });

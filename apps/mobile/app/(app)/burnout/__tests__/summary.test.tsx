@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import BurnoutSummaryScreen from "../summary";
 
 jest.mock("expo-router", () => ({
@@ -71,5 +71,15 @@ describe("BurnoutSummaryScreen", () => {
     expect(
       getByText("Averages shown only for weeks with 3+ responses."),
     ).toBeTruthy();
+  });
+
+  it("Back button calls router.back()", () => {
+    const mockBack = jest.fn();
+    jest
+      .spyOn(require("expo-router"), "useRouter")
+      .mockReturnValue({ back: mockBack });
+    const { getByLabelText } = render(<BurnoutSummaryScreen />);
+    fireEvent.press(getByLabelText("Back"));
+    expect(mockBack).toHaveBeenCalled();
   });
 });

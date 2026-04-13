@@ -1,4 +1,5 @@
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import EolPlannerScreen from "../index";
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
@@ -47,6 +48,24 @@ describe("EolPlannerScreen", () => {
     const { getByText } = render(<EolPlannerScreen />);
     fireEvent.press(getByText("Save"));
     expect(mockUpsert).toHaveBeenCalled();
+  });
+
+  it("upsertMut onSuccess shows Saved alert", () => {
+    jest.spyOn(Alert, "alert");
+    const { trpc } = require("../../../../utils/trpc");
+    let capturedOpts: {
+      onSuccess?: () => void;
+      onError?: (e: { message: string }) => void;
+    };
+    trpc.eolPlan.upsert.useMutation.mockImplementation(
+      (opts: typeof capturedOpts) => {
+        capturedOpts = opts;
+        return { mutate: mockUpsert, isPending: false };
+      },
+    );
+    render(<EolPlannerScreen />);
+    act(() => capturedOpts?.onSuccess?.());
+    expect(Alert.alert).toHaveBeenCalledWith("Saved");
   });
 
   it("pre-fills form from existing plan", () => {

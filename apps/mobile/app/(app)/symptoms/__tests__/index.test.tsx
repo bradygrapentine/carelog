@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import SymptomsScreen from "../index";
 
 jest.mock("expo-router", () => ({
@@ -69,5 +69,15 @@ describe("SymptomsScreen", () => {
     useSyncStatus.mockReturnValue("offline");
     const { getByText } = render(<SymptomsScreen />);
     expect(getByText(/Offline/)).toBeTruthy();
+  });
+
+  it("Log symptoms button navigates to log screen", () => {
+    const mockPush = jest.fn();
+    jest
+      .spyOn(require("expo-router"), "useRouter")
+      .mockReturnValue({ push: mockPush });
+    const { getByLabelText } = render(<SymptomsScreen />);
+    fireEvent.press(getByLabelText("Log symptoms"));
+    expect(mockPush).toHaveBeenCalledWith("/symptoms/log");
   });
 });
