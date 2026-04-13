@@ -197,6 +197,27 @@ describe("POST /api/stripe/checkout", () => {
     expect(res.status).toBe(400);
   });
 
+  // F-010 regression: success_url/cancel_url must NOT honor request Origin header.
+  it("ignores attacker-controlled Origin header when building redirect URLs", async () => {
+    setupCoordinator();
+    const { POST } = await import("../checkout/route");
+    const evilReq = new NextRequest(
+      "http://localhost:3000/api/stripe/checkout",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://evil.tld",
+        },
+        body: JSON.stringify({ orgId: TEST_ORG_ID, interval: "month" }),
+      },
+    );
+    await POST(evilReq);
+    const callArgs = mockCheckoutCreate.mock.calls[0][0];
+    expect(callArgs.success_url).not.toMatch(/evil\.tld/);
+    expect(callArgs.cancel_url).not.toMatch(/evil\.tld/);
+  });
+
   it("returns 404 when org not found", async () => {
     mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
     mockSupabaseFrom.mockImplementation((table: string) => {

@@ -78,10 +78,11 @@ export async function POST(request: NextRequest) {
       ? process.env.STRIPE_PRICE_ANNUAL
       : process.env.STRIPE_PRICE_MONTHLY;
 
-  const origin =
-    request.headers.get("origin") ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000";
+  // F-010: Never trust the request Origin header — Stripe will redirect to
+  // success_url/cancel_url after checkout, so an attacker-controlled Origin
+  // could phish customers via a bogus success page. Use only the configured
+  // app URL.
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
