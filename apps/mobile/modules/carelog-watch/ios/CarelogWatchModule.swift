@@ -5,12 +5,19 @@ public class CarelogWatchModule: Module {
   public func definition() -> ModuleDefinition {
     Name("CarelogWatch")
 
+    Events("onWatchMessage")
+
     // Activate WCSession when the module is created
     OnCreate {
       if WCSession.isSupported() {
         let session = WCSession.default
+        let delegate = CarelogWatchDelegate.shared
+        // Forward incoming watch messages as Expo events
+        delegate.onMessage = { [weak self] message in
+          self?.sendEvent("onWatchMessage", message)
+        }
         if session.delegate == nil {
-          session.delegate = CarelogWatchDelegate.shared
+          session.delegate = delegate
         }
         if session.activationState != .activated {
           session.activate()

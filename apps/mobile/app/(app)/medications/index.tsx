@@ -45,19 +45,24 @@ export default function MedicationsScreen() {
     { enabled: !!orgId && !!recipientId },
   );
 
-  // Feed next medication to watch complications after data loads
+  // Feed medications list to watch complications after data loads
   useEffect(() => {
     if (!scheduled) return;
     const meds = scheduled as unknown as ScheduledMed[];
-    const next = meds.find((m) => m.medications?.[0]);
-    if (next?.medications?.[0]) {
-      writeWatchData({
-        nextMedication: {
-          name: next.medications[0].drug_name,
-          dueAt: next.scheduled_time,
-        },
-      });
-    }
+    const medList = meds
+      .filter((m) => m.medications?.[0])
+      .map((m) => ({
+        id: m.medications![0].id,
+        name: m.medications![0].drug_name,
+        dosage: m.medications![0].dosage,
+        dueAt: m.scheduled_time,
+        scheduledTime: m.scheduled_time,
+      }));
+    const next = medList[0] ?? null;
+    writeWatchData({
+      nextMedication: next,
+      medications: medList,
+    });
   }, [scheduled]);
 
   // Build set of administered med_id|scheduled_time pairs
