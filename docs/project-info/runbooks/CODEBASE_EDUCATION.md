@@ -126,7 +126,7 @@ Read before your first coding session — the harness catches issues automatical
 Complete guide to:
 - All automated hooks (what they check, when they fire, why each guard exists)
 - Local skills (`/create-migration`, `/frontend-design`, `/review`, `/expo`, etc.)
-- Codex integration (commands, effort levels, background workflow)
+- Parallel subagent dispatch (`superpowers:dispatching-parallel-agents`) and `/ollama` local dispatch
 - Worktree patterns for parallel agent work
 - How to extend hooks and add new skills
 

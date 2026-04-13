@@ -1,56 +1,79 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest'
-import { parseOcrText } from '../ocrPrescription'
+import { describe, it, expect } from "vitest";
+import { parseOcrText, ocrJobCreatedEventSchema } from "../ocrPrescription";
 
-describe('parseOcrText', () => {
-  it('extracts drug name from the first line', () => {
-    const result = parseOcrText('Lisinopril 10mg\nTake once daily with water')
-    expect(result.drug_name).toBe('Lisinopril')
-  })
+const UUID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
 
-  it('extracts dosage in mg', () => {
-    const result = parseOcrText('Lisinopril 10mg\nTake once daily with water')
-    expect(result.dosage).toBe('10mg')
-  })
+describe("ocrJobCreatedEventSchema (R2-014)", () => {
+  it("accepts a valid jobId UUID", () => {
+    expect(() => ocrJobCreatedEventSchema.parse({ jobId: UUID })).not.toThrow();
+  });
+  it("rejects non-UUID jobId (forged event)", () => {
+    expect(() =>
+      ocrJobCreatedEventSchema.parse({ jobId: "not-a-uuid" }),
+    ).toThrow();
+  });
+  it("rejects missing jobId", () => {
+    expect(() => ocrJobCreatedEventSchema.parse({})).toThrow();
+  });
+  it("rejects unknown extra keys (strict)", () => {
+    expect(() =>
+      ocrJobCreatedEventSchema.parse({ jobId: UUID, extra: 1 }),
+    ).toThrow();
+  });
+});
+
+describe("parseOcrText", () => {
+  it("extracts drug name from the first line", () => {
+    const result = parseOcrText("Lisinopril 10mg\nTake once daily with water");
+    expect(result.drug_name).toBe("Lisinopril");
+  });
+
+  it("extracts dosage in mg", () => {
+    const result = parseOcrText("Lisinopril 10mg\nTake once daily with water");
+    expect(result.dosage).toBe("10mg");
+  });
 
   it('extracts instructions containing "take"', () => {
-    const result = parseOcrText('Lisinopril 10mg\nTake once daily with water')
-    expect(result.instructions).toMatch(/take once daily with water/i)
-  })
+    const result = parseOcrText("Lisinopril 10mg\nTake once daily with water");
+    expect(result.instructions).toMatch(/take once daily with water/i);
+  });
 
-  it('handles mcg dosage units', () => {
-    const result = parseOcrText('Levothyroxine 50 mcg\nTake with water')
-    expect(result.dosage).toBe('50 mcg')
-  })
+  it("handles mcg dosage units", () => {
+    const result = parseOcrText("Levothyroxine 50 mcg\nTake with water");
+    expect(result.dosage).toBe("50 mcg");
+  });
 
-  it('returns null dosage when no dosage found', () => {
-    const result = parseOcrText('Aspirin\nTake daily')
-    expect(result.dosage).toBeNull()
-  })
+  it("returns null dosage when no dosage found", () => {
+    const result = parseOcrText("Aspirin\nTake daily");
+    expect(result.dosage).toBeNull();
+  });
 
-  it('returns null instructions when no instruction keywords found', () => {
-    const result = parseOcrText('Aspirin 81mg\nFor pain relief')
-    expect(result.instructions).toBeNull()
-  })
+  it("returns null instructions when no instruction keywords found", () => {
+    const result = parseOcrText("Aspirin 81mg\nFor pain relief");
+    expect(result.instructions).toBeNull();
+  });
 
-  it('returns Unknown for empty first line', () => {
-    const result = parseOcrText('')
-    expect(result.drug_name).toBe('Unknown')
-  })
+  it("returns Unknown for empty first line", () => {
+    const result = parseOcrText("");
+    expect(result.drug_name).toBe("Unknown");
+  });
 
-  it('strips dosage from drug_name', () => {
-    const result = parseOcrText('Metformin 500mg\nTake twice daily with food')
-    expect(result.drug_name).not.toContain('500mg')
-    expect(result.drug_name).toBe('Metformin')
-  })
+  it("strips dosage from drug_name", () => {
+    const result = parseOcrText("Metformin 500mg\nTake twice daily with food");
+    expect(result.drug_name).not.toContain("500mg");
+    expect(result.drug_name).toBe("Metformin");
+  });
 
   it('matches "daily" instruction pattern', () => {
-    const result = parseOcrText('Atorvastatin 20mg\nTake daily at bedtime')
-    expect(result.instructions).toMatch(/daily/i)
-  })
+    const result = parseOcrText("Atorvastatin 20mg\nTake daily at bedtime");
+    expect(result.instructions).toMatch(/daily/i);
+  });
 
   it('matches "with food" instruction pattern', () => {
-    const result = parseOcrText('Metformin 500mg\nTake with food to avoid upset stomach')
-    expect(result.instructions).toMatch(/with food/i)
-  })
-})
+    const result = parseOcrText(
+      "Metformin 500mg\nTake with food to avoid upset stomach",
+    );
+    expect(result.instructions).toMatch(/with food/i);
+  });
+});

@@ -22,13 +22,13 @@ Every turn the model sees: `CLAUDE.md` contents + tool list + your message + rec
 
 ## 2. Active Hooks
 
-All hooks are in `.claude/settings.json`. To know if one fired, look for its prefix in terminal output (`[tsc]`, `[eslint]`, `[pgTAP]`, `[blocked]`, `[codex]`, `[warn]`).
+All hooks are in `.claude/settings.json`. To know if one fired, look for its prefix in terminal output (`[tsc]`, `[eslint]`, `[pgTAP]`, `[blocked]`, `[ollama]`, `[warn]`).
 
 ### PreToolUse (can block)
 
 | Hook | Trigger | What to look for | Common failure |
 |------|---------|------------------|----------------|
-| PR security review dispatch | Bash matches `gh pr create` | `[codex] PHI-boundary security review dispatched` | Codex cache path empty → silent no-op |
+| PR security review hint | Bash matches `gh pr create` | `[ollama] Invoke /review skill (parallel subagents) before opening PR` | Hint only — no auto-dispatch; operator must invoke `/review` |
 | Pre-commit changed tests | Bash matches `git commit` | Runs `pnpm -C apps/web exec vitest run --changed`; blocks on exit≠0 with `[blocked] Pre-commit test failures` | **See cautionary example below** |
 | `.env` guard | Edit/Write to any `*.env*` (except `.env.example`) | `[blocked] .env edit rejected` | None — works reliably |
 | Lock file guard | Edit/Write to `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock` | `[blocked] lock file edit rejected` | None |
@@ -43,7 +43,7 @@ All hooks are in `.claude/settings.json`. To know if one fired, look for its pre
 | ESLint | Any Edit/Write | `[eslint] ...` first 15 lines | Cache corruption → no output even with real errors. Delete `apps/web/.eslintcache` |
 | Prettier | `.ts/.tsx/.js/.jsx` Edit/Write | Silent on success | `\|\| true` swallows all errors — you won't know if it failed |
 | Mobile tsc | Any Edit/Write to `apps/mobile/*.ts(x)` | tsc output, first 10 lines | Same as web |
-| pgTAP autorun | Edit/Write to file path containing `auth`, `rls`, `migration`, `policy`, `supabase/tests` | `[pgTAP] Auth/RLS file changed — running supabase test db...` then last 20 lines | Supabase not running → hangs or prints connection error; Codex fix is auto-dispatched on failure |
+| pgTAP autorun | Edit/Write to file path containing `auth`, `rls`, `migration`, `policy`, `supabase/tests` | `[pgTAP] Auth/RLS file changed — running supabase test db...` then last 20 lines; on failure prints `[ollama]` hint | Supabase not running → hangs or prints connection error. On failure, operator dispatches `/ollama` or parallel subagents to fix |
 | shadcn import check | Edit/Write containing `@/components/ui/<name>` | `WARNING: ... does not exist. Run: pnpm dlx shadcn@latest add <name>` | Pattern is regex-narrow; misses namespaced imports |
 | Card hint | `.tsx` with `bg-white border rounded-xl shadow` | `HINT: Raw card div detected` | Opens and reads the file — can race with fast edits |
 | Sidebar breakpoint reminder | Edit/Write to sidebar/journal files without `md:` | `REMINDER: ... Verify md: breakpoint variants` | Heuristic — false positives common |
@@ -67,7 +67,8 @@ Listed in `.claude/CLAUDE.md` under "Plugin Priority". Based on 42-session usage
 | `memsearch` | **Active** | Auto-runs recall on every turn — check `[memsearch] Memory available` marker |
 | `context-mode` | **Active** | `ctx_execute`/`ctx_batch_execute` used heavily; Node version drift breaks it — run `/context-mode:ctx-upgrade` |
 | `superpowers` | **Active** | Skills invoked automatically (brainstorming, writing-plans, TDD, etc.) |
-| `codex` | **Active** | Background rescue + auto-dispatched pgTAP fix + PR security review |
+| `superpowers:dispatching-parallel-agents` | **Active** | Primary pattern for background work — fan out subagents for independent tasks |
+| `/ollama` | **Active** | Local model dispatch for mechanical, scoped subtasks (3+ independent units, bulk boilerplate) |
 | `context7` | **Active** | Library doc lookup (React, Next.js, etc.) — used when framework questions arise |
 | `chrome-devtools-mcp` | **Active** | LCP / a11y debugging on running web app |
 | `commit-commands` | **Active** | `/commit`, `/commit-push-pr` are the standard commit path |
@@ -81,6 +82,14 @@ Listed in `.claude/CLAUDE.md` under "Plugin Priority". Based on 42-session usage
 | `ide` MCP | **Occasional** | `getDiagnostics` seldom helpful vs. tsc hook |
 
 **Recommendation:** audit `~/.claude/plugins/*` and remove `sentry`, `posthog`, `github`, `pr-review-toolkit` unless you commit to using them. Each one loads tools into context.
+
+**Parallel-subagent + ollama health check:** verify the local Ollama server is up before dispatching `/ollama`:
+
+```bash
+curl -sf http://localhost:11434/api/tags
+```
+
+If this fails, `/ollama` dispatch will silently stall. Start Ollama (`ollama serve`) and re-run.
 
 ---
 
@@ -119,13 +128,14 @@ Reviews RLS policies and pgTAP tests. Verdict is always **"Safe to commit"** or 
 | `ctx_execute` returns nothing or "Node version mismatch" | context-mode binary compiled against different Node | `/context-mode:ctx-upgrade` then `/context-mode:ctx-doctor` |
 | A hook I expected didn't fire | File path didn't match the hook's `matcher` or gate, or `|| true` swallowed the error | Check `.claude/settings.json`; run the hook command manually with a fake JSON stdin |
 | Subagent committed to `main` instead of feature branch | Subagent wasn't told explicit branch | Always pass branch name in the dispatch prompt: "Commit on branch `feature/X`. Run `git branch --show-current` first." |
-| Codex background job "missing" | Dispatch logged nothing because Codex cache path empty | Check `ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs` |
+| `/ollama` dispatch stalls silently | Local Ollama server not running | `curl -sf http://localhost:11434/api/tags`; if it fails, run `ollama serve` and re-dispatch |
+| Parallel subagents didn't fan out | Skill not invoked — orchestrator tried to do the work serially | Explicitly invoke `superpowers:dispatching-parallel-agents` or `/ollama` with per-task scope |
 | Prettier "didn't format" | Hook `|| true` hides errors | Run `npx prettier --write <file>` manually |
 | pgTAP hook ran forever | Supabase not started | `supabase start`, then redo the edit |
 | `[tsc]` showed errors you didn't cause | Stale build state from another branch | `rm -rf apps/web/.next apps/web/tsconfig.tsbuildinfo` |
 | Model ignored your instruction | CLAUDE.md not loaded (wrong cwd) or instruction buried | Verify cwd with `pwd`; short instructions in CLAUDE.md stick better than long ones |
 | ESLint silent on real errors | `.eslintcache` corrupt | `rm apps/web/.eslintcache` |
-| PR security review didn't dispatch | Matcher only fires on **literal** `gh pr create` in a Bash tool — not `/commit-push-pr` | Run `gh pr create` explicitly or trigger review manually |
+| PR security review hint didn't fire | Matcher only fires on **literal** `gh pr create` in a Bash tool — not `/commit-push-pr` | Run `gh pr create` explicitly, or invoke `/review` skill manually before opening the PR |
 
 ---
 
@@ -133,19 +143,18 @@ Reviews RLS policies and pgTAP tests. Verdict is always **"Safe to commit"** or 
 
 When something feels off:
 
-1. **Hook fired?** Search terminal scrollback for the hook's prefix (`[tsc]`, `[pgTAP]`, `[blocked]`, `[codex]`, `[warn]`). No prefix = didn't fire.
+1. **Hook fired?** Search terminal scrollback for the hook's prefix (`[tsc]`, `[pgTAP]`, `[blocked]`, `[ollama]`, `[warn]`). No prefix = didn't fire.
 2. **Validate settings.json:** `python3 -c "import json; json.load(open('.claude/settings.json'))" && echo valid`
 3. **Run the hook manually:** pipe synthetic JSON to the hook's command:
    ```bash
    echo '{"tool_input":{"file_path":"apps/web/foo.ts","content":""}}' | bash -c '<hook command here>'
    ```
-4. **Codex background jobs:** `/codex:status` shows running, `/codex:result [id]` fetches output. Logs at `~/.claude/plugins/cache/openai-codex/codex/*/logs/`.
-5. **Check loaded memory:** the `[memsearch] Memory available` banner lists files — open `~/.claude/projects/-Users-bradygrapentine-Documents-projects-carelog/memory/MEMORY.md`.
-6. **Audit context-mode knowledge base:** `/context-mode:ctx-stats` shows what's indexed and savings ratio.
-7. **Verify branch before commit:** `git branch --show-current`. Always. Especially after subagent work.
-8. **What's actually in context?** Scroll up in Claude Code and find the system-reminder blocks — they enumerate CLAUDE.md paths, skills, and MCP tools currently loaded. If something is missing, the harness didn't load it.
-9. **Is a skill stale?** `.claude/skills/<name>/SKILL.md` — open and read the trigger description. Skills only auto-invoke when user intent matches.
-10. **Permission denials:** if Bash refuses a command, the pattern isn't in `permissions.allow` in `settings.json` — either add it or run interactively.
+4. **Check loaded memory:** the `[memsearch] Memory available` banner lists files — open `~/.claude/projects/-Users-bradygrapentine-Documents-projects-carelog/memory/MEMORY.md`.
+5. **Audit context-mode knowledge base:** `/context-mode:ctx-stats` shows what's indexed and savings ratio.
+6. **Verify branch before commit:** `git branch --show-current`. Always. Especially after subagent work.
+7. **What's actually in context?** Scroll up in Claude Code and find the system-reminder blocks — they enumerate CLAUDE.md paths, skills, and MCP tools currently loaded. If something is missing, the harness didn't load it.
+8. **Is a skill stale?** `.claude/skills/<name>/SKILL.md` — open and read the trigger description. Skills only auto-invoke when user intent matches.
+9. **Permission denials:** if Bash refuses a command, the pattern isn't in `permissions.allow` in `settings.json` — either add it or run interactively.
 
 ---
 

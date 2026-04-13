@@ -1,0 +1,65 @@
+{
+  "round": 2,
+  "branch": "feature/insights-improvements",
+  "verified_at": "2026-04-13",
+  "findings": [
+    {
+      "finding_id": "R2-001",
+      "severity": "high",
+      "status": "fixed",
+      "commit": "ef00597",
+      "evidence": "apps/web/lib/rateLimit.ts:25-40 (getRedis throws when hasCreds=false && isProductionRuntime()); apps/web/lib/rateLimit.ts:66-78 (rateLimit catches throw and returns 503); apps/web/lib/__tests__/rateLimit.test.ts:56-71 (two prod-fail-closed regression tests covering NODE_ENV=production and VERCEL_ENV=production)",
+      "residual_risk": "None material. isProductionRuntime() relies on NODE_ENV/VERCEL_ENV — a misdeployment that sets neither would silently no-op, but Vercel sets VERCEL_ENV automatically. Worth a deploy-time assertion but not a blocker.",
+      "summary": "rateLimit now fails closed in production when Upstash creds missing, returns 503. Regression tests exercise both prod signals and the dev no-op."
+    },
+    {
+      "finding_id": "R2-003",
+      "severity": "medium",
+      "status": "fixed",
+      "commit": "0b97aea",
+      "evidence": "apps/web/lib/fileMagic.ts:14-79 (signature sniffer for JPEG/PNG/PDF/HEIC/HEIF + mimeMatches helper); apps/web/app/api/ocr/upload/route.ts:100-107 (sniff first 12 bytes, 400 on mismatch); apps/web/app/api/ocr/upload/route.test.ts:241-271 (regression: HTML bytes with image/png declared → 400)",
+      "residual_risk": "Sniffer is allowlist-based so polyglots that start with a valid JPEG/PDF header but contain HTML payload could still be stored; mitigation is that bucket is private (F-002) and objects are served via signed URLs with contentType pinned from sniff, so browser won't execute HTML. Acceptable.",
+      "summary": "OCR route validates declared MIME against magic bytes; adversarial test confirms HTML-as-PNG rejected with 400."
+    },
+    {
+      "finding_id": "R2-005",
+      "severity": "medium",
+      "status": "fixed",
+      "commit": "cef9ee1",
+      "evidence": "supabase/tests/care_briefs_rls.test.sql:141-163 (SET LOCAL ROLE anon; results_eq count=0 on SELECT; throws_ok 42501 on INSERT)",
+      "residual_risk": "None — tests explicitly assert anon role cannot read or write care_briefs. If a future USING (true) regression lands, these assertions will fail in CI before merge.",
+      "summary": "anon-role SELECT+INSERT pgTAP regression added to care_briefs_rls.test.sql; plan count bumped to 7."
+    },
+    {
+      "finding_id": "R2-006",
+      "severity": "medium",
+      "status": "fixed",
+      "commit": "e7ce28d",
+      "evidence": "supabase/migrations/20260417000000_harden_outer_circle_requests_rls.sql:11-22 (drops USING(true), adds team-scoped SELECT requiring accepted membership); supabase/tests/outer_circle_rls.test.sql:62-69 (outsider sees 0 rows), :127-133 (team member sees 1), :136-143 (anon sees 0 rows)",
+      "residual_risk": "Public share-token surface now bypasses RLS via supabaseAdmin API route (documented in migration comment). That route must enforce share_token validity itself — orthogonal to R2-006 but worth a targeted review if not already covered. No new high-sev risk.",
+      "summary": "outer_circle_requests SELECT now team-scoped via accepted memberships; pgTAP covers outsider, team member, and anon."
+    },
+    {
+      "finding_id": "R2-014",
+      "severity": "medium",
+      "status": "fixed",
+      "commit": "c102810",
+      "evidence": "apps/web/inngest/functions/journalFlagAlert.ts:6-12 (strict schema), :33 (parse); apps/web/inngest/functions/ocrDocument.ts:7-9, :91; apps/web/inngest/functions/ocrPrescription.ts:6-8, :36; tests: __tests__/journalFlagAlert.test.ts:46-68 (non-UUID, missing field, extra key rejections); __tests__/ocrDocument.test.ts:17-26; __tests__/ocrPrescription.test.ts:11-23",
+      "residual_risk": "Schemas are minimal (only IDs) — intentionally so since handlers fetch authoritative rows via supabaseAdmin. R2-015 (stricter schemas elsewhere) is the broader program and is deferred.",
+      "summary": "All three Inngest handler event payloads are .strict() zod-parsed at entry. Regression tests cover forged/non-UUID/extra-key/missing-field cases."
+    },
+    {
+      "finding_id": "R2-015",
+      "severity": "medium",
+      "status": "deferred",
+      "commit": null,
+      "evidence": "Explicitly deferred by Blue Team per verifier instructions.",
+      "residual_risk": "Tracked for future round — no new exposure introduced.",
+      "summary": "Deferred; not re-audited this round."
+    }
+  ],
+  "convergence": {
+    "verdict": "CONVERGED",
+    "rationale": "All 5 in-scope round-2 fixes hold under re-audit. Each patch has a regression test that exercises the adversarial path (not happy path only). No new high-severity residual risks introduced. Only residuals are low-severity hardening opportunities (deploy-time env assertion, polyglot files mitigated by private bucket, share-token API route review) and the explicitly-deferred R2-015."
+  }
+}

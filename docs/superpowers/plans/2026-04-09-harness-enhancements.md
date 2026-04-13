@@ -1,3 +1,5 @@
+> **Historical (2026-04-09)**: references Codex integration, which has since been replaced with `superpowers:dispatching-parallel-agents` + `/ollama` dispatch. See `.claude/CLAUDE.md` current routing guide.
+
 # Harness Enhancements Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

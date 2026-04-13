@@ -1,6 +1,30 @@
 import { describe, it, expect } from "vitest";
-import { classifyDocument, extractFields } from "../ocrDocument";
+import {
+  classifyDocument,
+  extractFields,
+  ocrDocumentCreatedEventSchema,
+} from "../ocrDocument";
 import type { OcrField } from "../ocrDocument";
+
+const UUID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
+
+describe("ocrDocumentCreatedEventSchema (R2-014)", () => {
+  it("accepts a valid jobId UUID", () => {
+    expect(() =>
+      ocrDocumentCreatedEventSchema.parse({ jobId: UUID }),
+    ).not.toThrow();
+  });
+  it("rejects non-UUID jobId (forged event)", () => {
+    expect(() =>
+      ocrDocumentCreatedEventSchema.parse({ jobId: "not-a-uuid" }),
+    ).toThrow();
+  });
+  it("rejects unknown extra keys (strict)", () => {
+    expect(() =>
+      ocrDocumentCreatedEventSchema.parse({ jobId: UUID, x: 1 }),
+    ).toThrow();
+  });
+});
 
 describe("classifyDocument", () => {
   it("detects lab result", () => {

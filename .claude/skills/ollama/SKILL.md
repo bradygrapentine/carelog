@@ -1,6 +1,6 @@
 ---
 name: ollama
-description: Dispatch parallel tasks to local Ollama models. Opus/Sonnet stays as orchestrator; local models handle sub-tasks via Ollama's Anthropic-compatible API.
+description: Primary dispatch backend for parallel, mechanical, and exploratory subtasks. Routes work to local/cloud Ollama models via the Anthropic-compatible API; Claude Code stays as the orchestrator. Use for 3+ independent tasks, bulk boilerplate, file enumeration, red/blue/verifier loops, or anything where correctness is cheap to verify afterward.
 ---
 
 # Ollama Local Agents
@@ -153,9 +153,32 @@ const tasks = [
 
 ---
 
-## Quick-start check
+## Preflight health check
 
-Before dispatching, verify Ollama is reachable:
+Run before every dispatch:
 ```bash
-node -e "fetch('http://localhost:11434/api/tags').then(r=>r.json()).then(d=>console.log(d.models?.map(m=>m.name)))"
+curl -sf http://localhost:11434/api/tags > /dev/null && echo "ollama ok" || echo "ollama not running — start with 'ollama serve' or switch to a :cloud model"
 ```
+
+If the local server is unreachable: prompt the user to start Ollama, OR automatically fall back to `glm-4.7:cloud` and notify: **"local Ollama unreachable — using glm-4.7:cloud instead"**. Never silently degrade.
+
+## Model selection guide
+
+| Task type | Model | Why |
+|-----------|-------|-----|
+| Code generation, boilerplate | `qwen3-coder` (local) | Fast, cheap, strong at known patterns |
+| Multi-file exploration / synthesis | `glm-4.7:cloud` | Larger context window, better synthesis |
+| Complex reasoning / planning | `minimax-m2.5:cloud` | Natively spawns subagents, best judgment |
+| Bulk parallel (10+ tasks) | `qwen3-coder` (local) | Zero API cost, can fan out wide |
+| Local unavailable, need code | `qwen3-coder:480b-cloud` | Cloud fallback for the default path |
+
+## Dispatch patterns
+
+### Parallel fan-out
+10+ independent tasks (test scaffolds, component stubs, file summaries) → build a `tasks` array, `Promise.all(tasks.map(runTask))`, synthesize results. Local `qwen3-coder` keeps cost at zero.
+
+### Red/blue/verifier loop
+Use Ollama for Blue Team fix generation (cheap, parallel per finding), keep Claude Code as the Verifier (security judgment, full context). Red Team can run on Ollama when the attack surface is well-enumerated.
+
+### Exploration + synthesis
+Fan out N file reads to Ollama (per-file summary prompts), then Claude synthesizes the combined output. Keeps raw file content out of Claude's context — only the distilled summaries enter.
