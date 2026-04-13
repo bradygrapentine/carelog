@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { inngest } from "@/inngest/client";
 import { rateLimit } from "@/lib/rateLimit";
+import { sniffMime, mimeMatches } from "@/lib/fileMagic";
 
 const uploadBodySchema = z.object({
   orgId: z.string().uuid(),
@@ -92,6 +93,18 @@ export async function POST(request: NextRequest) {
 
     // Upload file to Supabase Storage
     const fileBuffer = await file.arrayBuffer();
+
+    // R2-003: magic-byte sniff. The file.type header is client-controlled; we
+    // must verify the actual bytes match the declared type before trusting the
+    // extension/content-type we persist and later serve back via signed URL.
+    const head = new Uint8Array(fileBuffer.slice(0, 12));
+    const sniffed = sniffMime(head);
+    if (!sniffed || !mimeMatches(file.type, sniffed)) {
+      return NextResponse.json(
+        { error: "File content does not match declared type" },
+        { status: 400 },
+      );
+    }
     const filePath =
       validOrgId +
       "/" +

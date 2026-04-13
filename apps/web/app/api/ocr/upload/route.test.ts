@@ -71,9 +71,23 @@ function uploadRequest(
   fd.append("recipientId", recipientId);
   if (includeFile) {
     const file = new File(["data"], fileName, { type: fileType });
-    // stub arrayBuffer so the route doesn't hang on stream parsing in tests
+    // stub arrayBuffer so the route doesn't hang on stream parsing in tests,
+    // and return valid magic bytes matching the declared MIME so the R2-003
+    // sniffer check passes. For unsupported types, return zeros.
+    const magic = new Uint8Array(16);
+    if (fileType === "image/png") {
+      magic.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    } else if (fileType === "image/jpeg") {
+      magic.set([0xff, 0xd8, 0xff, 0xe0]);
+    } else if (fileType === "application/pdf") {
+      magic.set([0x25, 0x50, 0x44, 0x46, 0x2d]);
+    } else if (fileType === "image/heic" || fileType === "image/heif") {
+      magic.set([
+        0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63,
+      ]);
+    }
     Object.defineProperty(file, "arrayBuffer", {
-      value: () => Promise.resolve(new ArrayBuffer(4)),
+      value: () => Promise.resolve(magic.buffer),
     });
     fd.append("file", file);
   }
@@ -221,6 +235,39 @@ describe("POST /api/ocr/upload", () => {
     expect(inserted.image_url.startsWith(ORG_ID + "/" + REC_ID + "/")).toBe(
       true,
     );
+  });
+
+  // R2-003 regression: declared MIME must match actual file bytes (magic sniff).
+  it("rejects bytes that don't match the declared MIME (e.g. HTML posing as PNG)", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { role: "coordinator" }, error: null }) as any,
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { id: REC_ID }, error: null }) as any,
+      );
+    vi.mocked(supabaseAdmin.storage.from).mockReturnValue(
+      makeStorageBucket() as any,
+    );
+
+    // Build a request with fileType=image/png but bytes that are HTML
+    const fd = new FormData();
+    fd.append("orgId", ORG_ID);
+    fd.append("recipientId", REC_ID);
+    const file = new File(["<html></html>"], "rx.png", { type: "image/png" });
+    const htmlBytes = new TextEncoder().encode("<html><body>xss</body></html>");
+    Object.defineProperty(file, "arrayBuffer", {
+      value: () => Promise.resolve(htmlBytes.buffer),
+    });
+    fd.append("file", file);
+    const req = {
+      formData: () => Promise.resolve(fd),
+    } as unknown as NextRequest;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/does not match declared type/);
   });
 
   // F-012: disallowed MIME types must be rejected (no extension fallback).
