@@ -12,12 +12,15 @@ export async function createServerSupabase() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             );
-          } catch {}
+          } catch {
+            // Server Components cannot write cookies; proxy.ts refreshes them
+            // before the layout runs, so this failure path is expected.
+          }
         },
       },
     },
@@ -59,7 +62,9 @@ export async function createRequestSupabase(request: Pick<Request, "headers">) {
   );
 }
 
-export async function getRequestUser(request: Pick<Request, "headers">): Promise<User | null> {
+export async function getRequestUser(
+  request: Pick<Request, "headers">,
+): Promise<User | null> {
   const supabase = await createRequestSupabase(request);
   const accessToken = getRequestAccessToken(request);
 

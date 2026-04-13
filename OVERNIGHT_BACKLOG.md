@@ -16,9 +16,12 @@ ON-03 Billing E2E                ─── no deps
 ON-04 Phase 4-5 E2E coverage     ─── no deps, largest story, fan-out
 ON-05 Phase 2 shifts E2E         ─── no deps
 ON-06 Mobile token compliance    ─── no deps, quick cleanup
+ON-07 push_tokens pgTAP test     ─── no deps, RLS coverage gap
+ON-08 Dead code removal          ─── no deps, quick cleanup
+ON-09 SignInForm loading bug     ─── no deps, one-line fix + test
 ```
 
-All stories are independent — agent may run ON-02 through ON-06 in parallel.
+All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
@@ -191,6 +194,97 @@ All stories are independent — agent may run ON-02 through ON-06 in parallel.
 - [ ] All colors reference named tokens from `constants/tokens.ts`
 - [ ] `pnpm typecheck` passes
 - [ ] Existing mobile Jest tests still pass: `cd apps/mobile && pnpm test`
+
+**Blocked by:** nothing
+**Blocks:** nothing
+
+---
+
+### ON-07 — pgTAP RLS test for push_tokens
+
+**Context:** `supabase/migrations/20260415000000_push_tokens.sql` creates the `push_tokens` table with an "owner-only" RLS policy. There is no `supabase/tests/push_tokens_rls.test.sql` — this policy has never been tested.
+
+**Instructions:**
+- Read the migration file to understand the exact policy definition
+- Follow the pattern in `supabase/tests/expenses_rls.test.sql` (simplest existing example)
+- Read `supabase/CLAUDE.md` for pgTAP conventions before writing
+
+**Cases to cover:**
+1. Owner can insert their own token (passes)
+2. Owner can select their own tokens (passes)
+3. Another user cannot select someone else's tokens (blocked)
+4. Another user cannot insert a token for a different user_id (blocked)
+5. Unauthenticated request is blocked
+
+**Files to create:**
+- `supabase/tests/push_tokens_rls.test.sql`
+
+**Acceptance criteria:**
+- [ ] `supabase test db` passes with new file included
+- [ ] Uses 4-arg `throws_ok` form (not 2-arg) per pgTAP conventions
+- [ ] File follows existing naming and header conventions
+
+**Blocked by:** nothing
+**Blocks:** nothing
+
+---
+
+### ON-08 — Dead code removal: unused auth files ✅ DONE
+
+(Completed 2026-04-13 during @supabase/ssr upgrade — both files deleted.)
+
+**Context:** Two files are never imported or called from anywhere:
+
+1. `apps/web/app/signin/actions.ts` — exports `verifyOtpAction` (Server Action). `SignInForm.tsx` calls `supabase.auth.verifyOtp()` directly on the browser client; this server action is dead.
+
+2. `apps/web/app/auth/callback/route.ts` — a POST route handler that also verifies OTP. Not linked from the sign-in form or any other file; duplicates `apps/web/app/api/auth/verify/route.ts`.
+
+**Instructions:**
+1. Grep `apps/web` for any import of `verifyOtpAction` and any reference to `auth/callback` to confirm they are unreferenced
+2. Only delete if confirmed unused
+3. Delete confirmed dead files
+4. Run `pnpm typecheck` and `pnpm test`
+
+**Files to delete (after confirming unused):**
+- `apps/web/app/signin/actions.ts`
+- `apps/web/app/auth/callback/route.ts`
+
+**Acceptance criteria:**
+- [ ] Both files deleted (or a comment explaining why one was kept)
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm test` passes
+
+**Blocked by:** nothing
+**Blocks:** nothing
+
+---
+
+### ON-09 — Fix SignInForm loading state stuck on success (TDD)
+
+**Context:** `apps/web/app/signin/SignInForm.tsx` `handleVerifyOtp` never calls `setLoading(false)` on the happy path. If `router.replace("/dashboard")` is delayed or fails, the submit button is stuck on "Signing you in…" with no way to retry.
+
+**TDD approach — write the failing test first:**
+
+```ts
+// assert button returns to "Sign in" after verifyOtp resolves
+// even when router.replace is mocked to do nothing
+```
+
+**Fix (one line, after the test is written):**
+```ts
+// apps/web/app/signin/SignInForm.tsx — before router.replace:
+setLoading(false);
+router.replace("/dashboard");
+```
+
+**Files to change:**
+- `apps/web/app/signin/__tests__/SignInForm.flow.test.tsx` — add failing test first
+- `apps/web/app/signin/SignInForm.tsx` — add `setLoading(false)` before `router.replace`
+
+**Acceptance criteria:**
+- [ ] Failing test written before the fix (TDD order enforced)
+- [ ] Test mocks `router.replace` to a no-op and asserts button label returns to "Sign in"
+- [ ] `pnpm test` passes
 
 **Blocked by:** nothing
 **Blocks:** nothing

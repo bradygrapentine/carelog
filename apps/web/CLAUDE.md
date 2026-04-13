@@ -13,8 +13,10 @@ export async function GET(req, { params }: { params: Promise<{ id: string }> }) 
 }
 ```
 
-## No middleware.ts — use proxy.ts
-Next.js 16 replaces `middleware.ts` with `proxy.ts`. Export a named `proxy` function, not a default `middleware` export.
+## Middleware is proxy.ts — NOT middleware.ts
+Next.js 16 renames `middleware.ts` to `proxy.ts`. Export a named `proxy` function. Do NOT create `middleware.ts` — having both files causes a build error. The Supabase session refresh lives in `proxy.ts`.
+
+**Critical — @supabase/ssr version pin:** `proxy.ts` and `lib/supabaseServer.ts` use the `{ getAll, setAll }` cookie API introduced in `@supabase/ssr@0.4.0`. Never downgrade below 0.4.0 — earlier versions silently ignore these methods (they only accept `{ get, set, remove }`), causing every cookie read to be a no-op and `getUser()` to return null server-side. `lib/__tests__/proxy.test.ts` is the regression guard.
 
 ## No experimental.turbo in next.config.ts
 Turbopack is the default bundler. The `experimental.turbo` config key is removed — throws if present.

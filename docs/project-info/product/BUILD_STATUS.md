@@ -15,7 +15,7 @@ Last updated: 2026-04-10 (Phase 5 complete, deployed to Vercel)
 - [x] OTP sign-in — 6-digit code via Mailpit (local) / Resend (prod)
 - [x] Session management — client-side pattern (see TECH_DEBT.md)
 - [x] Sign out
-- [x] Proxy (Next.js 16 middleware replacement)
+- [x] proxy.ts (Next.js 16 middleware) — Supabase session refresh wired. Requires `@supabase/ssr >= 0.4.0` for `getAll`/`setAll` cookie API; older versions silently no-op and the dashboard redirect bug returns.
 
 ### Onboarding
 - [x] Create org + identity vault entry + care recipient + coordinator membership
