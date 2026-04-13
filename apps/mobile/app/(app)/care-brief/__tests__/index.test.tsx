@@ -61,4 +61,54 @@ describe("CareBriefScreen", () => {
     fireEvent.press(getByText("Generate Care Brief"));
     await findByText(/Server error/);
   });
+
+  it("shows Copy link button after brief generated", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ shareToken: "tok123" }),
+    });
+    const { getByText, findByText } = render(<CareBriefScreen />);
+    fireEvent.press(getByText("Generate Care Brief"));
+    await findByText("Copy link");
+    expect(getByText("Copy link")).toBeTruthy();
+  });
+
+  it("calls Clipboard.setStringAsync on Copy link press", async () => {
+    const Clipboard = require("expo-clipboard");
+    Clipboard.setStringAsync.mockResolvedValue(undefined);
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ shareToken: "cliptest" }),
+    });
+    const { getByText, findByText } = render(<CareBriefScreen />);
+    fireEvent.press(getByText("Generate Care Brief"));
+    await findByText("Copy link");
+    fireEvent.press(getByText("Copy link"));
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
+      expect.stringContaining("cliptest"),
+    );
+  });
+
+  it("calls revoke endpoint when Revoke pressed and removes brief", async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ shareToken: "rev123" }),
+      })
+      .mockResolvedValueOnce({ ok: true });
+
+    const { getByText, findByText, queryByText } = render(<CareBriefScreen />);
+    fireEvent.press(getByText("Generate Care Brief"));
+    await findByText("Revoke");
+    fireEvent.press(getByText("Revoke"));
+
+    await waitFor(() => {
+      expect(queryByText("Revoke")).toBeNull();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("rev123/revoke"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
 });
