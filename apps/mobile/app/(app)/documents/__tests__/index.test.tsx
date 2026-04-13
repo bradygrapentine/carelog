@@ -1,4 +1,5 @@
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
+import { Alert, Platform, Linking } from "react-native";
 import DocumentsScreen from "../index";
 
 const mockPush = jest.fn();
@@ -72,6 +73,9 @@ jest.mock("../../../../utils/trpc", () => ({
 }));
 
 global.fetch = jest.fn();
+
+jest.spyOn(Alert, "alert");
+jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -173,5 +177,210 @@ describe("DocumentsScreen", () => {
     const { getByLabelText } = render(<DocumentsScreen />);
     fireEvent.press(getByLabelText("Scan a document"));
     expect(mockPush).toHaveBeenCalledWith("/(app)/documents/scan");
+  });
+
+  it("handleView opens URL via Linking when location header present", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      headers: {
+        get: (h: string) =>
+          h === "location" ? "https://example.com/file.pdf" : null,
+      },
+    });
+    const { getByLabelText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Insurance card, long press to delete"));
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        "https://example.com/file.pdf",
+      );
+    });
+  });
+
+  it("handleView shows error alert when no location returned", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      headers: { get: () => null },
+    });
+    const { getByLabelText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Insurance card, long press to delete"));
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        "Could not get download URL",
+      );
+    });
+  });
+
+  it("confirmDelete calls deleteMut.mutate when Delete confirmed", async () => {
+    const { getByLabelText } = render(<DocumentsScreen />);
+    fireEvent(
+      getByLabelText("Insurance card, long press to delete"),
+      "longPress",
+    );
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Delete document?",
+        "This cannot be undone.",
+        expect.any(Array),
+      );
+    });
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    const deleteBtn = buttons.find((b) => b.text === "Delete");
+    await act(async () => {
+      deleteBtn?.onPress?.();
+    });
+    expect(mockDeleteMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "doc-1", org_id: "org-1" }),
+    );
+  });
+
+  it("pickFromCamera via Android Alert: shows upload modal after photo taken", async () => {
+    const ImagePicker = require("expo-image-picker");
+    ImagePicker.launchCameraAsync.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        {
+          uri: "file://scan.jpg",
+          fileName: "scan.jpg",
+          mimeType: "image/jpeg",
+        },
+      ],
+    });
+    const origOS = Platform.OS;
+    (Platform as { OS: string }).OS = "android";
+    const { getByLabelText, findByText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Upload document"));
+    // Capture Android Alert buttons and invoke "Take photo"
+    const alertCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (c) => c[0] === "Upload document",
+    );
+    const buttons = alertCall?.[2] as { text: string; onPress?: () => void }[];
+    const takePhotoBtn = buttons?.find((b) => b.text === "Take photo");
+    await act(async () => {
+      takePhotoBtn?.onPress?.();
+    });
+    await findByText("Upload document"); // modal title
+    (Platform as { OS: string }).OS = origOS;
+  });
+
+  it("pickFromFiles via Android Alert: shows upload modal after file picked", async () => {
+    const DocumentPicker = require("expo-document-picker");
+    DocumentPicker.getDocumentAsync.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        { uri: "file://doc.pdf", name: "doc.pdf", mimeType: "application/pdf" },
+      ],
+    });
+    const origOS = Platform.OS;
+    (Platform as { OS: string }).OS = "android";
+    const { getByLabelText, findByText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Upload document"));
+    const alertCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (c) => c[0] === "Upload document",
+    );
+    const buttons = alertCall?.[2] as { text: string; onPress?: () => void }[];
+    const chooseFileBtn = buttons?.find((b) => b.text === "Choose file");
+    await act(async () => {
+      chooseFileBtn?.onPress?.();
+    });
+    await findByText("Upload document"); // modal title
+    expect(findByText("doc.pdf")).toBeTruthy();
+    (Platform as { OS: string }).OS = origOS;
+  });
+
+  it("handleUpload posts to /api/documents/upload and closes modal on success", async () => {
+    const DocumentPicker = require("expo-document-picker");
+    DocumentPicker.getDocumentAsync.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        {
+          uri: "file://doc.pdf",
+          name: "report.pdf",
+          mimeType: "application/pdf",
+        },
+      ],
+    });
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
+    const origOS = Platform.OS;
+    (Platform as { OS: string }).OS = "android";
+    const { getByLabelText, findByText, queryByText } = render(
+      <DocumentsScreen />,
+    );
+    fireEvent.press(getByLabelText("Upload document"));
+    const alertCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (c) => c[0] === "Upload document",
+    );
+    const buttons = alertCall?.[2] as { text: string; onPress?: () => void }[];
+    await act(async () => {
+      buttons?.find((b) => b.text === "Choose file")?.onPress?.();
+    });
+    await findByText("Upload"); // upload button in modal
+    fireEvent.press(getByLabelText("Upload"));
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/documents/upload"),
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+    (Platform as { OS: string }).OS = origOS;
+  });
+
+  it("handleUpload shows error alert on failed upload", async () => {
+    const DocumentPicker = require("expo-document-picker");
+    DocumentPicker.getDocumentAsync.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        { uri: "file://doc.pdf", name: "doc.pdf", mimeType: "application/pdf" },
+      ],
+    });
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Storage quota exceeded" }),
+    });
+    const origOS = Platform.OS;
+    (Platform as { OS: string }).OS = "android";
+    const { getByLabelText, findByText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Upload document"));
+    const alertCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (c) => c[0] === "Upload document",
+    );
+    const buttons = alertCall?.[2] as { text: string; onPress?: () => void }[];
+    await act(async () => {
+      buttons?.find((b) => b.text === "Choose file")?.onPress?.();
+    });
+    await findByText("Upload");
+    fireEvent.press(getByLabelText("Upload"));
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        expect.stringContaining("Storage quota exceeded"),
+      );
+    });
+    (Platform as { OS: string }).OS = origOS;
+  });
+
+  it("pickFromCamera shows alert when permission denied", async () => {
+    const ImagePicker = require("expo-image-picker");
+    ImagePicker.requestCameraPermissionsAsync.mockResolvedValueOnce({
+      granted: false,
+    });
+    const origOS = Platform.OS;
+    (Platform as { OS: string }).OS = "android";
+    const { getByLabelText } = render(<DocumentsScreen />);
+    fireEvent.press(getByLabelText("Upload document"));
+    const alertCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (c) => c[0] === "Upload document",
+    );
+    const buttons = alertCall?.[2] as { text: string; onPress?: () => void }[];
+    await act(async () => {
+      buttons?.find((b) => b.text === "Take photo")?.onPress?.();
+    });
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith("Camera permission required");
+    });
+    (Platform as { OS: string }).OS = origOS;
   });
 });
