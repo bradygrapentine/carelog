@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(5);
+SELECT plan(7);
 
 -- ─── fixtures ────────────────────────────────────────────────────────────────
 
@@ -133,6 +133,33 @@ SELECT results_eq(
   $$SELECT count(*)::int FROM care_briefs WHERE share_token = 'brieftoken001' AND revoked = false$$,
   ARRAY[1]::int[],
   'org member can read care_brief by share_token'
+);
+
+-- 6. R2-005 regression: anon role (unauthenticated) sees ZERO rows from care_briefs.
+--    Guards against any future migration that accidentally re-adds a `USING (true)`
+--    policy which would expose PHI to any holder of the public anon key.
+SET LOCAL ROLE anon;
+SET LOCAL "request.jwt.claims" TO '{"role":"anon"}';
+
+SELECT results_eq(
+  $$SELECT count(*)::int FROM care_briefs$$,
+  ARRAY[0]::int[],
+  'anon role sees zero rows in care_briefs (R2-005 regression)'
+);
+
+-- 7. R2-005 regression: anon INSERT is denied (write side of the same check).
+SELECT throws_ok(
+  $$INSERT INTO care_briefs (org_id, recipient_id, share_token, content, includes, created_by)
+    VALUES (
+      '10000000-0000-0000-0000-000000000001',
+      '20000000-0000-0000-0000-000000000001',
+      'anon-should-fail',
+      '{}'::jsonb,
+      ARRAY['medications'],
+      'aaaa0001-0000-0000-0000-000000000001'
+    )$$,
+  '42501', NULL,
+  'anon role cannot INSERT into care_briefs'
 );
 
 SELECT * FROM finish();
