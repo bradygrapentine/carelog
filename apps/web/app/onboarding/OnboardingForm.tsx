@@ -56,6 +56,7 @@ export function OnboardingForm() {
     }
 
     posthog.capture("care_team_created", { org_id: data.orgId });
+    posthog.identify(user.id, { org_id: data.orgId }); // UUID + org_id only — never email (PHI)
     const pendingInvite = sessionStorage.getItem("pending_invite");
     router.replace(pendingInvite ? "/invite/" + pendingInvite : "/dashboard");
   }

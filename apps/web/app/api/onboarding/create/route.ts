@@ -10,16 +10,19 @@ import { getPostHogClient } from "@/lib/posthog-server";
 
 const onboardingSchema = z.object({
   recipientName: z.string().min(1).max(200),
-  recipientDob:  z.string().max(10).nullable().optional(),
-  orgName:       z.string().min(1).max(100),
+  recipientDob: z.string().max(10).nullable().optional(),
+  orgName: z.string().min(1).max(100),
 });
 
 export async function POST(request: NextRequest) {
-  const limited = await rateLimit(request, 'onboarding/create')
-  if (limited) return limited
+  const limited = await rateLimit(request, "onboarding/create");
+  if (limited) return limited;
 
-  const { data: body, error: bodyError } = await parseBody(request, onboardingSchema)
-  if (bodyError) return bodyError
+  const { data: body, error: bodyError } = await parseBody(
+    request,
+    onboardingSchema,
+  );
+  if (bodyError) return bodyError;
 
   try {
     const user = await getRequestUser(request);
@@ -87,10 +90,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, orgId: org.id });
   } catch (e: unknown) {
     console.error("[onboarding] error:", e);
-    const errorMessage = e instanceof Error ? e.message : "Something went wrong";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    const errorMessage =
+      e instanceof Error ? e.message : "Something went wrong";
+    try {
+      const posthog = getPostHogClient();
+      const err = e instanceof Error ? e : new Error(errorMessage);
+      posthog.capture({
+        distinctId: "anonymous",
+        event: "$exception",
+        properties: {
+          error_message: err.message,
+          error_stack: err.stack,
+          route: "onboarding/create",
+        },
+      });
+    } catch {}
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

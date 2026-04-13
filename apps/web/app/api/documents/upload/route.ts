@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const ALLOWED_DOC_TYPES = [
   "hipaa_authorization",
@@ -140,6 +141,23 @@ export async function POST(request: NextRequest) {
       { error: "Failed to save document metadata" },
       { status: 500 },
     );
+  }
+
+  try {
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "document_uploaded",
+      properties: {
+        org_id: orgId,
+        document_type: docType,
+        mime_type: file.type,
+        size_bytes: file.size,
+        document_id: doc.id,
+      },
+    });
+  } catch {
+    // analytics failure must not break the endpoint
   }
 
   return NextResponse.json({ documentId: doc.id });

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { stripe } from "@/lib/stripe";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const portalSchema = z.object({
   orgId: z.string().min(1),
@@ -58,6 +59,17 @@ export async function POST(request: NextRequest) {
     customer: org.stripe_id,
     return_url: origin + "/billing",
   });
+
+  try {
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "billing_portal_opened",
+      properties: { org_id: orgId },
+    });
+  } catch (e) {
+    console.warn("[stripe/portal] posthog capture failed:", e);
+  }
 
   return NextResponse.json({ url: session.url });
 }
