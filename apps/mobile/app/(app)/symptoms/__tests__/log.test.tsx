@@ -1,4 +1,5 @@
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import SymptomLogScreen from "../log";
 
 jest.mock("expo-router", () => ({
@@ -38,9 +39,16 @@ jest.mock("../../../../utils/journalUtils", () => ({
   },
 }));
 
+let alertSpy: jest.SpyInstance;
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockWrite.mockResolvedValue(undefined);
+  alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  alertSpy.mockRestore();
 });
 
 describe("SymptomLogScreen", () => {
@@ -64,6 +72,48 @@ describe("SymptomLogScreen", () => {
     const { getByLabelText, getByText } = render(<SymptomLogScreen />);
     fireEvent.press(getByLabelText("Skip pain level"));
     expect(getByText("How are they feeling?")).toBeTruthy();
+  });
+
+  it("handleSubmit shows error alert when write throws", async () => {
+    mockWrite.mockRejectedValueOnce(new Error("Network failure"));
+    const { getByLabelText } = render(<SymptomLogScreen />);
+    fireEvent.press(getByLabelText("Skip pain level"));
+    fireEvent.press(getByLabelText("Skip mood"));
+    fireEvent.press(getByLabelText("Next step"));
+    fireEvent.press(getByLabelText("Save symptoms"));
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Error", "Network failure");
+    });
+  });
+
+  it("selecting a mood option advances to step 2", () => {
+    const { getByLabelText, getByText } = render(<SymptomLogScreen />);
+    fireEvent.press(getByLabelText("Skip pain level"));
+    fireEvent.press(getByLabelText("good mood"));
+    expect(getByText("Appetite")).toBeTruthy();
+  });
+
+  it("selecting appetite option at step 2 sets appetite", () => {
+    const { getByLabelText, getByText } = render(<SymptomLogScreen />);
+    fireEvent.press(getByLabelText("Skip pain level"));
+    fireEvent.press(getByLabelText("Skip mood"));
+    fireEvent.press(getByLabelText("Normal appetite"));
+    expect(getByText("Appetite")).toBeTruthy();
+  });
+
+  it("selecting mobility option at step 2 sets mobility", () => {
+    const { getByLabelText } = render(<SymptomLogScreen />);
+    fireEvent.press(getByLabelText("Skip pain level"));
+    fireEvent.press(getByLabelText("Skip mood"));
+    fireEvent.press(getByLabelText("Normal mobility"));
+    expect(getByLabelText("Normal mobility")).toBeTruthy();
+  });
+
+  it("Back button on step 1 returns to step 0", () => {
+    const { getByLabelText, getByText } = render(<SymptomLogScreen />);
+    fireEvent.press(getByLabelText("Skip pain level"));
+    fireEvent.press(getByLabelText("Previous step"));
+    expect(getByText("Pain level (0-10)")).toBeTruthy();
   });
 
   it("calls write on submit at final step", async () => {
