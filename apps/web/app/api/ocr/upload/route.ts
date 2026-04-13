@@ -87,19 +87,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: publicUrlData } = supabaseAdmin.storage
-      .from("prescription-images")
-      .getPublicUrl(filePath);
-
-    const imageUrl = publicUrlData.publicUrl;
-
+    // Store the storage path (not a public URL). The bucket is private;
+    // consumers must use createSignedUrl at serve-time to access the object.
+    // The image_url column is retained for backward compatibility and now
+    // holds the storage path.
     // Insert OCR job row
     const { data: job, error: insertError } = await supabaseAdmin
       .from("ocr_jobs")
       .insert({
         org_id: validOrgId,
         recipient_id: validRecipientId,
-        image_url: imageUrl,
+        image_url: filePath,
         status: "pending",
         created_by: user.id,
         category: parsed.data.category,
