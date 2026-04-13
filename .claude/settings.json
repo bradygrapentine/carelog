@@ -25,7 +25,14 @@
       "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog branch --show-current)",
       "Edit(/.claude/skills/deploy-autopilot/**)",
       "Bash(pnpm -C apps/web exec vitest run --changed)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog commit --no-verify -m \"docs\\(claude\\): add branch hygiene, adversarial review, task execution rules from /insights\")"
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog commit --no-verify -m \"docs\\(claude\\): add branch hygiene, adversarial review, task execution rules from /insights\")",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log -1 --oneline)",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short plans/)",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log --oneline -10)",
+      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short)",
+      "Bash(wait 1943)",
+      "Bash(kill -0 1943)",
+      "Bash(:)"
     ]
   },
   "hooks": {

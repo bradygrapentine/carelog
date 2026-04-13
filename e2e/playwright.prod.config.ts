@@ -2,7 +2,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: ".",
   testMatch: [
     "**/navigation.spec.ts",
     "**/journal-detail.spec.ts",
