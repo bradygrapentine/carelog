@@ -363,7 +363,7 @@ No further work needed.
 | P2-06 Recurring shifts     | ✅ DONE | —                             | Complete                                    |
 | P2-07 Digest shift section | ✅ DONE | —                             | Complete                                    |
 
-**QA:** Codex for each story — run after implementation, before marking done.
+**QA:** Dispatch parallel subagents (`superpowers:dispatching-parallel-agents`) or `/ollama` for each story — run after implementation, before marking done.
 
 ---
 

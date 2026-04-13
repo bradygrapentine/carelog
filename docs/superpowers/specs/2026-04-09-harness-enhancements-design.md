@@ -1,3 +1,5 @@
+> **Historical (2026-04-09)**: references Codex integration, which has since been replaced with `superpowers:dispatching-parallel-agents` + `/ollama` dispatch. See `.claude/CLAUDE.md` current routing guide.
+
 ---
 title: Harness Enhancements
 date: 2026-04-09
