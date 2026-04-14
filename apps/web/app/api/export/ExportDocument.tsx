@@ -1,5 +1,12 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 
+// NOTE: @react-pdf/renderer does NOT support CSS variables — raw hex values are intentional here.
+// TODO: no token for #1a1a1a (near-black); closest is --color-ink (#1e0a3c)
+// TODO: no token for #6b7280 (gray-500); maps to --color-muted
+// TODO: no token for #e5e7eb (gray-200); maps to --color-border (violet-tinted)
+// TODO: no token for #f3f4f6 (gray-100); no token
+// TODO: no token for #9ca3af (gray-400); closest is --color-muted (#6b7280)
+// TODO: no token for #dc2626 (red-600); closest is --color-danger (#ef4444)
 const s = StyleSheet.create({
   page:        { padding: 48, fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a' },
   title:       { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
@@ -107,7 +114,7 @@ export function ExportDocument({ data }: { data: ExportData }) {
                 <Text style={s.value}>{e.payload?.text ?? ''}</Text>
               </View>
               {e.payload?.mood && <View style={s.row}><Text style={s.label}>Mood</Text><Text style={s.value}>{e.payload.mood}</Text></View>}
-              {e.flagged && <Text style={{ color: '#dc2626', fontSize: 9 }}>Flagged for follow-up</Text>}
+              {e.flagged && <Text style={{ color: '#dc2626' /* TODO: no CSS var support in react-pdf; closest token --color-danger (#ef4444) */, fontSize: 9 }}>Flagged for follow-up</Text>}
             </View>
           ))}
         </View>

@@ -85,7 +85,11 @@ export function ProductPreview() {
               2 coordinators · 2 caregivers · 1 supporter
             </p>
             <div className="mt-4 flex -space-x-2">
-              {["#7c3aed", "#a78bfa", "#d97706"].map((color) => (
+              {[
+                "var(--color-primary)",       // #7c3aed
+                "var(--color-primary-light)", // #a78bfa
+                "var(--color-secondary)",     // #d97706
+              ].map((color) => (
                 <span
                   key={color}
                   className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white"
