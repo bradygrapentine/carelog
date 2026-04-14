@@ -137,7 +137,7 @@ Last updated: 2026-04-10 (Phase 5 complete, deployed to Vercel)
 - [x] Vercel deploy + environment variables — deployed on `care-log.org`
 - [x] Server-side auth — `(app)/layout.tsx` uses `createServerSupabase().auth.getUser()`
 - [x] Domain + SSL — `care-log.org` via Vercel
-- [ ] Stripe billing — $14/mo or $120/yr family plan (SDK installed, webhook/checkout routes in progress)
+- [x] Stripe billing — $14/mo or $120/yr family plan (checkout, portal, webhook, verify all live with 28 unit tests + E2E spec)
 - [x] Inngest cloud setup — synced at `/api/inngest`
 - [x] Resend transactional email — domain verified, `digest@care-log.org`
 - [x] Sentry error tracking — `sendDefaultPii: false`, client/server/edge configs, source maps pending `SENTRY_AUTH_TOKEN`
