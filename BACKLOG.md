@@ -101,13 +101,13 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** no raw hex in `.tsx/.ts`; visual spot-check on dashboard + journal + billing; `pnpm typecheck` + `pnpm test` green.
 **Size:** ~3 hr. **Branch:** feat/on21-raw-hex
 
-### 🌙 ON-22 — pgTAP RLS test: `notification_preferences`
+### ✅ ON-22 — pgTAP RLS test: `notification_preferences`
 Owner-only RLS, no pgTAP coverage. Template: `supabase/tests/expenses_rls.test.sql`. Cases: owner r/w self pass, cross-user blocked, anon blocked. **AC:** `supabase test db` passes. **Size:** 1 hr.
 
-### 🌙 ON-23 — pgTAP RLS test: `care_recipients`
+### ✅ ON-23 — pgTAP RLS test: `care_recipients`
 Root of org scoping — cannot ship multi-tenant without this. Cases: org member reads; non-member blocked; only coordinator can insert/update/delete; anon blocked on all. **AC:** `supabase test db` passes with 5+ assertions. **Size:** 1.5 hr.
 
-### 🌙 ON-24 — pgTAP RLS test: `mood_entries`
+### ✅ ON-24 — pgTAP RLS test: `mood_entries`
 PHI. Cases: org member reads for in-org recipients only; author-only update/delete; anon blocked. **Size:** 1.5 hr.
 
 ### ✅ ON-25 — Zod schema tests for shared validators
