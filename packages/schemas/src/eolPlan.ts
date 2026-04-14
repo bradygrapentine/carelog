@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Validates the upsert payload for a recipient's end-of-life plan (proxy, resuscitation preference, funeral preference, etc.). */
 export const eolPlanUpsertInput = z.object({
   org_id: z.string().uuid(),
   recipient_id: z.string().uuid(),
