@@ -106,7 +106,7 @@ Goal: a sighted-free user can complete the **Log a medication** and
 
 Anything that's silent, says "button" without a label, or makes focus
 order nonsensical is a bug. File follow-ups as ON-XX in the
-OVERNIGHT_BACKLOG.
+BACKLOG.md.
 
 ## Part 3 — Contrast + color-only information
 
@@ -136,4 +136,4 @@ OVERNIGHT_BACKLOG.
 ```
 
 Paste findings into a GitHub issue tagged `a11y` and link from the
-OVERNIGHT_BACKLOG ON-15 entry.
+BACKLOG.md ON-15 entry.

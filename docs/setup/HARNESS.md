@@ -79,8 +79,7 @@ Invoke with `/skill-name` in Claude Code.
 | `docs/project-info/runbooks/CODEBASE_EDUCATION.md` | Documentation reading path for new contributors |
 | `docs/project-info/product/PRODUCT_STRATEGY.md` | Product and business strategy |
 | `docs/project-info/product/ROADMAP.md` | Product roadmap |
-| `docs/project-info/product/BACKLOG_PHASE2.md` | Phase 2 backlog items |
-| `docs/project-info/product/BACKLOG_PHASE3.md` | Phase 3 backlog items |
+| `BACKLOG.md` (repo root) | Master backlog — active, overnight queue, shipped log, deferred |
 
 ---
 

@@ -326,10 +326,88 @@ NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 
 ---
 
-## Future Work (pre-billing launch)
+## Already shipped in code
 
-These items are blocked on code that does not yet exist. Do not check them off as part of the initial launch — doing so creates false confidence that subscription events, error tracking, and analytics are active when they are not.
+As of 2026-04-14 these three services are fully wired (verify by grepping the codebase before re-doing setup work):
 
-- [ ] Stripe live mode active, webhook route `/api/stripe/webhook` implemented and tested, endpoint registered in Stripe dashboard
-- [ ] Sentry: `@sentry/nextjs` installed and wired, receiving events from production, no PHI in payloads confirmed
-- [ ] PostHog: `posthog-js` installed and wired, receiving events from production, UUIDs only confirmed
+- ✅ Stripe webhook route at `apps/web/app/api/stripe/webhook/route.ts`, checkout / portal / verify routes shipped, `apps/web/lib/stripe.ts` client, `apps/web/app/(app)/subscriptions/page.tsx` UI
+- ✅ Sentry: `sendDefaultPii: false` across `sentry.{client,server,edge}.config.ts`, env-var DSN
+- ✅ PostHog: `apps/web/lib/posthog-server.ts`, client tracking via `instrumentation-client.ts`, UUID-only identify
+
+What remains is **account-side** configuration (live-mode keys in Vercel, webhook endpoint registered with Stripe dashboard, PostHog privacy toggles). Covered in the per-service sections above.
+
+---
+
+## Mobile-specific setup
+
+The mobile app (`apps/mobile/`) needs three additional pieces of third-party configuration. These are **optional for web-only launch** but required before shipping iOS/Android builds.
+
+### Firebase / FCM (Android push only)
+
+iOS uses APNs; Android needs FCM.
+
+1. [console.firebase.google.com](https://console.firebase.google.com) → **Add project** → name `carelog`, disable Analytics
+2. Add an **Android** app: package name `com.carelog.app` (must match `apps/mobile/app.json` → `android.package`)
+3. Download `google-services.json` → save to `apps/mobile/google-services.json`
+4. Firebase → **Project settings** → **Cloud Messaging** → enable legacy API → copy **Server key**
+5. `eas secret:create --scope project --name FCM_SERVER_KEY --value "<server-key>"`
+6. Verify `eas.json` sets `"googleServicesFile": "./google-services.json"` under `build.production.android`
+
+### Deep-link verification files (required for PP-008)
+
+Must be served from the marketing domain (`https://care-log.org` or your chosen domain) at `/.well-known/`.
+
+**iOS AASA** → `apps/web/public/.well-known/apple-app-site-association` (no `.json` extension):
+
+```json
+{
+  "applinks": {
+    "apps": [],
+    "details": [{ "appID": "TEAMID.com.carelog.app", "paths": ["/invite/*"] }]
+  }
+}
+```
+
+Get **Team ID** from [developer.apple.com](https://developer.apple.com) → Account → Membership.
+
+**Android asset links** → `apps/web/public/.well-known/assetlinks.json`:
+
+```json
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.carelog.app",
+    "sha256_cert_fingerprints": ["YOUR_SHA256_FINGERPRINT"]
+  }
+}]
+```
+
+Get fingerprint after first EAS Android build: `eas credentials --platform android`.
+
+Verify post-deploy:
+
+```bash
+curl https://care-log.org/.well-known/apple-app-site-association
+curl https://care-log.org/.well-known/assetlinks.json
+```
+
+### APNs (iOS push)
+
+1. [developer.apple.com](https://developer.apple.com) → **Certificates, Identifiers & Profiles** → App ID `com.carelog.app` with **Push Notifications** enabled
+2. EAS dashboard → project → **Credentials** → **iOS** → **Add** → **Apple Push Notification Key (.p8)**
+3. Alternative: `eas credentials` in terminal
+
+---
+
+## Final launch dependencies
+
+Items that **block** Claude-executable stories in `BACKLOG.md`:
+
+| Dependency | Blocks |
+|---|---|
+| Supabase cloud keys | `A2` — `supabase link` + `db push` + bucket create + `supabase test db` against cloud |
+| Resend verified domain | `C3` — update weekly digest FROM address to `notifications@<verified-domain>` |
+| `assetlinks.json` served + EAS build SHA-256 | `PP-008` — Android app-links verification |
+| `google-services.json` in EAS | `PP-007` — Android push notification verification (after `PP-006` prebuild) |
+| APNs `.p8` key in EAS | iOS production push builds |

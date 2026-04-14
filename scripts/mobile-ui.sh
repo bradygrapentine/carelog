@@ -37,7 +37,7 @@ fi
 
 LOG_FILE="$OUT_DIR/expo-$PLATFORM.log"
 PID_FILE="$OUT_DIR/expo-$PLATFORM.pid"
-SCHEME="yourcarelog"   # from apps/mobile/app.json (see PP-021)
+SCHEME="yourcarelog"   # from apps/mobile/app.json (see PP-012)
 
 # ────────────────────────────────────────────────────────────────── iOS helpers
 require_mac() {
@@ -158,7 +158,7 @@ android_start() {
   if [[ ! -d "$ROOT/apps/mobile/android" ]]; then
     echo "ERROR: apps/mobile/android/ does not exist."
     echo "Run: (cd apps/mobile && npx expo prebuild -p android --clean)"
-    echo "See story PP-014 in docs/project-info/product/PLATFORM_PARITY.md"
+    echo "See story PP-006 in docs/project-info/product/PLATFORM_PARITY.md"
     exit 1
   fi
   if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
@@ -244,7 +244,7 @@ cmd_doctor() {
   else
     [[ -x "$ADB" ]] && echo "  adb:      $ADB" || echo "  FAIL: adb ($ADB)"
     [[ -x "$EMULATOR" ]] && echo "  emulator: $EMULATOR" || echo "  FAIL: emulator"
-    [[ -d "$ROOT/apps/mobile/android" ]] && echo "  android/: prebuilt" || echo "  WARN: apps/mobile/android/ missing — run expo prebuild (PP-014)"
+    [[ -d "$ROOT/apps/mobile/android" ]] && echo "  android/: prebuilt" || echo "  WARN: apps/mobile/android/ missing — run expo prebuild (PP-006)"
     if [[ -x "$EMULATOR" ]]; then
       local avds; avds=$("$EMULATOR" -list-avds | wc -l | tr -d ' ')
       echo "  AVDs:     $avds"

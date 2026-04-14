@@ -6,7 +6,7 @@ Before a multi-task session, verify which items are already complete so planning
 
 ## Process
 
-1. Identify the plan or backlog document being executed (e.g. `docs/superpowers/plans/*.md`, `OVERNIGHT_BACKLOG.md`, `docs/project-info/product/BACKLOG_PHASE*.md`). If the user has not named one, ask once, then stop.
+1. Identify the plan or backlog document being executed (e.g. `docs/superpowers/plans/*.md`, the root `BACKLOG.md`). If the user has not named one, ask once, then stop.
 2. For each item in the plan:
    - Check the doc itself for `✅ DONE`, `SHIPPED`, or strike-through markers.
    - `git log --oneline -40` — scan for commit messages matching the item id or description.
