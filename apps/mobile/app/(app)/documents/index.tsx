@@ -25,6 +25,7 @@ import {
   type DocType,
 } from "../../../utils/wave5Utils";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -191,6 +192,16 @@ export default function DocumentsScreen() {
     }
   }
 
+  const uploadAction = canUploadDocument(currentRole) ? (
+    <TouchableOpacity
+      onPress={showPickerOptions}
+      accessibilityRole="button"
+      accessibilityLabel="Upload document"
+    >
+      <Text style={styles.actionBtnText}>+ Upload</Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
       {canUploadDocument(currentRole) && (
@@ -204,71 +215,64 @@ export default function DocumentsScreen() {
         </TouchableOpacity>
       )}
 
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={data ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.row}
-              onPress={() => handleView(item.id)}
-              onLongPress={
-                canUploadDocument(currentRole)
-                  ? () => confirmDelete(item.id)
-                  : undefined
-              }
-              accessibilityRole="button"
-              accessibilityLabel={
-                item.display_name +
-                (canUploadDocument(currentRole) ? ", long press to delete" : "")
-              }
-            >
-              <View style={styles.rowMain}>
-                <Text style={styles.docName} numberOfLines={1}>
-                  {item.display_name}
-                </Text>
-                <View style={styles.docTypeBadge}>
-                  <Text style={styles.docTypeText}>
-                    {DOC_TYPE_LABELS[item.doc_type] ?? item.doc_type}
+      <Panel title="Documents" action={uploadAction} style={styles.panel}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={data ?? []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => handleView(item.id)}
+                onLongPress={
+                  canUploadDocument(currentRole)
+                    ? () => confirmDelete(item.id)
+                    : undefined
+                }
+                accessibilityRole="button"
+                accessibilityLabel={
+                  item.display_name +
+                  (canUploadDocument(currentRole)
+                    ? ", long press to delete"
+                    : "")
+                }
+              >
+                <View style={styles.rowMain}>
+                  <Text style={styles.docName} numberOfLines={1}>
+                    {item.display_name}
+                  </Text>
+                  <View style={styles.docTypeBadge}>
+                    <Text style={styles.docTypeText}>
+                      {DOC_TYPE_LABELS[item.doc_type] ?? item.doc_type}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.rowMeta}>
+                  <Text style={styles.metaText}>
+                    {formatFileSize(item.file_size)}
+                  </Text>
+                  <Text style={styles.metaText}>
+                    {new Date(item.created_at).toLocaleDateString([], {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
-              </View>
-              <View style={styles.rowMeta}>
-                <Text style={styles.metaText}>
-                  {formatFileSize(item.file_size)}
-                </Text>
-                <Text style={styles.metaText}>
-                  {new Date(item.created_at).toLocaleDateString([], {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No documents yet.</Text>
-          }
-        />
-      )}
-
-      {canUploadDocument(currentRole) && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={showPickerOptions}
-          accessibilityRole="button"
-          accessibilityLabel="Upload document"
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No documents yet.</Text>
+            }
+          />
+        )}
+      </Panel>
 
       <Modal visible={showUploadModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -332,10 +336,14 @@ export default function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  panel: { flex: 1 },
   scanButton: {
-    margin: spacing.lg,
-    marginBottom: 0,
     padding: 14,
     borderRadius: radii.md,
     backgroundColor: colors.primarySubtle,
@@ -344,8 +352,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   scanButtonText: { color: colors.primary, fontWeight: "600", fontSize: 15 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg, paddingBottom: 80 },
   row: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
@@ -368,24 +376,6 @@ const styles = StyleSheet.create({
   rowMeta: { flexDirection: "row", gap: 12, marginTop: 4 },
   metaText: { fontSize: 12, color: colors.mutedLight },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    zIndex: 10,
-  },
-  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

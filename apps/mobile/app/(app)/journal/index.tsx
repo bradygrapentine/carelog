@@ -23,6 +23,7 @@ import {
   formatEntryTime,
 } from "../../../utils/journalUtils";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 const MOOD_TAGS = ["good", "okay", "difficult", "crisis"] as const;
 const INPUT_MOOD_COLORS: Record<Mood, string> = {
@@ -137,84 +138,86 @@ export default function JournalScreen() {
         </View>
       )}
 
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={timeline ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => {
-            const payload = (item.payload as Record<string, unknown>) ?? {};
-            const entryText = (payload["text"] as string) ?? item.event_type;
-            const entryMood = payload["mood"] as Mood | undefined;
-            const isExpanded = expandedId === item.id;
-            const moodColor = entryMood ? MOOD_COLORS[entryMood] : null;
+      <Panel title="Journal" style={styles.journalPanel}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={timeline ?? []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => {
+              const payload = (item.payload as Record<string, unknown>) ?? {};
+              const entryText = (payload["text"] as string) ?? item.event_type;
+              const entryMood = payload["mood"] as Mood | undefined;
+              const isExpanded = expandedId === item.id;
+              const moodColor = entryMood ? MOOD_COLORS[entryMood] : null;
 
-            return (
-              <TouchableOpacity
-                style={styles.entry}
-                onPress={() => setExpandedId(isExpanded ? null : item.id)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isExpanded ? "Collapse entry" : "Expand entry"
-                }
-              >
-                <View style={styles.entryHeader}>
-                  <Text style={styles.entryTime}>
-                    {formatEntryTime(item.occurred_at)}
-                  </Text>
-                  {entryMood && moodColor && (
-                    <View
-                      style={[
-                        styles.moodBadge,
-                        { backgroundColor: moodColor.bg },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.moodText, { color: moodColor.text }]}
-                      >
-                        {entryMood}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text
-                  style={styles.entryText}
-                  numberOfLines={isExpanded ? undefined : 2}
+              return (
+                <TouchableOpacity
+                  style={styles.entry}
+                  onPress={() => setExpandedId(isExpanded ? null : item.id)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isExpanded ? "Collapse entry" : "Expand entry"
+                  }
                 >
-                  {entryText}
-                </Text>
-                {isExpanded && (
-                  <>
-                    <EntryReactions eventId={item.id} />
-                    <TouchableOpacity
-                      style={styles.openBtn}
-                      onPress={() => router.push("/journal/" + item.id)}
-                      accessibilityRole="button"
-                      accessibilityLabel="Open full entry"
-                    >
-                      <Text style={styles.openBtnText}>Open entry →</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </TouchableOpacity>
-            );
-          }}
-          ListEmptyComponent={
-            <Text style={styles.empty}>
-              No entries yet. Add the first one below.
-            </Text>
-          }
-        />
-      )}
+                  <View style={styles.entryHeader}>
+                    <Text style={styles.entryTime}>
+                      {formatEntryTime(item.occurred_at)}
+                    </Text>
+                    {entryMood && moodColor && (
+                      <View
+                        style={[
+                          styles.moodBadge,
+                          { backgroundColor: moodColor.bg },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.moodText, { color: moodColor.text }]}
+                        >
+                          {entryMood}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={styles.entryText}
+                    numberOfLines={isExpanded ? undefined : 2}
+                  >
+                    {entryText}
+                  </Text>
+                  {isExpanded && (
+                    <>
+                      <EntryReactions eventId={item.id} />
+                      <TouchableOpacity
+                        style={styles.openBtn}
+                        onPress={() => router.push("/journal/" + item.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Open full entry"
+                      >
+                        <Text style={styles.openBtnText}>Open entry →</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                No entries yet. Add the first one below.
+              </Text>
+            }
+          />
+        )}
+      </Panel>
 
-      <View style={styles.form}>
+      <Panel title="New Entry" style={styles.formPanel}>
         <View style={styles.moodRow}>
           {MOOD_TAGS.map((m) => (
             <TouchableOpacity
@@ -260,19 +263,25 @@ export default function JournalScreen() {
             {submitting ? "Saving…" : "Add entry"}
           </Text>
         </TouchableOpacity>
-      </View>
+      </Panel>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
   syncBanner: { paddingVertical: 6, paddingHorizontal: spacing.md },
   offlineBanner: { backgroundColor: colors.secondarySubtle },
   pendingBanner: { backgroundColor: colors.primarySubtle },
   syncText: { fontSize: 12, color: colors.textSecondary },
+  journalPanel: { flex: 1 },
+  formPanel: {},
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg, paddingBottom: spacing.sm },
   entry: {
     borderLeftWidth: 2,
     borderLeftColor: colors.borderNeutral,
@@ -324,11 +333,6 @@ const styles = StyleSheet.create({
   openBtn: { marginTop: spacing.sm, alignSelf: "flex-start" },
   openBtnText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  form: {
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceSubtle,
-    padding: spacing.md,
-  },
   moodRow: { flexDirection: "row", gap: spacing.sm, marginBottom: 10 },
   moodTag: {
     paddingHorizontal: spacing.md,

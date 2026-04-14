@@ -11,6 +11,7 @@ import * as Clipboard from "expo-clipboard";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -100,86 +101,77 @@ export default function CareBriefScreen() {
     );
   }
 
+  const generateAction = isCoordinator ? (
+    <TouchableOpacity
+      onPress={handleGenerate}
+      disabled={loading}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.actionBtnText, loading && styles.actionBtnDisabled]}>
+        {loading ? "Generating…" : "+ Generate"}
+      </Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Care Brief</Text>
-      <Text style={styles.subtitle}>
-        Generate a shareable summary for doctors and care providers.
-      </Text>
+      <Panel title="Care Brief" action={generateAction}>
+        <Text style={styles.subtitle}>
+          Generate a shareable summary for doctors and care providers.
+        </Text>
 
-      {isCoordinator && (
-        <TouchableOpacity
-          style={[styles.generateBtn, loading && styles.generateBtnDisabled]}
-          onPress={handleGenerate}
-          disabled={loading}
-          accessibilityRole="button"
-        >
-          <Text style={styles.generateBtnText}>
-            {loading ? "Generating…" : "Generate Care Brief"}
-          </Text>
-        </TouchableOpacity>
-      )}
+        {error != null && <Text style={styles.error}>{error}</Text>}
 
-      {error != null && <Text style={styles.error}>{error}</Text>}
+        {briefs.length === 0 && !error && (
+          <Text style={styles.empty}>No briefs generated yet.</Text>
+        )}
 
-      {briefs.length === 0 && !error && (
-        <Text style={styles.empty}>No briefs generated yet.</Text>
-      )}
-
-      {briefs.map((brief) => {
-        const url = `${API_URL}/brief/${brief.shareToken}`;
-        return (
-          <View key={brief.shareToken} style={styles.card}>
-            <Text style={styles.cardDate}>{formatDate(brief.generatedAt)}</Text>
-            <Text style={styles.cardUrl} numberOfLines={2} selectable>
-              {url}
-            </Text>
-            <View style={styles.cardActions}>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => handleCopy(url)}
-                accessibilityRole="button"
-              >
-                <Text style={styles.actionBtnText}>Copy link</Text>
-              </TouchableOpacity>
-              {isCoordinator && (
+        {briefs.map((brief) => {
+          const url = `${API_URL}/brief/${brief.shareToken}`;
+          return (
+            <View key={brief.shareToken} style={styles.card}>
+              <Text style={styles.cardDate}>
+                {formatDate(brief.generatedAt)}
+              </Text>
+              <Text style={styles.cardUrl} numberOfLines={2} selectable>
+                {url}
+              </Text>
+              <View style={styles.cardActions}>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.revokeBtn]}
-                  onPress={() => handleRevoke(brief.shareToken)}
+                  style={styles.cardActionBtn}
+                  onPress={() => handleCopy(url)}
                   accessibilityRole="button"
                 >
-                  <Text style={[styles.actionBtnText, styles.revokeBtnText]}>
-                    Revoke
-                  </Text>
+                  <Text style={styles.cardActionBtnText}>Copy link</Text>
                 </TouchableOpacity>
-              )}
+                {isCoordinator && (
+                  <TouchableOpacity
+                    style={[styles.cardActionBtn, styles.revokeBtn]}
+                    onPress={() => handleRevoke(brief.shareToken)}
+                    accessibilityRole="button"
+                  >
+                    <Text
+                      style={[styles.cardActionBtnText, styles.revokeBtnText]}
+                    >
+                      Revoke
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-          </View>
-        );
-      })}
+          );
+        })}
+      </Panel>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: { flex: 1, backgroundColor: colors.surface },
   content: { padding: spacing.lg },
-  heading: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  subtitle: { fontSize: 14, color: colors.muted, marginBottom: 20 },
-  generateBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: spacing.lg,
-  },
-  generateBtnDisabled: { opacity: 0.6 },
-  generateBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
+  actionBtnDisabled: { color: colors.mutedLight },
+  subtitle: { fontSize: 14, color: colors.muted, marginBottom: spacing.md },
   error: { color: colors.danger, marginBottom: 12, fontSize: 14 },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
   card: {
@@ -192,13 +184,13 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 12, color: colors.mutedLight, marginBottom: 6 },
   cardUrl: { fontSize: 13, color: colors.textSecondary, marginBottom: 10 },
   cardActions: { flexDirection: "row", gap: 8 },
-  actionBtn: {
+  cardActionBtn: {
     backgroundColor: colors.surfaceSubtle,
     borderRadius: radii.sm,
     paddingVertical: 7,
     paddingHorizontal: 12,
   },
-  actionBtnText: {
+  cardActionBtnText: {
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: "500",

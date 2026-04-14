@@ -10,6 +10,7 @@ import { trpc } from "../../../utils/trpc";
 import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
 import { colors, spacing } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 // DB columns: start_at / end_at (not starts_at / ends_at)
 type Shift = {
@@ -57,48 +58,48 @@ export default function ScheduleScreen() {
     }
   }, [shifts]);
 
-  if (isLoading) {
-    return (
-      <ActivityIndicator
-        style={{ marginTop: 48 }}
-        size="large"
-        color={colors.primary}
-      />
-    );
-  }
-
   const list = (shifts as unknown as Shift[]) ?? [];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Next 7 days</Text>
-      <FlatList
-        data={list}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const durationHours = Math.round(
-            (new Date(item.end_at).getTime() -
-              new Date(item.start_at).getTime()) /
-              3_600_000,
-          );
-          return (
-            <View style={styles.row}>
-              <View style={styles.time}>
-                <Text style={styles.timeText}>
-                  {formatShiftTime(item.start_at)}
-                </Text>
-                <Text style={styles.duration}>{durationHours}h</Text>
-              </View>
-              <Text style={styles.assignee}>{item.notes ?? "—"}</Text>
-            </View>
-          );
-        }}
-        ListEmptyComponent={
-          <Text style={styles.empty}>
-            No shifts scheduled for the next 7 days.
-          </Text>
-        }
-      />
+      <Panel title="Next 7 days">
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={list}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => {
+              const durationHours = Math.round(
+                (new Date(item.end_at).getTime() -
+                  new Date(item.start_at).getTime()) /
+                  3_600_000,
+              );
+              return (
+                <View style={styles.row}>
+                  <View style={styles.time}>
+                    <Text style={styles.timeText}>
+                      {formatShiftTime(item.start_at)}
+                    </Text>
+                    <Text style={styles.duration}>{durationHours}h</Text>
+                  </View>
+                  <Text style={styles.assignee}>{item.notes ?? "—"}</Text>
+                </View>
+              );
+            }}
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                No shifts scheduled for the next 7 days.
+              </Text>
+            }
+          />
+        )}
+      </Panel>
     </View>
   );
 }
@@ -106,15 +107,10 @@ export default function ScheduleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: colors.surface,
     padding: spacing.lg,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: spacing.lg,
-    marginTop: spacing.sm,
-  },
+  loader: { marginTop: 48 },
   row: {
     flexDirection: "row",
     alignItems: "center",

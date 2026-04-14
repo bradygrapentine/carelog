@@ -28,7 +28,7 @@ beforeEach(() => jest.clearAllMocks());
 describe("CareBriefScreen", () => {
   it("renders Generate Brief button for coordinator", () => {
     const { getByText } = render(<CareBriefScreen />);
-    expect(getByText("Generate Care Brief")).toBeTruthy();
+    expect(getByText("+ Generate")).toBeTruthy();
   });
 
   it("hides Generate Brief for non-coordinator", () => {
@@ -39,7 +39,7 @@ describe("CareBriefScreen", () => {
       currentRole: "caregiver",
     });
     const { queryByText } = render(<CareBriefScreen />);
-    expect(queryByText("Generate Care Brief")).toBeNull();
+    expect(queryByText("+ Generate")).toBeNull();
   });
 
   it("shows share URL after successful generation", async () => {
@@ -48,7 +48,7 @@ describe("CareBriefScreen", () => {
       json: async () => ({ shareToken: "tok123" }),
     });
     const { getByText, findByText } = render(<CareBriefScreen />);
-    fireEvent.press(getByText("Generate Care Brief"));
+    fireEvent.press(getByText("+ Generate"));
     await findByText(/tok123/);
   });
 
@@ -58,7 +58,7 @@ describe("CareBriefScreen", () => {
       json: async () => ({ error: "Server error" }),
     });
     const { getByText, findByText } = render(<CareBriefScreen />);
-    fireEvent.press(getByText("Generate Care Brief"));
+    fireEvent.press(getByText("+ Generate"));
     await findByText(/Server error/);
   });
 
@@ -68,7 +68,7 @@ describe("CareBriefScreen", () => {
       json: async () => ({ shareToken: "tok123" }),
     });
     const { getByText, findByText } = render(<CareBriefScreen />);
-    fireEvent.press(getByText("Generate Care Brief"));
+    fireEvent.press(getByText("+ Generate"));
     await findByText("Copy link");
     expect(getByText("Copy link")).toBeTruthy();
   });
@@ -81,7 +81,7 @@ describe("CareBriefScreen", () => {
       json: async () => ({ shareToken: "cliptest" }),
     });
     const { getByText, findByText } = render(<CareBriefScreen />);
-    fireEvent.press(getByText("Generate Care Brief"));
+    fireEvent.press(getByText("+ Generate"));
     await findByText("Copy link");
     fireEvent.press(getByText("Copy link"));
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
@@ -98,7 +98,7 @@ describe("CareBriefScreen", () => {
       .mockResolvedValueOnce({ ok: true });
 
     const { getByText, findByText, queryByText } = render(<CareBriefScreen />);
-    fireEvent.press(getByText("Generate Care Brief"));
+    fireEvent.press(getByText("+ Generate"));
     await findByText("Revoke");
     fireEvent.press(getByText("Revoke"));
 

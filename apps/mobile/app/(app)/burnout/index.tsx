@@ -11,6 +11,7 @@ import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { formatWeekStamp } from "../../../utils/wave5Utils";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 function currentWeekStamp(): string {
   const d = new Date();
@@ -36,24 +37,28 @@ export default function BurnoutScreen() {
   const thisWeek = currentWeekStamp();
   const alreadyCheckedIn = (data ?? []).some((c) => c.week_stamp === thisWeek);
 
+  const checkinAction = (
+    <TouchableOpacity
+      onPress={() => router.push("/burnout/checkin")}
+      disabled={alreadyCheckedIn}
+      accessibilityRole="button"
+      accessibilityLabel={
+        alreadyCheckedIn ? "Already checked in this week" : "Check in this week"
+      }
+    >
+      <Text
+        style={[
+          styles.actionBtnText,
+          alreadyCheckedIn && styles.actionBtnDisabled,
+        ]}
+      >
+        {alreadyCheckedIn ? "✓ Done" : "+ Check in"}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.checkinBtn, alreadyCheckedIn && styles.checkinDisabled]}
-        onPress={() => router.push("/burnout/checkin")}
-        disabled={alreadyCheckedIn}
-        accessibilityRole="button"
-        accessibilityLabel={
-          alreadyCheckedIn
-            ? "Already checked in this week"
-            : "Check in this week"
-        }
-      >
-        <Text style={styles.checkinText}>
-          {alreadyCheckedIn ? "Checked in this week ✓" : "Check in this week"}
-        </Text>
-      </TouchableOpacity>
-
       {currentRole === "coordinator" && (
         <TouchableOpacity
           style={styles.summaryBtn}
@@ -65,62 +70,61 @@ export default function BurnoutScreen() {
         </TouchableOpacity>
       )}
 
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={data ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              <Text style={styles.week}>
-                {formatWeekStamp(item.week_stamp)}
-              </Text>
-              <View style={styles.scores}>
-                <Text style={styles.score}>Sleep: {item.sleep_score}/5</Text>
-                <Text style={styles.score}>Stress: {item.stress_score}/5</Text>
-                <Text style={styles.score}>
-                  Support: {item.support_score}/5
+      <Panel title="Burnout Check-in History" action={checkinAction}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={data ?? []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <View style={styles.row}>
+                <Text style={styles.week}>
+                  {formatWeekStamp(item.week_stamp)}
                 </Text>
+                <View style={styles.scores}>
+                  <Text style={styles.score}>Sleep: {item.sleep_score}/5</Text>
+                  <Text style={styles.score}>
+                    Stress: {item.stress_score}/5
+                  </Text>
+                  <Text style={styles.score}>
+                    Support: {item.support_score}/5
+                  </Text>
+                </View>
+                {item.notes && (
+                  <Text style={styles.notes} numberOfLines={1}>
+                    {item.notes}
+                  </Text>
+                )}
               </View>
-              {item.notes && (
-                <Text style={styles.notes} numberOfLines={1}>
-                  {item.notes}
-                </Text>
-              )}
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>
-              No check-ins yet. How are you doing?
-            </Text>
-          }
-        />
-      )}
+            )}
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                No check-ins yet. How are you doing?
+              </Text>
+            }
+          />
+        )}
+      </Panel>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  checkinBtn: {
-    margin: spacing.lg,
-    marginBottom: 0,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
-  checkinDisabled: { backgroundColor: colors.borderInput },
-  checkinText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
+  actionBtnDisabled: { color: colors.mutedLight },
   summaryBtn: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
     borderWidth: 1,
     borderColor: colors.primary,
     borderRadius: radii.md,
@@ -129,7 +133,6 @@ const styles = StyleSheet.create({
   },
   summaryBtnText: { color: colors.primary, fontWeight: "600", fontSize: 14 },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg },
   row: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,

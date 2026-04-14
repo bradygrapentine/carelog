@@ -26,7 +26,7 @@ beforeEach(() => {
 describe("BurnoutScreen", () => {
   it("shows Check in this week button when not checked in", () => {
     const { getByText } = render(<BurnoutScreen />);
-    expect(getByText("Check in this week")).toBeTruthy();
+    expect(getByText("+ Check in")).toBeTruthy();
   });
 
   it("shows Team summary button for coordinator", () => {
@@ -50,7 +50,7 @@ describe("BurnoutScreen", () => {
       isLoading: false,
     });
     const { getByText } = render(<BurnoutScreen />);
-    expect(getByText("Checked in this week ✓")).toBeTruthy();
+    expect(getByText("✓ Done")).toBeTruthy();
   });
 });
 
