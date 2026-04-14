@@ -136,8 +136,8 @@ Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, asse
 ### 🌙 ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
 
 ### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
 Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
@@ -166,10 +166,12 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### 🌙 A11Y-004 — Token contrast validator script
-Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
+### 🔎 A11Y-004 — Token contrast validator script · Branch: feat/a11y-scripts
+**Status:** 🔎 In review · Branch: feat/a11y-scripts
+Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm a11y:contrast`. **Size:** ~1 hr. **Note:** danger on white fails (3.76:1 < 4.5 threshold) — open a11y follow-up.
 
-### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
+### 🔎 A11Y-010 — Add colorblindness walkthrough to UI review checklist · Branch: feat/a11y-scripts
+**Status:** 🔎 In review · Branch: feat/a11y-scripts
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
 ---
