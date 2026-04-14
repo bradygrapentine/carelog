@@ -65,7 +65,7 @@ export function HeroSection() {
           {/* Lead image — intergenerational family care */}
           <div className="absolute left-0 top-0 h-[72%] w-[68%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="https://images.unsplash.com/photo-1581579438747-104c53e7ee52?auto=format&fit=crop&w=900&q=80"
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=80"
               alt="Adult daughter embracing her elderly mother at home, a moment of warmth between family caregivers"
               fill
               sizes="(min-width: 768px) 40vw, 90vw"
