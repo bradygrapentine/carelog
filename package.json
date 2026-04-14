@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:db": "supabase test db",
-    "test:all": "pnpm test && pnpm test:db && pnpm test:e2e"
+    "test:all": "pnpm test && pnpm test:db && pnpm test:e2e",
+    "a11y:contrast": "node scripts/a11y-contrast.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

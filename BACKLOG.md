@@ -167,10 +167,12 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### 🌙 A11Y-004 — Token contrast validator script
-Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
+### 🔎 A11Y-004 — Token contrast validator script · Branch: feat/a11y-scripts
+**Status:** 🔎 In review · Branch: feat/a11y-scripts
+Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm a11y:contrast`. **Size:** ~1 hr. **Note:** danger on white fails (3.76:1 < 4.5 threshold) — open a11y follow-up.
 
-### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
+### 🔎 A11Y-010 — Add colorblindness walkthrough to UI review checklist · Branch: feat/a11y-scripts
+**Status:** 🔎 In review · Branch: feat/a11y-scripts
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
 ---
