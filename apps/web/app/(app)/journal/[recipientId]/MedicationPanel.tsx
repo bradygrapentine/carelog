@@ -102,6 +102,7 @@ export function MedicationPanel({
           </label>
           <Input
             id="med-drug"
+            data-testid="medication-name-input"
             type="text"
             value={drugName}
             onChange={(e) => setDrugName(e.target.value)}
@@ -118,6 +119,7 @@ export function MedicationPanel({
           </label>
           <Input
             id="med-dosage"
+            data-testid="medication-dosage-input"
             type="text"
             value={dosage}
             onChange={(e) => setDosage(e.target.value)}
@@ -276,7 +278,10 @@ export function MedicationPanel({
         )}
 
         {filteredMedications.length > 0 && (
-          <div className="grid gap-2 mb-4 md:grid-cols-2">
+          <div
+            data-testid="medication-list"
+            className="grid gap-2 mb-4 md:grid-cols-2"
+          >
             {filteredMedications.map((med: Record<string, unknown>) => {
               const medId = med.id as string;
               const name = med.drug_name as string;
@@ -289,6 +294,7 @@ export function MedicationPanel({
               return (
                 <div
                   key={medId}
+                  data-testid="medication-item"
                   className="flex items-start justify-between gap-3 rounded-lg border border-border bg-[var(--color-surface)] p-3"
                 >
                   <div className="flex-1 min-w-0">
@@ -345,6 +351,7 @@ export function MedicationPanel({
             {!showForm && (
               <button
                 type="button"
+                data-testid="add-medication-btn"
                 onClick={() => setShowForm(true)}
                 className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
               >

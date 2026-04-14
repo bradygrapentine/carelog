@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14 (session start × 2).
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: **2026-04-14**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 4 | §1 · `Status: Ready` (TD-01..04) |
-| ⚡ In progress | 5 | §1 · `Status: In progress` |
-| 🔎 In review | 4 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-29 (PR #34, #35, #36) |
-| 🔴 Blocked | 5 | §3 platform parity, §8 human-gated |
-| 🌙 Overnight queue | 24 | §2 |
-| 🧊 Deferred | 12 | §6 UX polish (11) + §3 PP-013 |
+| 🟢 Ready | 3 | §1 TD-02, TD-03 · §2 TD-05 |
+| ⚡ In progress | 1 | §1 PP-006 |
+| 🔎 In review | 0 | — |
+| 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
+| 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
+| 🧊 Deferred | 12 | §6 UX (11) + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -59,21 +59,13 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
-| PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
-| A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
-| A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
-| A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-01 | ✅ Shipped | **Harden `any` remaining usages** | 10 → 0 (100% reduction). `ExportDocument`, `careEvents` router, `export/route` all typed precisely. |
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
-| TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
 
 ---
 
@@ -131,46 +123,18 @@ Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with proj
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
-Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
-
-### 🌙 ON-32 — E2E: invite-accept happy path
-Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
-
-### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
-
-### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
-Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
-
-### ✅ 🌙 ON-35 — `.gitignore` hygiene
-Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
-
-### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
-Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
+Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Unblocked:** PP-004 (settings hub) shipped in PR #36.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
-`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
+`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr. **Note:** two agent attempts timed out; consider splitting into separate web + mobile subtasks.
 
-### ✅ 🌙 ON-38 — Dependency freshness report
-`pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
+### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
+19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
-### 🌙 ON-39 — Eliminate `any` types
-Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
-
-### ✅ ON-40 — Vitest flake detection + quarantine
-Run `pnpm test` 5×; `.skip` any intermittent failure with `// FLAKY: ON-XX` linking new story. Report at `docs/project-info/technology/FLAKE_REPORT.md`. **Size:** 2 hr.
-
-### ✅ ON-41 — Audit stale snapshot tests
-Review each `__snapshots__` dir. Replace full-tree snapshots with targeted assertions where feasible. **AC:** no snapshot >100 lines without a justification comment. **Size:** 3 hr.
-
-### ✅ 🌙 ON-42 — Next.js caching directive audit
-Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
-
-### 🌙 A11Y-004 — Token contrast validator script
-Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
-
-### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
-Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
+### 🟢 TD-05 — Regenerate Supabase TypeScript types after messaging migration
+Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
+**AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
+**Status:** 🟢 Ready
 
 ---
 
@@ -208,9 +172,6 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 ---
 
 ## 5. Large features (multi-day, not overnight-eligible)
-
-### ON-43 — In-app messaging (DM + group) · ~3 days
-Tables `message_threads`, `message_thread_members`, `messages` (all org-scoped, RLS via `org_memberships`). tRPC `messagesRouter` (listThreads, getThread, sendMessage, createDm, createGroup, markRead). Supabase Realtime on `messages` filtered by thread membership. Web `/messages` shell + composer; mobile 2-screen list + inverted FlatList. Push on new message when `last_read_at < last_message_at` AND pref enabled. pgTAP RLS for all cases. DM creation idempotent (same user → same thread). **Split:** schema/RLS · web UI · mobile UI + push.
 
 ### ON-44 — Comment threads on care events · ~1.5 days
 Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
@@ -278,6 +239,32 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
+
+### 2026-04-14 parallel agent session (PRs #34–#49)
+✅ **ON-21** Web raw-hex audit — all hex replaced with `var(--color-*)` design tokens (PR #34)
+✅ **ON-29** Replace `console.log` with project logger in `apps/web` (PR #35)
+✅ **PP-004** Unified settings hub at `/settings` — profile, notification prefs, timezone, danger zone (PR #36)
+✅ **PP-001** Mobile team admin — change role + remove member with pgTAP coverage (PR #31/#37)
+✅ **ON-32** E2E invite-accept happy path + expired-token rejection (PR #38)
+✅ **A11Y-001** Web axe-core/playwright — `checkA11y()` helper wired into `e2e/helpers.ts` (PR #39)
+✅ **A11Y-002** eslint-plugin-jsx-a11y at `error` severity — `alt-text`, `click-events`, `no-static-element-interactions` (PR #39)
+✅ **ON-33** Mobile Sentry breadcrumbs on tRPC errors — procedure name + op type, PHI scrubbed (PR #40)
+✅ **ON-20** Mobile `accessibilityLabel` sweep — all icon-only Touchable/Pressable labelled (PR #41)
+✅ **A11Y-004** WCAG contrast validator `scripts/a11y-contrast.mjs` — exits non-zero on failure, wired to `pnpm a11y:contrast` (PR #42)
+✅ **A11Y-010** Colorblind simulator walkthrough step added to `.claude/rules/ui-standards.md` (PR #42)
+✅ **ON-27** Web alt-text audit — all 6 Image elements verified with meaningful alt props (PR #45)
+✅ **ON-30** JSDoc on public exports in `packages/shared` (PR #46)
+✅ **ON-39** Eliminate `any` types — `ExportDocument`, `careEvents` router, `export/route` fully typed (PR #47)
+✅ **ON-47** `data-testid` attrs on `MedicationPanel` + `MedicationChecklist`; E2E TODOs resolved (PR #48)
+✅ **ON-34** PostHog funnel events parity audit — `docs/project-info/technology/ANALYTICS_EVENTS.md` (PR #43)
+✅ **ON-36** TODO/FIXME audit — `docs/project-info/technology/TODO_AUDIT.md`; 6 deleted, 2 converted to ON-47/ON-48 (PR #43)
+✅ **A11Y-003** Mobile `eslint-plugin-react-native-a11y` at `recommended` severity (PR #33)
+✅ **ON-26** Mobile empty-state copy pass — Carelog voice with CTA on all screens (PR #32)
+✅ **ON-28** Mobile loading skeletons on journal, medications, documents, team index (PR #32)
+✅ **ON-43** In-app messaging (DM + group) — `message_threads` + `message_thread_members` + `messages`, RLS, tRPC router, Supabase Realtime web UI, Inngest delayed push (PR #49)
+✅ **Security** PostHog contact PHI fix (`distinctId: crypto.randomUUID()`) + WCAG danger token `#c41a1a` (PR #44)
+✅ **TD-01** Harden remaining `any` usages (PR #47)
+✅ **TD-04** Consolidate `images/` → `apps/web/public/images/` (root dir absent — no-op confirmed)
 
 ---
 

@@ -13,6 +13,15 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // A11Y-002: Escalate key jsx-a11y rules to error level.
+  // eslint-config-next already includes eslint-plugin-jsx-a11y; we only override severity.
+  {
+    rules: {
+      "jsx-a11y/alt-text": "error",
+      "jsx-a11y/click-events-have-key-events": "error",
+      "jsx-a11y/no-static-element-interactions": "error",
+    },
+  },
 ]);
 
 export default eslintConfig;

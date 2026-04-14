@@ -250,6 +250,9 @@ export default function BenefitsScreen() {
           onPress={handleSubmit}
           disabled={screenMut.isPending}
           accessibilityRole="button"
+          accessibilityLabel={
+            screenMut.isPending ? "Checking eligibility" : "Check eligibility"
+          }
         >
           {screenMut.isPending ? (
             <ActivityIndicator color={colors.white} />
@@ -272,6 +275,7 @@ export default function BenefitsScreen() {
                 <TouchableOpacity
                   onPress={() => Linking.openURL(program.applyUrl)}
                   accessibilityRole="link"
+                  accessibilityLabel={"Learn more about " + program.name}
                 >
                   <Text style={styles.cardLink}>Learn more →</Text>
                 </TouchableOpacity>

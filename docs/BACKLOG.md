@@ -2,11 +2,14 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14 (session start × 2).
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14 (session start × 3).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
 Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
+
+## Human Feature Ideas
+> Don't make changes here. I will add ideas here when they come to me. Add backlog items as I add them (should add this to the backlog sync). Ask me questions to fill out the design.
 
 ---
 
@@ -16,11 +19,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 4 | §1 · `Status: Ready` (TD-01..04) |
-| ⚡ In progress | 5 | §1 · `Status: In progress` |
-| 🔎 In review | 4 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-29 (PR #34, #35, #36) |
-| 🔴 Blocked | 5 | §3 platform parity, §8 human-gated |
-| 🌙 Overnight queue | 24 | §2 |
+| 🟢 Ready | 2 | §1 · TD-02, TD-03 |
+| ⚡ In progress | 1 | §1 · PP-006 |
+| 🔎 In review | 7 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-26, ON-28, ON-29 |
+| 🔴 Blocked | 5 | §2 ON-31 · §3 PP-007–010 |
+| 🌙 Overnight queue | 9 | §2 · ON-15, ON-20, ON-27, ON-30, ON-33, ON-37, ON-39, A11Y-004, A11Y-010 |
 | 🧊 Deferred | 12 | §6 UX polish (11) + §3 PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
@@ -61,10 +64,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 | PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
 | PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
-| A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
-| A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
 | A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -89,7 +89,7 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
 
-### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
+### ✅ ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 **Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
 **Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
 **AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
@@ -127,25 +127,25 @@ Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, docu
 ### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### 🌙 ON-30 — JSDoc on public exports in `packages/shared`
+### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
 
-### 🌙 ON-32 — E2E: invite-accept happy path
+### ✅ ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
 Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
 
-### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
+### ✅ ON-34 — PostHog funnel events: web ↔ mobile parity audit
 Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
 
 ### ✅ 🌙 ON-35 — `.gitignore` hygiene
 Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
 
-### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
+### ✅ ON-36 — TODO/FIXME audit + backlog backfill
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
@@ -154,7 +154,7 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### 🌙 ON-39 — Eliminate `any` types
+### 🔎 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
 
 ### ✅ ON-40 — Vitest flake detection + quarantine
@@ -166,10 +166,10 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### 🌙 A11Y-004 — Token contrast validator script
+### ⚡ A11Y-004 — Token contrast validator script
 Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
 
-### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
+### ✅ A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
 ---
@@ -278,6 +278,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
+
+### A11Y tooling + messaging (2026-04-14)
+✅ A11Y-001 `@axe-core/playwright` wired into e2e `afterEach`, fails on serious/critical · A11Y-002 `eslint-plugin-jsx-a11y` at `error` for alt-text, keyboard, static-element rules (PR #39) · ON-43 In-app messaging: DM + group threads, Supabase Realtime, read receipts, delayed push via Inngest, full pgTAP RLS (PR #49)
 
 ---
 

@@ -411,7 +411,35 @@ Reviews RLS policies and pgTAP tests. Verdict is always **"Safe to commit"** or 
 
 ---
 
-## 5. Common silent failure modes
+## 5. Lessons From Production Use
+
+These patterns burned real sessions. Memorize them.
+
+### Subagent scope drift
+
+**What happened:** Dispatched subagents added unrelated features (e.g. search to MedicationPanel), leaked PHI into `posthog.identify()`, and committed to the wrong branch — all requiring reverts and cherry-picks.
+
+**Prevention:** Every subagent dispatch needs an explicit scope contract (see CLAUDE.md § Subagent Scope Contract). Include: files allowed, target branch, PHI rule, and a "do not touch" clause. A subagent without a scope contract is a liability.
+
+### Exploring instead of delivering
+
+**What happened:** Review requests, runbook creation, and coverage gap analyses all stalled when Claude read files instead of producing output. Sessions hit rate limits without any artifact produced.
+
+**Prevention:** The first action for any artifact request (review, runbook, tests) is to create the output file with section headers. Then fill it section by section. "I need to understand the codebase first" = output will never come. Start the file, then read what each section needs.
+
+### Environment blockers mid-session
+
+**What happened:** Docker not running, wrong branch, IDE file-watcher reverting staged files — all discovered mid-task after significant context was spent.
+
+**Prevention:** Run a pre-flight before any multi-step session:
+```bash
+git branch --show-current && git status && docker ps | grep supabase | head -3
+```
+If Supabase is needed for the task and Docker shows no Supabase containers, stop and `supabase start` before doing anything else.
+
+---
+
+## 6. Common silent failure modes
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
@@ -429,7 +457,7 @@ Reviews RLS policies and pgTAP tests. Verdict is always **"Safe to commit"** or 
 
 ---
 
-## 6. Debugging checklist
+## 7. Debugging checklist
 
 When something feels off:
 

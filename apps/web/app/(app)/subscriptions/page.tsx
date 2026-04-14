@@ -154,6 +154,9 @@ export default function SubscriptionsPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowCancelModal(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setShowCancelModal(false);
+          }}
         >
           <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl">
             <h2

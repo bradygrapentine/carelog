@@ -302,7 +302,8 @@ export default function OuterCircleScreen() {
             renderItem={renderItem}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                No volunteer requests yet. Coordinators can post requests to get help from friends and community.
+                No volunteer requests yet. Coordinators can post requests to get
+                help from friends and community.
               </Text>
             }
           />
@@ -357,6 +358,9 @@ export default function OuterCircleScreen() {
               onPress={handleCreate}
               disabled={createMut.isPending}
               accessibilityRole="button"
+              accessibilityLabel={
+                createMut.isPending ? "Saving" : "Submit volunteer request"
+              }
             >
               <Text style={styles.submitBtnText}>
                 {createMut.isPending ? "Saving…" : "Submit"}
@@ -367,6 +371,7 @@ export default function OuterCircleScreen() {
               style={styles.cancelBtn}
               onPress={() => setModalVisible(false)}
               accessibilityRole="button"
+              accessibilityLabel="Cancel"
             >
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>

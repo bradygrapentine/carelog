@@ -9,6 +9,7 @@ export type Destination =
   | "team"
   | "shifts"
   | "documents"
+  | "messages"
   | "more";
 
 const VALID: readonly Destination[] = [
@@ -17,6 +18,7 @@ const VALID: readonly Destination[] = [
   "team",
   "shifts",
   "documents",
+  "messages",
   "more",
 ];
 

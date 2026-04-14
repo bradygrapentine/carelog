@@ -139,6 +139,54 @@ describe("MedicationPanel — medication list", () => {
   });
 });
 
+// ─── data-testid selectors ────────────────────────────────────────────────────
+
+describe("MedicationPanel — data-testid selectors", () => {
+  it("renders add-medication-btn with data-testid for coordinator", () => {
+    vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as any);
+    render(<MedicationPanel {...coordinatorProps} />);
+    expect(
+      document.querySelector('[data-testid="add-medication-btn"]'),
+    ).toBeTruthy();
+  });
+
+  it("renders medication-list container when medications exist", () => {
+    vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
+      data: sampleMeds,
+      isLoading: false,
+    } as any);
+    render(<MedicationPanel {...coordinatorProps} />);
+    expect(
+      document.querySelector('[data-testid="medication-list"]'),
+    ).toBeTruthy();
+  });
+
+  it("renders one medication-item per medication", () => {
+    vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
+      data: sampleMeds,
+      isLoading: false,
+    } as any);
+    render(<MedicationPanel {...coordinatorProps} />);
+    expect(
+      document.querySelectorAll('[data-testid="medication-item"]'),
+    ).toHaveLength(sampleMeds.length);
+  });
+
+  it("does NOT render medication-list when list is empty", () => {
+    vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as any);
+    render(<MedicationPanel {...coordinatorProps} />);
+    expect(
+      document.querySelector('[data-testid="medication-list"]'),
+    ).toBeNull();
+  });
+});
+
 // ─── coordinator-only controls ─────────────────────────────────────────────────
 
 describe("MedicationPanel — coordinator controls", () => {
