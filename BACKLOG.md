@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14.
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14 (session start × 2).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 0 | §1 · `Status: Ready` |
-| ⚡ In progress | 6 | §1 · `Status: In progress` |
-| 🔎 In review | 0 | §1 · `Status: In review` |
+| 🟢 Ready | 4 | §1 · `Status: Ready` (TD-01..04) |
+| ⚡ In progress | 5 | §1 · `Status: In progress` |
+| 🔎 In review | 4 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-29 (PR #34, #35, #36) |
 | 🔴 Blocked | 5 | §3 platform parity, §8 human-gated |
-| 🌙 Overnight queue | 28 | §2 |
-| 🧊 Deferred | 11 | §6 UX polish + §3 PP-013 |
+| 🌙 Overnight queue | 24 | §2 |
+| 🧊 Deferred | 12 | §6 UX polish (11) + §3 PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -59,11 +59,11 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| PP-001 | ⚡ In progress | — | — | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
-| PP-004 | ⚡ In progress | — | — | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
+| PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
+| PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
 | A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
 | A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
-| A11Y-003 | ⚡ In progress | — | — | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
+| A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
 | ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
@@ -95,11 +95,11 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
 **Size:** ~2 hr. **Blocked by:** nothing.
 
-### 🌙 ON-21 — Web raw-hex audit + token migration
+### 🌙 ON-21 — Web raw-hex audit + token migration · 🔎 PR #34
 **Why:** `.claude/rules/ui-standards.md` forbids raw hex in component files.
 **Work:** `grep -rn "#[0-9a-fA-F]\{3,8\}" apps/web/app apps/web/components`; replace with closest `var(--color-*)`. If no close token, add note in PR — do NOT invent a token. Skip `.svg/.ico/public/`.
 **AC:** no raw hex in `.tsx/.ts`; visual spot-check on dashboard + journal + billing; `pnpm typecheck` + `pnpm test` green.
-**Size:** ~3 hr.
+**Size:** ~3 hr. **Branch:** feat/on21-raw-hex
 
 ### 🌙 ON-22 — pgTAP RLS test: `notification_preferences`
 Owner-only RLS, no pgTAP coverage. Template: `supabase/tests/expenses_rls.test.sql`. Cases: owner r/w self pass, cross-user blocked, anon blocked. **AC:** `supabase test db` passes. **Size:** 1 hr.
@@ -115,15 +115,17 @@ PHI. Cases: org member reads for in-org recipients only; author-only update/dele
 
 ### 🌙 ON-26 — Mobile empty-state copy pass
 Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Carelog voice (see `UX_DECISIONS.md`) with a concrete next-action CTA. Keep layouts identical. **Size:** 2 hr.
+**Status:** 🔎 In review, Branch: feat/mobile-ux
 
 ### 🌙 ON-27 — Web alt-text audit
 `grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
 
 ### 🌙 ON-28 — Mobile loading skeletons on list screens
 Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
+**Status:** 🔎 In review, Branch: feat/mobile-ux
 
-### 🌙 ON-29 — Replace `console.log` with logger in `apps/web`
-Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr.
+### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
+Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
 ### 🌙 ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
