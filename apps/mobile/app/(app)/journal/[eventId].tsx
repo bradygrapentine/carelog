@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { haptics } from "../../../utils/haptics";
 // apps/mobile/app/(app)/journal/[eventId].tsx
 import {
@@ -19,12 +20,13 @@ import {
   formatEntryDateTime,
   canFlag,
 } from "../../../utils/journalUtils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 export default function JournalDetailScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   const router = useRouter();
   const { currentRole } = useApp();
+  const { colors, spacing, radii } = useAppTheme();
 
   const { data: event, isLoading } = trpc.careEvents.getOne.useQuery({
     eventId,
@@ -41,6 +43,92 @@ export default function JournalDetailScreen() {
     onSuccess: () => haptics.success(),
     onError: () => haptics.error(),
   });
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surfaceSubtle },
+        content: { padding: spacing.lg },
+        center: { flex: 1, alignItems: "center", justifyContent: "center" },
+        backBtn: { marginBottom: spacing.md },
+        backText: { fontSize: 14, color: colors.primary },
+        card: {
+          backgroundColor: colors.surfaceRaised,
+          borderRadius: radii.lg,
+          padding: spacing.lg,
+          shadowColor: colors.black,
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 1 },
+        },
+        entryText: {
+          fontSize: 16,
+          color: colors.textPrimary,
+          lineHeight: 24,
+          marginBottom: spacing.md,
+        },
+        meta: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+          marginBottom: spacing.lg,
+          flexWrap: "wrap",
+        },
+        moodBadge: {
+          paddingHorizontal: 10,
+          paddingVertical: 3,
+          borderRadius: 12,
+        },
+        moodText: { fontSize: 12, fontWeight: "500" },
+        dateText: { fontSize: 12, color: colors.mutedLight },
+        reactionRow: {
+          flexDirection: "row",
+          gap: spacing.sm,
+          flexWrap: "wrap",
+          marginBottom: spacing.lg,
+        },
+        reactionBtn: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+          paddingHorizontal: spacing.md,
+          paddingVertical: 6,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          backgroundColor: colors.surfaceSubtle,
+        },
+        reactionActive: {
+          borderColor: colors.primaryLight,
+          backgroundColor: colors.primarySubtle,
+        },
+        reactionEmoji: { fontSize: 16 },
+        reactionLabel: { fontSize: 13, color: colors.textSecondary },
+        reactionCount: {
+          fontSize: 12,
+          color: colors.textSecondary,
+          fontWeight: "600",
+        },
+        flagBtn: {
+          borderWidth: 1,
+          borderColor: colors.borderInput,
+          borderRadius: radii.md,
+          padding: spacing.md,
+          alignItems: "center",
+        },
+        flagActive: {
+          borderColor: colors.primaryLight,
+          backgroundColor: colors.primarySubtle,
+        },
+        flagText: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          fontWeight: "500",
+        },
+        flagActiveText: { color: colors.primary },
+      }),
+    [colors, spacing, radii],
+  );
 
   const counts = reactions?.counts ?? {};
   const myReaction = reactions?.myReaction ?? null;
@@ -156,77 +244,3 @@ export default function JournalDetailScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceSubtle },
-  content: { padding: spacing.lg },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  backBtn: { marginBottom: spacing.md },
-  backText: { fontSize: 14, color: colors.primary },
-  card: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    shadowColor: colors.black,
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  entryText: {
-    fontSize: 16,
-    color: colors.textPrimary,
-    lineHeight: 24,
-    marginBottom: spacing.md,
-  },
-  meta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-    flexWrap: "wrap",
-  },
-  moodBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
-  moodText: { fontSize: 12, fontWeight: "500" },
-  dateText: { fontSize: 12, color: colors.mutedLight },
-  reactionRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    flexWrap: "wrap",
-    marginBottom: spacing.lg,
-  },
-  reactionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  reactionActive: {
-    borderColor: colors.primaryLight,
-    backgroundColor: colors.primarySubtle,
-  },
-  reactionEmoji: { fontSize: 16 },
-  reactionLabel: { fontSize: 13, color: colors.textSecondary },
-  reactionCount: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: "600",
-  },
-  flagBtn: {
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    alignItems: "center",
-  },
-  flagActive: {
-    borderColor: colors.primaryLight,
-    backgroundColor: colors.primarySubtle,
-  },
-  flagText: { fontSize: 14, color: colors.textSecondary, fontWeight: "500" },
-  flagActiveText: { color: colors.primary },
-});

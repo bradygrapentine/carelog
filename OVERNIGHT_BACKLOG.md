@@ -5,23 +5,38 @@ Stories in this file are picked up by the nightly development agent (runs 2am Ch
 ## Format rules
 - Mark completed stories `✅ DONE` — the agent skips them
 - List prerequisites in `**Blocked by:**` — agent skips blocked stories
-- One story per `###` heading with a unique ID (e.g. `P4-01`)
+- One story per `###` heading with a unique ID (e.g. `ON-20`)
 
 ## Sequencing Overview
 
 ```
-ON-01 BUILD_STATUS housekeeping  ─── no deps, run first (5 min)
-ON-02 Auth E2E regression test   ─── no deps, validates proxy.ts fix
-ON-03 Billing E2E                ─── no deps
-ON-04 Phase 4-5 E2E coverage     ─── no deps, largest story, fan-out
-ON-05 Phase 2 shifts E2E         ─── no deps
-ON-06 Mobile token compliance    ─── no deps, quick cleanup
-ON-07 push_tokens pgTAP test     ─── no deps, RLS coverage gap
-ON-08 Dead code removal          ─── no deps, quick cleanup
-ON-09 SignInForm loading bug     ─── no deps, one-line fix + test
+ON-15 Mobile a11y audit (Dynamic Type + VoiceOver) ─── carried over, needs device time
+ON-20 Mobile accessibilityLabel sweep              ─── no deps, mechanical
+ON-21 Web raw-hex audit + token migration          ─── no deps, mechanical
+ON-22 pgTAP RLS test — notification_preferences    ─── no deps
+ON-23 pgTAP RLS test — care_recipients             ─── no deps
+ON-24 pgTAP RLS test — mood_entries                ─── no deps
+ON-25 Zod schema tests for shared validators       ─── no deps
+ON-26 Mobile empty-state copy pass                 ─── no deps
+ON-27 Web alt-text audit                           ─── no deps, mechanical
+ON-28 Mobile loading skeletons on list screens     ─── no deps
+ON-29 Replace console.log with logger in apps/web  ─── no deps, mechanical
+ON-30 Add JSDoc to shared packages/                ─── no deps
+ON-31 E2E: settings page notification prefs        ─── no deps
+ON-32 E2E: invite-accept happy path                ─── no deps
+ON-33 Mobile: Sentry breadcrumbs on tRPC errors    ─── blocked by ON-17 (done)
+ON-34 PostHog funnel events parity audit           ─── no deps
+ON-35 .gitignore sonar-report.xml + .memsearch     ─── no deps, quick hygiene
+ON-36 TODO/FIXME audit + ticket backfill           ─── no deps, report-only
+ON-37 ts-prune unused exports sweep                ─── no deps
+ON-38 Dependency freshness report                  ─── no deps, report-only
+ON-39 Eliminate `any` types audit                  ─── no deps
+ON-40 Vitest flakes: quarantine + log              ─── no deps
+ON-41 Migrate stale snapshot tests                 ─── no deps
+ON-42 Next.js `dynamic = "force-dynamic"` audit    ─── no deps, report
 ```
 
-All stories are independent — agent may run ON-02 through ON-09 in parallel.
+All unblocked stories are independent — agent may run in parallel.
 
 ---
 
@@ -29,485 +44,434 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-01 — BUILD_STATUS.md housekeeping ✅ DONE 2026-04-13
+### ON-15 — Mobile: accessibility audit against iOS Dynamic Type + screen reader
 
-**What:** Mark the two completed items that are currently unchecked.
-
-**Files to change:**
-- `docs/project-info/product/BUILD_STATUS.md`
-  - Check `[ ] Stripe billing` — routes, webhook, billing page, and tests are all done (sonar-report.xml confirms 28 passing test cases)
-  - Add a line under "Before launch" or "Infrastructure": `[x] Proxy (Next.js 16 middleware) — session refresh wired; OTP→dashboard redirect fixed 2026-04-13`
-
-**Acceptance criteria:**
-- [ ] Stripe checkbox is `[x]`
-- [ ] Proxy/auth fix is documented in BUILD_STATUS.md
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-02 — Auth proxy regression E2E test ✅ DONE 2026-04-13 — `e2e/auth-proxy.spec.ts`
-
-**Context:** `apps/web/proxy.ts` was a no-op (`return NextResponse.next()`). It was fixed today (2026-04-13) to call `supabase.auth.getUser()` and propagate refreshed session cookies. Without this fix, OTP sign-in succeeded client-side but `(app)/layout.tsx` could not see the session server-side, causing an immediate redirect back to `/signin`.
-
-**What:** Write a Playwright E2E test that exercises the full OTP sign-in flow so this regression can never ship silently again.
+**Context:** Mobile uses fixed `fontSize` values throughout and isn't tested against iOS Dynamic Type. No verification that VoiceOver / TalkBack announce controls in a sensible order.
 
 **Technical details:**
-- The existing `e2e/auth.spec.ts` has a sign-in test but may not assert that the user lands on `/dashboard`
-- Read `e2e/auth.spec.ts` first — extend it or write a separate `e2e/auth-proxy.spec.ts`
-- Use Supabase test user / Mailpit OTP approach already established in the E2E suite
-- Assert: after OTP confirm, `page.url()` contains `/dashboard` (not `/signin`)
-- Assert: no redirect loop (URL does not momentarily visit `/signin` then redirect away)
-
-**Files to change:**
-- `e2e/auth-proxy.spec.ts` — new spec (or extend `e2e/auth.spec.ts` with a redirect assertion)
-- Read `e2e/CLAUDE.md` and existing auth spec before writing — follow established patterns
+- Run app under iOS Dynamic Type (Larger Accessibility Sizes, max) on a physical device. Log every truncated / overlapping surface.
+- For each `fontSize: N`, migrate to scaling via `PixelRatio.getFontScale()` or a `scaledSize()` helper capped at 1.5x.
+- Run with VoiceOver + TalkBack: verify every `TouchableOpacity` has `accessibilityLabel`, focus order sensible, headings use `accessibilityRole="header"`.
+- Fix top 3–5 issues; create follow-ups for the rest.
 
 **Acceptance criteria:**
-- [ ] Test signs in with valid OTP and asserts final URL is `/dashboard`
-- [ ] Test fails if proxy is reverted to the no-op version (verified by code inspection)
-- [ ] `pnpm exec playwright test e2e/auth-proxy.spec.ts` passes
+- [ ] App usable at 200% Dynamic Type on journal, medications, schedule
+- [ ] VoiceOver can complete medication log flow end-to-end
+- [ ] Report of remaining issues appended as ON-XX follow-ups
 
 **Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-03 — Billing E2E test ✅ DONE 2026-04-13 — `e2e/billing.spec.ts` + `billing-success.spec.ts`
-
-**Context:** Stripe routes are fully implemented (checkout, portal, webhook, verify — 28 unit tests in sonar-report.xml) but there are no Playwright E2E tests for the billing page or Stripe checkout flow.
-
-**Technical details:**
-- Read `apps/web/app/(app)/billing/BillingClient.tsx` and `billing/page.tsx` before writing
-- Coordinator navigates to `/billing` — sees Free Plan with upgrade buttons
-- Mock the Stripe checkout API call (intercept `/api/stripe/checkout` in Playwright, return `{ url: 'https://checkout.stripe.com/test' }`)
-- Assert the billing page renders for coordinators
-- Assert non-coordinators see "Contact your coordinator to manage billing"
-- Test the billing `/success` page redirect: visit `/billing/success?session_id=cs_test_xxx` and assert it renders without 500
-- Read `apps/web/app/(app)/billing/success/page.tsx` to understand what it expects
-
-**Files to change:**
-- `e2e/billing.spec.ts` — new
-
-**Acceptance criteria:**
-- [ ] Coordinator sees billing page with upgrade buttons
-- [ ] Supporter/caregiver sees "Contact your coordinator" message
-- [ ] Clicking upgrade calls `/api/stripe/checkout` (verified via route.fulfill intercept)
-- [ ] `pnpm exec playwright test e2e/billing.spec.ts` passes
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-04 — E2E coverage for Phase 4–5 features ✅ DONE 2026-04-13 — expenses, outer-circle, care-brief, benefits, eol-planner, export all shipped
-
-**Context:** The following features shipped in Phases 4–5 but have NO Playwright E2E tests. Each has full unit test coverage but no integration-level browser test.
-
-| Feature | Web route | Has E2E? |
-|---------|-----------|----------|
-| Expenses | journal page → expense panel | ❌ |
-| Outer circle (volunteer board) | `/care/[token]` public page | ❌ |
-| Care brief | `/brief/[token]` public page | ❌ |
-| Benefits navigator | journal page → benefits panel | ❌ |
-| EOL planner | journal page → eol planner panel | ❌ |
-| History export | journal page → export button | ❌ |
-
-**Instructions:**
-1. Read the existing Phase 4-5 component files before writing tests
-2. Follow the established E2E pattern in `e2e/documents.spec.ts` and `e2e/burnout.spec.ts` as templates
-3. Read `e2e/CLAUDE.md` for test helpers and auth setup patterns
-4. Write one spec file per feature — do not bundle unrelated features into one file
-5. Public pages (`/care/[token]`, `/brief/[token]`) should be tested without auth (Playwright no-auth context)
-6. Coordinator-only features: assert non-coordinators cannot see the form/button
-
-**Files to create:**
-- `e2e/expenses.spec.ts`
-- `e2e/outer-circle.spec.ts` — tests the public `/care/[token]` page claim flow
-- `e2e/care-brief.spec.ts` — tests the public `/brief/[token]` render + revoke
-- `e2e/benefits.spec.ts`
-- `e2e/eol-planner.spec.ts`
-- `e2e/export.spec.ts` — test coordinator can initiate export, assert download headers
-
-**Acceptance criteria:**
-- [ ] Each spec file has at minimum: happy-path test + role-enforcement test
-- [ ] Public page specs run without auth
-- [ ] `pnpm exec playwright test e2e/expenses.spec.ts` passes (and similarly for each)
-- [ ] No test uses hardcoded UUIDs — use test fixtures / data created in beforeEach
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-05 — E2E tests for Phase 2 scheduler (shifts) ✅ DONE 2026-04-13 — `e2e/shifts.spec.ts` + `e2e/coverage-settings.spec.ts`
-
-**Context:** Shifts, coverage windows, and gap detection shipped in Phase 2 but have no Playwright E2E tests. The gap detector runs as an Inngest cron; only the UI-facing shift creation and display need E2E coverage.
-
-**Technical details:**
-- Read `apps/web/app/journal/[recipientId]/ShiftForm.tsx` and `ShiftList.tsx` before writing
-- Coordinator creates a shift → assert it appears in ShiftList
-- Caregiver sees their shift highlighted with "Your shift" label
-- Coordinator can cancel a shift → status badge updates
-- Coverage settings: coordinator adds a coverage window → appears in list
-
-**Files to create:**
-- `e2e/shifts.spec.ts`
-- `e2e/coverage-settings.spec.ts`
-
-**Acceptance criteria:**
-- [ ] Coordinator creates shift, shift appears in list with correct status badge
-- [ ] Non-coordinator cannot see the ShiftForm
-- [ ] Cancel flow: shift status changes to "cancelled" in ShiftList
-- [ ] `pnpm exec playwright test e2e/shifts.spec.ts` passes
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-06 — Mobile design token compliance: More screen + tab navigator
-
-**Context:** Two mobile files use raw hex colors instead of the design token system. Per `apps/mobile/CLAUDE.md`: "Never use raw hex in screen files — always import from tokens."
-
-**Files with violations:**
-
-1. `apps/mobile/app/(app)/more/index.tsx` — uses inline `StyleSheet.create` with hardcoded hex:
-   - `backgroundColor: "#fff"` → `colors.surface` (or equivalent from tokens.ts)
-   - `color: "#111827"` (heading and label) → `colors.ink`
-   - `backgroundColor: "#f9fafb"` (card) → `colors.surfaceSubtle` or similar
-   - `borderColor: "#e5e7eb"` (card border) → `colors.border`
-   - Also uses emoji icons — check if the token system has icon conventions
-
-2. `apps/mobile/app/(app)/_layout.tsx` — uses `tabBarActiveTintColor: "#0369a1"` — replace with token value
-
-**Instructions:**
-1. Read `apps/mobile/constants/tokens.ts` first to find the correct token names
-2. In `more/index.tsx`: replace raw hex with token imports; preserve all layout logic
-3. In `_layout.tsx`: replace the hex tint color with the correct primary token
-4. Run `pnpm typecheck` to confirm no type errors introduced
-5. Do NOT change any functionality, navigation, or component structure
-
-**Acceptance criteria:**
-- [ ] No raw hex strings in `more/index.tsx` or `_layout.tsx`
-- [ ] All colors reference named tokens from `constants/tokens.ts`
-- [ ] `pnpm typecheck` passes
-- [ ] Existing mobile Jest tests still pass: `cd apps/mobile && pnpm test`
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-07 — pgTAP RLS test for push_tokens ✅ DONE 2026-04-13 — `supabase/tests/push_tokens_rls.test.sql` (5 tests)
-
-**Context:** `supabase/migrations/20260415000000_push_tokens.sql` creates the `push_tokens` table with an "owner-only" RLS policy. There is no `supabase/tests/push_tokens_rls.test.sql` — this policy has never been tested.
-
-**Instructions:**
-- Read the migration file to understand the exact policy definition
-- Follow the pattern in `supabase/tests/expenses_rls.test.sql` (simplest existing example)
-- Read `supabase/CLAUDE.md` for pgTAP conventions before writing
-
-**Cases to cover:**
-1. Owner can insert their own token (passes)
-2. Owner can select their own tokens (passes)
-3. Another user cannot select someone else's tokens (blocked)
-4. Another user cannot insert a token for a different user_id (blocked)
-5. Unauthenticated request is blocked
-
-**Files to create:**
-- `supabase/tests/push_tokens_rls.test.sql`
-
-**Acceptance criteria:**
-- [ ] `supabase test db` passes with new file included
-- [ ] Uses 4-arg `throws_ok` form (not 2-arg) per pgTAP conventions
-- [ ] File follows existing naming and header conventions
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-08 — Dead code removal: unused auth files ✅ DONE
-
-(Completed 2026-04-13 during @supabase/ssr upgrade — both files deleted.)
-
-**Context:** Two files are never imported or called from anywhere:
-
-1. `apps/web/app/signin/actions.ts` — exports `verifyOtpAction` (Server Action). `SignInForm.tsx` calls `supabase.auth.verifyOtp()` directly on the browser client; this server action is dead.
-
-2. `apps/web/app/auth/callback/route.ts` — a POST route handler that also verifies OTP. Not linked from the sign-in form or any other file; duplicates `apps/web/app/api/auth/verify/route.ts`.
-
-**Instructions:**
-1. Grep `apps/web` for any import of `verifyOtpAction` and any reference to `auth/callback` to confirm they are unreferenced
-2. Only delete if confirmed unused
-3. Delete confirmed dead files
-4. Run `pnpm typecheck` and `pnpm test`
-
-**Files to delete (after confirming unused):**
-- `apps/web/app/signin/actions.ts`
-- `apps/web/app/auth/callback/route.ts`
-
-**Acceptance criteria:**
-- [ ] Both files deleted (or a comment explaining why one was kept)
-- [ ] `pnpm typecheck` passes
-- [ ] `pnpm test` passes
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-09 — Fix SignInForm loading state stuck on success (TDD) ✅ DONE 2026-04-13 — `setLoading(false)` before `router.replace` + TDD test
-
-**Context:** `apps/web/app/signin/SignInForm.tsx` `handleVerifyOtp` never calls `setLoading(false)` on the happy path. If `router.replace("/dashboard")` is delayed or fails, the submit button is stuck on "Signing you in…" with no way to retry.
-
-**TDD approach — write the failing test first:**
-
-```ts
-// assert button returns to "Sign in" after verifyOtp resolves
-// even when router.replace is mocked to do nothing
-```
-
-**Fix (one line, after the test is written):**
-```ts
-// apps/web/app/signin/SignInForm.tsx — before router.replace:
-setLoading(false);
-router.replace("/dashboard");
-```
-
-**Files to change:**
-- `apps/web/app/signin/__tests__/SignInForm.flow.test.tsx` — add failing test first
-- `apps/web/app/signin/SignInForm.tsx` — add `setLoading(false)` before `router.replace`
-
-**Acceptance criteria:**
-- [ ] Failing test written before the fix (TDD order enforced)
-- [ ] Test mocks `router.replace` to a no-op and asserts button label returns to "Sign in"
-- [ ] `pnpm test` passes
-
-**Blocked by:** nothing
-**Blocks:** nothing
-
----
-
-### ON-10 — Full-text search across document vault contents ✅ DONE 2026-04-13 — tsvector column + GIN index, Inngest `documentsExtractText`, server-side `q` param with debounced input, snippet rendering, pgTAP for org-scoped FTS
-
-**Context:** The document vault only supports substring search on `display_name`. Users need to find documents by their *contents* — e.g. "find the POA that mentions Dr. Chen". Requires OCR/text extraction and a Postgres FTS index.
-
-**Technical details:**
-- Add `documents.extracted_text text` column (nullable) + `documents.extracted_text_tsv tsvector` generated column + GIN index on the tsvector
-- On `POST /api/documents/upload`, after successful storage write, enqueue an Inngest job `documents/extract-text` analogous to the existing `ocr/job.created` pattern
-- The Inngest handler calls the same OCR pipeline used for prescription labels (or a PDF-to-text library for `application/pdf`) and writes the extracted text back
-- Extend `trpc.documents.list` to accept an optional `q` param; when present, use `websearch_to_tsquery` against `extracted_text_tsv` (fall back to `display_name ILIKE` when the tsvector column is null for that row)
-- UI: extend the existing `DocumentVault` search input to search both name AND contents; show a small "matched in content" snippet when the match is body-only
-
-**Acceptance criteria:**
-- [ ] Existing documents get backfilled (admin script or automatic on next access)
-- [ ] New uploads have text extracted within 60s
-- [ ] Search input filters by name OR content, client sees a snippet for content matches
-- [ ] pgTAP test confirms FTS query returns only org-scoped rows (RLS respected)
-
-**Blocked by:** nothing
-**Blocks:** nothing
 **Size:** ~1 day
 
 ---
 
-### ON-11 — Mobile Panel component migration across screens ✅ DONE (#23, 2026-04-13)
+### ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 
-**Context:** `apps/mobile/components/Panel.tsx` was added to mirror the web's light-purple tinted-header panel pattern (violet `primarySubtle` strip + divider + card body). Most mobile screens still render ad-hoc `<View>` cards inline with `StyleSheet.create` and bespoke headers. Migrating those to the shared `Panel` component will give the mobile app visual parity with the web, reduce code duplication, and let us iterate the panel style in one place.
+**Context:** Per `apps/mobile/CLAUDE.md`, every icon-only or emoji-only `TouchableOpacity`/`Pressable` must declare `accessibilityLabel` and `accessibilityRole="button"`. A grep across `apps/mobile/app` reveals many still missing.
 
-**Technical details:**
-- Replace ad-hoc card headers in: `journal/index.tsx`, `medications/index.tsx`, `schedule/index.tsx`, `team/index.tsx`, `symptoms/index.tsx`, `burnout/index.tsx`, `expenses/index.tsx`, `documents/index.tsx`, `outer-circle/index.tsx`, `care-brief/index.tsx`, `benefits/index.tsx`, `eol-planner/index.tsx`
-- Each panel takes a title + optional right-aligned action node (usually a "+ Add" or filter button)
-- Body renders as `children`; internal layout stays per-screen
-- Component at `apps/mobile/components/Panel.tsx` — already implements header + divider + card styles from `constants/tokens.ts`
-
-**Acceptance criteria:**
-- [ ] Every screen listed above renders a `<Panel>` for its primary content group
-- [ ] No visual regression on iOS 17+ and Android 13+ (spot-check a few screens)
-- [ ] Mobile Jest suite remains green
-
-**Blocked by:** nothing
-**Blocks:** nothing
-**Size:** ~0.5 day
-
----
-
-### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired) ✅ DONE (#19, 2026-04-13)
-
-**Context:** `apps/mobile/CLAUDE.md` says "Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout)". The reality:
-- `@expo-google-fonts/inter` is NOT in `apps/mobile/package.json`
-- No `useFonts` or font-loading call exists in `apps/mobile/app/_layout.tsx`
-- The app renders in the system default (San Francisco on iOS, Roboto on Android), not Inter
-
-Result: mobile typography diverges from web (which uses Geist via `--font-sans`).
-
-**Technical details:**
-- `pnpm add @expo-google-fonts/inter expo-font expo-splash-screen --filter mobile`
-- In `apps/mobile/app/_layout.tsx`, call `useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold })` and return `null` (or a splash) until fonts are ready
-- Set `fontFamily: 'Inter_400Regular'` as default on `Text` via a ThemeProvider or a custom `AppText` component
-- Add a top-level `styles` entry in `constants/tokens.ts` for `fontFamily.regular` / `fontFamily.semibold` / `fontFamily.bold` and consume from there
-- Update CLAUDE.md to match actual behavior once shipped
+**Instructions:**
+1. `grep -rn "TouchableOpacity\|Pressable" apps/mobile/app | head`
+2. For each match whose children render only an icon/emoji, add:
+   - `accessibilityLabel="<short verb phrase>"`
+   - `accessibilityRole="button"`
+3. Keep text-bearing buttons as-is (their text is the accessible name).
+4. Do NOT alter layout, navigation, or handlers.
 
 **Acceptance criteria:**
-- [ ] Inter renders on a physical iOS device + Android emulator after a cold start
-- [ ] No flash of system font before Inter loads (splash or null-return handles it)
-- [ ] Existing tests still pass (fonts should not affect Jest snapshots)
+- [ ] `grep` returns no icon-only interactive elements lacking `accessibilityLabel`
+- [ ] `cd apps/mobile && pnpm test` passes
+- [ ] `pnpm typecheck` clean
 
 **Blocked by:** nothing
-**Blocks:** ON-11 (visual parity hurts until both ship)
 **Size:** ~2 hours
 
 ---
 
-### ON-13 — Mobile: dark mode support ✅ DONE foundation (#22), screen migration shipped in (#25)
+### ON-21 — Web: raw-hex audit + token migration
 
-**Context:** The web app is light-only today but the violet/plum palette works for both modes. The mobile app is also light-only. iOS 17+ and Android 13+ users who set their system theme to dark see a jarring bright-white app — especially at night when caregivers are most likely to pick up the phone to log a 3am medication.
+**Context:** Per `.claude/rules/ui-standards.md`: "Never write raw hex in a component file." Some legacy components under `apps/web/app/` still inline hex values.
 
-**Technical details:**
-- Extend `constants/tokens.ts` with a `darkColors` object mirroring the light palette (inverted surfaces, brightened text, reduced border contrast)
-- Add a `useColorScheme` wrapper (from `react-native`) in a `useTokens()` hook that returns the active palette
-- Thread tokens through via a light React context OR via an `AppText` / `AppView` wrapper that subscribes to the hook
-- Update `Panel` + screen `StyleSheet.create` calls to consume `useTokens()` instead of the static `colors` export (or keep both and pick at render time)
-- Respect the `expo-status-bar` style so the status bar flips with the theme
-
-**Acceptance criteria:**
-- [ ] Toggling system dark mode mid-session updates the app without a reload
-- [ ] All surfaces legible at both schemes (visually verify contrast)
-- [ ] No test regressions; snapshot tests either updated or parameterised
-
-**Blocked by:** ON-11 (Panel component must be in widespread use first — otherwise ad-hoc screens will go un-theme'd)
-**Blocks:** nothing
-**Size:** ~1 day
-
----
-
-### ON-14 — Mobile: haptic feedback on key actions ✅ DONE (#21, 2026-04-13)
-
-**Context:** Native apps feel significantly more polished with subtle haptics on primary actions (logging a med, submitting a journal entry, flagging an entry for doctor, claiming a volunteer slot). Currently none of these trigger any haptic.
-
-**Technical details:**
-- `pnpm add expo-haptics --filter mobile`
-- Wrap key action handlers with `Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)` before the async mutation fires, or `notificationAsync(NotificationFeedbackType.Success)` on success
-- Candidates: medication "Mark as given", journal entry submit, flag-for-doctor toggle, shift scheduling, volunteer slot claim
-- Guard calls with `if (Platform.OS !== 'web')` since `expo-haptics` no-ops on web but imports can still bloat web bundle — keep the mobile screens web-safe if they run under `react-native-web`
-- Do NOT fire haptics on every tap — only on meaningful mutations
+**Instructions:**
+1. `grep -rn "#[0-9a-fA-F]\{3,8\}" apps/web/app apps/web/components` — produce report
+2. For each finding, replace with the closest `var(--color-*)` token from `apps/web/app/globals.css`
+3. If no close token exists, STOP for that file and add a note in the PR description — do NOT invent a token
+4. Skip `.svg`, `.ico`, and files under `public/`
 
 **Acceptance criteria:**
-- [ ] At least 5 meaningful actions trigger haptics on a physical iPhone
-- [ ] No haptic on passive interactions (scroll, open menu, navigation)
-- [ ] Tests still pass (mock expo-haptics module)
+- [ ] No raw hex in `.tsx`/`.ts` under `apps/web/app` or `apps/web/components` (except documented exceptions)
+- [ ] Visual spot-check on dashboard, journal, billing
+- [ ] `pnpm typecheck` + `pnpm test` green
 
 **Blocked by:** nothing
-**Blocks:** nothing
 **Size:** ~3 hours
 
 ---
 
-### ON-16 — Mobile: migrate screens to `useAppTheme()` ✅ DONE (#25, 2026-04-13)
+### ON-22 — pgTAP RLS test: `notification_preferences`
 
-**Context:** ON-13 established the dark mode foundation (`darkColors`, `useAppTheme()` hook, Panel). Every screen that still imports `colors` directly from `constants/tokens` needs to be converted to `useAppTheme()` + a `useMemo`'d stylesheet so it reacts to system theme changes.
+**Context:** `notification_preferences` table has an owner-only RLS policy. No pgTAP coverage today.
 
-**Technical details:**
-- Swap `import { colors } from '../../constants/tokens'` for `const { colors } = useAppTheme()` in each screen
-- Replace top-level `StyleSheet.create({ ... colors.X ... })` calls with a `useMemo(() => StyleSheet.create(...), [colors])` inside the component
-- Do NOT change any layout logic, navigation, or component structure — only the color binding
-- Start with the screens migrated to `<Panel>` in ON-11; they share a common pattern
+**Instructions:**
+- Follow `supabase/tests/expenses_rls.test.sql` as template
+- Read `supabase/CLAUDE.md` for conventions (4-arg `throws_ok`)
+- Cases: owner select/update self (pass), cross-user select/update (blocked), anon blocked
 
-**Files to change (do NOT change until ON-11 is merged):**
-- `app/(app)/journal/index.tsx`
-- `app/(app)/medications/index.tsx`
-- `app/(app)/schedule/index.tsx`
-- `app/(app)/team/index.tsx`
-- `app/(app)/symptoms/index.tsx`
-- `app/(app)/burnout/index.tsx`
-- `app/(app)/expenses/index.tsx`
-- `app/(app)/documents/index.tsx`
-- `app/(app)/outer-circle/index.tsx`
-- `app/(app)/care-brief/index.tsx`
-- `app/(app)/benefits/index.tsx`
-- `app/(app)/eol-planner/index.tsx`
-- `app/(app)/more/index.tsx`
-- `app/(app)/settings/index.tsx`
-- Any other screen files importing `colors` directly
+**Files to create:**
+- `supabase/tests/notification_preferences_rls.test.sql`
 
-**Acceptance criteria:**
-- [ ] No screen imports `colors` directly from `constants/tokens` — all consume `useAppTheme()`
-- [ ] Toggling system dark mode mid-session updates all screens without a reload
-- [ ] `cd apps/mobile && pnpm test` passes (214/214)
-- [ ] `pnpm exec tsc --noEmit` zero new errors
+**Acceptance:** `supabase test db` passes with new file included.
 
-**Blocked by:** ON-11 (Panel migration must land first), ON-13 (dark palette foundation)
-**Blocks:** nothing
-**Size:** ~0.5 day
+**Blocked by:** nothing
+**Size:** ~1 hour
 
 ---
 
-### ON-15 — Mobile: accessibility audit against iOS Dynamic Type + screen reader
+### ON-23 — pgTAP RLS test: `care_recipients`
 
-**Context:** Mobile uses fixed `fontSize` values throughout and isn't tested against iOS Dynamic Type (users who set their system text to "Larger Accessibility Sizes"). Also no verification that VoiceOver / TalkBack announce controls in a sensible order.
+**Context:** `care_recipients` is the root of org scoping. Coverage gap must be closed before any multi-tenant launch.
 
-**Technical details:**
-- Run the app under iOS Dynamic Type (Settings → Accessibility → Display & Text Size → Larger Text → max setting) on a physical device. Log every truncated / overlapping / illegible surface.
-- For each `fontSize: N`, migrate to scaling: use `PixelRatio.getFontScale()` or add a `scaledSize()` helper that multiplies by the scale factor capped at 1.5x.
-- Run with VoiceOver (iOS) and TalkBack (Android): verify every TouchableOpacity has an `accessibilityLabel`, focus order is sensible, headings announce with `accessibilityRole="header"`.
-- Fix the highest-impact 3–5 issues in this ticket; create follow-ups for the rest.
+**Instructions:**
+- Template: closest existing `*_rls.test.sql` with org membership checks
+- Cases: org member can select; non-member cannot select; only coordinator can insert/update/delete; anon blocked on all ops
 
-**Acceptance criteria:**
-- [ ] App is usable at 200% Dynamic Type without truncation on key screens (journal, medications, schedule)
-- [ ] VoiceOver can complete a medication log flow end-to-end without sighted help
-- [ ] Report of remaining issues added back to backlog as ON-XX follow-ups
+**Files to create:**
+- `supabase/tests/care_recipients_rls.test.sql`
+
+**Acceptance:** `supabase test db` passes with all 5+ assertions.
 
 **Blocked by:** nothing
-**Blocks:** nothing
-**Size:** ~1 day
+**Size:** ~1.5 hours
 
 ---
 
-### ON-17 — Mobile: Sentry crash + error tracking
+### ON-24 — pgTAP RLS test: `mood_entries`
 
-**Context:** The web app has Sentry fully wired (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `sendDefaultPii: false`). The mobile app has **none**. Production crashes on device will be invisible to us until a user reports them — unacceptable for a launch.
+**Context:** Mood entries are PHI and need tight org-scoped RLS coverage.
 
-**Technical details:**
-- `pnpm add @sentry/react-native --filter mobile`
-- Run `npx @sentry/wizard@latest -s -i reactNative` per docs (or manually edit `app.json` to include the Sentry Expo plugin + post-publish hook for source maps).
-- Initialize in `apps/mobile/app/_layout.tsx` before the root layout renders: `Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN, sendDefaultPii: false, enableNativeCrashHandling: true, ... })`.
-- Wrap `RootLayout` with `Sentry.wrap(...)` for automatic error boundary + screen tracing.
-- Add `EXPO_PUBLIC_SENTRY_DSN` placeholder + secret entry to `apps/mobile/.env.local.example` and to Expo EAS secrets.
-- Upload source maps via `npx sentry-expo-upload-sourcemaps` or the Expo plugin's post-publish hook; gate on `SENTRY_AUTH_TOKEN` env (same convention as web).
+**Instructions:**
+- Cases: org member can read mood entries for recipients in their org; cannot read other orgs'; only the author can update/delete their own entry; anon blocked
 
-**Acceptance criteria:**
-- [ ] Throwing an error in any screen produces an event in the Sentry project within ~10s
-- [ ] Source maps resolve the stack to original TSX filenames (not minified Hermes bytecode)
-- [ ] No PII (email, user names) appears in any event — `sendDefaultPii: false` + explicit `beforeSend` scrub
-- [ ] Tests remain green; Sentry is mocked (`jest.mock("@sentry/react-native")`) in the setup file
+**Files to create:**
+- `supabase/tests/mood_entries_rls.test.sql`
+
+**Acceptance:** `supabase test db` passes.
 
 **Blocked by:** nothing
-**Blocks:** production mobile launch (practically)
+**Size:** ~1.5 hours
+
+---
+
+### ON-25 — Zod schema tests for shared validators
+
+**Context:** `packages/shared/src/schemas/` (or equivalent) holds Zod schemas reused across web + mobile. Some lack unit tests; a regression here silently breaks both apps.
+
+**Instructions:**
+1. `find packages -name "*.ts" -path "*schema*"` to enumerate
+2. For each schema without a matching `.test.ts`, write a minimal vitest: one valid case + 2–3 invalid edge cases (missing required, wrong type, boundary violations)
+3. Follow existing test patterns in the package
+
+**Acceptance:**
+- [ ] Every exported schema in `packages/shared` has a test file
+- [ ] `pnpm test` green
+
+**Blocked by:** nothing
 **Size:** ~3 hours
 
 ---
 
-### ON-18 — Mobile: PostHog product analytics
+### ON-26 — Mobile empty-state copy pass
 
-**Context:** Web has `posthog-js` + `posthog-node` instrumented. Mobile has no analytics wired, so we can't compare funnel conversion between web and mobile or catch mobile-specific drop-offs.
+**Context:** Per UX rules, empty states must "explain why there's nothing + offer a next action. No bare 'No data.'". Several mobile screens still show terse placeholders.
 
-**Technical details:**
-- `pnpm add posthog-react-native --filter mobile`
-- Initialize in `apps/mobile/app/_layout.tsx`: `PostHogProvider apiKey={process.env.EXPO_PUBLIC_POSTHOG_KEY} options={{ host: '/ingest' }}` (or `https://us.i.posthog.com` — mirror web config)
-- Identify user on sign-in: `posthog.identify(user.id)` — UUID only per project PHI rule (never email). Reset on sign-out.
-- Track key events mirroring web: `journal_entry_submitted`, `medication_logged`, `shift_created`, `brief_generated`, `document_uploaded`, `invite_accepted`, `app_opened_from_push_notification`.
-- Add `EXPO_PUBLIC_POSTHOG_KEY` placeholder to `.env.local.example` + EAS secret.
-- Enable session replay flag later if helpful (off by default — replay + PHI is dicey).
+**Instructions:**
+1. Grep mobile screens for literal strings: "No data", "Nothing here", "Empty", "No results"
+2. For each, rewrite in the Carelog voice (see `docs/project-info/product/UX_DECISIONS.md` for tone) with a concrete next action CTA
+3. Keep visual layout identical
 
-**Acceptance criteria:**
-- [ ] Events appear in PostHog dashboard with correct `distinct_id` matching web
-- [ ] No email, name, or other PHI in event properties — UUID only
-- [ ] Tests mock `posthog-react-native` cleanly
-- [ ] Sign-out calls `posthog.reset()` so subsequent sessions aren't attributed to the previous user
+**Acceptance:**
+- [ ] Every list/section in mobile has an empty state with explanation + CTA
+- [ ] `cd apps/mobile && pnpm test` green
 
 **Blocked by:** nothing
-**Blocks:** nothing (launch-blocking? no — but strongly recommended before broad rollout)
+**Size:** ~2 hours
+
+---
+
+### ON-27 — Web alt-text audit
+
+**Context:** Per UI standards: every `<Image>` / `<img>` needs meaningful `alt`; decoratives use `alt="" aria-hidden="true"`.
+
+**Instructions:**
+1. `grep -rn "<Image\|<img " apps/web/app apps/web/components`
+2. For each, verify `alt` present and meaningful; fix violations
+3. Decorative illustrations get `alt="" aria-hidden="true"`
+
+**Acceptance:**
+- [ ] `eslint --rule 'jsx-a11y/alt-text: error'` clean for web
+- [ ] `pnpm typecheck` + `pnpm test` green
+
+**Blocked by:** nothing
+**Size:** ~1 hour
+
+---
+
+### ON-28 — Mobile: loading skeletons on list screens
+
+**Context:** List screens currently show a centered spinner during initial load. Skeletons read more polished and reduce perceived latency.
+
+**Instructions:**
+1. Add a reusable `<Skeleton>` component in `apps/mobile/components/Skeleton.tsx` (animated opacity, token-driven colors via `useAppTheme()`)
+2. Use in `journal/index.tsx`, `medications/index.tsx`, `documents/index.tsx`, `team/index.tsx` for the list region
+3. Keep spinner for non-list async states (submit buttons, etc.)
+
+**Acceptance:**
+- [ ] Four list screens render skeleton rows on initial load
+- [ ] Respects dark mode via `useAppTheme()`
+- [ ] Mobile Jest green
+
+**Blocked by:** nothing
 **Size:** ~3 hours
+
+---
+
+### ON-29 — Replace `console.log` with logger in `apps/web`
+
+**Context:** Stray `console.log` calls leak into production bundles. Web has a structured logger; use it everywhere.
+
+**Instructions:**
+1. `grep -rn "console\.\(log\|warn\|error\)" apps/web/app apps/web/lib apps/web/server`
+2. Replace with the project logger (check `apps/web/lib/logger.ts` or equivalent)
+3. Skip test files and scripts
+
+**Acceptance:**
+- [ ] No `console.*` in production web source (tests/scripts excluded)
+- [ ] `pnpm lint` clean
+- [ ] `pnpm test` green
+
+**Blocked by:** nothing
+**Size:** ~1 hour
+
+---
+
+### ON-30 — Add JSDoc to public exports in `packages/shared`
+
+**Context:** Shared package exports lack doc comments, making editor autocomplete less useful across web + mobile.
+
+**Instructions:**
+- For each exported function/type in `packages/shared/src`, add a one-line JSDoc describing purpose (not implementation)
+- Skip obvious names (`isString`) — only doc where usage isn't self-evident
+- Do NOT invent behavior; read the implementation
+
+**Acceptance:**
+- [ ] Public exports in `packages/shared` have JSDoc where non-obvious
+- [ ] `pnpm typecheck` green
+
+**Blocked by:** nothing
+**Size:** ~2 hours
+
+---
+
+### ON-31 — E2E: settings page notification preferences
+
+**Context:** Notification prefs page has unit tests but no end-to-end flow coverage.
+
+**Instructions:**
+1. Read `apps/web/app/(app)/settings/notifications/` (or similar) first
+2. Write `e2e/notification-preferences.spec.ts`: sign in, toggle a pref, reload, assert persisted
+3. Follow `e2e/CLAUDE.md` conventions
+
+**Acceptance:**
+- [ ] `pnpm exec playwright test e2e/notification-preferences.spec.ts` passes
+
+**Blocked by:** nothing
+**Size:** ~2 hours
+
+---
+
+### ON-32 — E2E: invite-accept happy path
+
+**Context:** Invite creation flow has been hardened but invite acceptance has no E2E test.
+
+**Instructions:**
+1. Read invite creation + acceptance route handlers
+2. Write `e2e/invite-accept.spec.ts`: coordinator creates invite, second browser context visits invite URL, accepts, lands on dashboard with correct role
+3. Use Playwright multi-context pattern
+
+**Acceptance:**
+- [ ] `pnpm exec playwright test e2e/invite-accept.spec.ts` passes
+- [ ] Test covers expired invite rejection as secondary case
+
+**Blocked by:** nothing
+**Size:** ~3 hours
+
+---
+
+### ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+
+**Context:** ON-17 wired Sentry but tRPC client errors currently surface as generic `Error: query failed` events without context. Add a tRPC link that records a breadcrumb with the procedure name and input shape (no PII).
+
+**Instructions:**
+1. Add a Sentry breadcrumb in the tRPC error link: procedure path, operation type — NEVER the input values (could be PHI)
+2. Scrub `email`, `name`, and free-text fields before any breadcrumb is added
+3. Verify by intentionally triggering a tRPC error and checking the Sentry event
+
+**Acceptance:**
+- [ ] Sentry events from mobile include procedure breadcrumbs
+- [ ] No PII in breadcrumb data
+- [ ] Mobile Jest green
+
+**Blocked by:** ON-17 (done)
+**Size:** ~2 hours
+
+---
+
+### ON-34 — PostHog funnel events: web ↔ mobile parity audit
+
+**Context:** ON-18 wired PostHog on mobile. We need a documented list confirming the same event names fire from both platforms so cross-platform funnels work.
+
+**Instructions:**
+1. Grep `apps/web` for all `posthog.capture(` calls — list event names
+2. Grep `apps/mobile` for the same — list event names
+3. Produce a diff table in `docs/project-info/technology/ANALYTICS_EVENTS.md` showing web-only, mobile-only, both
+4. Do NOT add new events in this story — scope is report only
+
+**Acceptance:**
+- [ ] `ANALYTICS_EVENTS.md` created with diff table
+- [ ] Follow-up stories filed for any unintentional gaps
+
+**Blocked by:** nothing
+**Size:** ~1 hour
+
+---
+
+### ON-35 — `.gitignore` `sonar-report.xml` + `.memsearch/`
+
+**Context:** `git status` shows `apps/web/sonar-report.xml` and `.memsearch/memory/2026-04-13.md` as modified — machine-generated, should never be committed.
+
+**Instructions:**
+1. Add to root `.gitignore`: `apps/web/sonar-report.xml`, `.memsearch/`
+2. `git rm --cached apps/web/sonar-report.xml .memsearch/memory/*.md`
+3. Verify no other generated artifacts remain tracked
+
+**Acceptance:**
+- [ ] Files untracked; `git status` clean after sonar/memsearch runs
+
+**Blocked by:** nothing
+**Size:** ~15 min
+
+---
+
+### ON-36 — TODO/FIXME audit + backlog backfill
+
+**Context:** TODO/FIXME comments accumulate silently.
+
+**Instructions:**
+1. `grep -rn "TODO\|FIXME\|XXX\|HACK" apps packages supabase --include="*.ts" --include="*.tsx" --include="*.sql"`
+2. Classify each: resolve in <10 min, convert to new `ON-XX` entry (update comment to reference ID), or delete if obsolete
+3. Summary at `docs/project-info/technology/TODO_AUDIT.md`
+
+**Acceptance:**
+- [ ] Report committed with counts by category
+- [ ] Every remaining TODO references an ON-XX ticket
+
+**Blocked by:** nothing
+**Size:** ~2 hours
+
+---
+
+### ON-37 — `ts-prune` unused exports sweep
+
+**Instructions:**
+1. `pnpm dlx ts-prune -p apps/web/tsconfig.json` and `-p apps/mobile/tsconfig.json`
+2. Annotate false positives ("used in module"); delete true orphans
+3. Do NOT delete exports from workspace `index.ts` consumed elsewhere — verify with grep across all apps
+
+**Acceptance:**
+- [ ] `ts-prune` report reduced ≥50%
+- [ ] `pnpm typecheck` + `pnpm test` green
+
+**Blocked by:** nothing
+**Size:** ~3 hours
+
+---
+
+### ON-38 — Dependency freshness report
+
+**Instructions:**
+1. `pnpm outdated -r` and `pnpm audit --prod` — capture output
+2. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: security advisories, major lags, recommended upgrade order
+3. Do NOT upgrade anything — report only
+
+**Acceptance:**
+- [ ] Report committed
+- [ ] Each security advisory has a follow-up ON-XX ticket
+
+**Blocked by:** nothing
+**Size:** ~1 hour
+
+---
+
+### ON-39 — Eliminate `any` types
+
+**Context:** Per CLAUDE.md: "Don't use `any` type without explicit approval."
+
+**Instructions:**
+1. `grep -rn ": any\b\|<any>\|as any" apps packages --include="*.ts" --include="*.tsx"`
+2. Replace each with precise type or `unknown` + narrowing
+3. Do NOT disable ESLint rule to sweep under the rug
+
+**Acceptance:**
+- [ ] `any` count reduced ≥80%
+- [ ] `pnpm typecheck` + `pnpm test` green
+
+**Blocked by:** nothing
+**Size:** ~4 hours
+
+---
+
+### ON-40 — Vitest flake detection + quarantine
+
+**Instructions:**
+1. Run `pnpm test` 5 times; diff pass/fail sets
+2. For any test that failed ≥1, `.skip` with `// FLAKY: ON-XX` comment linking new backlog story
+3. Report at `docs/project-info/technology/FLAKE_REPORT.md`
+
+**Acceptance:**
+- [ ] `pnpm test` passes 5/5 after quarantine
+- [ ] Every skipped test has an ON-XX follow-up
+
+**Blocked by:** nothing
+**Size:** ~2 hours
+
+---
+
+### ON-41 — Audit stale snapshot tests
+
+**Instructions:**
+1. `find . -name "__snapshots__" -type d`
+2. Review each; replace full-tree snapshots with targeted assertions where feasible
+3. Regenerate intentionally-kept snapshots with `pnpm test -u`
+
+**Acceptance:**
+- [ ] No snapshot >~100 lines without a justification comment
+- [ ] `pnpm test` green
+
+**Blocked by:** nothing
+**Size:** ~3 hours
+
+---
+
+### ON-42 — Next.js caching directive audit
+
+**Context:** Routes may be over- or under-cached. Auth-calling server components should be dynamic; pure reads can be static/ISR.
+
+**Instructions:**
+1. Grep `apps/web/app` for `export const dynamic`, `revalidate`, `fetchCache`
+2. Verify each matches intent (auth = dynamic, marketing = static)
+3. Report at `docs/project-info/technology/CACHING_AUDIT.md`: route → directive → recommendation
+4. Do NOT change directives — report only
+
+**Acceptance:**
+- [ ] Report committed; flagged routes have follow-up ON-XX tickets
+
+**Blocked by:** nothing
+**Size:** ~2 hours

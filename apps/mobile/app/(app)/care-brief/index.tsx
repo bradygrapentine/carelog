@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -25,8 +25,66 @@ export default function CareBriefScreen() {
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
 
   const isCoordinator = currentRole === "coordinator";
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surface },
+        content: { padding: spacing.lg },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        actionBtnDisabled: { color: colors.mutedLight },
+        subtitle: {
+          fontSize: 14,
+          color: colors.muted,
+          marginBottom: spacing.md,
+        },
+        error: { color: colors.danger, marginBottom: 12, fontSize: 14 },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+        card: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: 14,
+          marginBottom: 12,
+        },
+        cardDate: {
+          fontSize: 12,
+          color: colors.mutedLight,
+          marginBottom: 6,
+        },
+        cardUrl: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          marginBottom: 10,
+        },
+        cardActions: { flexDirection: "row", gap: 8 },
+        cardActionBtn: {
+          backgroundColor: colors.surfaceSubtle,
+          borderRadius: radii.sm,
+          paddingVertical: 7,
+          paddingHorizontal: 12,
+        },
+        cardActionBtnText: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          fontWeight: "500",
+        },
+        revokeBtn: { backgroundColor: colors.dangerPanel },
+        revokeBtnText: { color: colors.danger },
+      }),
+    [colors, spacing, radii],
+  );
 
   async function handleGenerate() {
     const localOrgId = orgId;
@@ -165,36 +223,3 @@ export default function CareBriefScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: spacing.lg },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  actionBtnDisabled: { color: colors.mutedLight },
-  subtitle: { fontSize: 14, color: colors.muted, marginBottom: spacing.md },
-  error: { color: colors.danger, marginBottom: 12, fontSize: 14 },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: 14,
-    marginBottom: 12,
-  },
-  cardDate: { fontSize: 12, color: colors.mutedLight, marginBottom: 6 },
-  cardUrl: { fontSize: 13, color: colors.textSecondary, marginBottom: 10 },
-  cardActions: { flexDirection: "row", gap: 8 },
-  cardActionBtn: {
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: radii.sm,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-  },
-  cardActionBtnText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: "500",
-  },
-  revokeBtn: { backgroundColor: colors.dangerPanel },
-  revokeBtnText: { color: colors.danger },
-});

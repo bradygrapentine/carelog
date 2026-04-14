@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -15,7 +16,7 @@ import { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -34,6 +35,7 @@ type Request = {
 export default function OuterCircleScreen() {
   const { orgId, recipientId, currentRole } = useApp();
   const isCoordinator = currentRole === "coordinator";
+  const { colors, spacing, radii } = useAppTheme();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState("");
@@ -58,6 +60,134 @@ export default function OuterCircleScreen() {
   const deactivateMut = trpc.outerCircle.deactivate.useMutation({
     onSuccess: () => refetch(),
   });
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        panel: { flex: 1 },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        loader: { marginTop: 48 },
+        row: {
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        rowHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 4,
+        },
+        itemTitle: {
+          fontSize: 15,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          flex: 1,
+        },
+        activeBadge: {
+          backgroundColor: colors.successBadgeBg,
+          borderRadius: 12,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 2,
+          marginLeft: spacing.sm,
+        },
+        activeBadgeText: {
+          fontSize: 11,
+          fontWeight: "500",
+          color: colors.successBadgeText,
+        },
+        closedText: {
+          fontSize: 12,
+          color: colors.mutedLight,
+          fontStyle: "italic",
+          marginLeft: spacing.sm,
+        },
+        itemDescription: {
+          fontSize: 13,
+          color: colors.muted,
+          marginBottom: 4,
+        },
+        slots: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          marginBottom: spacing.sm,
+        },
+        rowActions: { flexDirection: "row", gap: spacing.sm },
+        rowActionBtn: {
+          backgroundColor: colors.surfaceSubtle,
+          borderRadius: radii.sm,
+          paddingHorizontal: spacing.md,
+          paddingVertical: 6,
+        },
+        rowActionBtnText: { fontSize: 13, color: colors.textSecondary },
+        closeBtn: { backgroundColor: colors.dangerSubtle },
+        closeBtnText: { color: colors.dangerStrong },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+        modalOverlay: {
+          flex: 1,
+          justifyContent: "flex-end",
+          backgroundColor: "rgba(0,0,0,0.4)",
+        },
+        modalSheet: {
+          backgroundColor: colors.surfaceRaised,
+          borderTopLeftRadius: spacing.lg,
+          borderTopRightRadius: spacing.lg,
+          padding: spacing.xxl,
+          paddingBottom: 40,
+        },
+        modalTitle: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          marginBottom: spacing.lg,
+        },
+        label: {
+          fontSize: 13,
+          fontWeight: "500",
+          color: colors.textSecondary,
+          marginBottom: 4,
+        },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderInput,
+          borderRadius: radii.md,
+          padding: 10,
+          fontSize: 14,
+          color: colors.textPrimary,
+          marginBottom: spacing.md,
+        },
+        multiline: { minHeight: 72, textAlignVertical: "top" },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+          marginTop: 4,
+          marginBottom: spacing.sm,
+        },
+        submitBtnText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: 15,
+        },
+        cancelBtn: { alignItems: "center", paddingVertical: 10 },
+        cancelBtnText: { fontSize: 14, color: colors.muted },
+      }),
+    [colors, spacing, radii],
+  );
 
   function handleCreate() {
     const titleVal = title.trim();
@@ -244,107 +374,3 @@ export default function OuterCircleScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
-  panel: { flex: 1 },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  loader: { marginTop: 48 },
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  rowHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  itemTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  activeBadge: {
-    backgroundColor: colors.successBadgeBg,
-    borderRadius: 12,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    marginLeft: spacing.sm,
-  },
-  activeBadgeText: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.successBadgeText,
-  },
-  closedText: {
-    fontSize: 12,
-    color: colors.mutedLight,
-    fontStyle: "italic",
-    marginLeft: spacing.sm,
-  },
-  itemDescription: { fontSize: 13, color: colors.muted, marginBottom: 4 },
-  slots: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  rowActions: { flexDirection: "row", gap: spacing.sm },
-  rowActionBtn: {
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-  },
-  rowActionBtnText: { fontSize: 13, color: colors.textSecondary },
-  closeBtn: { backgroundColor: colors.dangerSubtle },
-  closeBtnText: { color: colors.dangerStrong },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  modalSheet: {
-    backgroundColor: colors.surfaceRaised,
-    borderTopLeftRadius: spacing.lg,
-    borderTopRightRadius: spacing.lg,
-    padding: spacing.xxl,
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: spacing.lg,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.md,
-    padding: 10,
-    fontSize: 14,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-  },
-  multiline: { minHeight: 72, textAlignVertical: "top" },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginTop: 4,
-    marginBottom: spacing.sm,
-  },
-  submitBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  cancelBtn: { alignItems: "center", paddingVertical: 10 },
-  cancelBtnText: { fontSize: 14, color: colors.muted },
-});

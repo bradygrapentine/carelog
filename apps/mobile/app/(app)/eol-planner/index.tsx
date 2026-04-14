@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Alert,
   ScrollView,
@@ -11,11 +11,12 @@ import {
 } from "react-native";
 import { useApp } from "../../../context/AppContext";
 import { trpc } from "../../../utils/trpc";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 export default function EolPlannerScreen() {
   const { orgId, recipientId, currentRole } = useApp();
+  const { colors, spacing, radii } = useAppTheme();
 
   const [healthcareProxy, setHealthcareProxy] = useState("");
   const [resuscitationPref, setResuscitationPref] = useState("");
@@ -24,6 +25,59 @@ export default function EolPlannerScreen() {
   const [attorneyName, setAttorneyName] = useState("");
   const [attorneyContact, setAttorneyContact] = useState("");
   const [organDonation, setOrganDonation] = useState(false);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surface },
+        content: { padding: spacing.lg, paddingBottom: 40 },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        actionBtnDisabled: { color: colors.mutedLight },
+        label: {
+          fontSize: 14,
+          fontWeight: "600",
+          color: colors.textSecondary,
+          marginBottom: 4,
+          marginTop: spacing.md,
+        },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderInput,
+          borderRadius: radii.md,
+          paddingHorizontal: spacing.md,
+          paddingVertical: 10,
+          fontSize: 15,
+          color: colors.textPrimary,
+          backgroundColor: colors.surfaceSubtle,
+        },
+        multiline: {
+          minHeight: 80,
+          textAlignVertical: "top",
+        },
+        switchRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: spacing.lg,
+        },
+        lockedContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 32,
+        },
+        lockedText: {
+          fontSize: 16,
+          color: colors.muted,
+          textAlign: "center",
+        },
+      }),
+    [colors, spacing, radii],
+  );
 
   const { data: existing } = trpc.eolPlan.get.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
@@ -155,48 +209,3 @@ export default function EolPlannerScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: spacing.lg, paddingBottom: 40 },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  actionBtnDisabled: { color: colors.mutedLight },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: 4,
-    marginTop: spacing.md,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  multiline: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: spacing.lg,
-  },
-  lockedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-  lockedText: {
-    fontSize: 16,
-    color: colors.muted,
-    textAlign: "center",
-  },
-});

@@ -1,5 +1,5 @@
 // apps/mobile/app/(app)/journal/index.tsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { haptics } from "../../../utils/haptics";
 import {
   View,
@@ -22,20 +22,22 @@ import {
   REACTIONS,
   formatEntryTime,
 } from "../../../utils/journalUtils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 const MOOD_TAGS = ["good", "okay", "difficult", "crisis"] as const;
-const INPUT_MOOD_COLORS: Record<Mood, string> = {
-  good: colors.moodGood,
-  okay: colors.moodOkay,
-  difficult: colors.moodDifficult,
-  crisis: colors.moodCrisis,
-};
 
 // ── Reactions sub-component ────────────────────────────────────────────────
 // Only mounted when an entry is expanded — query fires on mount.
-function EntryReactions({ eventId }: { eventId: string }) {
+function EntryReactions({
+  eventId,
+  styles,
+  colors,
+}: {
+  eventId: string;
+  styles: ReturnType<typeof buildStyles>;
+  colors: ReturnType<typeof useAppTheme>["colors"];
+}) {
   const { data, refetch } = trpc.careEvents.reactions.useQuery({ eventId });
   const reactMut = trpc.careEvents.react.useMutation({
     onSuccess: () => refetch(),
@@ -79,6 +81,107 @@ function EntryReactions({ eventId }: { eventId: string }) {
   );
 }
 
+// Extracted style builder so EntryReactions can receive the same styles object
+function buildStyles(
+  colors: ReturnType<typeof useAppTheme>["colors"],
+  spacing: ReturnType<typeof useAppTheme>["spacing"],
+  radii: ReturnType<typeof useAppTheme>["radii"],
+) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    syncBanner: { paddingVertical: 6, paddingHorizontal: spacing.md },
+    offlineBanner: { backgroundColor: colors.secondarySubtle },
+    pendingBanner: { backgroundColor: colors.primarySubtle },
+    syncText: { fontSize: 12, color: colors.textSecondary },
+    journalPanel: { flex: 1 },
+    formPanel: {},
+    loader: { marginTop: 48 },
+    entry: {
+      borderLeftWidth: 2,
+      borderLeftColor: colors.borderNeutral,
+      paddingLeft: spacing.md,
+      marginBottom: spacing.lg,
+      paddingVertical: 4,
+    },
+    entryHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      marginBottom: 2,
+    },
+    entryTime: { fontSize: 12, color: colors.mutedLight },
+    moodBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 2,
+      borderRadius: 12,
+    },
+    moodText: { fontSize: 11, fontWeight: "500" },
+    entryText: { fontSize: 15, color: colors.textPrimary, lineHeight: 22 },
+    reactionRow: {
+      flexDirection: "row",
+      gap: 6,
+      marginTop: spacing.sm,
+      flexWrap: "wrap",
+    },
+    reactionBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.borderNeutral,
+      backgroundColor: colors.surfaceSubtle,
+    },
+    reactionActive: {
+      borderColor: colors.primaryLight,
+      backgroundColor: colors.primarySubtle,
+    },
+    reactionEmoji: { fontSize: 14 },
+    reactionCount: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: "500",
+    },
+    openBtn: { marginTop: spacing.sm, alignSelf: "flex-start" },
+    openBtnText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+    empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+    moodRow: { flexDirection: "row", gap: spacing.sm, marginBottom: 10 },
+    moodTag: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: 6,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.borderNeutral,
+    },
+    moodTagText: { fontSize: 13, color: colors.textSecondary },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderNeutral,
+      borderRadius: radii.md,
+      padding: 10,
+      fontSize: 15,
+      minHeight: 72,
+      textAlignVertical: "top",
+      marginBottom: 10,
+    },
+    submitBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      alignItems: "center",
+    },
+    submitDisabled: { opacity: 0.4 },
+    submitText: { color: colors.white, fontWeight: "600" },
+  });
+}
+
 // ── Main screen ────────────────────────────────────────────────────────────
 export default function JournalScreen() {
   const router = useRouter();
@@ -89,6 +192,20 @@ export default function JournalScreen() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const syncStatus = useSyncStatus();
   const { write } = useOfflineWrite(orgId ?? "");
+  const { colors, spacing, radii } = useAppTheme();
+
+  // Module-level map moved inside component to consume live colors
+  const INPUT_MOOD_COLORS: Record<Mood, string> = {
+    good: colors.moodGood,
+    okay: colors.moodOkay,
+    difficult: colors.moodDifficult,
+    crisis: colors.moodCrisis,
+  };
+
+  const styles = useMemo(
+    () => buildStyles(colors, spacing, radii),
+    [colors, spacing, radii],
+  );
 
   const {
     data: timeline,
@@ -194,7 +311,11 @@ export default function JournalScreen() {
                   </Text>
                   {isExpanded && (
                     <>
-                      <EntryReactions eventId={item.id} />
+                      <EntryReactions
+                        eventId={item.id}
+                        styles={styles}
+                        colors={colors}
+                      />
                       <TouchableOpacity
                         style={styles.openBtn}
                         onPress={() => router.push("/journal/" + item.id)}
@@ -267,97 +388,3 @@ export default function JournalScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  syncBanner: { paddingVertical: 6, paddingHorizontal: spacing.md },
-  offlineBanner: { backgroundColor: colors.secondarySubtle },
-  pendingBanner: { backgroundColor: colors.primarySubtle },
-  syncText: { fontSize: 12, color: colors.textSecondary },
-  journalPanel: { flex: 1 },
-  formPanel: {},
-  loader: { marginTop: 48 },
-  entry: {
-    borderLeftWidth: 2,
-    borderLeftColor: colors.borderNeutral,
-    paddingLeft: spacing.md,
-    marginBottom: spacing.lg,
-    paddingVertical: 4,
-  },
-  entryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: 2,
-  },
-  entryTime: { fontSize: 12, color: colors.mutedLight },
-  moodBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  moodText: { fontSize: 11, fontWeight: "500" },
-  entryText: { fontSize: 15, color: colors.textPrimary, lineHeight: 22 },
-  reactionRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: spacing.sm,
-    flexWrap: "wrap",
-  },
-  reactionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  reactionActive: {
-    borderColor: colors.primaryLight,
-    backgroundColor: colors.primarySubtle,
-  },
-  reactionEmoji: { fontSize: 14 },
-  reactionCount: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: "500",
-  },
-  openBtn: { marginTop: spacing.sm, alignSelf: "flex-start" },
-  openBtnText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  moodRow: { flexDirection: "row", gap: spacing.sm, marginBottom: 10 },
-  moodTag: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-  },
-  moodTagText: { fontSize: 13, color: colors.textSecondary },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: 10,
-    fontSize: 15,
-    minHeight: 72,
-    textAlignVertical: "top",
-    marginBottom: 10,
-  },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    alignItems: "center",
-  },
-  submitDisabled: { opacity: 0.4 },
-  submitText: { color: colors.white, fontWeight: "600" },
-});

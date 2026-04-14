@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 type Answers = {
@@ -87,6 +87,7 @@ const QUESTIONS: { key: keyof Answers; label: string }[] = [
 
 export default function BenefitsScreen() {
   const { orgId, recipientId, currentRole } = useApp();
+  const { colors, spacing, radii } = useAppTheme();
 
   const [answers, setAnswers] = useState<Answers>({
     age65plus: false,
@@ -101,6 +102,93 @@ export default function BenefitsScreen() {
   trpc.benefits.latest.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
     { enabled: !!orgId && !!recipientId },
+  );
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surface },
+        content: { padding: spacing.lg },
+        subheading: {
+          fontSize: 14,
+          color: colors.muted,
+          marginBottom: spacing.md,
+        },
+        checkRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        checkbox: {
+          width: 22,
+          height: 22,
+          borderWidth: 2,
+          borderColor: colors.borderInput,
+          borderRadius: 4,
+          marginRight: spacing.md,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        checkboxChecked: {
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+        },
+        checkmark: { color: colors.white, fontSize: 14, fontWeight: "700" },
+        checkLabel: { fontSize: 15, color: colors.textSecondary },
+        submitBtn: {
+          marginTop: 24,
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+        },
+        submitBtnText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: 15,
+        },
+        results: { marginTop: 28 },
+        resultsHeading: {
+          fontSize: 16,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: spacing.md,
+        },
+        card: {
+          backgroundColor: colors.surfaceSubtle,
+          borderRadius: radii.md,
+          padding: 14,
+          marginBottom: spacing.md,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+        },
+        cardName: {
+          fontSize: 15,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: 4,
+        },
+        cardDesc: {
+          fontSize: 13,
+          color: colors.muted,
+          marginBottom: spacing.sm,
+        },
+        cardLink: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+        locked: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 32,
+        },
+        lockedText: {
+          fontSize: 15,
+          color: colors.muted,
+          textAlign: "center",
+        },
+      }),
+    [colors, spacing, radii],
   );
 
   if (currentRole !== "coordinator") {
@@ -195,70 +283,3 @@ export default function BenefitsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: spacing.lg },
-  subheading: { fontSize: 14, color: colors.muted, marginBottom: spacing.md },
-  checkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderWidth: 2,
-    borderColor: colors.borderInput,
-    borderRadius: 4,
-    marginRight: spacing.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  checkmark: { color: colors.white, fontSize: 14, fontWeight: "700" },
-  checkLabel: { fontSize: 15, color: colors.textSecondary },
-  submitBtn: {
-    marginTop: 24,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-  },
-  submitBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  results: { marginTop: 28 },
-  resultsHeading: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-  },
-  card: {
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: radii.md,
-    padding: 14,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-  },
-  cardName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  cardDesc: { fontSize: 13, color: colors.muted, marginBottom: spacing.sm },
-  cardLink: { fontSize: 13, color: colors.primary, fontWeight: "500" },
-  locked: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-  lockedText: { fontSize: 15, color: colors.muted, textAlign: "center" },
-});

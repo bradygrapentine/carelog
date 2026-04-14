@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { getSession } from "../../../../utils/auth";
-import { colors, spacing, radii } from "../../../../constants/tokens";
+import { useAppTheme } from "../../../../hooks/useAppTheme";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -47,6 +47,61 @@ export default function OcrReviewScreen() {
   const [fields, setFields] = useState<OcrField[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surfaceRaised },
+        content: { padding: spacing.xl, paddingBottom: 40 },
+        center: { flex: 1, alignItems: "center", justifyContent: "center" },
+        header: { marginBottom: 24 },
+        badge: {
+          alignSelf: "flex-start",
+          paddingHorizontal: spacing.md,
+          paddingVertical: 4,
+          borderRadius: radii.md,
+          backgroundColor: colors.primarySubtle,
+        },
+        badgeText: { fontSize: 13, fontWeight: "600", color: colors.primary },
+        fieldRow: { marginBottom: spacing.lg },
+        labelRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 6,
+          gap: 6,
+        },
+        label: { fontSize: 13, color: colors.muted, fontWeight: "500" },
+        lowConfidenceDot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: colors.warning,
+        },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: 10,
+          fontSize: 15,
+          color: colors.textPrimary,
+        },
+        saveButton: {
+          marginTop: 24,
+          padding: spacing.lg,
+          borderRadius: radii.lg,
+          backgroundColor: colors.primary,
+          alignItems: "center",
+        },
+        saveButtonDisabled: { backgroundColor: colors.primaryLight },
+        saveButtonText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: 16,
+        },
+      }),
+    [colors, spacing, radii],
+  );
 
   useEffect(() => {
     loadJob();
@@ -167,49 +222,3 @@ export default function OcrReviewScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  content: { padding: spacing.xl, paddingBottom: 40 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { marginBottom: 24 },
-  badge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.md,
-    paddingVertical: 4,
-    borderRadius: radii.md,
-    backgroundColor: colors.primarySubtle,
-  },
-  badgeText: { fontSize: 13, fontWeight: "600", color: colors.primary },
-  fieldRow: { marginBottom: spacing.lg },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-    gap: 6,
-  },
-  label: { fontSize: 13, color: colors.muted, fontWeight: "500" },
-  lowConfidenceDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.warning,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: 10,
-    fontSize: 15,
-    color: colors.textPrimary,
-  },
-  saveButton: {
-    marginTop: 24,
-    padding: spacing.lg,
-    borderRadius: radii.lg,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-  },
-  saveButtonDisabled: { backgroundColor: colors.primaryLight },
-  saveButtonText: { color: colors.white, fontWeight: "600", fontSize: 16 },
-});
