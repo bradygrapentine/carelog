@@ -70,14 +70,6 @@ export function HeroSection() {
                 src: "/images/hero-6.png",
                 alt: "Community members helping an older woman in a garden",
               },
-              {
-                src: "/images/hero-3.png",
-                alt: "A physical therapist supporting a child with a walker",
-              },
-              {
-                src: "/images/hero-4.png",
-                alt: "A caregiver walking with an elderly man in a park",
-              },
             ].map((img) => (
               <span
                 key={img.src}
