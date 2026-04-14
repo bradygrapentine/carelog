@@ -7,7 +7,7 @@ import type { AppRouter } from '../../web/server/trpc/router'
 
 export const trpc = createTRPCReact<AppRouter>()
 
-const sentryBreadcrumbLink: TRPCLink<AppRouter> = () =>
+export const sentryBreadcrumbLink: TRPCLink<AppRouter> = () =>
   ({ next, op }) =>
     observable((observer) => {
       const sub = next(op).subscribe({
