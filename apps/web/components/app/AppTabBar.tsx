@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TAB_PANELS: Record<string, string> = {
@@ -90,14 +91,23 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
           </nav>
         )}
 
-        {/* User avatar */}
-        <button
-          onClick={onSignOut}
-          aria-label="Sign out"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
-        >
-          {userInitials}
-        </button>
+        {/* Right-hand controls */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-violet-300 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
+          >
+            <Settings size={18} aria-hidden="true" />
+          </Link>
+          <button
+            onClick={onSignOut}
+            aria-label="Sign out"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
+          >
+            {userInitials}
+          </button>
+        </div>
       </div>
 
       {/* Mobile tab strip — only inside a team context */}
