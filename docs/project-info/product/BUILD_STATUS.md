@@ -131,6 +131,18 @@ Last updated: 2026-04-10 (Phase 5 complete, deployed to Vercel)
 - [x] watchOS SwiftUI app — ContentView + WatchViewModel, receives WCSession context
 - [x] Config plugin — withCarelogWatch.ts adds Watch target + App Group entitlement via expo prebuild
 - [x] watchBridge.ts — re-exports from real native module (was no-op stub)
+
+### Wave 4 — Design system + polish (2026-04-13)
+- [x] `constants/tokens.ts` — full violet/plum palette mirroring web, plus spacing/radii/typography/shadows/fontFamily
+- [x] `useAppTheme()` hook — light/dark palettes subscribed to `useColorScheme()`; every screen migrated
+- [x] `<Panel>` shared component with light-purple tinted header — 12 screens migrated
+- [x] Inter font — loaded via `@expo-google-fonts/inter` in root layout with splash gating
+- [x] Haptic feedback — expo-haptics wired on 5 key mutations (journal submit, flag toggle, expense add, symptom log, burnout checkin)
+- [x] Accessibility — `accessibilityRole` + `accessibilityLabel` on every previously-unlabeled touchable
+- [x] Sentry mobile crash tracking — `@sentry/react-native` wrapped around RootLayout, PII scrub in `beforeSend`; gated on `EXPO_PUBLIC_SENTRY_DSN`
+- [x] PostHog mobile analytics — `posthog-react-native` with UUID-only identify, reset on sign-out; gated on `EXPO_PUBLIC_POSTHOG_KEY`
+- [ ] Dynamic Type + screen-reader audit (ON-15) — deferred, needs physical device testing
+
 ## Before launch
 
 - [x] Supabase cloud project — linked and deployed

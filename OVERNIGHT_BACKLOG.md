@@ -314,7 +314,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-11 — Mobile Panel component migration across screens
+### ON-11 — Mobile Panel component migration across screens ✅ DONE (#23, 2026-04-13)
 
 **Context:** `apps/mobile/components/Panel.tsx` was added to mirror the web's light-purple tinted-header panel pattern (violet `primarySubtle` strip + divider + card body). Most mobile screens still render ad-hoc `<View>` cards inline with `StyleSheet.create` and bespoke headers. Migrating those to the shared `Panel` component will give the mobile app visual parity with the web, reduce code duplication, and let us iterate the panel style in one place.
 
@@ -335,7 +335,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired)
+### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired) ✅ DONE (#19, 2026-04-13)
 
 **Context:** `apps/mobile/CLAUDE.md` says "Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout)". The reality:
 - `@expo-google-fonts/inter` is NOT in `apps/mobile/package.json`
@@ -362,7 +362,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-13 — Mobile: dark mode support
+### ON-13 — Mobile: dark mode support ✅ DONE foundation (#22), screen migration shipped in (#25)
 
 **Context:** The web app is light-only today but the violet/plum palette works for both modes. The mobile app is also light-only. iOS 17+ and Android 13+ users who set their system theme to dark see a jarring bright-white app — especially at night when caregivers are most likely to pick up the phone to log a 3am medication.
 
@@ -384,7 +384,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-14 — Mobile: haptic feedback on key actions
+### ON-14 — Mobile: haptic feedback on key actions ✅ DONE (#21, 2026-04-13)
 
 **Context:** Native apps feel significantly more polished with subtle haptics on primary actions (logging a med, submitting a journal entry, flagging an entry for doctor, claiming a volunteer slot). Currently none of these trigger any haptic.
 
@@ -406,7 +406,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-16 — Mobile: migrate screens to `useAppTheme()`
+### ON-16 — Mobile: migrate screens to `useAppTheme()` ✅ DONE (#25, 2026-04-13)
 
 **Context:** ON-13 established the dark mode foundation (`darkColors`, `useAppTheme()` hook, Panel). Every screen that still imports `colors` directly from `constants/tokens` needs to be converted to `useAppTheme()` + a `useMemo`'d stylesheet so it reacts to system theme changes.
 
