@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import { trpc, createTrpcClient } from "../utils/trpc";
 import { getAccessToken } from "../utils/auth";
 import { AppProvider } from "../context/AppContext";
 import { useWatchMessages } from "../hooks/useWatchMessages";
+import { useAppTheme } from "../hooks/useAppTheme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -24,6 +26,7 @@ const queryClient = new QueryClient({
 function RootLayoutInner() {
   useWatchMessages();
   const router = useRouter();
+  const { scheme } = useAppTheme();
   const notifListenerRef = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
@@ -42,7 +45,12 @@ function RootLayoutInner() {
     };
   }, [router]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }
 
 export default function RootLayout() {

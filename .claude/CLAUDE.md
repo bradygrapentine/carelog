@@ -48,6 +48,16 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Never commit directly to main/master without confirmation
 - A concurrent Claude instance may switch branches under you. Re-run `git branch --show-current` immediately before every commit, not just at the start of a session. If the wrong branch was committed to, `git cherry-pick` onto the correct branch rather than reset.
 
+### Rebase before pushing to a PR
+
+- Before opening a PR or pushing a new commit to an existing PR branch, rebase against the latest `origin/main`:
+  ```sh
+  git fetch origin main && git rebase origin/main
+  ```
+- If the rebase produces conflicts, resolve them (do not `git rebase --skip`) and re-run the test suite before continuing.
+- Never force-push to `main` or to a PR branch owned by someone else. Force-push on your own PR branch is allowed after rebase (`git push --force-with-lease`, never `--force`).
+- If the PR is merged and new work should continue, branch fresh off updated `origin/main` rather than reusing a merged branch.
+
 ## Parallel Work
 
 - Subagents only for genuinely independent tasks (different files, no shared state)

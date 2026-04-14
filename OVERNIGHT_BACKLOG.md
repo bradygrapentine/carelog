@@ -406,6 +406,45 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
+### ON-16 — Mobile: migrate screens to `useAppTheme()`
+
+**Context:** ON-13 established the dark mode foundation (`darkColors`, `useAppTheme()` hook, Panel). Every screen that still imports `colors` directly from `constants/tokens` needs to be converted to `useAppTheme()` + a `useMemo`'d stylesheet so it reacts to system theme changes.
+
+**Technical details:**
+- Swap `import { colors } from '../../constants/tokens'` for `const { colors } = useAppTheme()` in each screen
+- Replace top-level `StyleSheet.create({ ... colors.X ... })` calls with a `useMemo(() => StyleSheet.create(...), [colors])` inside the component
+- Do NOT change any layout logic, navigation, or component structure — only the color binding
+- Start with the screens migrated to `<Panel>` in ON-11; they share a common pattern
+
+**Files to change (do NOT change until ON-11 is merged):**
+- `app/(app)/journal/index.tsx`
+- `app/(app)/medications/index.tsx`
+- `app/(app)/schedule/index.tsx`
+- `app/(app)/team/index.tsx`
+- `app/(app)/symptoms/index.tsx`
+- `app/(app)/burnout/index.tsx`
+- `app/(app)/expenses/index.tsx`
+- `app/(app)/documents/index.tsx`
+- `app/(app)/outer-circle/index.tsx`
+- `app/(app)/care-brief/index.tsx`
+- `app/(app)/benefits/index.tsx`
+- `app/(app)/eol-planner/index.tsx`
+- `app/(app)/more/index.tsx`
+- `app/(app)/settings/index.tsx`
+- Any other screen files importing `colors` directly
+
+**Acceptance criteria:**
+- [ ] No screen imports `colors` directly from `constants/tokens` — all consume `useAppTheme()`
+- [ ] Toggling system dark mode mid-session updates all screens without a reload
+- [ ] `cd apps/mobile && pnpm test` passes (214/214)
+- [ ] `pnpm exec tsc --noEmit` zero new errors
+
+**Blocked by:** ON-11 (Panel migration must land first), ON-13 (dark palette foundation)
+**Blocks:** nothing
+**Size:** ~0.5 day
+
+---
+
 ### ON-15 — Mobile: accessibility audit against iOS Dynamic Type + screen reader
 
 **Context:** Mobile uses fixed `fontSize` values throughout and isn't tested against iOS Dynamic Type (users who set their system text to "Larger Accessibility Sizes"). Also no verification that VoiceOver / TalkBack announce controls in a sensible order.
