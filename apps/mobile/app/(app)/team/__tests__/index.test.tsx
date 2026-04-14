@@ -10,23 +10,45 @@ jest.mock("../../../../context/AppContext", () => ({
   })),
 }));
 
+// Mock supabase client so getUser() resolves with user-self
+jest.mock("../../../../utils/supabase", () => ({
+  supabase: {
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: "user-self" } },
+      }),
+    },
+  },
+}));
+
 const mockMembers = [
   {
     id: "m1",
+    user_id: "user-self",
     display_name: "Alice",
     role: "coordinator",
     accepted_at: "2026-01-01",
   },
   {
     id: "m2",
+    user_id: "user-bob",
     display_name: "Bob",
     email: "bob@example.com",
     role: "caregiver",
     accepted_at: "2026-02-01",
   },
+  {
+    id: "m3",
+    user_id: "user-other",
+    display_name: "Carol",
+    role: "caregiver",
+    accepted_at: "2026-03-01",
+  },
 ];
 
 const mockMutateAsync = jest.fn().mockResolvedValue({});
+const mockChangeRoleMutate = jest.fn();
+const mockRemoveMutate = jest.fn();
 const mockRefetch = jest.fn();
 
 jest.mock("../../../../utils/trpc", () => ({
@@ -42,6 +64,18 @@ jest.mock("../../../../utils/trpc", () => ({
       invite: {
         useMutation: jest.fn(() => ({
           mutateAsync: mockMutateAsync,
+          isPending: false,
+        })),
+      },
+      changeRole: {
+        useMutation: jest.fn(() => ({
+          mutate: mockChangeRoleMutate,
+          isPending: false,
+        })),
+      },
+      remove: {
+        useMutation: jest.fn(() => ({
+          mutate: mockRemoveMutate,
           isPending: false,
         })),
       },
@@ -63,9 +97,10 @@ describe("TeamScreen", () => {
   });
 
   it("shows role badges", () => {
-    const { getByText } = render(<TeamScreen />);
+    const { getByText, getAllByText } = render(<TeamScreen />);
     expect(getByText("coordinator")).toBeTruthy();
-    expect(getByText("caregiver")).toBeTruthy();
+    // Bob and Carol are both caregivers — expect at least one badge
+    expect(getAllByText("caregiver").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows empty state when no members", () => {
@@ -178,5 +213,164 @@ describe("TeamScreen", () => {
       capturedOpts?.onError?.({ message: "Already invited" });
     });
     expect(Alert.alert).toHaveBeenCalledWith("Error", "Already invited");
+  });
+
+  // ─── Admin action tests ────────────────────────────────────────────────────
+
+  it("tapping a non-self member row shows Alert with Change role and Remove member", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    // Wait for getUser to resolve so currentUserId is set
+    await act(async () => {});
+    fireEvent.press(getByLabelText("Manage Carol"));
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Carol",
+      undefined,
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Change role" }),
+        expect.objectContaining({ text: "Remove member" }),
+      ]),
+    );
+  });
+
+  it("tapping Change role shows a second Alert with 4 role options", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    fireEvent.press(getByLabelText("Manage Carol"));
+
+    // Find and invoke the "Change role" button callback from the first alert
+    const firstAlertButtons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    const changeRoleBtn = firstAlertButtons.find(
+      (b) => b.text === "Change role",
+    );
+    act(() => changeRoleBtn?.onPress?.());
+
+    // The second Alert call should contain 4 role options
+    const secondAlertButtons = alertSpy.mock.calls[1][2] as {
+      text: string;
+    }[];
+    const roleTexts = secondAlertButtons.map((b) => b.text.toLowerCase());
+    expect(roleTexts).toEqual(
+      expect.arrayContaining(["coordinator", "caregiver", "aide", "supporter"]),
+    );
+  });
+
+  it("selecting a role in the second Alert calls changeRoleMut.mutate with correct args", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    fireEvent.press(getByLabelText("Manage Carol"));
+
+    const firstAlertButtons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      firstAlertButtons.find((b) => b.text === "Change role")?.onPress?.();
+    });
+
+    const secondAlertButtons = alertSpy.mock.calls[1][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    // Carol is caregiver — pick coordinator to trigger a role change
+    act(() => {
+      secondAlertButtons.find((b) => b.text === "Coordinator")?.onPress?.();
+    });
+
+    expect(mockChangeRoleMutate).toHaveBeenCalledWith({
+      orgId: "org-1",
+      membershipId: "m3",
+      role: "coordinator",
+    });
+  });
+
+  it("tapping Remove member shows a confirmation Alert", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    fireEvent.press(getByLabelText("Manage Carol"));
+
+    const firstAlertButtons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      firstAlertButtons.find((b) => b.text === "Remove member")?.onPress?.();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Remove member",
+      expect.stringContaining("Carol"),
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Remove" }),
+        expect.objectContaining({ text: "Cancel" }),
+      ]),
+    );
+  });
+
+  it("confirming removal calls removeMut.mutate with correct membershipId", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    fireEvent.press(getByLabelText("Manage Carol"));
+
+    const firstAlertButtons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      firstAlertButtons.find((b) => b.text === "Remove member")?.onPress?.();
+    });
+
+    const confirmButtons = alertSpy.mock.calls[1][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
+    act(() => {
+      confirmButtons.find((b) => b.text === "Remove")?.onPress?.();
+    });
+
+    expect(mockRemoveMutate).toHaveBeenCalledWith({
+      orgId: "org-1",
+      membershipId: "m3",
+    });
+  });
+
+  it("self row does not show action Alert when tapped", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    // Alice is the self row — label is just the name (canAdmin=false)
+    fireEvent.press(getByLabelText("Alice"));
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it("non-coordinator: all rows are non-interactive (disabled)", async () => {
+    const { useApp } = require("../../../../context/AppContext");
+    // Use mockReturnValue (not Once) so all re-renders get the caregiver role
+    useApp.mockReturnValue({
+      orgId: "org-1",
+      recipientId: "r-1",
+      currentRole: "caregiver",
+    });
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByLabelText } = render(<TeamScreen />);
+    await act(async () => {});
+    // When currentRole is caregiver, canAdmin=false, so label is just memberName
+    const carolRow = getByLabelText("Carol");
+    expect(carolRow.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(carolRow);
+    expect(alertSpy).not.toHaveBeenCalled();
+    // Restore default mock
+    useApp.mockReturnValue({
+      orgId: "org-1",
+      recipientId: "r-1",
+      currentRole: "coordinator",
+    });
   });
 });

@@ -513,3 +513,158 @@ describe("memberships.remove — logic", () => {
     expect(result).toEqual({ removed: true });
   });
 });
+
+// ─── memberships.changeRole — logic ──────────────────────────────────────────
+
+describe("memberships.changeRole — logic", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const TARGET_MEMBERSHIP_ID = "58dc6d19-6712-4b26-8797-b4e544e01b88";
+  const TARGET_USER_ID = "68dc6d19-6712-4b26-8797-b4e544e01b89";
+
+  function mockCaller(role: string, acceptedAt: string | null = "2024-01-01") {
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { role, accepted_at: acceptedAt },
+        error: null,
+      }),
+    };
+  }
+
+  function mockTarget(orgId: string, userId: string = TARGET_USER_ID) {
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: TARGET_MEMBERSHIP_ID,
+          user_id: userId,
+          org_id: orgId,
+        },
+        error: null,
+      }),
+    };
+  }
+
+  function mockUpdate() {
+    const chain: {
+      update: () => typeof chain;
+      eq: () => Promise<{ error: null }>;
+    } = {
+      update: () => chain,
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    return chain;
+  }
+
+  it("happy path: coordinator changes another member's role", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget(ORG_ID) as unknown as ReturnType<typeof supabaseAdmin.from>,
+      )
+      .mockReturnValueOnce(
+        mockUpdate() as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    const result = await authedCaller.memberships.changeRole({
+      orgId: ORG_ID,
+      membershipId: TARGET_MEMBERSHIP_ID,
+      role: "caregiver",
+    });
+
+    expect(result).toEqual({ updated: true });
+  });
+
+  it("throws BAD_REQUEST when caller tries to change own role", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget(ORG_ID, USER_ID) as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      );
+
+    await expect(
+      authedCaller.memberships.changeRole({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+        role: "caregiver",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("throws Zod validation error for invalid role", async () => {
+    await expect(
+      authedCaller.memberships.changeRole({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+        role: "superadmin" as Parameters<
+          typeof authedCaller.memberships.changeRole
+        >[0]["role"],
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("throws Zod validation error for invalid orgId", async () => {
+    await expect(
+      authedCaller.memberships.changeRole({
+        orgId: "not-a-uuid",
+        membershipId: TARGET_MEMBERSHIP_ID,
+        role: "caregiver",
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("throws Zod validation error for invalid membershipId", async () => {
+    await expect(
+      authedCaller.memberships.changeRole({
+        orgId: ORG_ID,
+        membershipId: "not-a-uuid",
+        role: "caregiver",
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("throws NOT_FOUND when target membership does not exist", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        (() => {
+          const chain = {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: { message: "not found" },
+            }),
+          };
+          return chain;
+        })() as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    await expect(
+      authedCaller.memberships.changeRole({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+        role: "caregiver",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});

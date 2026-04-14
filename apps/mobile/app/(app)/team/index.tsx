@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { canInvite } from "../../../utils/wave5Utils";
 import type { Membership } from "@carelog/types";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
+import { supabase } from "../../../utils/supabase";
 
 type MemberRow = Membership & { display_name?: string; email?: string };
 
@@ -27,7 +28,14 @@ export default function TeamScreen() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ROLES)[number]>("caregiver");
   const [sending, setSending] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { colors, spacing, radii } = useAppTheme();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id ?? null);
+    });
+  }, []);
 
   const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
     coordinator: { bg: colors.primarySubtle, text: colors.roleCoordinatorBg },
@@ -57,6 +65,95 @@ export default function TeamScreen() {
       Alert.alert("Error", err.message);
     },
   });
+
+  const changeRoleMut = trpc.memberships.changeRole.useMutation({
+    onSuccess: () => refetch(),
+    onError: (err) => Alert.alert("Error", err.message),
+  });
+
+  const removeMut = trpc.memberships.remove.useMutation({
+    onSuccess: () => refetch(),
+    onError: (err) => Alert.alert("Error", err.message),
+  });
+
+  function handleMemberPress(item: MemberRow) {
+    if (currentRole !== "coordinator" || !orgId) return;
+    const isSelf = item.user_id === currentUserId;
+    if (isSelf) return;
+
+    const isPending = !item.accepted_at;
+
+    const buttons: { text: string; onPress?: () => void; style?: "destructive" | "cancel" | "default" }[] = [
+      {
+        text: "Change role",
+        onPress: () => handleChangeRole(item),
+      },
+      {
+        text: "Remove member",
+        style: "destructive",
+        onPress: () => handleRemoveMember(item),
+      },
+    ];
+
+    if (isPending) {
+      buttons.unshift({
+        text: "Resend invite",
+        onPress: () => handleResendInvite(item),
+      });
+    }
+
+    buttons.push({ text: "Cancel", style: "cancel" });
+
+    Alert.alert(
+      item.display_name ?? item.email ?? "Team member",
+      undefined,
+      buttons,
+    );
+  }
+
+  function handleChangeRole(item: MemberRow) {
+    if (!orgId) return;
+    Alert.alert(
+      "Change role",
+      `Select a new role for ${item.display_name ?? item.email ?? "this member"}`,
+      [
+        ...ROLES.map((r) => ({
+          text: r.charAt(0).toUpperCase() + r.slice(1),
+          onPress: () => {
+            if (r === item.role) return;
+            changeRoleMut.mutate({ orgId, membershipId: item.id, role: r });
+          },
+        })),
+        { text: "Cancel", style: "cancel" as const },
+      ],
+    );
+  }
+
+  function handleRemoveMember(item: MemberRow) {
+    if (!orgId) return;
+    Alert.alert(
+      "Remove member",
+      `Remove ${item.display_name ?? item.email ?? "this member"} from the team?`,
+      [
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => removeMut.mutate({ orgId, membershipId: item.id }),
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+    );
+  }
+
+  function handleResendInvite(item: MemberRow) {
+    if (!orgId || !item.email) return;
+    inviteMut.mutate({
+      orgId,
+      recipientId: recipientId ?? null,
+      role: item.role,
+      email: item.email,
+    });
+  }
 
   async function handleInvite() {
     if (!email.trim() || !orgId) return;
@@ -100,6 +197,12 @@ export default function TeamScreen() {
         email: { fontSize: 13, color: colors.muted, marginTop: 2 },
         badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
         badgeText: { fontSize: 12, fontWeight: "500" },
+        pendingTag: {
+          fontSize: 11,
+          color: colors.muted,
+          marginTop: 2,
+          fontStyle: "italic",
+        },
         empty: {
           color: colors.mutedLight,
           textAlign: "center",
@@ -192,14 +295,30 @@ export default function TeamScreen() {
             renderItem={({ item }) => {
               const roleColors =
                 ROLE_COLORS[item.role] ?? ROLE_COLORS.supporter;
+              const isCoordinator = currentRole === "coordinator";
+              const isSelf = item.user_id === currentUserId;
+              const canAdmin = isCoordinator && !isSelf;
+              const memberName =
+                item.display_name ?? item.email ?? "Team member";
               return (
-                <View style={styles.row}>
+                <TouchableOpacity
+                  style={styles.row}
+                  onPress={() => handleMemberPress(item)}
+                  disabled={!canAdmin}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    canAdmin
+                      ? `Manage ${memberName}`
+                      : memberName
+                  }
+                >
                   <View style={styles.info}>
-                    <Text style={styles.name}>
-                      {item.display_name ?? item.email ?? "Team member"}
-                    </Text>
+                    <Text style={styles.name}>{memberName}</Text>
                     {item.email && (
                       <Text style={styles.email}>{item.email}</Text>
+                    )}
+                    {!item.accepted_at && (
+                      <Text style={styles.pendingTag}>pending</Text>
                     )}
                   </View>
                   <View
@@ -211,7 +330,7 @@ export default function TeamScreen() {
                       {item.role}
                     </Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             }}
             ListEmptyComponent={
