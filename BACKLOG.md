@@ -139,14 +139,14 @@ Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creat
 ### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
 Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
 
-### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
-Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
+### 🔎 ON-34 — PostHog funnel events: web ↔ mobile parity audit
+Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr. **Status:** 🔎 In review. **Branch:** feat/on34-on36-audits
 
 ### ✅ 🌙 ON-35 — `.gitignore` hygiene
 Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
 
-### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
-Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
+### 🔎 ON-36 — TODO/FIXME audit + backlog backfill
+Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr. **Status:** 🔎 In review. **Branch:** feat/on34-on36-audits
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
@@ -225,6 +225,12 @@ Table `shift_trade_requests` (shift_id, requested_by, target_user_id nullable, s
 
 ### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
+
+### 🌙 ON-47 — Add `data-testid` attributes to medication components · ~30 min
+Six E2E TODOs in `e2e/medications.spec.ts` reference missing `data-testid` attrs (`medication-name-input`, `medication-dosage-input`, `add-medication-btn`, `medication-checklist`, `dose-given-indicator`). Add them to the corresponding web components so E2E selectors are stable. **Status:** 🟢 Ready. **Size:** 30 min.
+
+### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
+19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
 ---
 
