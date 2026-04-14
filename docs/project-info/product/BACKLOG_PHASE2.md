@@ -44,7 +44,7 @@ No further work needed.
 
 ---
 
-### P1-02 — Pending invite redirect after sign-in ⚠️ PARTIAL
+### ~~P1-02 — Pending invite redirect after sign-in~~ ✅ DONE
 
 **Agent:** Qwen3.5
 
@@ -72,7 +72,7 @@ No further work needed.
 
 ---
 
-### P1-03 — Entry detail view ❌ NOT STARTED
+### ~~P1-03 — Entry detail view~~ ✅ DONE — route at `apps/web/app/(app)/journal/[recipientId]/entry/[eventId]/`
 
 **Agent:** Qwen3.5
 
@@ -112,7 +112,7 @@ No further work needed.
 
 ---
 
-### P2-01 — Shift tRPC router + Zod schema ❌ NOT STARTED
+### ~~P2-01 — Shift tRPC router + Zod schema~~ ✅ DONE — `apps/web/server/routers/shifts.ts` + logic/security tests
 
 **Agent:** Claude Code (multi-file, RLS-adjacent)
 
@@ -144,7 +144,7 @@ No further work needed.
 
 ---
 
-### P2-02 — Shift creation UI ❌ NOT STARTED
+### ~~P2-02 — Shift creation UI~~ ✅ DONE — `ShiftForm.tsx` + `ShiftList.tsx` + e2e/shifts.spec.ts
 
 **Agent:** Claude Code + frontend-design (coordinator-only form)
 
