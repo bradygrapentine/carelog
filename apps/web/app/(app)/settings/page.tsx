@@ -393,6 +393,9 @@ function DangerZoneSection() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowLeaveModal(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setShowLeaveModal(false);
+          }}
         >
           <div
             role="dialog"

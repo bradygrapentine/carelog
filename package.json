@@ -45,6 +45,7 @@
     }
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@expo/html-elements": "^0.10.1",
     "@gluestack-ui/core": "^3.0.10",
     "@gluestack-ui/utils": "^3.0.11",

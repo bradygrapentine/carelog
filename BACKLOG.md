@@ -61,8 +61,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 | PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
 | PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
-| A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
-| A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
+| A11Y-001 | 🔎 In review | — | feat/a11y-web-tooling | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
+| A11Y-002 | 🔎 In review | — | feat/a11y-web-tooling | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
 | A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
 | ON-43 | 🔎 In review | — | feat/on43-messaging | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
