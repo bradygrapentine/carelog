@@ -291,7 +291,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-10 — Full-text search across document vault contents
+### ON-10 — Full-text search across document vault contents ✅ DONE 2026-04-13 — tsvector column + GIN index, Inngest `documentsExtractText`, server-side `q` param with debounced input, snippet rendering, pgTAP for org-scoped FTS
 
 **Context:** The document vault only supports substring search on `display_name`. Users need to find documents by their *contents* — e.g. "find the POA that mentions Dr. Chen". Requires OCR/text extraction and a Postgres FTS index.
 
