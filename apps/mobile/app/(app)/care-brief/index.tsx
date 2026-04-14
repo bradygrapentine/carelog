@@ -164,6 +164,7 @@ export default function CareBriefScreen() {
       onPress={handleGenerate}
       disabled={loading}
       accessibilityRole="button"
+      accessibilityLabel={loading ? "Generating brief" : "Generate care brief"}
     >
       <Text style={[styles.actionBtnText, loading && styles.actionBtnDisabled]}>
         {loading ? "Generating…" : "+ Generate"}
@@ -199,6 +200,7 @@ export default function CareBriefScreen() {
                   style={styles.cardActionBtn}
                   onPress={() => handleCopy(url)}
                   accessibilityRole="button"
+                  accessibilityLabel="Copy care brief link"
                 >
                   <Text style={styles.cardActionBtnText}>Copy link</Text>
                 </TouchableOpacity>
@@ -207,6 +209,7 @@ export default function CareBriefScreen() {
                     style={[styles.cardActionBtn, styles.revokeBtn]}
                     onPress={() => handleRevoke(brief.shareToken)}
                     accessibilityRole="button"
+                    accessibilityLabel="Revoke care brief"
                   >
                     <Text
                       style={[styles.cardActionBtnText, styles.revokeBtnText]}

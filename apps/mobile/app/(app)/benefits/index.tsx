@@ -250,6 +250,9 @@ export default function BenefitsScreen() {
           onPress={handleSubmit}
           disabled={screenMut.isPending}
           accessibilityRole="button"
+          accessibilityLabel={
+            screenMut.isPending ? "Checking eligibility" : "Check eligibility"
+          }
         >
           {screenMut.isPending ? (
             <ActivityIndicator color={colors.white} />
