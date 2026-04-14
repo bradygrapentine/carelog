@@ -44,3 +44,15 @@ public/
 
 # Logs
 *.log
+
+# iOS / Android native — auto-generated, large, not useful for code understanding
+apps/mobile/ios/Pods/
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+*.pbxproj
+
+# Git worktrees (parallel agent scratch space)
+.worktrees/
+
+# Plugin cache — installed Claude Code plugins, large binary blobs
+.claude/plugins/cache/

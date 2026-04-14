@@ -133,8 +133,8 @@ One-line JSDoc on each exported function/type where purpose isn't obvious. Do NO
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
 
-### 🌙 ON-32 — E2E: invite-accept happy path
-Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
+### 🔎 ON-32 — E2E: invite-accept happy path
+Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr. **Status:** 🔎 In review. **Branch:** feat/on32-e2e-invite-accept
 
 ### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
 Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs

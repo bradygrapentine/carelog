@@ -36,5 +36,11 @@ Present findings before committing. Do not auto-fix — ask which to address.
 Check `git status`. If there are uncommitted changes, ask:
 > "Uncommitted changes detected. Run `/commit` to commit, or leave for next session?"
 
-### 5. Suggest next session start
-Based on what was worked on, suggest the most logical next task by referencing `docs/project-info/product/BUILD_STATUS.md`.
+### 5. Run backlog-sync
+Invoke `/backlog-sync` to reconcile shipped work and update the §0 status board:
+```
+/backlog-sync
+```
+
+### 6. Suggest next session start
+Based on what was worked on, suggest the most logical next task by referencing `BACKLOG.md` — specifically the §0 status board and any `🟢 Ready` rows with no blockers.
