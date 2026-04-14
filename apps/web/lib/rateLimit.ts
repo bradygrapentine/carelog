@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { NextResponse, type NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 // Default: 5 requests per 15-minute fixed window per IP per endpoint.
 // Callers can override per-call via the `options` arg — auth/OTP endpoints
@@ -33,8 +34,7 @@ function getRedis(): Redis | null {
     }
     if (!devWarned) {
       devWarned = true;
-      // eslint-disable-next-line no-console
-      console.warn(
+      logger.warn(
         "[rateLimit] Upstash env vars missing — rate limiting disabled (dev/test only).",
       );
     }
@@ -80,8 +80,7 @@ export async function rateLimit(
   } catch (e) {
     // Production misconfig — fail closed with 503 so the failure is visible to
     // callers and log aggregators, rather than silently letting traffic through.
-    // eslint-disable-next-line no-console
-    console.error("[rateLimit] fail-closed:", e);
+    logger.error("[rateLimit] fail-closed:", e);
     return NextResponse.json(
       { error: "Service temporarily unavailable" },
       { status: 503 },

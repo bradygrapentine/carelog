@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createOrganization } from "@/server/repositories/organizationsRepository";
 import { createIdentity } from "@/server/repositories/identityRepository";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, orgId: org.id });
   } catch (e: unknown) {
-    console.error("[onboarding] error:", e);
+    logger.error("[onboarding] error:", e);
     const errorMessage =
       typeof e === "object" && e !== null && "message" in e
         ? (e as { message?: string }).message

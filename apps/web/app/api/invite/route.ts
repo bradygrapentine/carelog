@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/parseBody";
 import { resend } from "@/server/resend.server";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const limited = await rateLimit(request, "invite");
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
         ].join(""),
       });
     } else {
-      console.log(
+      logger.info(
         "[invite] Resend not configured. Invite URL for",
         email,
         ":",
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, inviteUrl });
   } catch (e: unknown) {
-    console.error("[invite] error:", e);
+    logger.error("[invite] error:", e);
     const errorMessage =
       e instanceof Error ? e.message : "An unexpected error occurred";
     try {
