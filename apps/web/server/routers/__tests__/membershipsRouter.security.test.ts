@@ -147,3 +147,57 @@ describe('memberships.accept — RPC error mapping', () => {
     })
   })
 })
+
+// ─── memberships.changeRole — authorization ───────────────────────────────────
+
+const MEMBERSHIP_ID = '48dc6d19-6712-4b26-8797-b4e544e01b87'
+const TARGET_MEMBERSHIP_ID = '58dc6d19-6712-4b26-8797-b4e544e01b88'
+
+const changeRoleBase = {
+  orgId: ORG_ID,
+  membershipId: TARGET_MEMBERSHIP_ID,
+  role: 'caregiver' as const,
+}
+
+describe('memberships.changeRole — authorization', () => {
+  it('throws FORBIDDEN when caller has no membership (null from supabaseAdmin)', async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: null, error: { message: 'not found' } })
+    )
+    await expect(caller.memberships.changeRole(changeRoleBase))
+      .rejects.toMatchObject({ code: 'FORBIDDEN' })
+  })
+
+  it('throws FORBIDDEN when caller is caregiver (not coordinator)', async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: { role: 'caregiver', accepted_at: new Date().toISOString() }, error: null })
+    )
+    await expect(caller.memberships.changeRole(changeRoleBase))
+      .rejects.toMatchObject({ code: 'FORBIDDEN' })
+  })
+
+  it('throws FORBIDDEN when caller is coordinator but accepted_at is null (pending)', async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: { role: 'coordinator', accepted_at: null }, error: null })
+    )
+    await expect(caller.memberships.changeRole(changeRoleBase))
+      .rejects.toMatchObject({ code: 'FORBIDDEN' })
+  })
+
+  it('throws FORBIDDEN when target membership belongs to a different org', async () => {
+    // First call: caller lookup — accepted coordinator
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({ data: { role: 'coordinator', accepted_at: new Date().toISOString() }, error: null })
+      )
+      // Second call: target lookup — different org
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { id: TARGET_MEMBERSHIP_ID, user_id: 'other-user-id', org_id: '99999999-9999-9999-9999-999999999999' },
+          error: null,
+        })
+      )
+    await expect(caller.memberships.changeRole(changeRoleBase))
+      .rejects.toMatchObject({ code: 'FORBIDDEN' })
+  })
+})
