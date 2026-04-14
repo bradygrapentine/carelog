@@ -314,7 +314,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-11 — Mobile Panel component migration across screens
+### ON-11 — Mobile Panel component migration across screens ✅ DONE (#23, 2026-04-13)
 
 **Context:** `apps/mobile/components/Panel.tsx` was added to mirror the web's light-purple tinted-header panel pattern (violet `primarySubtle` strip + divider + card body). Most mobile screens still render ad-hoc `<View>` cards inline with `StyleSheet.create` and bespoke headers. Migrating those to the shared `Panel` component will give the mobile app visual parity with the web, reduce code duplication, and let us iterate the panel style in one place.
 
@@ -335,7 +335,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired)
+### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired) ✅ DONE (#19, 2026-04-13)
 
 **Context:** `apps/mobile/CLAUDE.md` says "Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout)". The reality:
 - `@expo-google-fonts/inter` is NOT in `apps/mobile/package.json`
@@ -362,7 +362,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-13 — Mobile: dark mode support
+### ON-13 — Mobile: dark mode support ✅ DONE foundation (#22), screen migration shipped in (#25)
 
 **Context:** The web app is light-only today but the violet/plum palette works for both modes. The mobile app is also light-only. iOS 17+ and Android 13+ users who set their system theme to dark see a jarring bright-white app — especially at night when caregivers are most likely to pick up the phone to log a 3am medication.
 
@@ -384,7 +384,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-14 — Mobile: haptic feedback on key actions
+### ON-14 — Mobile: haptic feedback on key actions ✅ DONE (#21, 2026-04-13)
 
 **Context:** Native apps feel significantly more polished with subtle haptics on primary actions (logging a med, submitting a journal entry, flagging an entry for doctor, claiming a volunteer slot). Currently none of these trigger any haptic.
 
@@ -406,7 +406,7 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 
 ---
 
-### ON-16 — Mobile: migrate screens to `useAppTheme()`
+### ON-16 — Mobile: migrate screens to `useAppTheme()` ✅ DONE (#25, 2026-04-13)
 
 **Context:** ON-13 established the dark mode foundation (`darkColors`, `useAppTheme()` hook, Panel). Every screen that still imports `colors` directly from `constants/tokens` needs to be converted to `useAppTheme()` + a `useMemo`'d stylesheet so it reacts to system theme changes.
 
@@ -463,3 +463,51 @@ Result: mobile typography diverges from web (which uses Geist via `--font-sans`)
 **Blocked by:** nothing
 **Blocks:** nothing
 **Size:** ~1 day
+
+---
+
+### ON-17 — Mobile: Sentry crash + error tracking
+
+**Context:** The web app has Sentry fully wired (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `sendDefaultPii: false`). The mobile app has **none**. Production crashes on device will be invisible to us until a user reports them — unacceptable for a launch.
+
+**Technical details:**
+- `pnpm add @sentry/react-native --filter mobile`
+- Run `npx @sentry/wizard@latest -s -i reactNative` per docs (or manually edit `app.json` to include the Sentry Expo plugin + post-publish hook for source maps).
+- Initialize in `apps/mobile/app/_layout.tsx` before the root layout renders: `Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN, sendDefaultPii: false, enableNativeCrashHandling: true, ... })`.
+- Wrap `RootLayout` with `Sentry.wrap(...)` for automatic error boundary + screen tracing.
+- Add `EXPO_PUBLIC_SENTRY_DSN` placeholder + secret entry to `apps/mobile/.env.local.example` and to Expo EAS secrets.
+- Upload source maps via `npx sentry-expo-upload-sourcemaps` or the Expo plugin's post-publish hook; gate on `SENTRY_AUTH_TOKEN` env (same convention as web).
+
+**Acceptance criteria:**
+- [ ] Throwing an error in any screen produces an event in the Sentry project within ~10s
+- [ ] Source maps resolve the stack to original TSX filenames (not minified Hermes bytecode)
+- [ ] No PII (email, user names) appears in any event — `sendDefaultPii: false` + explicit `beforeSend` scrub
+- [ ] Tests remain green; Sentry is mocked (`jest.mock("@sentry/react-native")`) in the setup file
+
+**Blocked by:** nothing
+**Blocks:** production mobile launch (practically)
+**Size:** ~3 hours
+
+---
+
+### ON-18 — Mobile: PostHog product analytics
+
+**Context:** Web has `posthog-js` + `posthog-node` instrumented. Mobile has no analytics wired, so we can't compare funnel conversion between web and mobile or catch mobile-specific drop-offs.
+
+**Technical details:**
+- `pnpm add posthog-react-native --filter mobile`
+- Initialize in `apps/mobile/app/_layout.tsx`: `PostHogProvider apiKey={process.env.EXPO_PUBLIC_POSTHOG_KEY} options={{ host: '/ingest' }}` (or `https://us.i.posthog.com` — mirror web config)
+- Identify user on sign-in: `posthog.identify(user.id)` — UUID only per project PHI rule (never email). Reset on sign-out.
+- Track key events mirroring web: `journal_entry_submitted`, `medication_logged`, `shift_created`, `brief_generated`, `document_uploaded`, `invite_accepted`, `app_opened_from_push_notification`.
+- Add `EXPO_PUBLIC_POSTHOG_KEY` placeholder to `.env.local.example` + EAS secret.
+- Enable session replay flag later if helpful (off by default — replay + PHI is dicey).
+
+**Acceptance criteria:**
+- [ ] Events appear in PostHog dashboard with correct `distinct_id` matching web
+- [ ] No email, name, or other PHI in event properties — UUID only
+- [ ] Tests mock `posthog-react-native` cleanly
+- [ ] Sign-out calls `posthog.reset()` so subsequent sessions aren't attributed to the previous user
+
+**Blocked by:** nothing
+**Blocks:** nothing (launch-blocking? no — but strongly recommended before broad rollout)
+**Size:** ~3 hours
