@@ -64,7 +64,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
 | A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
 | A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
+| ON-43 | 🔎 In review | — | feat/on43-messaging | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
