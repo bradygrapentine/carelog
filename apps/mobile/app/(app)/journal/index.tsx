@@ -21,13 +21,14 @@ import {
   REACTIONS,
   formatEntryTime,
 } from "../../../utils/journalUtils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const MOOD_TAGS = ["good", "okay", "difficult", "crisis"] as const;
 const INPUT_MOOD_COLORS: Record<Mood, string> = {
-  good: "#22c55e",
-  okay: "#f59e0b",
-  difficult: "#ef4444",
-  crisis: "#7f1d1d",
+  good: colors.moodGood,
+  okay: colors.moodOkay,
+  difficult: colors.moodDifficult,
+  crisis: colors.moodCrisis,
 };
 
 // ── Reactions sub-component ────────────────────────────────────────────────
@@ -101,7 +102,7 @@ export default function JournalScreen() {
     const entry = text.trim();
     setText("");
     setSubmitting(true);
-    
+
     try {
       await write({
         event_type: "journal",
@@ -135,7 +136,11 @@ export default function JournalScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={timeline ?? []}
@@ -221,7 +226,10 @@ export default function JournalScreen() {
               accessibilityLabel={m + " mood"}
             >
               <Text
-                style={[styles.moodTagText, mood === m && { color: "#fff" }]}
+                style={[
+                  styles.moodTagText,
+                  mood === m && { color: colors.white },
+                ]}
               >
                 {m}
               </Text>
@@ -256,31 +264,40 @@ export default function JournalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  syncBanner: { paddingVertical: 6, paddingHorizontal: 12 },
-  offlineBanner: { backgroundColor: "#fef3c7" },
-  pendingBanner: { backgroundColor: "#eff6ff" },
-  syncText: { fontSize: 12, color: "#374151" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  syncBanner: { paddingVertical: 6, paddingHorizontal: spacing.md },
+  offlineBanner: { backgroundColor: colors.secondarySubtle },
+  pendingBanner: { backgroundColor: colors.primarySubtle },
+  syncText: { fontSize: 12, color: colors.textSecondary },
   loader: { marginTop: 48 },
-  list: { padding: 16, paddingBottom: 8 },
+  list: { padding: spacing.lg, paddingBottom: spacing.sm },
   entry: {
     borderLeftWidth: 2,
-    borderLeftColor: "#e5e7eb",
-    paddingLeft: 12,
-    marginBottom: 16,
+    borderLeftColor: colors.borderNeutral,
+    paddingLeft: spacing.md,
+    marginBottom: spacing.lg,
     paddingVertical: 4,
   },
   entryHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: spacing.sm,
     marginBottom: 2,
   },
-  entryTime: { fontSize: 12, color: "#9ca3af" },
-  moodBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
+  entryTime: { fontSize: 12, color: colors.mutedLight },
+  moodBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
   moodText: { fontSize: 11, fontWeight: "500" },
-  entryText: { fontSize: 15, color: "#111827", lineHeight: 22 },
-  reactionRow: { flexDirection: "row", gap: 6, marginTop: 8, flexWrap: "wrap" },
+  entryText: { fontSize: 15, color: colors.textPrimary, lineHeight: 22 },
+  reactionRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: spacing.sm,
+    flexWrap: "wrap",
+  },
   reactionBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -289,29 +306,40 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
+    borderColor: colors.borderNeutral,
+    backgroundColor: colors.surfaceSubtle,
   },
-  reactionActive: { borderColor: "#93c5fd", backgroundColor: "#eff6ff" },
+  reactionActive: {
+    borderColor: colors.primaryLight,
+    backgroundColor: colors.primarySubtle,
+  },
   reactionEmoji: { fontSize: 14 },
-  reactionCount: { fontSize: 12, color: "#374151", fontWeight: "500" },
-  openBtn: { marginTop: 8, alignSelf: "flex-start" },
-  openBtnText: { fontSize: 13, color: "#0369a1", fontWeight: "500" },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
-  form: { borderTopWidth: 1, borderTopColor: "#f3f4f6", padding: 12 },
-  moodRow: { flexDirection: "row", gap: 8, marginBottom: 10 },
+  reactionCount: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "500",
+  },
+  openBtn: { marginTop: spacing.sm, alignSelf: "flex-start" },
+  openBtnText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+  form: {
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceSubtle,
+    padding: spacing.md,
+  },
+  moodRow: { flexDirection: "row", gap: spacing.sm, marginBottom: 10 },
   moodTag: {
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
   },
-  moodTagText: { fontSize: 13, color: "#374151" },
+  moodTagText: { fontSize: 13, color: colors.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
     padding: 10,
     fontSize: 15,
     minHeight: 72,
@@ -319,11 +347,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   submitBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
+    padding: spacing.md,
     alignItems: "center",
   },
   submitDisabled: { opacity: 0.4 },
-  submitText: { color: "#fff", fontWeight: "600" },
+  submitText: { color: colors.white, fontWeight: "600" },
 });

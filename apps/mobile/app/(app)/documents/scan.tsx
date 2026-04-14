@@ -12,6 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -125,6 +126,8 @@ export default function ScanScreen() {
           style={styles.button}
           onPress={pickCamera}
           disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel="Take photo"
         >
           <Text style={styles.buttonText}>Take Photo</Text>
         </TouchableOpacity>
@@ -132,6 +135,8 @@ export default function ScanScreen() {
           style={styles.button}
           onPress={pickLibrary}
           disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel="Choose from library"
         >
           <Text style={styles.buttonText}>Choose from Library</Text>
         </TouchableOpacity>
@@ -145,9 +150,11 @@ export default function ScanScreen() {
           ]}
           onPress={upload}
           disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel={uploading ? "Uploading" : "Upload and process"}
         >
           {uploading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.white} />
           ) : (
             <Text style={styles.uploadButtonText}>Upload & Process</Text>
           )}
@@ -158,35 +165,44 @@ export default function ScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "600", marginBottom: 20 },
-  preview: { width: "100%", height: 300, borderRadius: 12, marginBottom: 20 },
+  container: {
+    flex: 1,
+    padding: spacing.xl,
+    backgroundColor: colors.surfaceRaised,
+  },
+  title: { fontSize: 22, fontWeight: "600", marginBottom: spacing.xl },
+  preview: {
+    width: "100%",
+    height: 300,
+    borderRadius: radii.lg,
+    marginBottom: spacing.xl,
+  },
   placeholder: {
     width: "100%",
     height: 300,
-    borderRadius: 12,
-    backgroundColor: "#f5f5f5",
+    borderRadius: radii.lg,
+    backgroundColor: colors.surfaceSubtle,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
-  placeholderText: { color: "#999", fontSize: 16 },
-  buttonRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  placeholderText: { color: colors.mutedLight, fontSize: 16 },
+  buttonRow: { flexDirection: "row", gap: 12, marginBottom: spacing.lg },
   button: {
     flex: 1,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.borderNeutral,
     alignItems: "center",
   },
-  buttonText: { fontSize: 15, color: "#333" },
+  buttonText: { fontSize: 15, color: colors.textSecondary },
   uploadButton: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#2563eb",
+    padding: spacing.lg,
+    borderRadius: radii.lg,
+    backgroundColor: colors.primary,
     alignItems: "center",
   },
-  uploadButtonDisabled: { backgroundColor: "#93c5fd" },
-  uploadButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  uploadButtonDisabled: { backgroundColor: colors.primaryLight },
+  uploadButtonText: { color: colors.white, fontWeight: "600", fontSize: 16 },
 });

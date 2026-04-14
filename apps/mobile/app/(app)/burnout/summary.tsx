@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { formatWeekStamp } from "../../../utils/wave5Utils";
+import { colors, spacing } from "../../../constants/tokens";
 
 export default function BurnoutSummaryScreen() {
   const router = useRouter();
@@ -37,7 +38,11 @@ export default function BurnoutSummaryScreen() {
       </Text>
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={data ?? []}
@@ -83,34 +88,39 @@ export default function BurnoutSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  backBtn: { padding: 16, paddingBottom: 0 },
-  backText: { fontSize: 15, color: "#0369a1" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  backBtn: { padding: spacing.lg, paddingBottom: 0 },
+  backText: { fontSize: 15, color: colors.primary },
   heading: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   subtext: {
     fontSize: 13,
-    color: "#9ca3af",
-    paddingHorizontal: 16,
+    color: colors.mutedLight,
+    paddingHorizontal: spacing.lg,
     marginTop: 4,
   },
   loader: { marginTop: 48 },
-  list: { padding: 16 },
+  list: { padding: spacing.lg },
   row: {
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  week: { fontSize: 14, fontWeight: "600", color: "#111827", marginBottom: 6 },
+  week: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: 6,
+  },
   scores: { flexDirection: "row", gap: 20 },
   scoreCol: { alignItems: "center" },
-  scoreLabel: { fontSize: 11, color: "#9ca3af", marginBottom: 2 },
-  scoreValue: { fontSize: 18, fontWeight: "700", color: "#111827" },
-  count: { fontSize: 12, color: "#9ca3af", marginTop: 4 },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  scoreLabel: { fontSize: 11, color: colors.mutedLight, marginBottom: 2 },
+  scoreValue: { fontSize: 18, fontWeight: "700", color: colors.textPrimary },
+  count: { fontSize: 12, color: colors.mutedLight, marginTop: 4 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
 });

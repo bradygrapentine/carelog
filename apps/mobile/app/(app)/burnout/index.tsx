@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { formatWeekStamp } from "../../../utils/wave5Utils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 function currentWeekStamp(): string {
   const d = new Date();
@@ -65,7 +66,11 @@ export default function BurnoutScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={data ?? []}
@@ -102,37 +107,42 @@ export default function BurnoutScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
   checkinBtn: {
-    margin: 16,
+    margin: spacing.lg,
     marginBottom: 0,
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
   },
-  checkinDisabled: { backgroundColor: "#d1d5db" },
-  checkinText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  checkinDisabled: { backgroundColor: colors.borderInput },
+  checkinText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   summaryBtn: {
-    marginHorizontal: 16,
-    marginTop: 8,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
     borderWidth: 1,
-    borderColor: "#0369a1",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.primary,
+    borderRadius: radii.md,
+    padding: spacing.md,
     alignItems: "center",
   },
-  summaryBtnText: { color: "#0369a1", fontWeight: "600", fontSize: 14 },
+  summaryBtnText: { color: colors.primary, fontWeight: "600", fontSize: 14 },
   loader: { marginTop: 48 },
-  list: { padding: 16 },
+  list: { padding: spacing.lg },
   row: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  week: { fontSize: 14, fontWeight: "600", color: "#111827", marginBottom: 4 },
+  week: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
   scores: { flexDirection: "row", gap: 12 },
-  score: { fontSize: 13, color: "#374151" },
-  notes: { fontSize: 13, color: "#6b7280", marginTop: 4 },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  score: { fontSize: 13, color: colors.textSecondary },
+  notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
 });

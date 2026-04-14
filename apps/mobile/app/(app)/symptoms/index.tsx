@@ -12,6 +12,7 @@ import { useApp } from "../../../context/AppContext";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { canLogSymptoms } from "../../../utils/wave5Utils";
 import { MOOD_COLORS, type Mood } from "../../../utils/journalUtils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 export default function SymptomsScreen() {
   const router = useRouter();
@@ -38,11 +39,14 @@ export default function SymptomsScreen() {
         <View
           style={{
             paddingVertical: 6,
-            paddingHorizontal: 12,
-            backgroundColor: syncStatus === "offline" ? "#fef3c7" : "#eff6ff",
+            paddingHorizontal: spacing.md,
+            backgroundColor:
+              syncStatus === "offline"
+                ? colors.secondarySubtle
+                : colors.primarySubtle,
           }}
         >
-          <Text style={{ fontSize: 12, color: "#374151" }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
             {syncStatus === "offline"
               ? "● Offline — readings will sync when connected"
               : "↑ Syncing readings…"}
@@ -61,7 +65,11 @@ export default function SymptomsScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={data ?? []}
@@ -117,33 +125,37 @@ export default function SymptomsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
   logBtn: {
-    margin: 16,
+    margin: spacing.lg,
     marginBottom: 0,
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
   },
-  logBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  logBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   loader: { marginTop: 48 },
-  list: { padding: 16 },
+  list: { padding: spacing.lg },
   row: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  date: { fontSize: 12, color: "#9ca3af", marginBottom: 4 },
+  date: { fontSize: 12, color: colors.mutedLight, marginBottom: 4 },
   metrics: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
     alignItems: "center",
   },
-  metric: { fontSize: 13, color: "#374151" },
-  moodBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
+  metric: { fontSize: 13, color: colors.textSecondary },
+  moodBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
   moodText: { fontSize: 11, fontWeight: "500" },
-  notes: { fontSize: 13, color: "#6b7280", marginTop: 4 },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
 });

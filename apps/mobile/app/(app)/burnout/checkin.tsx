@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const QUESTIONS = [
   "How's your sleep?",
@@ -150,20 +151,20 @@ export default function BurnoutCheckinScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  backBtn: { padding: 16, paddingBottom: 0 },
-  backText: { fontSize: 15, color: "#0369a1" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  backBtn: { padding: spacing.lg, paddingBottom: 0 },
+  backText: { fontSize: 15, color: colors.primary },
   stepLabel: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     fontSize: 12,
-    color: "#9ca3af",
+    color: colors.mutedLight,
   },
-  stepContent: { padding: 16, flex: 1 },
+  stepContent: { padding: spacing.lg, flex: 1 },
   question: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.textPrimary,
     marginBottom: 32,
   },
   scaleRow: { flexDirection: "row", justifyContent: "center", gap: 12 },
@@ -172,36 +173,39 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
     justifyContent: "center",
     alignItems: "center",
   },
-  scaleActive: { borderColor: "#0369a1", backgroundColor: "#eff6ff" },
-  scaleText: { fontSize: 20, color: "#374151", fontWeight: "600" },
-  scaleTextActive: { color: "#0369a1" },
+  scaleActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySubtle,
+  },
+  scaleText: { fontSize: 20, color: colors.textSecondary, fontWeight: "600" },
+  scaleTextActive: { color: colors.primary },
   scaleLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 8,
+    marginTop: spacing.sm,
     paddingHorizontal: 4,
   },
-  scaleLabelText: { fontSize: 12, color: "#9ca3af" },
+  scaleLabelText: { fontSize: 12, color: colors.mutedLight },
   notesInput: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
+    padding: spacing.md,
     fontSize: 15,
     minHeight: 100,
     textAlignVertical: "top",
     marginBottom: 20,
   },
   submitBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
   },
   submitDisabled: { opacity: 0.4 },
-  submitText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
 });

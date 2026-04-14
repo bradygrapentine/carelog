@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { getSession } from "../../../../utils/auth";
+import { colors, spacing, radii } from "../../../../constants/tokens";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -154,9 +155,11 @@ export default function OcrReviewScreen() {
         style={[styles.saveButton, saving && styles.saveButtonDisabled]}
         onPress={save}
         disabled={saving}
+        accessibilityRole="button"
+        accessibilityLabel={saving ? "Saving" : "Save document fields"}
       >
         {saving ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.white} />
         ) : (
           <Text style={styles.saveButtonText}>Save</Text>
         )}
@@ -166,47 +169,47 @@ export default function OcrReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  content: { padding: 20, paddingBottom: 40 },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  content: { padding: spacing.xl, paddingBottom: 40 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: { marginBottom: 24 },
   badge: {
     alignSelf: "flex-start",
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: "#e0f2fe",
+    borderRadius: radii.md,
+    backgroundColor: colors.primarySubtle,
   },
-  badgeText: { fontSize: 13, fontWeight: "600", color: "#0369a1" },
-  fieldRow: { marginBottom: 16 },
+  badgeText: { fontSize: 13, fontWeight: "600", color: colors.primary },
+  fieldRow: { marginBottom: spacing.lg },
   labelRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
     gap: 6,
   },
-  label: { fontSize: 13, color: "#6b7280", fontWeight: "500" },
+  label: { fontSize: 13, color: colors.muted, fontWeight: "500" },
   lowConfidenceDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#f59e0b",
+    backgroundColor: colors.warning,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
     padding: 10,
     fontSize: 15,
-    color: "#111827",
+    color: colors.textPrimary,
   },
   saveButton: {
     marginTop: 24,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#2563eb",
+    padding: spacing.lg,
+    borderRadius: radii.lg,
+    backgroundColor: colors.primary,
     alignItems: "center",
   },
-  saveButtonDisabled: { backgroundColor: "#93c5fd" },
-  saveButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  saveButtonDisabled: { backgroundColor: colors.primaryLight },
+  saveButtonText: { color: colors.white, fontWeight: "600", fontSize: 16 },
 });

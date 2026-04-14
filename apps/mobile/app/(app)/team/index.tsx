@@ -14,16 +14,17 @@ import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { canInvite } from "../../../utils/wave5Utils";
 import type { Membership } from "@carelog/types";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 type MemberRow = Membership & { display_name?: string; email?: string };
 
 const ROLES = ["coordinator", "caregiver", "aide", "supporter"] as const;
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  coordinator: { bg: "#ede9fe", text: "#5b21b6" },
-  caregiver: { bg: "#dbeafe", text: "#1e40af" },
-  aide: { bg: "#fef3c7", text: "#92400e" },
-  supporter: { bg: "#f3f4f6", text: "#374151" },
+  coordinator: { bg: colors.primarySubtle, text: colors.roleCoordinatorBg },
+  caregiver: { bg: colors.roleCaregiverBg, text: colors.roleCaregiverText },
+  aide: { bg: colors.secondarySubtle, text: colors.roleSupporterText },
+  supporter: { bg: colors.surfaceSubtle, text: colors.textSecondary },
 };
 
 export default function TeamScreen() {
@@ -73,14 +74,18 @@ export default function TeamScreen() {
   return (
     <View style={styles.container}>
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={(members ?? []) as MemberRow[]}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
-            const colors = ROLE_COLORS[item.role] ?? ROLE_COLORS.supporter;
+            const roleColors = ROLE_COLORS[item.role] ?? ROLE_COLORS.supporter;
             return (
               <View style={styles.row}>
                 <View style={styles.info}>
@@ -89,8 +94,10 @@ export default function TeamScreen() {
                   </Text>
                   {item.email && <Text style={styles.email}>{item.email}</Text>}
                 </View>
-                <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-                  <Text style={[styles.badgeText, { color: colors.text }]}>
+                <View
+                  style={[styles.badge, { backgroundColor: roleColors.bg }]}
+                >
+                  <Text style={[styles.badgeText, { color: roleColors.text }]}>
                     {item.role}
                   </Text>
                 </View>
@@ -176,23 +183,23 @@ export default function TeamScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
   loader: { marginTop: 48 },
-  list: { padding: 16 },
+  list: { padding: spacing.lg },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  info: { flex: 1, marginRight: 12 },
-  name: { fontSize: 15, fontWeight: "600", color: "#111827" },
-  email: { fontSize: 13, color: "#6b7280", marginTop: 2 },
+  info: { flex: 1, marginRight: spacing.md },
+  name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  email: { fontSize: 13, color: colors.muted, marginTop: 2 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { fontSize: 12, fontWeight: "500" },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
   fab: {
     position: "absolute",
     bottom: 24,
@@ -200,62 +207,70 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#0369a1",
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  fabText: { color: "#fff", fontSize: 28, lineHeight: 30 },
+  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 20,
+    backgroundColor: colors.surfaceRaised,
+    borderTopLeftRadius: spacing.lg,
+    borderTopRightRadius: spacing.lg,
+    padding: spacing.xl,
     paddingBottom: 40,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
+    padding: spacing.md,
     fontSize: 15,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
-  roleRow: { flexDirection: "row", gap: 8, marginBottom: 16, flexWrap: "wrap" },
+  roleRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+    flexWrap: "wrap",
+  },
   roleChip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
   },
-  roleChipActive: { borderColor: "#0369a1", backgroundColor: "#eff6ff" },
-  roleChipText: { fontSize: 13, color: "#374151" },
-  roleChipTextActive: { color: "#0369a1", fontWeight: "600" },
+  roleChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySubtle,
+  },
+  roleChipText: { fontSize: 13, color: colors.textSecondary },
+  roleChipTextActive: { color: colors.primary, fontWeight: "600" },
   sendBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   sendDisabled: { opacity: 0.4 },
-  sendText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  sendText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   cancelBtn: { alignItems: "center", padding: 10 },
-  cancelText: { color: "#6b7280", fontSize: 15 },
+  cancelText: { color: colors.muted, fontSize: 15 },
 });

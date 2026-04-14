@@ -24,6 +24,7 @@ import {
   canUploadDocument,
   type DocType,
 } from "../../../utils/wave5Utils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -204,7 +205,11 @@ export default function DocumentsScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <FlatList
           data={data ?? []}
@@ -327,37 +332,42 @@ export default function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
   scanButton: {
-    margin: 16,
+    margin: spacing.lg,
     marginBottom: 0,
     padding: 14,
-    borderRadius: 10,
-    backgroundColor: "#f0f9ff",
+    borderRadius: radii.md,
+    backgroundColor: colors.primarySubtle,
     borderWidth: 1,
-    borderColor: "#bae6fd",
+    borderColor: colors.primaryLight,
     alignItems: "center",
   },
-  scanButtonText: { color: "#0369a1", fontWeight: "600", fontSize: 15 },
+  scanButtonText: { color: colors.primary, fontWeight: "600", fontSize: 15 },
   loader: { marginTop: 48 },
-  list: { padding: 16, paddingBottom: 80 },
+  list: { padding: spacing.lg, paddingBottom: 80 },
   row: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  rowMain: { flexDirection: "row", alignItems: "center", gap: 8 },
-  docName: { fontSize: 15, fontWeight: "600", color: "#111827", flex: 1 },
+  rowMain: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  docName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    flex: 1,
+  },
   docTypeBadge: {
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 8,
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: radii.md,
   },
-  docTypeText: { fontSize: 11, color: "#374151" },
+  docTypeText: { fontSize: 11, color: colors.textSecondary },
   rowMeta: { flexDirection: "row", gap: 12, marginTop: 4 },
-  metaText: { fontSize: 12, color: "#9ca3af" },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  metaText: { fontSize: 12, color: colors.mutedLight },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
   fab: {
     position: "absolute",
     bottom: 24,
@@ -365,62 +375,70 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#0369a1",
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     zIndex: 10,
   },
-  fabText: { color: "#fff", fontSize: 28, lineHeight: 30 },
+  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 20,
+    backgroundColor: colors.surfaceRaised,
+    borderTopLeftRadius: spacing.lg,
+    borderTopRightRadius: spacing.lg,
+    padding: spacing.xl,
     paddingBottom: 40,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 8,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
-  fileName: { fontSize: 14, color: "#6b7280", marginBottom: 16 },
+  fileName: { fontSize: 14, color: colors.muted, marginBottom: spacing.lg },
   fieldLabel: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6b7280",
-    marginBottom: 8,
+    color: colors.muted,
+    marginBottom: spacing.sm,
   },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
   chip: {
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: spacing.lg,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
   },
-  chipActive: { borderColor: "#0369a1", backgroundColor: "#eff6ff" },
-  chipText: { fontSize: 12, color: "#374151" },
-  chipTextActive: { color: "#0369a1", fontWeight: "600" },
+  chipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySubtle,
+  },
+  chipText: { fontSize: 12, color: colors.textSecondary },
+  chipTextActive: { color: colors.primary, fontWeight: "600" },
   uploadBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   uploadDisabled: { opacity: 0.4 },
-  uploadText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  uploadText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   cancelBtn: { alignItems: "center", padding: 10 },
-  cancelText: { color: "#6b7280", fontSize: 15 },
+  cancelText: { color: colors.muted, fontSize: 15 },
 });

@@ -12,6 +12,7 @@ import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
 import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 // Supabase join returns medications as an array; we use the first element
 type ScheduledMed = {
@@ -77,7 +78,7 @@ export default function MedicationsScreen() {
       <ActivityIndicator
         style={{ marginTop: 48 }}
         size="large"
-        color="#0369a1"
+        color={colors.primary}
       />
     );
   }
@@ -90,11 +91,14 @@ export default function MedicationsScreen() {
         <View
           style={{
             paddingVertical: 6,
-            paddingHorizontal: 12,
-            backgroundColor: syncStatus === "offline" ? "#fef3c7" : "#eff6ff",
+            paddingHorizontal: spacing.md,
+            backgroundColor:
+              syncStatus === "offline"
+                ? colors.secondarySubtle
+                : colors.primarySubtle,
           }}
         >
-          <Text style={{ fontSize: 12, color: "#374151" }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
             {syncStatus === "offline"
               ? "● Offline — logs will sync when connected"
               : "↑ Syncing logs…"}
@@ -133,6 +137,12 @@ export default function MedicationsScreen() {
                     recipient_id: recipientId!,
                   }).then(() => refetch())
                 }
+                accessibilityRole="button"
+                accessibilityLabel={
+                  given
+                    ? "Already given"
+                    : "Mark " + med.drug_name + " as given"
+                }
               >
                 <Text style={[styles.btnText, given && styles.givenText]}>
                   {given ? "✓ Given" : "Mark given"}
@@ -150,30 +160,39 @@ export default function MedicationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 16, marginTop: 8 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.surfaceRaised,
+    padding: spacing.lg,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
   info: { flex: 1 },
   medName: { fontSize: 16, fontWeight: "600" },
-  medDose: { fontSize: 13, color: "#6b7280", marginTop: 2 },
+  medDose: { fontSize: 13, color: colors.muted, marginTop: 2 },
   btn: {
-    backgroundColor: "#0369a1",
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
   },
   givenBtn: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: colors.successSubtle,
     borderWidth: 1,
-    borderColor: "#86efac",
+    borderColor: colors.successLight,
   },
-  btnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  givenText: { color: "#16a34a" },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  btnText: { color: colors.white, fontWeight: "600", fontSize: 13 },
+  givenText: { color: colors.successStrong },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
 });
