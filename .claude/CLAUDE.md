@@ -247,6 +247,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
 | `/backlog-sync` | Reconcile BACKLOG.md against git log + open PRs; rewrite §0 status board; flag stale/unblocked rows. Run at session start, end, and daily. |
+| `/backlog-dispatch` | Dispatch parallel subagents against all `🟢 Ready` BACKLOG.md items — each gets a worktree, feature branch, tests-first implementation, and PR. For overnight batch execution. |
 
 ## Agents
 
