@@ -20,6 +20,7 @@ export type ShiftStatus =
   | "confirmed"
   | "completed"
   | "missed";
+/** Lifecycle states for an OCR scan job (e.g. medication label scans). */
 export type OcrJobStatus =
   | "pending"
   | "processing"
@@ -46,6 +47,7 @@ export interface Membership {
   accepted_at: string | null;
 }
 
+/** Represents the person receiving care; `identity_token` is an opaque reference used in place of real name to limit PHI in the client. */
 export interface CareRecipient {
   id: string;
   org_id: string;
@@ -99,6 +101,7 @@ export interface JournalReaction {
   created_at: string;
 }
 
+/** A shareable, time-limited summary of a recipient's care information (medications, contacts, preferences) used for handoffs and provider visits. */
 export interface CareBrief {
   id: string;
   org_id: string;
@@ -143,6 +146,7 @@ export interface Document {
   created_at: string;
 }
 
+/** Records the answers and results from a government-benefits eligibility screener run for a recipient. */
 export interface BenefitsScreening {
   id: string;
   org_id: string;
@@ -153,6 +157,7 @@ export interface BenefitsScreening {
   created_at: string;
 }
 
+/** The recipient's documented resuscitation preference, used in end-of-life planning. */
 export type ResuscitationPref =
   | "full_code"
   | "dnr"
@@ -174,6 +179,7 @@ export interface EolPlan {
   updated_at: string;
 }
 
+/** Stores an Expo push token for a user's device, used to send mobile push notifications. */
 export interface PushToken {
   id: string;
   user_id: string;

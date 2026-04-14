@@ -127,8 +127,8 @@ Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, docu
 ### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### 🌙 ON-30 — JSDoc on public exports in `packages/shared`
-One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
+### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
+One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
