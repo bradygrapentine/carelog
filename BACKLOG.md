@@ -155,8 +155,9 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### 🌙 ON-39 — Eliminate `any` types
+### 🔎 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
+**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
 
 ### ✅ ON-40 — Vitest flake detection + quarantine
 Run `pnpm test` 5×; `.skip` any intermittent failure with `// FLAKY: ON-XX` linking new story. Report at `docs/project-info/technology/FLAKE_REPORT.md`. **Size:** 2 hr.
