@@ -177,6 +177,11 @@ Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme
 ### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
+### 🌙 TD-05 — Regenerate Supabase TypeScript types after messaging migration
+Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
+**AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
+**Status:** 🟢 Ready
+
 ---
 
 ## 3. Platform parity (PP-*)
