@@ -388,9 +388,7 @@ function DangerZoneSection() {
       {/* Leave confirmation modal */}
       {showLeaveModal && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="leave-dialog-title"
+          role="presentation"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowLeaveModal(false);
@@ -399,7 +397,12 @@ function DangerZoneSection() {
             if (e.key === "Escape") setShowLeaveModal(false);
           }}
         >
-          <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-dialog-title"
+            className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl"
+          >
             <h2
               id="leave-dialog-title"
               className="text-lg font-bold text-[var(--color-ink)]"
