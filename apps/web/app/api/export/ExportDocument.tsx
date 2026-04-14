@@ -151,9 +151,9 @@ export function ExportDocument({ data }: { data: ExportData }) {
             <View key={i} style={s.item}>
               <View style={s.row}>
                 <Text style={s.label}>{formatDate(e.occurred_at)}</Text>
-                <Text style={s.value}>{e.payload?.text ?? ''}</Text>
+                <Text style={s.value}>{String(e.payload?.text ?? '')}</Text>
               </View>
-              {e.payload?.mood && <View style={s.row}><Text style={s.label}>Mood</Text><Text style={s.value}>{e.payload.mood}</Text></View>}
+              {e.payload?.mood ? <View style={s.row}><Text style={s.label}>Mood</Text><Text style={s.value}>{String(e.payload.mood)}</Text></View> : null}
               {e.flagged && <Text style={{ color: '#dc2626' /* TODO: no CSS var support in react-pdf; closest token --color-danger (#ef4444) */, fontSize: 9 }}>Flagged for follow-up</Text>}
             </View>
           ))}
