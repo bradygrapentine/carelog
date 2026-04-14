@@ -81,11 +81,66 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
 
+<<<<<<< feat/on39-eliminate-any
+### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
+**Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
+**Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
+**AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
+**Size:** ~2 hr. **Blocked by:** nothing.
+
+### 🌙 ON-21 — Web raw-hex audit + token migration · 🔎 PR #34
+**Why:** `.claude/rules/ui-standards.md` forbids raw hex in component files.
+**Work:** `grep -rn "#[0-9a-fA-F]\{3,8\}" apps/web/app apps/web/components`; replace with closest `var(--color-*)`. If no close token, add note in PR — do NOT invent a token. Skip `.svg/.ico/public/`.
+**AC:** no raw hex in `.tsx/.ts`; visual spot-check on dashboard + journal + billing; `pnpm typecheck` + `pnpm test` green.
+**Size:** ~3 hr. **Branch:** feat/on21-raw-hex
+
+### ✅ ON-22 — pgTAP RLS test: `notification_preferences`
+Owner-only RLS, no pgTAP coverage. Template: `supabase/tests/expenses_rls.test.sql`. Cases: owner r/w self pass, cross-user blocked, anon blocked. **AC:** `supabase test db` passes. **Size:** 1 hr.
+
+### ✅ ON-23 — pgTAP RLS test: `care_recipients`
+Root of org scoping — cannot ship multi-tenant without this. Cases: org member reads; non-member blocked; only coordinator can insert/update/delete; anon blocked on all. **AC:** `supabase test db` passes with 5+ assertions. **Size:** 1.5 hr.
+
+### ✅ ON-24 — pgTAP RLS test: `mood_entries`
+PHI. Cases: org member reads for in-org recipients only; author-only update/delete; anon blocked. **Size:** 1.5 hr.
+
+### ✅ ON-25 — Zod schema tests for shared validators
+`find packages -name "*.ts" -path "*schema*"`; for each without a `.test.ts`, add one valid case + 2–3 invalid edge cases. **AC:** every exported schema in `packages/shared` has a test. **Size:** 3 hr.
+
+### 🌙 ON-26 — Mobile empty-state copy pass
+Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Carelog voice (see `UX_DECISIONS.md`) with a concrete next-action CTA. Keep layouts identical. **Size:** 2 hr.
+**Status:** 🔎 In review, Branch: feat/mobile-ux
+
+### 🌙 ON-27 — Web alt-text audit
+`grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
+
+### 🌙 ON-28 — Mobile loading skeletons on list screens
+Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
+**Status:** 🔎 In review, Branch: feat/mobile-ux
+
+### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
+Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
+
+### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
+One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
+
+=======
+>>>>>>> main
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Unblocked:** PP-004 (settings hub) shipped in PR #36.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
+<<<<<<< feat/on39-eliminate-any
+`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
+
+### ✅ 🌙 ON-38 — Dependency freshness report
+`pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
+
+### 🔎 ON-39 — Eliminate `any` types
+Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
+**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
+=======
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr. **Note:** two agent attempts timed out; consider splitting into separate web + mobile subtasks.
+>>>>>>> main
 
 ### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
 19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
