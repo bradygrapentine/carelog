@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  sendInviteAndGetUrl,
+  acceptInviteAsNewUser,
+} from "./helpers";
 
 const COORDINATOR_EMAIL = "e2e-team-admin@test.com";
 
