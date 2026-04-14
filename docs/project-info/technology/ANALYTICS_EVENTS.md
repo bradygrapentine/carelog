@@ -2,7 +2,7 @@
 
 Audit date: 2026-04-14. Source: `grep -rn "posthog.capture" apps/web/ apps/mobile/`.
 
-> **PHI rule:** `distinctId` must be a UUID or opaque token. `contact_form_submitted` uses `email` as `distinctId` — see Known Issues below.
+> **PHI rule:** `distinctId` must be a UUID or opaque token. `contact_form_submitted` previously used `email` as `distinctId` — ✅ Fixed in PR #44 (now uses `crypto.randomUUID()` as `distinctId`).
 
 ---
 
@@ -30,7 +30,7 @@ Audit date: 2026-04-14. Source: `grep -rn "posthog.capture" apps/web/ apps/mobil
 | `subscription_updated` | ✅ | ❌ | `apps/web/app/api/stripe/webhook/route.ts` |
 | `subscription_cancel_initiated` | ✅ | ❌ | `apps/web/app/(app)/subscriptions/page.tsx` |
 | `billing_portal_opened` | ✅ | ❌ | `apps/web/app/api/stripe/portal/route.ts` |
-| `contact_form_submitted` | ✅ | ❌ | `apps/web/app/api/contact/route.ts` — **⚠ PHI: uses email as distinctId** |
+| `contact_form_submitted` | ✅ | ❌ | `apps/web/app/api/contact/route.ts` — ✅ PHI fixed in PR #44 |
 | `$exception` | ✅ | ❌ | Stripe webhook, onboarding create, invite routes |
 
 **Total: 22 event types** — all Web-only; Mobile has zero PostHog instrumentation.
@@ -55,14 +55,6 @@ None — mobile has no PostHog instrumentation.
 
 | Severity | Issue | File | Suggested fix |
 |---|---|---|---|
-| 🔴 PHI | `contact_form_submitted` uses `email` as `distinctId` | `apps/web/app/api/contact/route.ts:59` | Use `"anonymous"` or a hash; never pass raw email to PostHog |
+| ✅ Fixed (PR #44) | `contact_form_submitted` used `email` as `distinctId` | `apps/web/app/api/contact/route.ts:59` | Now uses `crypto.randomUUID()` as `distinctId` |
 | 🟡 Duplicate | `care_team_created` fires on both client and server | `OnboardingForm.tsx` + `api/onboarding/create/route.ts` | Remove the client-side fire; server-side is authoritative |
 | 🟡 Gap | Mobile has zero analytics coverage | `apps/mobile/` | Add PostHog React Native SDK and port key events (sign_in, journal_entry_submitted, burnout_checkin_submitted) |
-
----
-
-## Next steps
-
-- ON-47: Fix `contact_form_submitted` PHI leak (replace email distinctId with `"anonymous"`)
-- ON-48: Eliminate client-side `care_team_created` duplicate
-- ON-49: Mobile PostHog instrumentation parity (sign-in, journal, burnout checkin)
