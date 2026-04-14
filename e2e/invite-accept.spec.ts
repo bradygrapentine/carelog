@@ -62,11 +62,15 @@ test("coordinator invite accepted — invitee lands on dashboard with correct ro
 });
 
 test("expired invite token shows error message", async ({ page }) => {
-  // Navigate to an invalid / expired invite token directly
+  // Route: apps/web/app/invite/[token]/page.tsx — this route exists.
+  // GET /api/invite/<token> returns { error: 'Invite not found' } (HTTP 404) for
+  // any token absent from the invite_tokens table. The page then renders
+  // status="error" showing <h1>Invite not found</h1> — matched by /not found/i below.
+  // Using a clearly-bogus token string guarantees the DB row is absent.
   await page.goto("/invite/invalid-token-that-does-not-exist");
 
-  // The app should render an error state — not redirect silently
-  // Accept any of the common error text patterns the UI may use
+  // The app should render an error state — not redirect silently.
+  // The broader pattern list guards against future copy changes.
   const errorLocator = page.locator(
     [
       "text=/invalid/i",
