@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { getSession } from "../../utils/auth";
-import { colors } from "../../constants/tokens";
+import { useAppTheme } from "../../hooks/useAppTheme";
 
 export default function AppLayout() {
   const router = useRouter();
+  const { colors } = useAppTheme();
 
   useEffect(() => {
     getSession().then((session) => {
@@ -17,6 +18,8 @@ export default function AppLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: { backgroundColor: colors.surfaceRaised },
+        sceneStyle: { backgroundColor: colors.surface },
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Home", href: null }} />

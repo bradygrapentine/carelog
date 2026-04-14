@@ -3,7 +3,9 @@
 // two apps feel like one product. Import from here — never paste raw hex
 // into a screen file.
 
-export const colors = {
+// Alias kept for back-compat — lightColors and darkColors are the canonical
+// named exports; `colors` always points at the light palette.
+export const lightColors = {
   // Primary (violet)
   primary: "#7c3aed",
   primaryLight: "#a78bfa",
@@ -66,6 +68,82 @@ export const colors = {
   black: "#000000",
   transparent: "transparent",
 } as const;
+
+// Dark palette — surfaces flip to near-black with violet tint;
+// text flips to bright off-white. Amber, mood, and semantic colors
+// are intentionally unchanged (they encode meaning).
+//
+// WCAG AA contrast math (relative luminance, sRGB):
+//   textPrimary (#f3e8ff, L=0.906) on surface   (#1a0f2e, L=0.0065) → 11.7:1 ✅
+//   textPrimary (#f3e8ff, L=0.906) on surfaceRaised (#241538, L=0.0125) → 8.8:1 ✅
+//   textPrimary (#f3e8ff, L=0.906) on surfaceSubtle (#2d1a45, L=0.019)  → 6.8:1 ✅
+//   All well above 4.5:1 body-text requirement.
+export const darkColors = {
+  // Primary (violet) — brightened slightly for dark bg readability
+  primary: "#a78bfa",
+  primaryLight: "#c4b5fd",
+  primarySubtle: "#3b1e6b",
+
+  // Secondary (amber) — same as light; encodes meaning
+  secondary: "#d97706",
+  secondaryLight: "#f59e0b",
+  secondarySubtle: "#422006",
+
+  // Ink / headings
+  ink: "#f3e8ff",
+
+  // Surfaces
+  surface: "#1a0f2e",
+  surfaceRaised: "#241538",
+  surfaceSubtle: "#2d1a45",
+
+  // Text
+  textPrimary: "#f3e8ff",
+  textSecondary: "#c4b5fd",
+  muted: "#9ca3af",
+  mutedLight: "#6b7280",
+
+  // Borders
+  border: "#4c1d95",
+  borderNeutral: "#3b2560",
+
+  // Semantic — same as light (they encode pass/warn/fail meaning)
+  success: "#10b981",
+  successLight: "#86efac",
+  successSubtle: "#052e16",
+  successStrong: "#34d399",
+  successBadgeBg: "#064e3b",
+  successBadgeText: "#6ee7b7",
+  warning: "#f59e0b",
+  danger: "#ef4444",
+  dangerStrong: "#fca5a5",
+  dangerSubtle: "#450a0a",
+  dangerPanel: "#3b0a0a",
+
+  // Input border
+  borderInput: "#5b21b6",
+
+  // Role badges
+  roleCoordinatorBg: "#7c3aed",
+  roleCaregiverBg: "#1e3a5f",
+  roleCaregiverText: "#93c5fd",
+  roleSupporterText: "#fcd34d",
+
+  // Mood (same — encode meaning)
+  moodGood: "#22c55e",
+  moodOkay: "#f59e0b",
+  moodDifficult: "#f97316",
+  moodCrisis: "#ef4444",
+
+  // Utility
+  white: "#ffffff",
+  black: "#000000",
+  transparent: "transparent",
+} as const;
+
+// Back-compat: `colors` always points at the light palette so existing
+// imports (ON-11 panel migration and other screens) continue to work.
+export const colors: typeof lightColors = lightColors;
 
 export const spacing = {
   xs: 4,

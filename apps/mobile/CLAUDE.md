@@ -50,6 +50,13 @@ Flush triggers on NetInfo reconnect and immediately after each write when online
 Never edit `apps/mobile/ios/` directly — use `expo prebuild --clean` to regenerate.
 Exception: `CarelogWatch/` Xcode target files (hand-maintained, outside prebuild scope).
 
+## Dark mode
+Screens consume theme via `useAppTheme()` from `hooks/useAppTheme.ts`
+rather than importing `colors` directly. The hook returns the active
+palette based on system color scheme. Screen migration is tracked in
+ON-16 (follow-up to ON-13 — file it in OVERNIGHT_BACKLOG.md if it
+doesn't exist yet).
+
 ## Auth
 Use browser client (`createClient()`) — same pattern as web local dev.
 Session persisted in SecureStore via ExpoSecureStoreAdapter.
