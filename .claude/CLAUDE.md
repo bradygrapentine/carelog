@@ -28,6 +28,8 @@ If you catch yourself about to start work without a backlog row, stop and create
 
 Before starting any planned or multi-task work, verify what is already done. Run `git log --oneline -20`, grep the codebase for the target files/symbols, and check the relevant backlog doc for `✅ DONE`/strike-through markers. Produce a status table (done/partial/todo) before touching code. Skipping this step has repeatedly led to re-implementing completed work.
 
+**Before writing any new file**, run Glob/Grep to verify it doesn't already exist. This applies to components, migrations, utilities — anything. Discovering a file already exists mid-implementation wastes context and produces duplicates.
+
 ### Testing first
 
 When asked to fix failing tests, run the test command first and read the actual failure output. Do not explore the codebase before seeing the real errors — the failure message usually points at the exact file and line.
@@ -77,6 +79,20 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Subagents only for genuinely independent tasks (different files, no shared state)
 - Max 2 background agents per session
 - Worktrees: `git worktree add .worktrees/<name> origin/main`
+
+### Subagent Scope Contract (required for every dispatch)
+
+Every subagent dispatch MUST include an explicit scope contract. Never dispatch without it:
+
+```
+FILES ALLOWED: [exact list of files the subagent may create or modify]
+BRANCH: [exact branch name — subagent must verify with `git branch --show-current` before committing]
+DO NOT: add features outside the ticket, touch files not listed above, pass email/PHI to analytics
+PHI RULE: posthog.identify() and posthog.capture() must use UUID only — never email, name, or any PII
+VERIFY: run tests before committing; summarize what changed and what was intentionally NOT changed
+```
+
+Subagents that go out of scope (add unrelated features, leak PHI, commit to wrong branch) require reverts and cherry-picks. The scope contract prevents this.
 
 ## Automation & Sessions
 
@@ -174,6 +190,16 @@ Run Claude non-interactively for automated QA:
 - Don't auto-import large reference docs — list them, let user load on demand
 - Don't claim done without running verification commands first
 - Don't edit files during code review — only read and report findings
+
+## Deliver Artifacts — Don't Explore
+
+When asked to produce a specific artifact (review report, test file, runbook, coverage analysis), **produce the artifact immediately**:
+
+1. Create the output file with section headers as the very first action
+2. Fill each section with findings — reading only what each section needs
+3. Return the completed artifact
+
+Do NOT read 10 files "to understand the codebase" before producing output. Reading files for exploration instead of writing the artifact is the most common failure mode in review/test/runbook sessions. If you find yourself opening a 4th file before writing a single line of output, stop and start the output file first.
 
 ## Review Mode (READ-ONLY)
 
