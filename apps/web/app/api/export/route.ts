@@ -126,14 +126,12 @@ export async function POST(request: NextRequest) {
     }
 
     // PDF format — rendered server-side with @react-pdf/renderer
-    const { renderToBuffer } = await import('@react-pdf/renderer')
+    const { renderToBuffer, Document } = await import('@react-pdf/renderer')
     const React = (await import('react')).default
     const { ExportDocument } = await import('./ExportDocument')
 
     const buffer = await renderToBuffer(
-      // @react-pdf/renderer expects DocumentProps generic; React.createElement returns
-      // React.ReactElement which is compatible at runtime but not at the type level.
-      React.createElement(ExportDocument, { data: exportPayload }) as React.ReactElement
+      React.createElement(Document, {}, React.createElement(ExportDocument, { data: exportPayload }))
     )
     return new NextResponse(new Uint8Array(buffer), {
       status:  200,
