@@ -98,6 +98,17 @@ export const typography = {
   weightBold: "700" as const,
 } as const;
 
+// Font families — loaded in app/_layout.tsx via useFonts() from
+// @expo-google-fonts/inter. When weights matter, reference these directly
+// rather than setting fontWeight on plain text (React Native doesn't map
+// fontWeight onto the right Inter face automatically).
+export const fontFamily = {
+  regular: "Inter_400Regular",
+  medium: "Inter_500Medium",
+  semibold: "Inter_600SemiBold",
+  bold: "Inter_700Bold",
+} as const;
+
 export const shadows = {
   card: {
     shadowColor: colors.ink,

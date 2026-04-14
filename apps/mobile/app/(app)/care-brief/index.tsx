@@ -34,6 +34,10 @@ export default function CareBriefScreen() {
     setLoading(true);
     try {
       const session = await getSession();
+      if (!session) {
+        setError("You need to be signed in.");
+        return;
+      }
       const res = await fetch(`${API_URL}/api/brief`, {
         method: "POST",
         headers: {
@@ -64,6 +68,10 @@ export default function CareBriefScreen() {
   async function handleRevoke(shareToken: string) {
     try {
       const session = await getSession();
+      if (!session) {
+        Alert.alert("Error", "You need to be signed in.");
+        return;
+      }
       await fetch(`${API_URL}/api/brief/${shareToken}/revoke`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
