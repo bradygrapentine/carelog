@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,43 @@ import {
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { supabase } from "../../utils/supabase";
-import { colors, spacing, radii } from "../../constants/tokens";
+import { useAppTheme } from "../../hooks/useAppTheme";
 
 export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: "center",
+          padding: spacing.xxl,
+          backgroundColor: colors.surfaceRaised,
+        },
+        title: { fontSize: 24, fontWeight: "700", marginBottom: spacing.sm },
+        subtitle: { fontSize: 15, color: colors.muted, marginBottom: 32 },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderInput,
+          borderRadius: radii.md,
+          padding: 14,
+          fontSize: 16,
+          marginBottom: spacing.lg,
+        },
+        button: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+        },
+        buttonText: { color: colors.white, fontSize: 16, fontWeight: "600" },
+      }),
+    [colors, spacing, radii],
+  );
 
   async function handleSubmit() {
     const trimmed = email.trim().toLowerCase();
@@ -64,29 +95,3 @@ export default function SignInScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: spacing.xxl,
-    backgroundColor: colors.surfaceRaised,
-  },
-  title: { fontSize: 24, fontWeight: "700", marginBottom: spacing.sm },
-  subtitle: { fontSize: 15, color: colors.muted, marginBottom: 32 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.md,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: spacing.lg,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-  },
-  buttonText: { color: colors.white, fontSize: 16, fontWeight: "600" },
-});

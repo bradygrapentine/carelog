@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,15 +11,62 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { formatWeekStamp } from "../../../utils/wave5Utils";
-import { colors, spacing } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 export default function BurnoutSummaryScreen() {
   const router = useRouter();
   const { orgId } = useApp();
+  const { colors, spacing } = useAppTheme();
 
   const { data, isLoading } = trpc.burnout.orgSummary.useQuery(
     { org_id: orgId ?? "" },
     { enabled: !!orgId },
+  );
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surfaceRaised },
+        backBtn: { padding: spacing.lg, paddingBottom: 0 },
+        backText: { fontSize: 15, color: colors.primary },
+        heading: {
+          fontSize: 20,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.md,
+        },
+        subtext: {
+          fontSize: 13,
+          color: colors.mutedLight,
+          paddingHorizontal: spacing.lg,
+          marginTop: 4,
+        },
+        loader: { marginTop: 48 },
+        list: { padding: spacing.lg },
+        row: {
+          paddingVertical: 14,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        week: {
+          fontSize: 14,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: 6,
+        },
+        scores: { flexDirection: "row", gap: 20 },
+        scoreCol: { alignItems: "center" },
+        scoreLabel: { fontSize: 11, color: colors.mutedLight, marginBottom: 2 },
+        scoreValue: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: colors.textPrimary,
+        },
+        count: { fontSize: 12, color: colors.mutedLight, marginTop: 4 },
+        empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+      }),
+    [colors, spacing],
   );
 
   return (
@@ -86,41 +134,3 @@ export default function BurnoutSummaryScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  backBtn: { padding: spacing.lg, paddingBottom: 0 },
-  backText: { fontSize: 15, color: colors.primary },
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  subtext: {
-    fontSize: 13,
-    color: colors.mutedLight,
-    paddingHorizontal: spacing.lg,
-    marginTop: 4,
-  },
-  loader: { marginTop: 48 },
-  list: { padding: spacing.lg },
-  row: {
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  week: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  scores: { flexDirection: "row", gap: 20 },
-  scoreCol: { alignItems: "center" },
-  scoreLabel: { fontSize: 11, color: colors.mutedLight, marginBottom: 2 },
-  scoreValue: { fontSize: 18, fontWeight: "700", color: colors.textPrimary },
-  count: { fontSize: 12, color: colors.mutedLight, marginTop: 4 },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});

@@ -15,9 +15,11 @@ import { trpc, createTrpcClient } from "../utils/trpc";
 import { getAccessToken } from "../utils/auth";
 import { AppProvider } from "../context/AppContext";
 import { useWatchMessages } from "../hooks/useWatchMessages";
+import { initSentry, Sentry } from "../utils/sentry";
 import { useAppTheme } from "../hooks/useAppTheme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -53,7 +55,7 @@ function RootLayoutInner() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [trpcClient] = useState(() => createTrpcClient(getAccessToken));
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -80,3 +82,5 @@ export default function RootLayout() {
     </trpc.Provider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

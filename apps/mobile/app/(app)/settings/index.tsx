@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { signOut, getAccessToken } from "../../../utils/auth";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -52,6 +52,42 @@ async function registerPushToken(): Promise<void> {
 export default function SettingsScreen() {
   const router = useRouter();
   const [registering, setRegistering] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: spacing.lg,
+          backgroundColor: colors.surfaceRaised,
+        },
+        title: {
+          fontSize: 22,
+          fontWeight: "700",
+          marginBottom: 24,
+          marginTop: spacing.sm,
+        },
+        notifBtn: {
+          borderWidth: 1,
+          borderColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+          marginBottom: spacing.md,
+        },
+        notifText: { color: colors.primary, fontWeight: "600" },
+        signOutBtn: {
+          borderWidth: 1,
+          borderColor: colors.danger,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+        },
+        signOutText: { color: colors.danger, fontWeight: "600" },
+      }),
+    [colors, spacing, radii],
+  );
 
   async function handleSignOut() {
     await signOut();
@@ -105,34 +141,3 @@ export default function SettingsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.lg,
-    backgroundColor: colors.surfaceRaised,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 24,
-    marginTop: spacing.sm,
-  },
-  notifBtn: {
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: spacing.md,
-  },
-  notifText: { color: colors.primary, fontWeight: "600" },
-  signOutBtn: {
-    borderWidth: 1,
-    borderColor: colors.danger,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-  },
-  signOutText: { color: colors.danger, fontWeight: "600" },
-});

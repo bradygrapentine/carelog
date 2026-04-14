@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,41 @@ import {
 import { useRouter } from "expo-router";
 import { trpc } from "../../utils/trpc";
 import { useApp } from "../../context/AppContext";
-import { colors, spacing, radii } from "../../constants/tokens";
+import { useAppTheme } from "../../hooks/useAppTheme";
 
 export default function OrgSelectorScreen() {
   const router = useRouter();
   const { setOrg } = useApp();
   const { data: orgs, isLoading } = trpc.organizations.list.useQuery();
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: spacing.lg,
+          backgroundColor: colors.surfaceRaised,
+        },
+        center: { flex: 1, justifyContent: "center", alignItems: "center" },
+        title: {
+          fontSize: 22,
+          fontWeight: "700",
+          marginBottom: spacing.lg,
+          marginTop: 48,
+        },
+        card: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: spacing.lg,
+          marginBottom: 10,
+        },
+        cardTitle: { fontSize: 17, fontWeight: "600" },
+        empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+      }),
+    [colors, spacing, radii],
+  );
 
   useEffect(() => {
     if (orgs?.length === 1) {
@@ -59,27 +88,3 @@ export default function OrgSelectorScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.lg,
-    backgroundColor: colors.surfaceRaised,
-  },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: spacing.lg,
-    marginTop: 48,
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: spacing.lg,
-    marginBottom: 10,
-  },
-  cardTitle: { fontSize: 17, fontWeight: "600" },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});
