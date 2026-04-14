@@ -136,8 +136,8 @@ Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, asse
 ### 🌙 ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
 
 ### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
 Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
