@@ -4,6 +4,7 @@ import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getStripe } from "@/lib/stripe";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logger } from "@/lib/logger";
 
 const checkoutSchema = z.object({
   orgId: z.string().uuid(),
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (e) {
-    console.warn("[stripe/checkout] posthog capture failed:", e);
+    logger.warn("[stripe/checkout] posthog capture failed:", e);
   }
 
   return NextResponse.json({ url: session.url });

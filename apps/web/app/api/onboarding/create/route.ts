@@ -7,6 +7,7 @@ import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/parseBody";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logger } from "@/lib/logger";
 
 const onboardingSchema = z.object({
   recipientName: z.string().min(1).max(200),
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, orgId: org.id });
   } catch (e: unknown) {
-    console.error("[onboarding] error:", e);
+    logger.error("[onboarding] error:", e);
     const errorMessage =
       e instanceof Error ? e.message : "Something went wrong";
     try {

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
             },
           });
         } catch (e) {
-          console.warn("[stripe/webhook] posthog capture failed:", e);
+          logger.warn("[stripe/webhook] posthog capture failed:", e);
         }
         break;
       }
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
             },
           });
         } catch (e) {
-          console.warn("[stripe/webhook] posthog capture failed:", e);
+          logger.warn("[stripe/webhook] posthog capture failed:", e);
         }
         break;
       }
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
 
       case "invoice.payment_failed": {
         // v1: log only, no action
-        console.warn(
+        logger.warn(
           "Stripe invoice.payment_failed for customer:",
           event.data.object.customer,
         );
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       }
     }
   } catch (e: unknown) {
-    console.error("[stripe/webhook] error:", e);
+    logger.error("[stripe/webhook] error:", e);
     try {
       const posthog = getPostHogClient();
       const err =

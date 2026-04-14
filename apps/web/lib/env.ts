@@ -2,6 +2,8 @@
 // Imported once in instrumentation.ts — logs warnings for missing required vars.
 // Does NOT throw — the app still boots, but operators see what's misconfigured.
 
+import { logger } from "@/lib/logger";
+
 const REQUIRED = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
@@ -32,7 +34,7 @@ export function validateEnv() {
   }
 
   if (missing.length > 0) {
-    console.error(
+    logger.error(
       "[env] CRITICAL: Missing required environment variables:",
       missing.join(", "),
     );
@@ -46,7 +48,7 @@ export function validateEnv() {
       }
     }
     if (missingOptional.length > 0) {
-      console.warn(
+      logger.warn(
         "[env] Warning: Optional environment variables not set (some features disabled):",
         missingOptional.join(", "),
       );

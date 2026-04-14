@@ -4,6 +4,7 @@ import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
 import { getPostHogClient } from "@/lib/posthog-server";
 import { inngest } from "@/inngest/client";
+import { logger } from "@/lib/logger";
 
 const ALLOWED_DOC_TYPES = [
   "hipaa_authorization",
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
       data: { documentId: doc.id },
     });
   } catch (err) {
-    console.warn(
+    logger.warn(
       "[documents/upload] inngest.send failed — text extraction skipped",
       err,
     );

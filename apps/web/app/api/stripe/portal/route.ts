@@ -4,6 +4,7 @@ import { getRequestUser } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getStripe } from "@/lib/stripe";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logger } from "@/lib/logger";
 
 const portalSchema = z.object({
   orgId: z.string().min(1),
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       properties: { org_id: orgId },
     });
   } catch (e) {
-    console.warn("[stripe/portal] posthog capture failed:", e);
+    logger.warn("[stripe/portal] posthog capture failed:", e);
   }
 
   return NextResponse.json({ url: session.url });
