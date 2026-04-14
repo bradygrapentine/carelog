@@ -54,7 +54,7 @@ export function MedicationChecklist({
   const isSupporter = currentUserRole === "supporter";
 
   return (
-    <Card>
+    <Card data-testid="medication-checklist">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm">{"Today's medications"}</CardTitle>
       </CardHeader>
@@ -84,12 +84,21 @@ export function MedicationChecklist({
           return (
             <div
               key={sched.id}
+              data-testid="medication-checklist-item"
               className="flex items-center justify-between py-1 border-b border-border last:border-0"
             >
               <span className="text-sm text-foreground/80 flex-1 min-w-0">
                 {labelText}
               </span>
               <div className="flex items-center gap-2 ml-3 shrink-0">
+                {isLogged && (
+                  <span
+                    data-testid="dose-given-indicator"
+                    className="text-xs text-green-700"
+                  >
+                    Given ✓
+                  </span>
+                )}
                 <button
                   type="button"
                   disabled={isDisabled}
