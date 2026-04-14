@@ -119,6 +119,7 @@ Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Car
 
 ### 🌙 ON-27 — Web alt-text audit
 `grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
+**Status:** 🔎 In review, Branch: feat/on27-alt-text
 
 ### 🌙 ON-28 — Mobile loading skeletons on list screens
 Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
