@@ -136,6 +136,7 @@ export default function EolPlannerScreen() {
       onPress={handleSave}
       disabled={upsertMut.isPending}
       accessibilityRole="button"
+      accessibilityLabel={upsertMut.isPending ? "Saving" : "Save"}
     >
       <Text
         style={[
