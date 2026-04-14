@@ -104,6 +104,67 @@ export const membershipsRouter = router({
       return { success: true };
     }),
 
+  changeRole: protectedProcedure
+    .input(
+      z.object({
+        orgId: z.string().uuid(),
+        membershipId: z.string().uuid(),
+        role: z.enum(["coordinator", "caregiver", "supporter", "aide"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { data: caller, error: callerError } = await supabaseAdmin
+        .from("memberships")
+        .select("role, accepted_at")
+        .eq("org_id", input.orgId)
+        .eq("user_id", ctx.user.id)
+        .single();
+
+      if (
+        callerError ||
+        !caller ||
+        caller.role !== "coordinator" ||
+        !caller.accepted_at
+      ) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const { data: target, error: targetError } = await supabaseAdmin
+        .from("memberships")
+        .select("id, user_id, org_id")
+        .eq("id", input.membershipId)
+        .single();
+
+      if (targetError || !target) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (target.org_id !== input.orgId) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      if (target.user_id === ctx.user.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot change your own role",
+        });
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from("memberships")
+        .update({ role: input.role })
+        .eq("id", input.membershipId);
+
+      if (updateError) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: updateError.message,
+        });
+      }
+
+      return { updated: true };
+    }),
+
   remove: protectedProcedure
     .input(
       z.object({
