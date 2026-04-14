@@ -26,6 +26,7 @@ import {
 } from "../../../utils/wave5Utils";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -340,11 +341,12 @@ export default function DocumentsScreen() {
 
       <Panel title="Documents" action={uploadAction} style={styles.panel}>
         {isLoading ? (
-          <ActivityIndicator
-            style={styles.loader}
-            size="large"
-            color={colors.primary}
-          />
+          <>
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+          </>
         ) : (
           <FlatList
             data={data ?? []}
@@ -391,7 +393,9 @@ export default function DocumentsScreen() {
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={styles.empty}>No documents yet.</Text>
+              <Text style={styles.empty}>
+                No documents uploaded yet. Coordinators can upload from the web app.
+              </Text>
             }
           />
         )}
