@@ -16,6 +16,7 @@ import * as Clipboard from "expo-clipboard";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -99,7 +100,7 @@ export default function OuterCircleScreen() {
     return (
       <View style={styles.row}>
         <View style={styles.rowHeader}>
-          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.itemTitle}>{item.title}</Text>
           {item.active ? (
             <View style={styles.activeBadge}>
               <Text style={styles.activeBadgeText}>Active</Text>
@@ -109,7 +110,7 @@ export default function OuterCircleScreen() {
           )}
         </View>
         {item.description ? (
-          <Text style={styles.description} numberOfLines={2}>
+          <Text style={styles.itemDescription} numberOfLines={2}>
             {item.description}
           </Text>
         ) : null}
@@ -117,23 +118,23 @@ export default function OuterCircleScreen() {
           {item.slots_filled} / {item.slots_total} slots filled
         </Text>
         {item.active && (
-          <View style={styles.actions}>
+          <View style={styles.rowActions}>
             <TouchableOpacity
-              style={styles.actionBtn}
+              style={styles.rowActionBtn}
               onPress={() => handleCopyLink(item)}
               accessibilityRole="button"
               accessibilityLabel="Copy volunteer link"
             >
-              <Text style={styles.actionBtnText}>Copy link</Text>
+              <Text style={styles.rowActionBtnText}>Copy link</Text>
             </TouchableOpacity>
             {isCoordinator && (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.closeBtn]}
+                style={[styles.rowActionBtn, styles.closeBtn]}
                 onPress={() => handleClose(item)}
                 accessibilityRole="button"
                 accessibilityLabel="Close request"
               >
-                <Text style={[styles.actionBtnText, styles.closeBtnText]}>
+                <Text style={[styles.rowActionBtnText, styles.closeBtnText]}>
                   Close
                 </Text>
               </TouchableOpacity>
@@ -144,36 +145,37 @@ export default function OuterCircleScreen() {
     );
   }
 
+  const addAction = isCoordinator ? (
+    <TouchableOpacity
+      onPress={() => setModalVisible(true)}
+      accessibilityRole="button"
+      accessibilityLabel="Add volunteer request"
+    >
+      <Text style={styles.actionBtnText}>+ Add</Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
-      {isCoordinator && (
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => setModalVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Add volunteer request"
-        >
-          <Text style={styles.addBtnText}>Add Request</Text>
-        </TouchableOpacity>
-      )}
-
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={data ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={renderItem}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No volunteer requests yet.</Text>
-          }
-        />
-      )}
+      <Panel title="Volunteer Requests" action={addAction} style={styles.panel}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={data ?? []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={renderItem}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No volunteer requests yet.</Text>
+            }
+          />
+        )}
+      </Panel>
 
       <Modal
         visible={modalVisible}
@@ -219,12 +221,12 @@ export default function OuterCircleScreen() {
             />
 
             <TouchableOpacity
-              style={[styles.addBtn, styles.submitBtn]}
+              style={styles.submitBtn}
               onPress={handleCreate}
               disabled={createMut.isPending}
               accessibilityRole="button"
             >
-              <Text style={styles.addBtnText}>
+              <Text style={styles.submitBtnText}>
                 {createMut.isPending ? "Saving…" : "Submit"}
               </Text>
             </TouchableOpacity>
@@ -244,18 +246,10 @@ export default function OuterCircleScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  addBtn: {
-    margin: spacing.lg,
-    marginBottom: 0,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-  },
-  addBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
+  panel: { flex: 1 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg },
   row: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
@@ -267,7 +261,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 4,
   },
-  title: {
+  itemTitle: {
     fontSize: 15,
     fontWeight: "600",
     color: colors.textPrimary,
@@ -280,31 +274,34 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginLeft: spacing.sm,
   },
-  activeBadgeText: { fontSize: 11, fontWeight: "500", color: colors.successBadgeText },
+  activeBadgeText: {
+    fontSize: 11,
+    fontWeight: "500",
+    color: colors.successBadgeText,
+  },
   closedText: {
     fontSize: 12,
     color: colors.mutedLight,
     fontStyle: "italic",
     marginLeft: spacing.sm,
   },
-  description: { fontSize: 13, color: colors.muted, marginBottom: 4 },
+  itemDescription: { fontSize: 13, color: colors.muted, marginBottom: 4 },
   slots: {
     fontSize: 13,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
-  actions: { flexDirection: "row", gap: spacing.sm },
-  actionBtn: {
+  rowActions: { flexDirection: "row", gap: spacing.sm },
+  rowActionBtn: {
     backgroundColor: colors.surfaceSubtle,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
   },
-  actionBtnText: { fontSize: 13, color: colors.textSecondary },
+  rowActionBtnText: { fontSize: 13, color: colors.textSecondary },
   closeBtn: { backgroundColor: colors.dangerSubtle },
   closeBtnText: { color: colors.dangerStrong },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  // Modal
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
@@ -339,7 +336,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   multiline: { minHeight: 72, textAlignVertical: "top" },
-  submitBtn: { marginTop: 4, marginBottom: spacing.sm },
+  submitBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: spacing.sm,
+  },
+  submitBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   cancelBtn: { alignItems: "center", paddingVertical: 10 },
   cancelBtnText: { fontSize: 14, color: colors.muted },
 });

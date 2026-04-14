@@ -15,6 +15,7 @@ import { useApp } from "../../../context/AppContext";
 import { canInvite } from "../../../utils/wave5Utils";
 import type { Membership } from "@carelog/types";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 type MemberRow = Membership & { display_name?: string; email?: string };
 
@@ -71,55 +72,61 @@ export default function TeamScreen() {
     }
   }
 
+  const inviteAction = canInvite(currentRole) ? (
+    <TouchableOpacity
+      onPress={() => setShowInvite(true)}
+      accessibilityRole="button"
+      accessibilityLabel="Invite team member"
+    >
+      <Text style={styles.actionBtnText}>+ Invite</Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={(members ?? []) as MemberRow[]}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => {
-            const roleColors = ROLE_COLORS[item.role] ?? ROLE_COLORS.supporter;
-            return (
-              <View style={styles.row}>
-                <View style={styles.info}>
-                  <Text style={styles.name}>
-                    {item.display_name ?? item.email ?? "Team member"}
-                  </Text>
-                  {item.email && <Text style={styles.email}>{item.email}</Text>}
+      <Panel title="Team" action={inviteAction}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={(members ?? []) as MemberRow[]}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => {
+              const roleColors =
+                ROLE_COLORS[item.role] ?? ROLE_COLORS.supporter;
+              return (
+                <View style={styles.row}>
+                  <View style={styles.info}>
+                    <Text style={styles.name}>
+                      {item.display_name ?? item.email ?? "Team member"}
+                    </Text>
+                    {item.email && (
+                      <Text style={styles.email}>{item.email}</Text>
+                    )}
+                  </View>
+                  <View
+                    style={[styles.badge, { backgroundColor: roleColors.bg }]}
+                  >
+                    <Text
+                      style={[styles.badgeText, { color: roleColors.text }]}
+                    >
+                      {item.role}
+                    </Text>
+                  </View>
                 </View>
-                <View
-                  style={[styles.badge, { backgroundColor: roleColors.bg }]}
-                >
-                  <Text style={[styles.badgeText, { color: roleColors.text }]}>
-                    {item.role}
-                  </Text>
-                </View>
-              </View>
-            );
-          }}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No team members yet.</Text>
-          }
-        />
-      )}
-
-      {canInvite(currentRole) && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setShowInvite(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Invite team member"
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
+              );
+            }}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No team members yet.</Text>
+            }
+          />
+        )}
+      </Panel>
 
       <Modal visible={showInvite} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -183,9 +190,9 @@ export default function TeamScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -200,23 +207,6 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { fontSize: 12, fontWeight: "500" },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

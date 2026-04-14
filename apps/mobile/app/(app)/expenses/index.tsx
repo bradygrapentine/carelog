@@ -16,6 +16,7 @@ import {
   canDeleteExpense,
 } from "../../../utils/wave5Utils";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 type Expense = {
   id: string;
@@ -80,84 +81,90 @@ export default function ExpensesScreen() {
 
   const sections = groupByMonth((data as Expense[]) ?? []);
 
+  const addAction = canLogExpense(currentRole) ? (
+    <TouchableOpacity
+      onPress={() => router.push("/expenses/add")}
+      accessibilityRole="button"
+      accessibilityLabel="Add expense"
+    >
+      <Text style={styles.actionBtnText}>+ Add</Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
-      {canLogExpense(currentRole) && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => router.push("/expenses/add")}
-          accessibilityRole="button"
-          accessibilityLabel="Add expense"
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
-
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderSectionHeader={({ section }) => (
-            <Text style={styles.sectionHeader}>{section.title}</Text>
-          )}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.row}
-              onLongPress={
-                canDeleteExpense(currentRole)
-                  ? () => confirmDelete(item.id)
-                  : undefined
-              }
-              activeOpacity={canDeleteExpense(currentRole) ? 0.6 : 1}
-              accessibilityRole="button"
-              accessibilityLabel={
-                formatCurrency(item.amount) +
-                " " +
-                item.description +
-                (canDeleteExpense(currentRole) ? ", long press to delete" : "")
-              }
-            >
-              <View style={styles.rowLeft}>
-                <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
-                <View style={styles.catBadge}>
-                  <Text style={styles.catText}>
-                    {CATEGORY_LABELS[item.category] ?? item.category}
+      <Panel title="Expenses" action={addAction} style={styles.panel}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderSectionHeader={({ section }) => (
+              <Text style={styles.sectionHeader}>{section.title}</Text>
+            )}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.row}
+                onLongPress={
+                  canDeleteExpense(currentRole)
+                    ? () => confirmDelete(item.id)
+                    : undefined
+                }
+                activeOpacity={canDeleteExpense(currentRole) ? 0.6 : 1}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  formatCurrency(item.amount) +
+                  " " +
+                  item.description +
+                  (canDeleteExpense(currentRole)
+                    ? ", long press to delete"
+                    : "")
+                }
+              >
+                <View style={styles.rowLeft}>
+                  <Text style={styles.amount}>
+                    {formatCurrency(item.amount)}
+                  </Text>
+                  <View style={styles.catBadge}>
+                    <Text style={styles.catText}>
+                      {CATEGORY_LABELS[item.category] ?? item.category}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.rowRight}>
+                  <Text style={styles.desc} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                  <Text style={styles.date}>
+                    {new Date(item.incurred_at).toLocaleDateString([], {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
-              </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.desc} numberOfLines={1}>
-                  {item.description}
-                </Text>
-                <Text style={styles.date}>
-                  {new Date(item.incurred_at).toLocaleDateString([], {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No expenses logged yet.</Text>
-          }
-        />
-      )}
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No expenses logged yet.</Text>
+            }
+          />
+        )}
+      </Panel>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
+  panel: { flex: 1 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg, paddingBottom: 80 },
   sectionHeader: {
     fontSize: 14,
     fontWeight: "700",
@@ -186,22 +193,4 @@ const styles = StyleSheet.create({
   desc: { fontSize: 13, color: colors.textSecondary },
   date: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
   empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    zIndex: 10,
-  },
-  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
 });

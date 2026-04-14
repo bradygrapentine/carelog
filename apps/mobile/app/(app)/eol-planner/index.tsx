@@ -12,6 +12,7 @@ import {
 import { useApp } from "../../../context/AppContext";
 import { trpc } from "../../../utils/trpc";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 export default function EolPlannerScreen() {
   const { orgId, recipientId, currentRole } = useApp();
@@ -76,92 +77,90 @@ export default function EolPlannerScreen() {
     });
   }
 
+  const saveAction = (
+    <TouchableOpacity
+      onPress={handleSave}
+      disabled={upsertMut.isPending}
+      accessibilityRole="button"
+    >
+      <Text
+        style={[
+          styles.actionBtnText,
+          upsertMut.isPending && styles.actionBtnDisabled,
+        ]}
+      >
+        {upsertMut.isPending ? "Saving…" : "Save"}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>End-of-Life Planner</Text>
+      <Panel title="End-of-Life Planner" action={saveAction}>
+        <Text style={styles.label}>Healthcare Proxy Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Healthcare proxy name"
+          value={healthcareProxy}
+          onChangeText={setHealthcareProxy}
+        />
 
-      <Text style={styles.label}>Healthcare Proxy Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Healthcare proxy name"
-        value={healthcareProxy}
-        onChangeText={setHealthcareProxy}
-      />
+        <Text style={styles.label}>Resuscitation Preference</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. full, dnr, dnr_comfort_only"
+          value={resuscitationPref}
+          onChangeText={setResuscitationPref}
+        />
 
-      <Text style={styles.label}>Resuscitation Preference</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. full, dnr, dnr_comfort_only"
-        value={resuscitationPref}
-        onChangeText={setResuscitationPref}
-      />
+        <Text style={styles.label}>Funeral Preferences</Text>
+        <TextInput
+          style={[styles.input, styles.multiline]}
+          placeholder="Funeral preferences"
+          value={funeralPref}
+          onChangeText={setFuneralPref}
+          multiline
+        />
 
-      <Text style={styles.label}>Funeral Preferences</Text>
-      <TextInput
-        style={[styles.input, styles.multiline]}
-        placeholder="Funeral preferences"
-        value={funeralPref}
-        onChangeText={setFuneralPref}
-        multiline
-      />
+        <Text style={styles.label}>Legacy Message</Text>
+        <TextInput
+          style={[styles.input, styles.multiline]}
+          placeholder="Legacy message"
+          value={legacyMessage}
+          onChangeText={setLegacyMessage}
+          multiline
+        />
 
-      <Text style={styles.label}>Legacy Message</Text>
-      <TextInput
-        style={[styles.input, styles.multiline]}
-        placeholder="Legacy message"
-        value={legacyMessage}
-        onChangeText={setLegacyMessage}
-        multiline
-      />
+        <Text style={styles.label}>Attorney Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Attorney name"
+          value={attorneyName}
+          onChangeText={setAttorneyName}
+        />
 
-      <Text style={styles.label}>Attorney Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Attorney name"
-        value={attorneyName}
-        onChangeText={setAttorneyName}
-      />
+        <Text style={styles.label}>Attorney Contact</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Attorney contact"
+          value={attorneyContact}
+          onChangeText={setAttorneyContact}
+        />
 
-      <Text style={styles.label}>Attorney Contact</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Attorney contact"
-        value={attorneyContact}
-        onChangeText={setAttorneyContact}
-      />
-
-      <View style={styles.switchRow}>
-        <Text style={styles.label}>Organ Donation</Text>
-        <Switch value={organDonation} onValueChange={setOrganDonation} />
-      </View>
-
-      <TouchableOpacity
-        style={styles.saveBtn}
-        onPress={handleSave}
-        disabled={upsertMut.isPending}
-        accessibilityRole="button"
-      >
-        <Text style={styles.saveBtnText}>Save</Text>
-      </TouchableOpacity>
+        <View style={styles.switchRow}>
+          <Text style={styles.label}>Organ Donation</Text>
+          <Switch value={organDonation} onValueChange={setOrganDonation} />
+        </View>
+      </Panel>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceRaised,
-  },
-  content: {
-    padding: spacing.xl,
-    paddingBottom: 40,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: spacing.xl,
-    color: colors.textPrimary,
-  },
+  container: { flex: 1, backgroundColor: colors.surface },
+  content: { padding: spacing.lg, paddingBottom: 40 },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
+  actionBtnDisabled: { color: colors.mutedLight },
   label: {
     fontSize: 14,
     fontWeight: "600",
@@ -188,18 +187,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: spacing.lg,
-  },
-  saveBtn: {
-    marginTop: 28,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  saveBtnText: {
-    color: colors.white,
-    fontWeight: "700",
-    fontSize: 16,
   },
   lockedContainer: {
     flex: 1,

@@ -61,7 +61,7 @@ describe("SymptomsScreen", () => {
 
   it("shows Log symptoms button for coordinator", () => {
     const { getByText } = render(<SymptomsScreen />);
-    expect(getByText("Log symptoms")).toBeTruthy();
+    expect(getByText("+ Log")).toBeTruthy();
   });
 
   it("shows offline banner when offline", () => {

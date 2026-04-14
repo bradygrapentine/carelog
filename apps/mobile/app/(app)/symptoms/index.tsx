@@ -12,7 +12,8 @@ import { useApp } from "../../../context/AppContext";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { canLogSymptoms } from "../../../utils/wave5Utils";
 import { MOOD_COLORS, type Mood } from "../../../utils/journalUtils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { colors, spacing } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 export default function SymptomsScreen() {
   const router = useRouter();
@@ -33,110 +34,116 @@ export default function SymptomsScreen() {
     );
   }
 
+  const logAction = canLogSymptoms(currentRole) ? (
+    <TouchableOpacity
+      onPress={() => router.push("/symptoms/log")}
+      accessibilityRole="button"
+      accessibilityLabel="Log symptoms"
+    >
+      <Text style={styles.actionBtnText}>+ Log</Text>
+    </TouchableOpacity>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
       {syncStatus !== "synced" && (
         <View
-          style={{
-            paddingVertical: 6,
-            paddingHorizontal: spacing.md,
-            backgroundColor:
-              syncStatus === "offline"
-                ? colors.secondarySubtle
-                : colors.primarySubtle,
-          }}
+          style={[
+            styles.syncBanner,
+            syncStatus === "offline"
+              ? styles.offlineBanner
+              : styles.pendingBanner,
+          ]}
         >
-          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+          <Text style={styles.syncText}>
             {syncStatus === "offline"
               ? "● Offline — readings will sync when connected"
               : "↑ Syncing readings…"}
           </Text>
         </View>
       )}
-      {canLogSymptoms(currentRole) && (
-        <TouchableOpacity
-          style={styles.logBtn}
-          onPress={() => router.push("/symptoms/log")}
-          accessibilityRole="button"
-          accessibilityLabel="Log symptoms"
-        >
-          <Text style={styles.logBtnText}>Log symptoms</Text>
-        </TouchableOpacity>
-      )}
-
-      {isLoading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          size="large"
-          color={colors.primary}
-        />
-      ) : (
-        <FlatList
-          data={data ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => {
-            const moodColor = item.mood ? MOOD_COLORS[item.mood as Mood] : null;
-            return (
-              <View style={styles.row}>
-                <Text style={styles.date}>{formatDate(item.recorded_at)}</Text>
-                <View style={styles.metrics}>
-                  {item.pain_level != null && (
-                    <Text style={styles.metric}>
-                      Pain: {item.pain_level}/10
+      <Panel title="Symptoms" action={logAction}>
+        {isLoading ? (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={colors.primary}
+          />
+        ) : (
+          <FlatList
+            data={data ?? []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => {
+              const moodColor = item.mood
+                ? MOOD_COLORS[item.mood as Mood]
+                : null;
+              return (
+                <View style={styles.row}>
+                  <Text style={styles.date}>
+                    {formatDate(item.recorded_at)}
+                  </Text>
+                  <View style={styles.metrics}>
+                    {item.pain_level != null && (
+                      <Text style={styles.metric}>
+                        Pain: {item.pain_level}/10
+                      </Text>
+                    )}
+                    {item.mood && moodColor && (
+                      <View
+                        style={[
+                          styles.moodBadge,
+                          { backgroundColor: moodColor.bg },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.moodText, { color: moodColor.text }]}
+                        >
+                          {item.mood}
+                        </Text>
+                      </View>
+                    )}
+                    {item.appetite && (
+                      <Text style={styles.metric}>
+                        Appetite: {item.appetite}
+                      </Text>
+                    )}
+                    {item.mobility && (
+                      <Text style={styles.metric}>
+                        Mobility: {item.mobility}
+                      </Text>
+                    )}
+                  </View>
+                  {item.notes && (
+                    <Text style={styles.notes} numberOfLines={2}>
+                      {item.notes}
                     </Text>
                   )}
-                  {item.mood && moodColor && (
-                    <View
-                      style={[
-                        styles.moodBadge,
-                        { backgroundColor: moodColor.bg },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.moodText, { color: moodColor.text }]}
-                      >
-                        {item.mood}
-                      </Text>
-                    </View>
-                  )}
-                  {item.appetite && (
-                    <Text style={styles.metric}>Appetite: {item.appetite}</Text>
-                  )}
-                  {item.mobility && (
-                    <Text style={styles.metric}>Mobility: {item.mobility}</Text>
-                  )}
                 </View>
-                {item.notes && (
-                  <Text style={styles.notes} numberOfLines={2}>
-                    {item.notes}
-                  </Text>
-                )}
-              </View>
-            );
-          }}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No symptom readings yet.</Text>
-          }
-        />
-      )}
+              );
+            }}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No symptom readings yet.</Text>
+            }
+          />
+        )}
+      </Panel>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  logBtn: {
-    margin: spacing.lg,
-    marginBottom: 0,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
+  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
+  syncBanner: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
   },
-  logBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  offlineBanner: { backgroundColor: colors.secondarySubtle },
+  pendingBanner: { backgroundColor: colors.primarySubtle },
+  syncText: { fontSize: 12, color: colors.textSecondary },
+  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
   loader: { marginTop: 48 },
-  list: { padding: spacing.lg },
   row: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,

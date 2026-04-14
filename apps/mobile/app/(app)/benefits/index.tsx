@@ -11,6 +11,7 @@ import {
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { colors, spacing, radii } from "../../../constants/tokens";
+import { Panel } from "../../../components/Panel";
 
 type Answers = {
   age65plus: boolean;
@@ -133,77 +134,72 @@ export default function BenefitsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Benefits Eligibility Screener</Text>
-      <Text style={styles.subheading}>
-        Answer the questions below to find programs your care recipient may
-        qualify for.
-      </Text>
+      <Panel title="Benefits Eligibility Screener">
+        <Text style={styles.subheading}>
+          Answer the questions below to find programs your care recipient may
+          qualify for.
+        </Text>
 
-      {QUESTIONS.map(({ key, label }) => (
-        <TouchableOpacity
-          key={key}
-          style={styles.checkRow}
-          onPress={() => toggle(key)}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: answers[key] }}
-        >
-          <View
-            style={[styles.checkbox, answers[key] && styles.checkboxChecked]}
+        {QUESTIONS.map(({ key, label }) => (
+          <TouchableOpacity
+            key={key}
+            style={styles.checkRow}
+            onPress={() => toggle(key)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: answers[key] }}
           >
-            {answers[key] && <Text style={styles.checkmark}>✓</Text>}
-          </View>
-          <Text style={styles.checkLabel}>{label}</Text>
-        </TouchableOpacity>
-      ))}
-
-      <TouchableOpacity
-        style={styles.submitBtn}
-        onPress={handleSubmit}
-        disabled={screenMut.isPending}
-        accessibilityRole="button"
-      >
-        {screenMut.isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text style={styles.submitBtnText}>Check Eligibility</Text>
-        )}
-      </TouchableOpacity>
-
-      {results !== null && (
-        <View style={styles.results}>
-          <Text style={styles.resultsHeading}>
-            {results.length === 0
-              ? "No programs matched"
-              : `${results.length} program${results.length === 1 ? "" : "s"} matched`}
-          </Text>
-          {results.map((program) => (
-            <View key={program.key} style={styles.card}>
-              <Text style={styles.cardName}>{program.name}</Text>
-              <Text style={styles.cardDesc}>{program.description}</Text>
-              <TouchableOpacity
-                onPress={() => Linking.openURL(program.applyUrl)}
-                accessibilityRole="link"
-              >
-                <Text style={styles.cardLink}>Learn more →</Text>
-              </TouchableOpacity>
+            <View
+              style={[styles.checkbox, answers[key] && styles.checkboxChecked]}
+            >
+              {answers[key] && <Text style={styles.checkmark}>✓</Text>}
             </View>
-          ))}
-        </View>
-      )}
+            <Text style={styles.checkLabel}>{label}</Text>
+          </TouchableOpacity>
+        ))}
+
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={screenMut.isPending}
+          accessibilityRole="button"
+        >
+          {screenMut.isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.submitBtnText}>Check Eligibility</Text>
+          )}
+        </TouchableOpacity>
+
+        {results !== null && (
+          <View style={styles.results}>
+            <Text style={styles.resultsHeading}>
+              {results.length === 0
+                ? "No programs matched"
+                : `${results.length} program${results.length === 1 ? "" : "s"} matched`}
+            </Text>
+            {results.map((program) => (
+              <View key={program.key} style={styles.card}>
+                <Text style={styles.cardName}>{program.name}</Text>
+                <Text style={styles.cardDesc}>{program.description}</Text>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(program.applyUrl)}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.cardLink}>Learn more →</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </Panel>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  container: { flex: 1, backgroundColor: colors.surface },
   content: { padding: spacing.lg },
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  subheading: { fontSize: 14, color: colors.muted, marginBottom: 20 },
+  subheading: { fontSize: 14, color: colors.muted, marginBottom: spacing.md },
   checkRow: {
     flexDirection: "row",
     alignItems: "center",

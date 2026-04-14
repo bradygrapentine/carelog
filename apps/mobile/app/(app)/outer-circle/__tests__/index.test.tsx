@@ -79,7 +79,7 @@ describe("OuterCircleScreen", () => {
 
   it("shows Add Request button for coordinator", () => {
     const { getByText } = render(<OuterCircleScreen />);
-    expect(getByText("Add Request")).toBeTruthy();
+    expect(getByText("+ Add")).toBeTruthy();
   });
 
   it("hides Add Request for non-coordinator", () => {
@@ -90,7 +90,7 @@ describe("OuterCircleScreen", () => {
       currentRole: "caregiver",
     });
     const { queryByText } = render(<OuterCircleScreen />);
-    expect(queryByText("Add Request")).toBeNull();
+    expect(queryByText("+ Add")).toBeNull();
   });
 
   it("opens modal when Add Request pressed", () => {
