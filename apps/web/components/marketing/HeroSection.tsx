@@ -57,6 +57,41 @@ export function HeroSection() {
         <p className="text-xs text-[var(--color-muted)]">
           No credit card required · Cancel anytime
         </p>
+
+        {/* Social-proof avatar strip — real families already caring together */}
+        <div className="mt-2 flex items-center gap-3">
+          <div className="flex -space-x-3">
+            {[
+              { src: "/images/hero-5.png", alt: "A caregiver family portrait" },
+              {
+                src: "/images/hero-6.png",
+                alt: "A grandparent with grandchild",
+              },
+              {
+                src: "/images/hero-7.png",
+                alt: "A care recipient smiling with family",
+              },
+              { src: "/images/hero-8.png", alt: "An older couple at home" },
+            ].map((img) => (
+              <span
+                key={img.src}
+                className="relative inline-block h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-sm ring-1 ring-black/5"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                />
+              </span>
+            ))}
+          </div>
+          <p className="text-xs leading-tight text-[var(--color-muted)]">
+            Caring families <br className="sm:hidden" />
+            across the country
+          </p>
+        </div>
       </div>
 
       {/* Right — photo collage */}
@@ -92,6 +127,17 @@ export function HeroSection() {
               alt="A younger hand gently holding the hand of an elderly person, symbolizing trust between caregiver and care recipient"
               fill
               sizes="(min-width: 768px) 25vw, 60vw"
+              className="object-cover"
+            />
+          </div>
+
+          {/* Quaternary — small detail in the top-right negative space */}
+          <div className="absolute -top-4 right-0 h-[22%] w-[28%] overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5">
+            <Image
+              src="/images/hero-4.png"
+              alt="A family member sharing a quiet moment with their care recipient"
+              fill
+              sizes="(min-width: 768px) 15vw, 35vw"
               className="object-cover"
             />
           </div>
