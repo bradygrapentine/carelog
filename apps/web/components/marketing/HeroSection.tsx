@@ -58,38 +58,9 @@ export function HeroSection() {
           No credit card required · Cancel anytime
         </p>
 
-        {/* Social-proof avatar strip — real families already caring together */}
-        <div className="mt-2 flex items-center gap-3">
-          <div className="flex -space-x-3">
-            {[
-              {
-                src: "/images/hero-5.png",
-                alt: "A caregiver sitting with an elderly woman at home",
-              },
-              {
-                src: "/images/hero-6.png",
-                alt: "Community members helping an older woman in a garden",
-              },
-            ].map((img) => (
-              <span
-                key={img.src}
-                className="relative inline-block h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-sm ring-1 ring-black/5"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  sizes="40px"
-                  className="object-cover"
-                />
-              </span>
-            ))}
-          </div>
-          <p className="text-xs leading-tight text-[var(--color-muted)]">
-            Caring families <br className="sm:hidden" />
-            across the country
-          </p>
-        </div>
+        <p className="text-xs text-[var(--color-muted)]">
+          Trusted by families across the country
+        </p>
       </div>
 
       {/* Right — photo collage */}
@@ -107,35 +78,24 @@ export function HeroSection() {
             />
           </div>
 
-          {/* Secondary — caregiver at home */}
+          {/* Secondary — professional care in a gym */}
           <div className="absolute right-0 top-[18%] h-[50%] w-[52%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="/images/hero-5.png"
-              alt="An adult daughter sitting and talking warmly with her elderly mother at home"
+              src="/images/hero-9.png"
+              alt="A caregiver and parent supporting a young girl with a walker in a gym"
               fill
               sizes="(min-width: 768px) 30vw, 60vw"
               className="object-cover"
             />
           </div>
 
-          {/* Tertiary — professional care */}
+          {/* Tertiary — community care */}
           <div className="absolute bottom-0 left-[18%] h-[38%] w-[44%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="/images/hero-3.png"
-              alt="A physical therapist and parent supporting a young child learning to walk with a walker"
+              src="/images/hero-6.png"
+              alt="Community members helping an older woman in a garden"
               fill
               sizes="(min-width: 768px) 25vw, 60vw"
-              className="object-cover"
-            />
-          </div>
-
-          {/* Quaternary — outdoor moment */}
-          <div className="absolute -top-4 right-0 h-[22%] w-[28%] overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5">
-            <Image
-              src="/images/hero-4.png"
-              alt="A caregiver walking alongside an elderly man in a park on an autumn day"
-              fill
-              sizes="(min-width: 768px) 15vw, 35vw"
               className="object-cover"
             />
           </div>

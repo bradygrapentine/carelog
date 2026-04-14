@@ -1,14 +1,30 @@
 # Carelog — Master Backlog
 
-Last consolidated: **2026-04-14** (codebase scan same day).
+> **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Single source for all in-flight, queued, overnight-eligible, and deferred work. Replaces:
-- `OVERNIGHT_BACKLOG.md`
-- `docs/project-info/product/BACKLOG_PHASE2.md` … `BACKLOG_PHASE5.md`
-- `docs/project-info/product/BACKLOG_UI_REDESIGN.md`
-- `docs/superpowers/plans/CLAUDE_BACKLOG.md`
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14.
 
-Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md`. They are referenced from §8 below.
+Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
+
+Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
+
+---
+
+## 0. Status board (at-a-glance)
+
+Counts reflect items in §1–§6 only; §7 is the shipped log.
+
+| Lifecycle | Count | Where |
+|---|---|---|
+| 🟢 Ready | 0 | §1 · `Status: Ready` |
+| ⚡ In progress | 6 | §1 · `Status: In progress` |
+| 🔎 In review | 0 | §1 · `Status: In review` |
+| 🔴 Blocked | 5 | §3 platform parity, §8 human-gated |
+| 🌙 Overnight queue | 28 | §2 |
+| 🧊 Deferred | 11 | §6 UX polish + §3 PP-013 |
+| 🧑 Needs human | 3 | §8 |
+
+> If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
 ---
 
@@ -16,18 +32,23 @@ Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-i
 
 | Tag | Meaning |
 |---|---|
+| 🟢 | **Ready** — scoped, unblocked, not yet picked up |
+| ⚡ | **In progress** — an agent or human is actively working on it |
+| 🔎 | **In review** — PR open, awaiting review or CI |
 | 🌙 | **Overnight-eligible** — picked up by the nightly agent (2 am CT / 8 am UTC). Must be mechanical, low risk, no shared-state conflicts. |
-| ⚡ | Active — being worked on this sprint |
-| 🧊 | Cold / deferred — intentionally parked |
-| ✅ | Shipped |
-| 🔴 | Blocked |
-| 🧑 | Needs human (account signup, env var, click-through) — see §8 |
+| 🧊 | **Deferred** — intentionally parked |
+| ✅ | **Shipped** — moved to §7 |
+| 🔴 | **Blocked** — prerequisite open; note `Blocked by:` inline |
+| 🧑 | **Needs human** — account signup, env var, click-through — see §8 |
+
+Every active row **must** include a `Status:` field (`Ready` / `In progress` / `In review` / `Blocked` / `Shipped`) and, when applicable, `Owner:` (agent name, human, or `nightly`) and `Branch:`/`PR:` once work starts. `/backlog-sync` fills what it can infer.
 
 **Story-ID prefixes**
 - `ON-*` — overnight-originated stories (mobile a11y, mechanical sweeps, large features)
 - `PP-*` — platform parity (web/iOS/Android)
 - `A11Y-*` — accessibility tooling
 - `UX-*` — deferred UI redesign polish
+- `TD-*` — tech debt (newly opened; historical items live in `docs/project-info/technology/TECH_DEBT.md`)
 - `P2-*`..`P5-*` — phase backlogs (all shipped, retained as a log in §7)
 - `B*`/`D*`/`A*`/`C*` — before-launch Claude tasks (shipped where no 🧑 gate)
 
@@ -35,15 +56,24 @@ Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-i
 
 ## 1. Active / next-up
 
-| ID | Tag | Story | Notes |
+| ID | Status | Owner | Branch / PR | Story | Notes |
+|---|---|---|---|---|---|
+| PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
+| PP-001 | ⚡ In progress | — | — | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
+| PP-004 | ⚡ In progress | — | — | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
+| A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
+| A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
+| A11Y-003 | ⚡ In progress | — | — | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
+| ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
+
+### New tech-debt (TD-*) — opened 2026-04-14
+
+| ID | Status | Story | Notes |
 |---|---|---|---|
-| PP-006 | ⚡ 🔴 blocks PP-007/008/009/010 | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| PP-001 | ⚡ | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
-| PP-004 | ⚡ | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
-| A11Y-001 | ⚡ | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
-| A11Y-002 | ⚡ | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
-| A11Y-003 | ⚡ | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| ON-43 | ⚡ | **In-app messaging (DM + group)** | See §6. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
+| TD-01 | 🟢 Ready | **Harden `any` remaining usages** | `console` types crept back; run ON-39 follow-up once baseline count drops. |
+| TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
+| TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-04 | 🟢 Ready | **Consolidate `images/` → `apps/web/public/images/`** | Root-level `images/` staging dir still holds uncommitted renames (see git status); finish move + delete `images/`. |
 
 ---
 
@@ -285,8 +315,34 @@ Claude work that's **gated on the above** (cannot start until the human complete
 
 ---
 
-## 10. Overnight-agent contract (what the nightly agent can assume)
+## 10. Lifecycle update contract (all agents)
 
+**Single source of truth.** Every planned piece of work lives here. Do not track work in ad-hoc docs, memory, or PR descriptions alone.
+
+**When status changes, update this file in the same commit as the code change:**
+
+| Transition | What to do |
+|---|---|
+| Picking up a story | Flip `Status:` to `⚡ In progress`, add `Owner:` + `Branch:` |
+| Opening a PR | Flip to `🔎 In review`, add `PR: #NNN` |
+| Hitting a blocker | Flip to `🔴 Blocked`, add `Blocked by:` with the reason or upstream ID |
+| Merging | Move the row to §7 (shipped log) with a one-line summary; delete from §1–§5 |
+| Discovering new work | Open a new row with `Status: 🟢 Ready`, pick the right prefix (`TD-*`, `A11Y-*`, `ON-*`, etc.), and leave it unowned |
+
+**`/backlog-sync` runs this reconciliation automatically** against `git log`, open PRs (`gh pr list`), and the shipped log. Invoke it:
+
+- At **session start** when resuming work on this repo
+- At **session end** via `/session-end`
+- On a **daily cron** via `/schedule` so the nightly agent sees fresh state
+- Any time the §0 status board looks stale
+
+Never delete a story silently — either move to §7 (shipped) or mark 🧊 with a reason.
+
+---
+
+## 11. Overnight-agent contract (what the nightly agent can assume)
+
+- Before picking up any ON-* row, run `/backlog-sync` and claim the row by flipping its `Status:` to `⚡ In progress` + `Owner: nightly` in the first commit
 - `pnpm` at the repo root is the entry point; each app has its own workspace scripts
 - `supabase start` must be running for any pgTAP test
 - macOS host; `./scripts/mobile-ui.sh` is available for any mobile visual check (iOS or Android)

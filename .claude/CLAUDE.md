@@ -3,6 +3,20 @@
 Family caregiving coordination platform. $14/mo family plan. Bootstrapped.
 Monorepo: `apps/`, `packages/`, `supabase/`.
 
+## READ FIRST — the backlog is the single source of truth
+
+**Before any task**, read `BACKLOG.md` at the repo root. Every planned feature, bug fix, tech-debt item, a11y task, and polish story lives there with a lifecycle status (`Ready` / `In progress` / `In review` / `Blocked` / `Shipped`).
+
+Rules — non-negotiable:
+
+1. **Start every session / resumed task by reading `BACKLOG.md` §0 (status board) and the relevant §1–§5 row.** Do not explore code to figure out what's "next" — the backlog answers that.
+2. **Update `BACKLOG.md` in the same commit as the work.** Status transitions (pick up → in review → shipped → blocked) are part of the change, not a follow-up. See `BACKLOG.md` §10 for the transition table.
+3. **Never track planned work anywhere else.** Not in PR descriptions, not in memory, not in ad-hoc markdown. New work = new row with `Status: 🟢 Ready` and the right prefix (`TD-*`, `A11Y-*`, `ON-*`, `PP-*`, `UX-*`).
+4. **Run `/backlog-sync`** at session start, at session end (via `/session-end`), and on a daily cron (`/schedule`). It reconciles BACKLOG.md against git/PRs and rewrites the §0 counts. Never hand-edit §0.
+5. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs**. Do not add new items there — open a `TD-*` row in BACKLOG.md instead.
+
+If you catch yourself about to start work without a backlog row, stop and create the row first.
+
 ## Development Workflow
 
 1. Make changes
@@ -206,6 +220,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/ollama` | Dispatch parallel tasks to local Ollama models (Opus/Sonnet stays as orchestrator) |
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
+| `/backlog-sync` | Reconcile BACKLOG.md against git log + open PRs; rewrite §0 status board; flag stale/unblocked rows. Run at session start, end, and daily. |
 
 ## Agents
 
