@@ -126,7 +126,22 @@ One-line JSDoc on each exported function/type where purpose isn't obvious. Do NO
 =======
 >>>>>>> main
 ### 🌙 ON-31 — E2E: settings page notification prefs
-Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Unblocked:** PP-004 (settings hub) shipped in PR #36.
+Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
+
+### 🌙 ON-32 — E2E: invite-accept happy path
+Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
+
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
+
+### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
+Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
+
+### ✅ 🌙 ON-35 — `.gitignore` hygiene
+Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
+
+### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
+Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
 <<<<<<< feat/on39-eliminate-any
