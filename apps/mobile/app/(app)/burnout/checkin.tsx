@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { haptics } from "../../../utils/haptics";
 import {
   View,
@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 const QUESTIONS = [
   "How's your sleep?",
@@ -38,6 +38,75 @@ export default function BurnoutCheckinScreen() {
   const [scores, setScores] = useState<(number | null)[]>([null, null, null]);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surfaceRaised },
+        backBtn: { padding: spacing.lg, paddingBottom: 0 },
+        backText: { fontSize: 15, color: colors.primary },
+        stepLabel: {
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          fontSize: 12,
+          color: colors.mutedLight,
+        },
+        stepContent: { padding: spacing.lg, flex: 1 },
+        question: {
+          fontSize: 22,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          marginBottom: 32,
+        },
+        scaleRow: { flexDirection: "row", justifyContent: "center", gap: 12 },
+        scaleBtn: {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          borderWidth: 2,
+          borderColor: colors.borderNeutral,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        scaleActive: {
+          borderColor: colors.primary,
+          backgroundColor: colors.primarySubtle,
+        },
+        scaleText: {
+          fontSize: 20,
+          color: colors.textSecondary,
+          fontWeight: "600",
+        },
+        scaleTextActive: { color: colors.primary },
+        scaleLabels: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginTop: spacing.sm,
+          paddingHorizontal: 4,
+        },
+        scaleLabelText: { fontSize: 12, color: colors.mutedLight },
+        notesInput: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: spacing.md,
+          fontSize: 15,
+          minHeight: 100,
+          textAlignVertical: "top",
+          marginBottom: 20,
+        },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+        },
+        submitDisabled: { opacity: 0.4 },
+        submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+      }),
+    [colors, spacing, radii],
+  );
 
   const checkInMut = trpc.burnout.checkIn.useMutation({
     onSuccess: () => router.back(),
@@ -151,63 +220,3 @@ export default function BurnoutCheckinScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  backBtn: { padding: spacing.lg, paddingBottom: 0 },
-  backText: { fontSize: 15, color: colors.primary },
-  stepLabel: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    fontSize: 12,
-    color: colors.mutedLight,
-  },
-  stepContent: { padding: spacing.lg, flex: 1 },
-  question: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: 32,
-  },
-  scaleRow: { flexDirection: "row", justifyContent: "center", gap: 12 },
-  scaleBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
-    borderColor: colors.borderNeutral,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scaleActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySubtle,
-  },
-  scaleText: { fontSize: 20, color: colors.textSecondary, fontWeight: "600" },
-  scaleTextActive: { color: colors.primary },
-  scaleLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: spacing.sm,
-    paddingHorizontal: 4,
-  },
-  scaleLabelText: { fontSize: 12, color: colors.mutedLight },
-  notesInput: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    fontSize: 15,
-    minHeight: 100,
-    textAlignVertical: "top",
-    marginBottom: 20,
-  },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-  },
-  submitDisabled: { opacity: 0.4 },
-  submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});

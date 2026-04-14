@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
 import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 // Supabase join returns medications as an array; we use the first element
@@ -32,6 +32,7 @@ export default function MedicationsScreen() {
   const { orgId, recipientId } = useApp();
   const { write } = useOfflineWrite(orgId ?? "");
   const syncStatus = useSyncStatus();
+  const { colors, spacing, radii } = useAppTheme();
 
   const {
     data: scheduled,
@@ -75,6 +76,51 @@ export default function MedicationsScreen() {
   );
 
   const meds = (scheduled as unknown as ScheduledMed[]) ?? [];
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        syncBanner: {
+          paddingVertical: 6,
+          paddingHorizontal: spacing.md,
+          marginBottom: spacing.sm,
+        },
+        offlineBanner: { backgroundColor: colors.secondarySubtle },
+        pendingBanner: { backgroundColor: colors.primarySubtle },
+        syncText: { fontSize: 12, color: colors.textSecondary },
+        loader: { marginTop: 48 },
+        row: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        info: { flex: 1 },
+        medName: { fontSize: 16, fontWeight: "600" },
+        medDose: { fontSize: 13, color: colors.muted, marginTop: 2 },
+        btn: {
+          backgroundColor: colors.primary,
+          paddingHorizontal: 14,
+          paddingVertical: spacing.sm,
+          borderRadius: radii.md,
+        },
+        givenBtn: {
+          backgroundColor: colors.successSubtle,
+          borderWidth: 1,
+          borderColor: colors.successLight,
+        },
+        btnText: { color: colors.white, fontWeight: "600", fontSize: 13 },
+        givenText: { color: colors.successStrong },
+        empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+      }),
+    [colors, spacing, radii],
+  );
 
   return (
     <View style={styles.container}>
@@ -159,44 +205,3 @@ export default function MedicationsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-  },
-  syncBanner: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  offlineBanner: { backgroundColor: colors.secondarySubtle },
-  pendingBanner: { backgroundColor: colors.primarySubtle },
-  syncText: { fontSize: 12, color: colors.textSecondary },
-  loader: { marginTop: 48 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  info: { flex: 1 },
-  medName: { fontSize: 16, fontWeight: "600" },
-  medDose: { fontSize: 13, color: colors.muted, marginTop: 2 },
-  btn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.md,
-  },
-  givenBtn: {
-    backgroundColor: colors.successSubtle,
-    borderWidth: 1,
-    borderColor: colors.successLight,
-  },
-  btnText: { color: colors.white, fontWeight: "600", fontSize: 13 },
-  givenText: { color: colors.successStrong },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});

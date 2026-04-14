@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { colors, radii, spacing, typography } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 const ITEMS = [
   { title: "Symptoms", route: "/symptoms" as const, icon: "🩺" },
@@ -15,6 +16,42 @@ const ITEMS = [
 
 export default function MoreScreen() {
   const router = useRouter();
+  const { colors, spacing, radii, typography } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surfaceRaised,
+          padding: spacing.lg,
+        },
+        heading: {
+          fontSize: typography.titleSize,
+          fontWeight: typography.weightBold,
+          color: colors.textPrimary,
+          marginBottom: spacing.xl,
+        },
+        grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
+        card: {
+          width: "47%",
+          backgroundColor: colors.surfaceSubtle,
+          borderRadius: radii.md,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          padding: spacing.xl,
+          alignItems: "center",
+          gap: spacing.sm,
+        },
+        icon: { fontSize: 28 },
+        label: {
+          fontSize: typography.bodySize,
+          fontWeight: typography.weightSemibold,
+          color: colors.textPrimary,
+        },
+      }),
+    [colors, spacing, radii, typography],
+  );
 
   return (
     <View style={styles.container}>
@@ -36,34 +73,3 @@ export default function MoreScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceRaised,
-    padding: spacing.lg,
-  },
-  heading: {
-    fontSize: typography.titleSize,
-    fontWeight: typography.weightBold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xl,
-  },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
-  card: {
-    width: "47%",
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    padding: spacing.xl,
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  icon: { fontSize: 28 },
-  label: {
-    fontSize: typography.bodySize,
-    fontWeight: typography.weightSemibold,
-    color: colors.textPrimary,
-  },
-});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -25,6 +25,66 @@ export default function ScanScreen() {
     mimeType: string;
   } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: spacing.xl,
+          backgroundColor: colors.surfaceRaised,
+        },
+        title: {
+          fontSize: 22,
+          fontWeight: "600",
+          marginBottom: spacing.xl,
+        },
+        preview: {
+          width: "100%",
+          height: 300,
+          borderRadius: radii.lg,
+          marginBottom: spacing.xl,
+        },
+        placeholder: {
+          width: "100%",
+          height: 300,
+          borderRadius: radii.lg,
+          backgroundColor: colors.surfaceSubtle,
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: spacing.xl,
+        },
+        placeholderText: { color: colors.mutedLight, fontSize: 16 },
+        buttonRow: {
+          flexDirection: "row",
+          gap: 12,
+          marginBottom: spacing.lg,
+        },
+        button: {
+          flex: 1,
+          padding: 14,
+          borderRadius: radii.md,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          alignItems: "center",
+        },
+        buttonText: { fontSize: 15, color: colors.textSecondary },
+        uploadButton: {
+          padding: spacing.lg,
+          borderRadius: radii.lg,
+          backgroundColor: colors.primary,
+          alignItems: "center",
+        },
+        uploadButtonDisabled: { backgroundColor: colors.primaryLight },
+        uploadButtonText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: 16,
+        },
+      }),
+    [colors, spacing, radii],
+  );
 
   async function pickCamera() {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -163,46 +223,3 @@ export default function ScanScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.xl,
-    backgroundColor: colors.surfaceRaised,
-  },
-  title: { fontSize: 22, fontWeight: "600", marginBottom: spacing.xl },
-  preview: {
-    width: "100%",
-    height: 300,
-    borderRadius: radii.lg,
-    marginBottom: spacing.xl,
-  },
-  placeholder: {
-    width: "100%",
-    height: 300,
-    borderRadius: radii.lg,
-    backgroundColor: colors.surfaceSubtle,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xl,
-  },
-  placeholderText: { color: colors.mutedLight, fontSize: 16 },
-  buttonRow: { flexDirection: "row", gap: 12, marginBottom: spacing.lg },
-  button: {
-    flex: 1,
-    padding: 14,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    alignItems: "center",
-  },
-  buttonText: { fontSize: 15, color: colors.textSecondary },
-  uploadButton: {
-    padding: spacing.lg,
-    borderRadius: radii.lg,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-  },
-  uploadButtonDisabled: { backgroundColor: colors.primaryLight },
-  uploadButtonText: { color: colors.white, fontWeight: "600", fontSize: 16 },
-});

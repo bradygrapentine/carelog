@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +11,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { formatWeekStamp } from "../../../utils/wave5Utils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 function currentWeekStamp(): string {
@@ -28,10 +29,62 @@ function currentWeekStamp(): string {
 export default function BurnoutScreen() {
   const router = useRouter();
   const { orgId, currentRole } = useApp();
+  const { colors, spacing, radii } = useAppTheme();
 
   const { data, isLoading } = trpc.burnout.myHistory.useQuery(
     { org_id: orgId ?? "" },
     { enabled: !!orgId },
+  );
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+          gap: spacing.md,
+        },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        actionBtnDisabled: { color: colors.mutedLight },
+        summaryBtn: {
+          borderWidth: 1,
+          borderColor: colors.primary,
+          borderRadius: radii.md,
+          padding: spacing.md,
+          alignItems: "center",
+        },
+        summaryBtnText: {
+          color: colors.primary,
+          fontWeight: "600",
+          fontSize: 14,
+        },
+        loader: { marginTop: 48 },
+        row: {
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        week: {
+          fontSize: 14,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: 4,
+        },
+        scores: { flexDirection: "row", gap: 12 },
+        score: { fontSize: 13, color: colors.textSecondary },
+        notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+      }),
+    [colors, spacing, radii],
   );
 
   const thisWeek = currentWeekStamp();
@@ -114,38 +167,3 @@ export default function BurnoutScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  actionBtnDisabled: { color: colors.mutedLight },
-  summaryBtn: {
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    alignItems: "center",
-  },
-  summaryBtnText: { color: colors.primary, fontWeight: "600", fontSize: 14 },
-  loader: { marginTop: 48 },
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  week: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  scores: { flexDirection: "row", gap: 12 },
-  score: { fontSize: 13, color: colors.textSecondary },
-  notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});

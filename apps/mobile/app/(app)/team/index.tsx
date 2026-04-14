@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -14,19 +14,12 @@ import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
 import { canInvite } from "../../../utils/wave5Utils";
 import type { Membership } from "@carelog/types";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 type MemberRow = Membership & { display_name?: string; email?: string };
 
 const ROLES = ["coordinator", "caregiver", "aide", "supporter"] as const;
-
-const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  coordinator: { bg: colors.primarySubtle, text: colors.roleCoordinatorBg },
-  caregiver: { bg: colors.roleCaregiverBg, text: colors.roleCaregiverText },
-  aide: { bg: colors.secondarySubtle, text: colors.roleSupporterText },
-  supporter: { bg: colors.surfaceSubtle, text: colors.textSecondary },
-};
 
 export default function TeamScreen() {
   const { orgId, recipientId, currentRole } = useApp();
@@ -34,6 +27,14 @@ export default function TeamScreen() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ROLES)[number]>("caregiver");
   const [sending, setSending] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
+    coordinator: { bg: colors.primarySubtle, text: colors.roleCoordinatorBg },
+    caregiver: { bg: colors.roleCaregiverBg, text: colors.roleCaregiverText },
+    aide: { bg: colors.secondarySubtle, text: colors.roleSupporterText },
+    supporter: { bg: colors.surfaceSubtle, text: colors.textSecondary },
+  };
 
   const {
     data: members,
@@ -71,6 +72,98 @@ export default function TeamScreen() {
       setSending(false);
     }
   }
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        loader: { marginTop: 48 },
+        row: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        info: { flex: 1, marginRight: spacing.md },
+        name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+        email: { fontSize: 13, color: colors.muted, marginTop: 2 },
+        badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+        badgeText: { fontSize: 12, fontWeight: "500" },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+        modalOverlay: {
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.4)",
+          justifyContent: "flex-end",
+        },
+        modalContent: {
+          backgroundColor: colors.surfaceRaised,
+          borderTopLeftRadius: spacing.lg,
+          borderTopRightRadius: spacing.lg,
+          padding: spacing.xl,
+          paddingBottom: 40,
+        },
+        modalTitle: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          marginBottom: spacing.lg,
+        },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: spacing.md,
+          fontSize: 15,
+          marginBottom: spacing.md,
+        },
+        roleRow: {
+          flexDirection: "row",
+          gap: spacing.sm,
+          marginBottom: spacing.lg,
+          flexWrap: "wrap",
+        },
+        roleChip: {
+          paddingHorizontal: 14,
+          paddingVertical: spacing.sm,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+        },
+        roleChipActive: {
+          borderColor: colors.primary,
+          backgroundColor: colors.primarySubtle,
+        },
+        roleChipText: { fontSize: 13, color: colors.textSecondary },
+        roleChipTextActive: { color: colors.primary, fontWeight: "600" },
+        sendBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+          marginBottom: spacing.sm,
+        },
+        sendDisabled: { opacity: 0.4 },
+        sendText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+        cancelBtn: { alignItems: "center", padding: 10 },
+        cancelText: { color: colors.muted, fontSize: 15 },
+      }),
+    [colors, spacing, radii],
+  );
 
   const inviteAction = canInvite(currentRole) ? (
     <TouchableOpacity
@@ -188,79 +281,3 @@ export default function TeamScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  loader: { marginTop: 48 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  info: { flex: 1, marginRight: spacing.md },
-  name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
-  email: { fontSize: 13, color: colors.muted, marginTop: 2 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { fontSize: 12, fontWeight: "500" },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: colors.surfaceRaised,
-    borderTopLeftRadius: spacing.lg,
-    borderTopRightRadius: spacing.lg,
-    padding: spacing.xl,
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: spacing.lg,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    fontSize: 15,
-    marginBottom: spacing.md,
-  },
-  roleRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-    flexWrap: "wrap",
-  },
-  roleChip: {
-    paddingHorizontal: 14,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-  },
-  roleChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySubtle,
-  },
-  roleChipText: { fontSize: 13, color: colors.textSecondary },
-  roleChipTextActive: { color: colors.primary, fontWeight: "600" },
-  sendBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  sendDisabled: { opacity: 0.4 },
-  sendText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  cancelBtn: { alignItems: "center", padding: 10 },
-  cancelText: { color: colors.muted, fontSize: 15 },
-});

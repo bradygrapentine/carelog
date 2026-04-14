@@ -16,10 +16,13 @@ import { getAccessToken } from "../utils/auth";
 import { AppProvider } from "../context/AppContext";
 import { useWatchMessages } from "../hooks/useWatchMessages";
 import { initSentry, Sentry } from "../utils/sentry";
+import { initPostHog, identifyUser, resetUser } from "../utils/posthog";
+import { supabase } from "../utils/supabase";
 import { useAppTheme } from "../hooks/useAppTheme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initSentry();
+initPostHog().catch(() => {});
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -30,6 +33,17 @@ function RootLayoutInner() {
   const router = useRouter();
   const { scheme } = useAppTheme();
   const notifListenerRef = useRef<Notifications.Subscription | null>(null);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user?.id) {
+        identifyUser(session.user.id);
+      } else if (event === "SIGNED_OUT") {
+        resetUser();
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     notifListenerRef.current =

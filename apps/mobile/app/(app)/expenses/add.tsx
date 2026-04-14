@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import {
   EXPENSE_CATEGORIES,
   type ExpenseCategory,
 } from "../../../utils/wave5Utils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 export default function ExpenseAddScreen() {
   const router = useRouter();
@@ -29,6 +29,76 @@ export default function ExpenseAddScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.surfaceRaised },
+        content: { padding: spacing.lg },
+        backBtn: { marginBottom: spacing.sm },
+        backText: { fontSize: 15, color: colors.primary },
+        heading: {
+          fontSize: 22,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          marginBottom: spacing.xl,
+        },
+        label: {
+          fontSize: 13,
+          fontWeight: "600",
+          color: colors.muted,
+          marginBottom: 6,
+          marginTop: spacing.lg,
+        },
+        amountInput: {
+          fontSize: 32,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          borderBottomWidth: 2,
+          borderBottomColor: colors.borderNeutral,
+          paddingVertical: spacing.sm,
+        },
+        chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+        chip: {
+          paddingHorizontal: 14,
+          paddingVertical: spacing.sm,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+        },
+        chipActive: {
+          borderColor: colors.primary,
+          backgroundColor: colors.primarySubtle,
+        },
+        chipText: { fontSize: 13, color: colors.textSecondary },
+        chipTextActive: { color: colors.primary, fontWeight: "600" },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: spacing.md,
+          fontSize: 15,
+        },
+        dateBtn: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: radii.md,
+          padding: spacing.md,
+        },
+        dateText: { fontSize: 15, color: colors.textPrimary },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+          marginTop: 24,
+        },
+        submitDisabled: { opacity: 0.4 },
+        submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+      }),
+    [colors, spacing, radii],
+  );
 
   const createMut = trpc.expenses.create.useMutation({
     onSuccess: () => router.back(),
@@ -154,68 +224,3 @@ export default function ExpenseAddScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceRaised },
-  content: { padding: spacing.lg },
-  backBtn: { marginBottom: spacing.sm },
-  backText: { fontSize: 15, color: colors.primary },
-  heading: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: spacing.xl,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.muted,
-    marginBottom: 6,
-    marginTop: spacing.lg,
-  },
-  amountInput: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.borderNeutral,
-    paddingVertical: spacing.sm,
-  },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-  },
-  chipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySubtle,
-  },
-  chipText: { fontSize: 13, color: colors.textSecondary },
-  chipTextActive: { color: colors.primary, fontWeight: "600" },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    fontSize: 15,
-  },
-  dateBtn: {
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-    borderRadius: radii.md,
-    padding: spacing.md,
-  },
-  dateText: { fontSize: 15, color: colors.textPrimary },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginTop: 24,
-  },
-  submitDisabled: { opacity: 0.4 },
-  submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});
