@@ -10,9 +10,10 @@ export function ContactForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const name    = (form.elements.namedItem("name")    as HTMLInputElement).value;
-    const email   = (form.elements.namedItem("email")   as HTMLInputElement).value;
-    const message = (form.elements.namedItem("message") as HTMLTextAreaElement).value;
+    const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const message = (form.elements.namedItem("message") as HTMLTextAreaElement)
+      .value;
 
     setStatus("sending");
     try {
@@ -31,7 +32,9 @@ export function ContactForm() {
     return (
       <div className="rounded-2xl bg-[var(--color-primary-subtle)] p-8 text-center">
         <p className="text-2xl">💜</p>
-        <p className="mt-2 font-semibold text-[var(--color-ink)]">Message sent!</p>
+        <p className="mt-2 font-semibold text-[var(--color-ink)]">
+          Message sent!
+        </p>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
           We reply within 24 hours.
         </p>
@@ -42,7 +45,10 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium text-[var(--color-ink)]">
+        <label
+          htmlFor="name"
+          className="text-sm font-medium text-[var(--color-ink)]"
+        >
           Name
         </label>
         <input
@@ -56,7 +62,10 @@ export function ContactForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-[var(--color-ink)]">
+        <label
+          htmlFor="email"
+          className="text-sm font-medium text-[var(--color-ink)]"
+        >
           Email
         </label>
         <input
@@ -70,7 +79,10 @@ export function ContactForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="message" className="text-sm font-medium text-[var(--color-ink)]">
+        <label
+          htmlFor="message"
+          className="text-sm font-medium text-[var(--color-ink)]"
+        >
           Message
         </label>
         <textarea
@@ -92,7 +104,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+        className="mt-1 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
       >
         {status === "sending" ? "Sending…" : "Send message"}
       </button>

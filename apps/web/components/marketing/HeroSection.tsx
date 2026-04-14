@@ -65,8 +65,8 @@ export function HeroSection() {
           {/* Lead image — intergenerational family care */}
           <div className="absolute left-0 top-0 h-[72%] w-[68%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=80"
-              alt="Adult daughter embracing her elderly mother at home, a moment of warmth between family caregivers"
+              src="/images/hero-1.png"
+              alt="An adult daughter embracing her elderly mother at home, a moment of warmth between family caregivers"
               fill
               sizes="(min-width: 768px) 40vw, 90vw"
               className="object-cover"
@@ -77,7 +77,7 @@ export function HeroSection() {
           {/* Secondary — disability care / support */}
           <div className="absolute right-0 top-[18%] h-[50%] w-[52%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="https://images.unsplash.com/photo-1559839914-17aae19cec71?auto=format&fit=crop&w=800&q=80"
+              src="/images/hero-2.png"
               alt="A caregiver sitting and talking warmly with an older person at home, offering companionship and support"
               fill
               sizes="(min-width: 768px) 30vw, 60vw"
@@ -88,7 +88,7 @@ export function HeroSection() {
           {/* Tertiary — caregiver hands, tender detail */}
           <div className="absolute bottom-0 left-[18%] h-[38%] w-[44%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=700&q=80"
+              src="/images/hero-3.png"
               alt="A younger hand gently holding the hand of an elderly person, symbolizing trust between caregiver and care recipient"
               fill
               sizes="(min-width: 768px) 25vw, 60vw"
