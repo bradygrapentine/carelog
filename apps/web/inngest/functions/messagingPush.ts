@@ -26,6 +26,13 @@ export const messagingPushFn = inngest.createFunction(
       getThreadMembersForPush(threadId),
     );
 
+    // Verify senderId is actually a member of this thread
+    const senderMembership = members.find((m) => m.user_id === senderId);
+    if (!senderMembership) {
+      // Event forged or sender was removed from thread — abort silently
+      return { pushed: 0, aborted: true, reason: "sender_not_member" };
+    }
+
     // Push to members who haven't read the thread since the message was sent
     const sentAtDate = new Date(sentAt);
     const recipientIds = members
