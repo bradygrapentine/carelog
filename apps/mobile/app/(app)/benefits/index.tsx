@@ -275,6 +275,7 @@ export default function BenefitsScreen() {
                 <TouchableOpacity
                   onPress={() => Linking.openURL(program.applyUrl)}
                   accessibilityRole="link"
+                  accessibilityLabel={"Learn more about " + program.name}
                 >
                   <Text style={styles.cardLink}>Learn more →</Text>
                 </TouchableOpacity>

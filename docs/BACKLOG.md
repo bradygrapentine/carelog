@@ -8,6 +8,9 @@ Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.
 
 Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
 
+## Human Feature Ideas
+> Don't make changes here. I will add ideas here when they come to me. Add backlog items as I add them (should add this to the backlog sync). Ask me questions to fill out the design.
+
 ---
 
 ## 0. Status board (at-a-glance)
@@ -86,7 +89,7 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
 
-### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
+### ✅ ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 **Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
 **Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
 **AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
@@ -124,7 +127,7 @@ Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, docu
 ### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### 🌙 ON-30 — JSDoc on public exports in `packages/shared`
+### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
@@ -133,7 +136,7 @@ Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, asse
 ### ✅ ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
 Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
 
 ### ✅ ON-34 — PostHog funnel events: web ↔ mobile parity audit
@@ -151,7 +154,7 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### 🌙 ON-39 — Eliminate `any` types
+### 🔎 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
 
 ### ✅ ON-40 — Vitest flake detection + quarantine
@@ -163,10 +166,10 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### 🌙 A11Y-004 — Token contrast validator script
+### ⚡ A11Y-004 — Token contrast validator script
 Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
 
-### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
+### ✅ A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
 ---
