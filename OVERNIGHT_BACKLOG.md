@@ -34,6 +34,10 @@ ON-39 Eliminate `any` types audit                  ─── no deps
 ON-40 Vitest flakes: quarantine + log              ─── no deps
 ON-41 Migrate stale snapshot tests                 ─── no deps
 ON-42 Next.js `dynamic = "force-dynamic"` audit    ─── no deps, report
+ON-43 In-app messaging (DM + group)                ─── HIGH complexity
+ON-44 Comment threads on journal events            ─── MEDIUM
+ON-45 Shift trade requests                         ─── MEDIUM
+ON-46 Medication tagging + tag filters + doc links ─── MEDIUM-HIGH
 ```
 
 All unblocked stories are independent — agent may run in parallel.
@@ -475,3 +479,129 @@ All unblocked stories are independent — agent may run in parallel.
 
 **Blocked by:** nothing
 **Size:** ~2 hours
+
+---
+
+### ON-43 — In-app messaging for teams (DM + group)
+
+**Context:** Today the only communication surface in Carelog is the care journal. Families still fall back to group texts for side conversations ("can you cover Tuesday?", "quick question about dad's insurance"), which splinters context away from the app. Add first-class messaging so threads live alongside the rest of the care record — without polluting the journal.
+
+**Technical details:**
+- New tables (all org-scoped, RLS enforced via `org_memberships`):
+  - `message_threads` — `id, org_id, kind ('dm' | 'group'), title (nullable for dm), created_by, created_at, last_message_at`
+  - `message_thread_members` — `thread_id, user_id, role ('member' | 'admin'), joined_at, last_read_at`
+  - `messages` — `id, thread_id, author_id, body text, created_at, edited_at, deleted_at`
+- RLS: user can read a thread only if they are a `message_thread_members` row AND share an org membership with the thread. Writes follow same rule.
+- tRPC router `messagesRouter`: `listThreads`, `getThread(threadId, cursor)`, `sendMessage`, `createDm(userId)`, `createGroup(name, memberIds)`, `markRead(threadId)`.
+- Realtime via Supabase Realtime on the `messages` table, filtered by thread membership.
+- Web UI: `/messages` shell with thread list on the left, active thread on the right; composer with Enter-to-send; unread badges on sidebar nav.
+- Mobile UI: two screens — thread list and thread view (FlatList with inverted prop for chat style).
+- Push notifications on new message when `last_read_at` < `last_message_at` AND recipient has `messages` notification pref enabled.
+- pgTAP tests for all RLS cases (owner read own thread, non-member blocked, cross-org blocked, anon blocked).
+
+**Acceptance criteria:**
+- [ ] Migration + pgTAP coverage for both tables
+- [ ] DM creation is idempotent (selecting the same user twice returns the existing thread)
+- [ ] Unread count accurate across web + mobile
+- [ ] Realtime updates arrive within ~1s on both platforms
+- [ ] Push notification fires only for users with pref enabled
+- [ ] No PII in analytics events beyond UUIDs
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~3 days (split across 2–3 PRs: schema/RLS, web UI, mobile UI + push)
+
+---
+
+### ON-44 — Comment threads on care events in Journal
+
+**Context:** A journal entry often prompts a short back-and-forth ("did she actually eat it?", "should I flag for the doctor?"). Today those conversations happen off-platform. Attach lightweight comment threads to every care event so the discussion lives with the event it's about.
+
+**Technical details:**
+- New table `care_event_comments`: `id, care_event_id (fk care_events), author_id, body, created_at, edited_at, deleted_at`
+- RLS mirrors `care_events`: if you can read the event, you can read its comments; you can only update/delete your own comment.
+- tRPC `careEvents.comments.list(eventId)` and `careEvents.comments.add({ eventId, body })`.
+- Web: collapsible comment block beneath each event in `JournalFeed`; shows a count badge when collapsed. Composer is a single-line expander that grows to a textarea.
+- Mobile: tap a journal entry → event detail screen → comments list + composer.
+- Realtime subscription on `care_event_comments` keyed by `care_event_id` for the active feed window.
+- Soft delete only (keep audit trail per `docs/project-info/technology/SECURITY_MODEL.md`).
+- pgTAP tests: author can edit/delete own, non-author cannot, cross-org cannot read.
+
+**Acceptance criteria:**
+- [ ] Comment count badge matches actual count
+- [ ] Edit + delete only available on own comments
+- [ ] Comments render inline on web and on the event detail screen on mobile
+- [ ] Realtime updates in both clients
+- [ ] pgTAP green for RLS on the new table
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~1.5 days
+
+---
+
+### ON-45 — Shift trade requests
+
+**Context:** The shifts scheduler supports creating and cancelling shifts but not transferring them. A caregiver who needs to swap a Tuesday evening has to cancel and hope the coordinator notices and re-fills. Add a first-class trade-request flow so swaps happen cleanly without dropping coverage.
+
+**Technical details:**
+- New table `shift_trade_requests`: `id, shift_id, requested_by, target_user_id (nullable — null means "open to anyone"), status ('pending' | 'accepted' | 'declined' | 'cancelled' | 'expired'), message text, created_at, resolved_at`
+- Business rules:
+  - Only the shift assignee can open a request.
+  - If `target_user_id` is set → only that user can accept.
+  - If null → any org member with the right role (caregiver) can accept.
+  - Acceptance atomically reassigns the `shifts.assigned_user_id` and marks the request `accepted` (single transaction).
+  - Coordinator can force-override at any time.
+  - Requests auto-expire 24h before shift start.
+- tRPC `shiftTrades.request`, `shiftTrades.accept`, `shiftTrades.decline`, `shiftTrades.cancel`, `shiftTrades.list`.
+- Web: button on each of your upcoming shifts "Request trade"; Trades inbox shows pending requests you can accept.
+- Mobile: same, plus push notification to target user (or to all eligible users for open requests).
+- Inngest cron `shiftTrades.expire` runs every 15 min, marks stale requests expired and pushes a notification to the original requester.
+- pgTAP: only assignee can request; only target (or any caregiver if open) can accept; coordinator can override; acceptance updates shift + request in one tx.
+
+**Acceptance criteria:**
+- [ ] Accepting a trade reassigns the shift atomically (no ghost windows where both users are assigned)
+- [ ] Push notification fires on request, on accept, and on expiry
+- [ ] Coordinator override logs to `audit_events`
+- [ ] pgTAP tests green for all state transitions
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~2 days
+
+---
+
+### ON-46 — Medication tagging + tag filters + document links
+
+**Context:** As a care circle accumulates months of journal entries and documents, finding "everything about gabapentin" is painful. Add medication-aware tagging: care events and documents that mention a specific medication can be tagged with it, the Journal and Vault can filter by tag, and each medication's detail page surfaces the linked documents and recent mentions.
+
+**Technical details:**
+- New junction tables:
+  - `care_event_medications` — `care_event_id, medication_id, confidence ('manual' | 'auto'), created_at`
+  - `document_medications` — `document_id, medication_id, confidence, created_at`
+- Both tables inherit org scoping via the parent table's RLS (add pgTAP coverage).
+- Auto-tagging:
+  - On journal entry insert, run a lightweight server-side text match against the org's active medication names + common aliases (e.g. "gaba" → gabapentin). Insert `confidence='auto'` links.
+  - On document OCR (reuse the existing pipeline from ON-10), run the same matcher against `extracted_text`.
+  - Manual tag UI lets a user add/remove tags regardless of auto matches.
+- tRPC:
+  - `medications.listWithStats` — returns each med with counts of linked events + linked docs in the last 30 days
+  - `medications.get(medicationId)` — returns the med plus its linked documents and recent events (paginated)
+  - `careEvents.tagMedication` / `untagMedication`
+  - `documents.tagMedication` / `untagMedication`
+- Journal filter bar: chip list of medications in the org; selecting one filters the feed to events tagged with that med.
+- Vault filter: same chip list filters document list.
+- Medication detail page (web + mobile): adds a "Linked documents" section + a "Recent mentions" feed.
+- Do NOT let auto-tagging email-out PHI: all matching happens server-side against the user's own org data.
+
+**Acceptance criteria:**
+- [ ] Tagging survives round-trip edit/delete
+- [ ] Filter chips update counts live as events are added
+- [ ] Auto-tag precision spot-checked on 10 synthetic entries: ≥80% correct matches, no false positives on unrelated words
+- [ ] Document → medication link appears on both sides (medication detail AND document detail)
+- [ ] pgTAP: non-org member cannot read junction rows; only coordinators can force-untag another user's manual tag
+- [ ] Web + mobile filter UIs consistent
+
+**Blocked by:** ON-10 (document FTS / OCR pipeline — shipped)
+**Blocks:** nothing
+**Size:** ~2.5 days
