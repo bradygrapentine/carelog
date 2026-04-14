@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -178,7 +173,10 @@ function ProfileSection() {
                 </span>
               )}
               {updateProfile.isError && (
-                <span role="alert" className="text-sm text-[var(--color-danger)]">
+                <span
+                  role="alert"
+                  className="text-sm text-[var(--color-danger)]"
+                >
                   Save failed — please try again.
                 </span>
               )}
@@ -210,7 +208,10 @@ function NotifToggle({
   return (
     <div className="flex items-start justify-between gap-4 py-2">
       <div className="flex flex-col gap-0.5">
-        <label htmlFor={id} className="text-sm font-medium text-[var(--color-ink)] cursor-pointer">
+        <label
+          htmlFor={id}
+          className="text-sm font-medium text-[var(--color-ink)] cursor-pointer"
+        >
           {label}
         </label>
         <p className="text-xs text-[var(--color-muted)]">{description}</p>
@@ -226,9 +227,7 @@ function NotifToggle({
         className={[
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2",
-          checked
-            ? "bg-[var(--color-primary)]"
-            : "bg-[var(--color-muted)]",
+          checked ? "bg-[var(--color-primary)]" : "bg-[var(--color-muted)]",
         ].join(" ")}
       >
         <span
@@ -266,10 +265,7 @@ function NotificationsSection() {
     setInitialized(true);
   }
 
-  async function handleToggle(
-    key: keyof typeof prefs,
-    value: boolean,
-  ) {
+  async function handleToggle(key: keyof typeof prefs, value: boolean) {
     const next = { ...prefs, [key]: value };
     setPrefs(next);
     await updateNotifications.mutateAsync({ [key]: value });
@@ -392,15 +388,21 @@ function DangerZoneSection() {
       {/* Leave confirmation modal */}
       {showLeaveModal && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="leave-dialog-title"
+          role="presentation"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowLeaveModal(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setShowLeaveModal(false);
+          }}
         >
-          <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-dialog-title"
+            className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl"
+          >
             <h2
               id="leave-dialog-title"
               className="text-lg font-bold text-[var(--color-ink)]"

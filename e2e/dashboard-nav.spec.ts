@@ -1,5 +1,6 @@
 // e2e/dashboard-nav.spec.ts
 import { test, expect } from "@playwright/test";
+import { checkA11y } from "./helpers";
 
 test.describe("Dashboard and sign-out navigation", () => {
   test("session restores and dashboard loads", async ({ page }) => {
@@ -9,6 +10,7 @@ test.describe("Dashboard and sign-out navigation", () => {
     await expect(page.getByText("Your care teams")).toBeVisible({
       timeout: 10000,
     });
+    await checkA11y(page);
   });
 
   test('"View care journal" navigates to journal page', async ({ page }) => {

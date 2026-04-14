@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, checkA11y } from "./helpers";
 
 // Smoke test: verifies the redesigned layout renders without errors
 // after a logged-in user navigates to their journal.
@@ -26,6 +26,7 @@ test.describe("UI layout smoke", () => {
     });
     await page.waitForTimeout(1000);
     expect(errors.filter((e) => !e.includes("favicon"))).toHaveLength(0);
+    await checkA11y(page);
   });
 
   test("hamburger menu opens sidebar on mobile", async ({ page }) => {

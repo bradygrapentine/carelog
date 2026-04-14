@@ -1,5 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
-import { POST } from "./route";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const { mockCapture } = vi.hoisted(() => ({
+  mockCapture: vi.fn(),
+}));
+
+vi.mock("@/lib/posthog-server", () => ({
+  getPostHogClient: vi.fn(() => ({ capture: mockCapture })),
+}));
 
 vi.mock("../../../server/resend.server", () => ({
   resend: {
@@ -9,8 +16,17 @@ vi.mock("../../../server/resend.server", () => ({
   },
 }));
 
+import { POST } from "./route";
+
 // Rate limiter no-ops when UPSTASH env vars are absent (local dev).
 // We still cover the rate-limit integration via the invoked code path.
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+beforeEach(() => {
+  mockCapture.mockClear();
+});
 
 function makeRequest(body: unknown, init?: RequestInit) {
   return new Request("http://localhost/api/contact", {
@@ -87,5 +103,48 @@ describe("POST /api/contact", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
+  });
+});
+
+describe("POST /api/contact — PostHog PHI boundary", () => {
+  it('captures "contact_form_submitted" event on valid submission', async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ event: "contact_form_submitted" }),
+    );
+  });
+
+  it("distinctId is NOT the user email (must be a UUID)", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    const [call] = mockCapture.mock.calls;
+    expect(call[0].distinctId).not.toBe("user@example.com");
+    expect(call[0].distinctId).toMatch(UUID_RE);
+  });
+
+  it("capture properties do NOT contain the user email", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    const allArgs = JSON.stringify(mockCapture.mock.calls);
+    expect(allArgs).not.toContain("user@example.com");
+  });
+
+  it("does NOT call posthog.capture when fields are invalid", async () => {
+    const req = makeRequest({ name: "Alex", message: "hello" }); // missing email
+    await POST(req);
+    expect(mockCapture).not.toHaveBeenCalled();
   });
 });

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     const posthog = getPostHogClient();
     posthog.capture({
-      distinctId: email,
+      distinctId: crypto.randomUUID(), // anonymous — email is PHI, never pass to PostHog
       event: "contact_form_submitted",
       properties: { has_email: !!email },
     });

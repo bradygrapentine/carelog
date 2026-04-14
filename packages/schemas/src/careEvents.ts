@@ -76,6 +76,7 @@ export const handoffPayload = z.object({
   flags: z.array(z.string().max(200)).max(50).default([]),
 });
 
+/** Map of event type names to their Zod payload schemas; used for runtime validation and type inference. */
 export const payloadSchemas = {
   journal: journalPayload,
   medication: medicationPayload,
@@ -87,11 +88,14 @@ export const payloadSchemas = {
   handoff: handoffPayload,
 } as const;
 
+/** Union of all valid care event type string literals. */
 export type EventType = keyof typeof payloadSchemas;
+/** Infers the validated payload shape for a given `EventType`. */
 export type PayloadFor<T extends EventType> = z.infer<
   (typeof payloadSchemas)[T]
 >;
 
+/** Validates `payload` against the Zod schema for the given event `type`, throwing if invalid. */
 export function validatePayload<T extends EventType>(
   type: T,
   payload: unknown,

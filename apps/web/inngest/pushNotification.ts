@@ -74,6 +74,21 @@ export async function sendPushToOrgCoordinators(
 }
 
 /**
+ * Fetches push tokens for a list of user IDs.
+ * Returns an empty array if none are found.
+ */
+export async function getPushTokensForUsers(
+  userIds: string[],
+): Promise<string[]> {
+  if (userIds.length === 0) return [];
+  const { data } = await supabaseAdmin
+    .from("push_tokens")
+    .select("token")
+    .in("auth_user_id", userIds);
+  return (data ?? []).map((r) => r.token);
+}
+
+/**
  * Sends a push notification to a single user identified by their auth user ID.
  * No-ops silently if the user has no registered push token.
  */

@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:db": "supabase test db",
-    "test:all": "pnpm test && pnpm test:db && pnpm test:e2e"
+    "test:all": "pnpm test && pnpm test:db && pnpm test:e2e",
+    "a11y:contrast": "node scripts/a11y-contrast.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -44,6 +45,7 @@
     }
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@expo/html-elements": "^0.10.1",
     "@gluestack-ui/core": "^3.0.10",
     "@gluestack-ui/utils": "^3.0.11",
