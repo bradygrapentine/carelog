@@ -13,11 +13,11 @@ export const sentryBreadcrumbLink: TRPCLink<AppRouter> =
     observable((observer) => {
       const sub = next(op).subscribe({
         next: observer.next,
-        error: (err) => {
+        error: (err: { data?: { code?: string } }) => {
           Sentry.addBreadcrumb({
             category: "trpc",
-            message: `${op.path} error`,
-            data: { path: op.path, type: op.type },
+            message: op.path,
+            data: { path: op.path, type: op.type, code: err?.data?.code },
             level: "error",
           });
           observer.error(err);
