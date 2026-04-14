@@ -1,5 +1,6 @@
 // e2e/navigation.spec.ts
 import { test, expect } from "@playwright/test";
+import { checkA11y } from "./helpers";
 
 // Navigate to the journal page from dashboard — reused across all tests
 async function goToJournal(page: any) {
@@ -25,6 +26,7 @@ test.describe("Panel tab navigation", () => {
       "aria-selected",
       "true",
     );
+    await checkA11y(page);
   });
 
   test("Medications tab — panel heading visible and URL updated", async ({

@@ -91,3 +91,4 @@ Defined in `apps/web/app/globals.css` under `@theme inline`. Reference via CSS v
 - [ ] Works at 1440px wide (no stretched single-line forms across the full width)
 - [ ] Labels on every input; `aria-label` on every icon-only button
 - [ ] Alt text on every image; `aria-hidden` on decoratives
+- [ ] Run key screens through Chrome DevTools > Rendering > Emulate vision deficiencies (Protanopia, Deuteranopia, Achromatopsia) and verify critical information is distinguishable without color alone
