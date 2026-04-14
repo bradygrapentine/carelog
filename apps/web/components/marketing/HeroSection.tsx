@@ -62,16 +62,22 @@ export function HeroSection() {
         <div className="mt-2 flex items-center gap-3">
           <div className="flex -space-x-3">
             {[
-              { src: "/images/hero-5.png", alt: "A caregiver family portrait" },
+              {
+                src: "/images/hero-5.png",
+                alt: "A caregiver sitting with an elderly woman at home",
+              },
               {
                 src: "/images/hero-6.png",
-                alt: "A grandparent with grandchild",
+                alt: "Community members helping an older woman in a garden",
               },
               {
-                src: "/images/hero-7.png",
-                alt: "A care recipient smiling with family",
+                src: "/images/hero-3.png",
+                alt: "A physical therapist supporting a child with a walker",
               },
-              { src: "/images/hero-8.png", alt: "An older couple at home" },
+              {
+                src: "/images/hero-4.png",
+                alt: "A caregiver walking with an elderly man in a park",
+              },
             ].map((img) => (
               <span
                 key={img.src}
@@ -100,8 +106,8 @@ export function HeroSection() {
           {/* Lead image — intergenerational family care */}
           <div className="absolute left-0 top-0 h-[72%] w-[68%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="/images/hero-1.png"
-              alt="An adult daughter embracing her elderly mother at home, a moment of warmth between family caregivers"
+              src="/images/hero-2.png"
+              alt="Three generations — grandmother, mother, and daughter — laughing together at home"
               fill
               sizes="(min-width: 768px) 40vw, 90vw"
               className="object-cover"
@@ -109,33 +115,33 @@ export function HeroSection() {
             />
           </div>
 
-          {/* Secondary — disability care / support */}
+          {/* Secondary — caregiver at home */}
           <div className="absolute right-0 top-[18%] h-[50%] w-[52%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="/images/hero-2.png"
-              alt="A caregiver sitting and talking warmly with an older person at home, offering companionship and support"
+              src="/images/hero-5.png"
+              alt="An adult daughter sitting and talking warmly with her elderly mother at home"
               fill
               sizes="(min-width: 768px) 30vw, 60vw"
               className="object-cover"
             />
           </div>
 
-          {/* Tertiary — caregiver hands, tender detail */}
+          {/* Tertiary — professional care */}
           <div className="absolute bottom-0 left-[18%] h-[38%] w-[44%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
               src="/images/hero-3.png"
-              alt="A younger hand gently holding the hand of an elderly person, symbolizing trust between caregiver and care recipient"
+              alt="A physical therapist and parent supporting a young child learning to walk with a walker"
               fill
               sizes="(min-width: 768px) 25vw, 60vw"
               className="object-cover"
             />
           </div>
 
-          {/* Quaternary — small detail in the top-right negative space */}
+          {/* Quaternary — outdoor moment */}
           <div className="absolute -top-4 right-0 h-[22%] w-[28%] overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5">
             <Image
               src="/images/hero-4.png"
-              alt="A family member sharing a quiet moment with their care recipient"
+              alt="A caregiver walking alongside an elderly man in a park on an autumn day"
               fill
               sizes="(min-width: 768px) 15vw, 35vw"
               className="object-cover"
