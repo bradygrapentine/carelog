@@ -201,6 +201,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/review` | Adversarial security review for PHI/RLS/auth code |
 | `/plan-with-tests` | Write a test-first handoff plan for a subordinate agent (/ollama or subagent) |
 | `/expo` | Expo/React Native patterns for the mobile app |
+| `/mobile-ui` | Drive iOS Simulator: boot, launch Expo, deep-link routes, screenshot (visual UI investigation) |
 | `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
 | `/ollama` | Dispatch parallel tasks to local Ollama models (Opus/Sonnet stays as orchestrator) |
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |

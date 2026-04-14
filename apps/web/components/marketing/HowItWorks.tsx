@@ -25,8 +25,8 @@ export function HowItWorks() {
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
           <Image
-            src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1000&q=80"
-            alt="An elderly man laughing with his granddaughter, three generations caring for each other"
+            src="/images/hero-8.png"
+            alt="An older couple at home, sharing a warm moment together"
             fill
             sizes="(min-width: 768px) 45vw, 90vw"
             className="object-cover"

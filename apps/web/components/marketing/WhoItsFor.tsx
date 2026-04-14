@@ -4,20 +4,20 @@ const personas = [
   {
     title: "Adult children",
     body: "Managing mom or dad's appointments, medications, and mood while holding down a full-time job — and keeping siblings in the loop without a group text spiral.",
-    src: "https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=900&q=80",
-    alt: "An adult daughter sitting close to her elderly mother, sharing a quiet moment at home",
+    src: "/images/hero-5.png",
+    alt: "A caregiver family portrait",
   },
   {
     title: "Spouses and partners",
     body: "Caring for a partner through chronic illness or disability. One shared source of truth so nothing falls through the cracks between you, doctors, and hired help.",
-    src: "https://images.unsplash.com/photo-1518152006812-edab29b069ac?auto=format&fit=crop&w=900&q=80",
-    alt: "An older couple smiling together, the partner gently supporting their spouse",
+    src: "/images/hero-6.png",
+    alt: "A grandparent with grandchild",
   },
   {
     title: "Professional caregivers",
     body: "Aides and companions who want to hand off shift notes cleanly, log medications with confidence, and give the family calm visibility into each visit.",
-    src: "https://images.unsplash.com/photo-1559839914-17aae19cec71?auto=format&fit=crop&w=900&q=80",
-    alt: "A professional caregiver sitting and conversing warmly with an older adult in their home",
+    src: "/images/hero-7.png",
+    alt: "A care recipient smiling with family",
   },
 ];
 

@@ -71,12 +71,6 @@ const FEATURES = [
     description:
       "A private, coordinator-only space for advance directives, preferences, and the hardest conversations.",
   },
-  {
-    icon: "📱",
-    title: "Mobile & Apple Watch",
-    description:
-      "Log a medication from your watch at the bedside. Works offline and syncs when you're back online.",
-  },
 ] as const;
 
 export function FeatureGrid() {
