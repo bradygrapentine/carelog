@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { haptics } from "../../../utils/haptics";
 import {
   View,
   Text,
@@ -52,6 +53,7 @@ export default function BurnoutCheckinScreen() {
   }
 
   async function handleSubmit() {
+    haptics.tap();
     if (!orgId) return;
     const session = await getSession();
     if (!session) return;

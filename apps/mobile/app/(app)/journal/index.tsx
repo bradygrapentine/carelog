@@ -1,5 +1,6 @@
 // apps/mobile/app/(app)/journal/index.tsx
 import { useState } from "react";
+import { haptics } from "../../../utils/haptics";
 import {
   View,
   Text,
@@ -102,6 +103,7 @@ export default function JournalScreen() {
     const entry = text.trim();
     setText("");
     setSubmitting(true);
+    haptics.tap();
 
     try {
       await write({
