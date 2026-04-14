@@ -123,10 +123,32 @@ Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with proj
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
-Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Unblocked:** PP-004 (settings hub) shipped in PR #36.
+Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
+
+### 🌙 ON-32 — E2E: invite-accept happy path
+Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
+
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
+
+### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
+Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
+
+### ✅ 🌙 ON-35 — `.gitignore` hygiene
+Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
+
+### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
+Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
-`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr. **Note:** two agent attempts timed out; consider splitting into separate web + mobile subtasks.
+`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
+
+### ✅ 🌙 ON-38 — Dependency freshness report
+`pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
+
+### 🔎 ON-39 — Eliminate `any` types
+Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
+**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
 
 ### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
 19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
