@@ -221,8 +221,8 @@ export function MedicationPanel({
   ) : null;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 flex flex-row items-center justify-between space-y-0 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <CardTitle className="text-sm">Medications</CardTitle>
         {/* Mobile-only toggle */}
         {isCoordinator && !showForm && (
@@ -235,8 +235,6 @@ export function MedicationPanel({
           </button>
         )}
       </CardHeader>
-
-      <Separator />
 
       <CardContent className="pt-4">
         {isLoading && (

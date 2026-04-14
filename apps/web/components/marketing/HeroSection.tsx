@@ -30,9 +30,15 @@ export function HeroSection() {
           </span>{" "}
           every day
         </h1>
-        <p className="max-w-md text-lg leading-relaxed text-[var(--color-text-secondary)]">
-          Coordinate medications, shifts, and journals — together. Private,
-          ad-free, $14/mo for the whole family.
+        <p className="max-w-lg text-lg leading-relaxed text-[var(--color-text-secondary)]">
+          Coordinate medications, shifts, and journal entries across your
+          family, caregivers, and volunteers — all in one calm, shared space.
+        </p>
+        <p className="max-w-lg text-base leading-relaxed text-[var(--color-muted)]">
+          Built for the daughter managing mom's appointments while working
+          full-time. For the aide updating the family on a hard night. For the
+          brother who lives three states away and wants to help. Private,
+          ad-free, HIPAA-conscious, $14/mo for the whole family.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
@@ -71,8 +77,8 @@ export function HeroSection() {
           {/* Secondary — disability care / support */}
           <div className="absolute right-0 top-[18%] h-[50%] w-[52%] overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
             <Image
-              src="https://images.unsplash.com/photo-1638202993928-7267aad84c31?auto=format&fit=crop&w=800&q=80"
-              alt="A caregiver walking alongside a person using a wheelchair outdoors, offering companionship and support"
+              src="https://images.unsplash.com/photo-1559839914-17aae19cec71?auto=format&fit=crop&w=800&q=80"
+              alt="A caregiver sitting and talking warmly with an older person at home, offering companionship and support"
               fill
               sizes="(min-width: 768px) 30vw, 60vw"
               className="object-cover"

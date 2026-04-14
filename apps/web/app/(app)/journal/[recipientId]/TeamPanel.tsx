@@ -71,7 +71,7 @@ export function TeamPanel({
   }
 
   return (
-    <Card>
+    <Card className="gap-2">
       <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm">
           {"Care team"}
@@ -92,8 +92,6 @@ export function TeamPanel({
           </Button>
         )}
       </CardHeader>
-
-      <Separator />
 
       <CardContent className="p-0">
         {/* Invite form:

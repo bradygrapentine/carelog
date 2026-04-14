@@ -338,8 +338,8 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
   ) : null;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-2 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm">Symptom readings</CardTitle>
           {readings.length > 0 && (
@@ -352,8 +352,6 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
           )}
         </div>
       </CardHeader>
-
-      <Separator />
 
       <CardContent id="symptom-panel-body" className="pt-4">
         {isLoading && (

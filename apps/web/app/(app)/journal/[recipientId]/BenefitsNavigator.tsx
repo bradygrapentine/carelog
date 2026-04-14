@@ -115,12 +115,10 @@ export function BenefitsNavigator({
   );
 
   return (
-    <Card>
-      <CardHeader className="pb-2 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
+    <Card className="gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <CardTitle className="text-sm">Benefits navigator</CardTitle>
       </CardHeader>
-
-      <Separator />
 
       <CardContent className="pt-4 space-y-4">
         {/* Results view */}

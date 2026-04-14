@@ -17,6 +17,7 @@ import { OcrReviewPanel } from "./OcrReviewPanel";
 import { OuterCirclePanel } from "./OuterCirclePanel";
 import { SymptomPanel } from "./SymptomPanel";
 import { BurnoutCheckin } from "./BurnoutCheckin";
+import { BurnoutOrgSummary } from "./BurnoutOrgSummary";
 import { ExpensePanel } from "./ExpensePanel";
 import { ExportButton } from "./ExportButton";
 import { BenefitsNavigator } from "./BenefitsNavigator";
@@ -391,6 +392,10 @@ function JournalLayout({
               />
               {currentUserRole === "coordinator" && org && (
                 <>
+                  <BurnoutOrgSummary
+                    orgId={org.id}
+                    currentUserRole={currentUserRole}
+                  />
                   <ExpensePanel
                     orgId={org.id}
                     recipientId={recipientId}

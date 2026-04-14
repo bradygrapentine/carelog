@@ -313,8 +313,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
   // Mobile: collapsed by default behind a toggle
   // Desktop (lg+): always expanded
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
+    <Card className="gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 flex flex-row items-center justify-between space-y-0 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <CardTitle className="text-sm">Schedule a shift</CardTitle>
         {/* Mobile toggle */}
         {!expanded && (
@@ -339,8 +339,6 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           </button>
         )}
       </CardHeader>
-
-      <Separator />
 
       <CardContent className="pt-4">
         {/* Toggle button: mobile only, hidden when expanded or on lg+ */}
