@@ -25,6 +25,8 @@ export function MedicationPanel({
   const [pharmacy, setPharmacy] = useState("");
   const [supply, setSupply] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [needsRefillOnly, setNeedsRefillOnly] = useState(false);
 
   const isCoordinator = currentUserRole === "coordinator";
   const utils = trpc.useUtils();
@@ -53,6 +55,20 @@ export function MedicationPanel({
   });
 
   const medications = data ?? [];
+
+  const filteredMedications = medications.filter(
+    (m: Record<string, unknown>) => {
+      const name = (m.drug_name as string) ?? "";
+      const supplyDays = m.supply_days_remaining as number | null;
+      const matchesSearch = search.trim()
+        ? name.toLowerCase().includes(search.trim().toLowerCase())
+        : true;
+      const matchesRefill = needsRefillOnly
+        ? typeof supplyDays === "number" && supplyDays <= 7
+        : true;
+      return matchesSearch && matchesRefill;
+    },
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -190,7 +206,6 @@ export function MedicationPanel({
             setShowForm(false);
             setError(null);
           }}
-         
         >
           Cancel
         </Button>
@@ -235,8 +250,36 @@ export function MedicationPanel({
         )}
 
         {medications.length > 0 && (
+          <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center">
+            <Input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search medications by name…"
+              aria-label="Search medications"
+              className="flex-1 text-sm"
+            />
+            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={needsRefillOnly}
+                onChange={(e) => setNeedsRefillOnly(e.target.checked)}
+                className="rounded border-border"
+              />
+              Needs refill only
+            </label>
+          </div>
+        )}
+
+        {medications.length > 0 && filteredMedications.length === 0 && (
+          <p className="text-sm text-muted-foreground mb-3">
+            No medications match your filters.
+          </p>
+        )}
+
+        {filteredMedications.length > 0 && (
           <div className="grid gap-2 mb-4 md:grid-cols-2">
-            {medications.map((med: Record<string, unknown>) => {
+            {filteredMedications.map((med: Record<string, unknown>) => {
               const medId = med.id as string;
               const name = med.drug_name as string;
               const dos = med.dosage as string;
