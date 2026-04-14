@@ -7,6 +7,7 @@ import { ocrPrescription } from "../../../inngest/functions/ocrPrescription";
 import { ocrDocument } from "../../../inngest/functions/ocrDocument";
 import { burnoutAlert } from "../../../inngest/functions/burnoutAlert";
 import { journalFlagAlert } from "../../../inngest/functions/journalFlagAlert";
+import { documentsExtractText } from "../../../inngest/functions/documentsExtractText";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -18,5 +19,6 @@ export const { GET, POST, PUT } = serve({
     ocrDocument,
     burnoutAlert,
     journalFlagAlert,
+    documentsExtractText,
   ],
 });

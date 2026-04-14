@@ -51,6 +51,7 @@ export function SignInForm() {
       posthog.identify(data.user.id); // UUID only — never email (PHI)
       posthog.capture("sign_in_completed");
     }
+    setLoading(false);
     router.replace("/dashboard");
   }
 

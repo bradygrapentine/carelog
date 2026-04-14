@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,7 @@ type DocRow = {
   file_size: number | null;
   uploaded_by: string;
   created_at: string;
+  match_snippet?: string | null;
 };
 
 const DOC_TYPE_OPTS = [
@@ -52,6 +53,12 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [docType, setDocType] = useState("other");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(handle);
+  }, [search]);
 
   const isCoordinator = currentUserRole === "coordinator";
 
@@ -60,13 +67,10 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
   const { data: docs = [], isLoading } = trpc.documents.list.useQuery({
     org_id: orgId,
     recipient_id: recipientId,
+    q: debouncedSearch || undefined,
   });
 
-  const filteredDocs = search.trim()
-    ? docs.filter((d: DocRow) =>
-        d.display_name.toLowerCase().includes(search.trim().toLowerCase()),
-      )
-    : docs;
+  const filteredDocs = docs;
 
   const deleteMutation = trpc.documents.delete.useMutation({
     onSuccess: () => utils.documents.list.invalidate(),
@@ -195,6 +199,11 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {metaLabel}
                     </p>
+                    {doc.match_snippet && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        matched in content: &ldquo;{doc.match_snippet}&rdquo;
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button

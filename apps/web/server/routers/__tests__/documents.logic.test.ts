@@ -90,7 +90,9 @@ describe("documents.list — business logic", () => {
       org_id: ORG_ID,
       recipient_id: REC_ID,
     });
-    expect(result).toEqual(sampleDocs);
+    expect(result).toEqual(
+      sampleDocs.map((d) => ({ ...d, match_snippet: null })),
+    );
   });
 
   it("returns empty array when no documents exist", async () => {

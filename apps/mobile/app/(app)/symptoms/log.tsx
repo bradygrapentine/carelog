@@ -18,6 +18,7 @@ import {
   type Mobility,
 } from "../../../utils/wave5Utils";
 import { MOOD_COLORS, type Mood } from "../../../utils/journalUtils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const MOODS: Mood[] = ["good", "okay", "difficult", "crisis"];
 
@@ -118,15 +119,19 @@ export default function SymptomLogScreen() {
           <Text style={styles.question}>How are they feeling?</Text>
           <View style={styles.optionRow}>
             {MOODS.map((m) => {
-              const colors = MOOD_COLORS[m];
+              const moodColors = MOOD_COLORS[m];
               const active = mood === m;
               return (
                 <TouchableOpacity
                   key={m}
                   style={[
                     styles.optionBtn,
-                    { borderColor: active ? colors.text : "#e5e7eb" },
-                    active && { backgroundColor: colors.bg },
+                    {
+                      borderColor: active
+                        ? moodColors.text
+                        : colors.borderNeutral,
+                    },
+                    active && { backgroundColor: moodColors.bg },
                   ]}
                   onPress={() => {
                     setMood(m);
@@ -138,7 +143,7 @@ export default function SymptomLogScreen() {
                   <Text
                     style={[
                       styles.optionText,
-                      active && { color: colors.text },
+                      active && { color: moodColors.text },
                     ]}
                   >
                     {m}
@@ -250,71 +255,77 @@ export default function SymptomLogScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  backBtn: { padding: 16, paddingBottom: 0 },
-  backText: { fontSize: 15, color: "#0369a1" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  backBtn: { padding: spacing.lg, paddingBottom: 0 },
+  backText: { fontSize: 15, color: colors.primary },
   stepLabel: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     fontSize: 12,
-    color: "#9ca3af",
+    color: colors.mutedLight,
   },
-  stepContent: { padding: 16, flex: 1 },
+  stepContent: { padding: spacing.lg, flex: 1 },
   question: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.textPrimary,
     marginBottom: 20,
   },
-  numberRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  numberRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   numberBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
     justifyContent: "center",
     alignItems: "center",
   },
-  numberActive: { borderColor: "#0369a1", backgroundColor: "#eff6ff" },
-  numberText: { fontSize: 16, color: "#374151" },
-  numberTextActive: { color: "#0369a1", fontWeight: "700" },
+  numberActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySubtle,
+  },
+  numberText: { fontSize: 16, color: colors.textSecondary },
+  numberTextActive: { color: colors.primary, fontWeight: "700" },
   optionRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   optionBtn: {
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: colors.borderNeutral,
   },
-  optionActive: { borderColor: "#0369a1", backgroundColor: "#eff6ff" },
-  optionText: { fontSize: 15, color: "#374151" },
-  optionTextActive: { color: "#0369a1", fontWeight: "600" },
+  optionActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySubtle,
+  },
+  optionText: { fontSize: 15, color: colors.textSecondary },
+  optionTextActive: { color: colors.primary, fontWeight: "600" },
   skipBtn: { marginTop: 20, alignSelf: "flex-start" },
-  skipText: { fontSize: 14, color: "#9ca3af" },
+  skipText: { fontSize: 14, color: colors.mutedLight },
   nextBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
   },
-  nextText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  nextText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   notesInput: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
+    padding: spacing.md,
     fontSize: 15,
     minHeight: 100,
     textAlignVertical: "top",
     marginBottom: 20,
   },
   submitBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
   },
   submitDisabled: { opacity: 0.4 },
-  submitText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  submitText: { color: colors.white, fontWeight: "600", fontSize: 15 },
 });

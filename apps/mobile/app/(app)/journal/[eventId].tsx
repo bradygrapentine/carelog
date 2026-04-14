@@ -18,6 +18,7 @@ import {
   formatEntryDateTime,
   canFlag,
 } from "../../../utils/journalUtils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 export default function JournalDetailScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
@@ -56,7 +57,7 @@ export default function JournalDetailScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0369a1" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -64,7 +65,7 @@ export default function JournalDetailScreen() {
   if (!event) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: "#9ca3af", marginBottom: 12 }}>
+        <Text style={{ color: colors.mutedLight, marginBottom: spacing.md }}>
           Entry not found.
         </Text>
         <TouchableOpacity
@@ -72,7 +73,7 @@ export default function JournalDetailScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Text style={{ color: "#0369a1" }}>← Go back</Text>
+          <Text style={{ color: colors.primary }}>← Go back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -153,65 +154,75 @@ export default function JournalDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb" },
-  content: { padding: 16 },
+  container: { flex: 1, backgroundColor: colors.surfaceSubtle },
+  content: { padding: spacing.lg },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  backBtn: { marginBottom: 12 },
-  backText: { fontSize: 14, color: "#0369a1" },
+  backBtn: { marginBottom: spacing.md },
+  backText: { fontSize: 14, color: colors.primary },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
+    backgroundColor: colors.surfaceRaised,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+    shadowColor: colors.black,
     shadowOpacity: 0.05,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 1 },
   },
   entryText: {
     fontSize: 16,
-    color: "#111827",
+    color: colors.textPrimary,
     lineHeight: 24,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   meta: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
     flexWrap: "wrap",
   },
   moodBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   moodText: { fontSize: 12, fontWeight: "500" },
-  dateText: { fontSize: 12, color: "#9ca3af" },
+  dateText: { fontSize: 12, color: colors.mutedLight },
   reactionRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: spacing.sm,
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   reactionBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
+    borderColor: colors.borderNeutral,
+    backgroundColor: colors.surfaceSubtle,
   },
-  reactionActive: { borderColor: "#93c5fd", backgroundColor: "#eff6ff" },
+  reactionActive: {
+    borderColor: colors.primaryLight,
+    backgroundColor: colors.primarySubtle,
+  },
   reactionEmoji: { fontSize: 16 },
-  reactionLabel: { fontSize: 13, color: "#374151" },
-  reactionCount: { fontSize: 12, color: "#374151", fontWeight: "600" },
+  reactionLabel: { fontSize: 13, color: colors.textSecondary },
+  reactionCount: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "600",
+  },
   flagBtn: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.borderInput,
+    borderRadius: radii.md,
+    padding: spacing.md,
     alignItems: "center",
   },
-  flagActive: { borderColor: "#3b82f6", backgroundColor: "#eff6ff" },
-  flagText: { fontSize: 14, color: "#374151", fontWeight: "500" },
-  flagActiveText: { color: "#1d4ed8" },
+  flagActive: {
+    borderColor: colors.primaryLight,
+    backgroundColor: colors.primarySubtle,
+  },
+  flagText: { fontSize: 14, color: colors.textSecondary, fontWeight: "500" },
+  flagActiveText: { color: colors.primary },
 });

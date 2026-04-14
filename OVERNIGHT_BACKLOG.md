@@ -29,7 +29,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-01 — BUILD_STATUS.md housekeeping
+### ON-01 — BUILD_STATUS.md housekeeping ✅ DONE 2026-04-13
 
 **What:** Mark the two completed items that are currently unchecked.
 
@@ -47,7 +47,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-02 — Auth proxy regression E2E test
+### ON-02 — Auth proxy regression E2E test ✅ DONE 2026-04-13 — `e2e/auth-proxy.spec.ts`
 
 **Context:** `apps/web/proxy.ts` was a no-op (`return NextResponse.next()`). It was fixed today (2026-04-13) to call `supabase.auth.getUser()` and propagate refreshed session cookies. Without this fix, OTP sign-in succeeded client-side but `(app)/layout.tsx` could not see the session server-side, causing an immediate redirect back to `/signin`.
 
@@ -74,7 +74,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-03 — Billing E2E test
+### ON-03 — Billing E2E test ✅ DONE 2026-04-13 — `e2e/billing.spec.ts` + `billing-success.spec.ts`
 
 **Context:** Stripe routes are fully implemented (checkout, portal, webhook, verify — 28 unit tests in sonar-report.xml) but there are no Playwright E2E tests for the billing page or Stripe checkout flow.
 
@@ -101,7 +101,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-04 — E2E coverage for Phase 4–5 features
+### ON-04 — E2E coverage for Phase 4–5 features ✅ DONE 2026-04-13 — expenses, outer-circle, care-brief, benefits, eol-planner, export all shipped
 
 **Context:** The following features shipped in Phases 4–5 but have NO Playwright E2E tests. Each has full unit test coverage but no integration-level browser test.
 
@@ -141,7 +141,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-05 — E2E tests for Phase 2 scheduler (shifts)
+### ON-05 — E2E tests for Phase 2 scheduler (shifts) ✅ DONE 2026-04-13 — `e2e/shifts.spec.ts` + `e2e/coverage-settings.spec.ts`
 
 **Context:** Shifts, coverage windows, and gap detection shipped in Phase 2 but have no Playwright E2E tests. The gap detector runs as an Inngest cron; only the UI-facing shift creation and display need E2E coverage.
 
@@ -200,7 +200,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-07 — pgTAP RLS test for push_tokens
+### ON-07 — pgTAP RLS test for push_tokens ✅ DONE 2026-04-13 — `supabase/tests/push_tokens_rls.test.sql` (5 tests)
 
 **Context:** `supabase/migrations/20260415000000_push_tokens.sql` creates the `push_tokens` table with an "owner-only" RLS policy. There is no `supabase/tests/push_tokens_rls.test.sql` — this policy has never been tested.
 
@@ -259,7 +259,7 @@ All stories are independent — agent may run ON-02 through ON-09 in parallel.
 
 ---
 
-### ON-09 — Fix SignInForm loading state stuck on success (TDD)
+### ON-09 — Fix SignInForm loading state stuck on success (TDD) ✅ DONE 2026-04-13 — `setLoading(false)` before `router.replace` + TDD test
 
 **Context:** `apps/web/app/signin/SignInForm.tsx` `handleVerifyOtp` never calls `setLoading(false)` on the happy path. If `router.replace("/dashboard")` is delayed or fails, the submit button is stuck on "Signing you in…" with no way to retry.
 
@@ -291,7 +291,7 @@ router.replace("/dashboard");
 
 ---
 
-### ON-10 — Full-text search across document vault contents
+### ON-10 — Full-text search across document vault contents ✅ DONE 2026-04-13 — tsvector column + GIN index, Inngest `documentsExtractText`, server-side `q` param with debounced input, snippet rendering, pgTAP for org-scoped FTS
 
 **Context:** The document vault only supports substring search on `display_name`. Users need to find documents by their *contents* — e.g. "find the POA that mentions Dr. Chen". Requires OCR/text extraction and a Postgres FTS index.
 
@@ -307,6 +307,119 @@ router.replace("/dashboard");
 - [ ] New uploads have text extracted within 60s
 - [ ] Search input filters by name OR content, client sees a snippet for content matches
 - [ ] pgTAP test confirms FTS query returns only org-scoped rows (RLS respected)
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~1 day
+
+---
+
+### ON-11 — Mobile Panel component migration across screens
+
+**Context:** `apps/mobile/components/Panel.tsx` was added to mirror the web's light-purple tinted-header panel pattern (violet `primarySubtle` strip + divider + card body). Most mobile screens still render ad-hoc `<View>` cards inline with `StyleSheet.create` and bespoke headers. Migrating those to the shared `Panel` component will give the mobile app visual parity with the web, reduce code duplication, and let us iterate the panel style in one place.
+
+**Technical details:**
+- Replace ad-hoc card headers in: `journal/index.tsx`, `medications/index.tsx`, `schedule/index.tsx`, `team/index.tsx`, `symptoms/index.tsx`, `burnout/index.tsx`, `expenses/index.tsx`, `documents/index.tsx`, `outer-circle/index.tsx`, `care-brief/index.tsx`, `benefits/index.tsx`, `eol-planner/index.tsx`
+- Each panel takes a title + optional right-aligned action node (usually a "+ Add" or filter button)
+- Body renders as `children`; internal layout stays per-screen
+- Component at `apps/mobile/components/Panel.tsx` — already implements header + divider + card styles from `constants/tokens.ts`
+
+**Acceptance criteria:**
+- [ ] Every screen listed above renders a `<Panel>` for its primary content group
+- [ ] No visual regression on iOS 17+ and Android 13+ (spot-check a few screens)
+- [ ] Mobile Jest suite remains green
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~0.5 day
+
+---
+
+### ON-12 — Mobile: load Inter font (claimed in CLAUDE.md, not actually wired)
+
+**Context:** `apps/mobile/CLAUDE.md` says "Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout)". The reality:
+- `@expo-google-fonts/inter` is NOT in `apps/mobile/package.json`
+- No `useFonts` or font-loading call exists in `apps/mobile/app/_layout.tsx`
+- The app renders in the system default (San Francisco on iOS, Roboto on Android), not Inter
+
+Result: mobile typography diverges from web (which uses Geist via `--font-sans`).
+
+**Technical details:**
+- `pnpm add @expo-google-fonts/inter expo-font expo-splash-screen --filter mobile`
+- In `apps/mobile/app/_layout.tsx`, call `useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold })` and return `null` (or a splash) until fonts are ready
+- Set `fontFamily: 'Inter_400Regular'` as default on `Text` via a ThemeProvider or a custom `AppText` component
+- Add a top-level `styles` entry in `constants/tokens.ts` for `fontFamily.regular` / `fontFamily.semibold` / `fontFamily.bold` and consume from there
+- Update CLAUDE.md to match actual behavior once shipped
+
+**Acceptance criteria:**
+- [ ] Inter renders on a physical iOS device + Android emulator after a cold start
+- [ ] No flash of system font before Inter loads (splash or null-return handles it)
+- [ ] Existing tests still pass (fonts should not affect Jest snapshots)
+
+**Blocked by:** nothing
+**Blocks:** ON-11 (visual parity hurts until both ship)
+**Size:** ~2 hours
+
+---
+
+### ON-13 — Mobile: dark mode support
+
+**Context:** The web app is light-only today but the violet/plum palette works for both modes. The mobile app is also light-only. iOS 17+ and Android 13+ users who set their system theme to dark see a jarring bright-white app — especially at night when caregivers are most likely to pick up the phone to log a 3am medication.
+
+**Technical details:**
+- Extend `constants/tokens.ts` with a `darkColors` object mirroring the light palette (inverted surfaces, brightened text, reduced border contrast)
+- Add a `useColorScheme` wrapper (from `react-native`) in a `useTokens()` hook that returns the active palette
+- Thread tokens through via a light React context OR via an `AppText` / `AppView` wrapper that subscribes to the hook
+- Update `Panel` + screen `StyleSheet.create` calls to consume `useTokens()` instead of the static `colors` export (or keep both and pick at render time)
+- Respect the `expo-status-bar` style so the status bar flips with the theme
+
+**Acceptance criteria:**
+- [ ] Toggling system dark mode mid-session updates the app without a reload
+- [ ] All surfaces legible at both schemes (visually verify contrast)
+- [ ] No test regressions; snapshot tests either updated or parameterised
+
+**Blocked by:** ON-11 (Panel component must be in widespread use first — otherwise ad-hoc screens will go un-theme'd)
+**Blocks:** nothing
+**Size:** ~1 day
+
+---
+
+### ON-14 — Mobile: haptic feedback on key actions
+
+**Context:** Native apps feel significantly more polished with subtle haptics on primary actions (logging a med, submitting a journal entry, flagging an entry for doctor, claiming a volunteer slot). Currently none of these trigger any haptic.
+
+**Technical details:**
+- `pnpm add expo-haptics --filter mobile`
+- Wrap key action handlers with `Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)` before the async mutation fires, or `notificationAsync(NotificationFeedbackType.Success)` on success
+- Candidates: medication "Mark as given", journal entry submit, flag-for-doctor toggle, shift scheduling, volunteer slot claim
+- Guard calls with `if (Platform.OS !== 'web')` since `expo-haptics` no-ops on web but imports can still bloat web bundle — keep the mobile screens web-safe if they run under `react-native-web`
+- Do NOT fire haptics on every tap — only on meaningful mutations
+
+**Acceptance criteria:**
+- [ ] At least 5 meaningful actions trigger haptics on a physical iPhone
+- [ ] No haptic on passive interactions (scroll, open menu, navigation)
+- [ ] Tests still pass (mock expo-haptics module)
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~3 hours
+
+---
+
+### ON-15 — Mobile: accessibility audit against iOS Dynamic Type + screen reader
+
+**Context:** Mobile uses fixed `fontSize` values throughout and isn't tested against iOS Dynamic Type (users who set their system text to "Larger Accessibility Sizes"). Also no verification that VoiceOver / TalkBack announce controls in a sensible order.
+
+**Technical details:**
+- Run the app under iOS Dynamic Type (Settings → Accessibility → Display & Text Size → Larger Text → max setting) on a physical device. Log every truncated / overlapping / illegible surface.
+- For each `fontSize: N`, migrate to scaling: use `PixelRatio.getFontScale()` or add a `scaledSize()` helper that multiplies by the scale factor capped at 1.5x.
+- Run with VoiceOver (iOS) and TalkBack (Android): verify every TouchableOpacity has an `accessibilityLabel`, focus order is sensible, headings announce with `accessibilityRole="header"`.
+- Fix the highest-impact 3–5 issues in this ticket; create follow-ups for the rest.
+
+**Acceptance criteria:**
+- [ ] App is usable at 200% Dynamic Type without truncation on key screens (journal, medications, schedule)
+- [ ] VoiceOver can complete a medication log flow end-to-end without sighted help
+- [ ] Report of remaining issues added back to backlog as ON-XX follow-ups
 
 **Blocked by:** nothing
 **Blocks:** nothing

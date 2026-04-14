@@ -10,6 +10,7 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { useApp } from "../../../context/AppContext";
 import { getSession } from "../../../utils/auth";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -153,43 +154,47 @@ export default function CareBriefScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  content: { padding: 16 },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
+  content: { padding: spacing.lg },
   heading: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.textPrimary,
     marginBottom: 6,
   },
-  subtitle: { fontSize: 14, color: "#6b7280", marginBottom: 20 },
+  subtitle: { fontSize: 14, color: colors.muted, marginBottom: 20 },
   generateBtn: {
-    backgroundColor: "#0369a1",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 14,
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   generateBtnDisabled: { opacity: 0.6 },
-  generateBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
-  error: { color: "#dc2626", marginBottom: 12, fontSize: 14 },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  generateBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  error: { color: colors.danger, marginBottom: 12, fontSize: 14 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
   card: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
+    borderColor: colors.borderNeutral,
+    borderRadius: radii.md,
     padding: 14,
     marginBottom: 12,
   },
-  cardDate: { fontSize: 12, color: "#9ca3af", marginBottom: 6 },
-  cardUrl: { fontSize: 13, color: "#374151", marginBottom: 10 },
+  cardDate: { fontSize: 12, color: colors.mutedLight, marginBottom: 6 },
+  cardUrl: { fontSize: 13, color: colors.textSecondary, marginBottom: 10 },
   cardActions: { flexDirection: "row", gap: 8 },
   actionBtn: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 6,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: radii.sm,
     paddingVertical: 7,
     paddingHorizontal: 12,
   },
-  actionBtnText: { fontSize: 13, color: "#374151", fontWeight: "500" },
-  revokeBtn: { backgroundColor: "#fef2f2" },
-  revokeBtnText: { color: "#dc2626" },
+  actionBtnText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: "500",
+  },
+  revokeBtn: { backgroundColor: colors.dangerPanel },
+  revokeBtnText: { color: colors.danger },
 });

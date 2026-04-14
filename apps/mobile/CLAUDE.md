@@ -13,8 +13,15 @@ Use `localhost:54321` for Supabase — see `docs/project-info/technology/CODE_ST
 ## Design system
 Colors, typography, spacing → `apps/mobile/constants/tokens.ts` (mirrors web CSS vars in `apps/web/app/globals.css`).
 Never use raw hex in screen files — always import from tokens.
-Styling via NativeWind 4 (Tailwind classes on React Native).
+Styling via React Native `StyleSheet` (not NativeWind/Tailwind — that reference is stale).
 Font: Inter (loaded via @expo-google-fonts/inter + expo-font at root layout).
+
+### Design tokens
+- Import from `constants/tokens.ts`: `colors`, `spacing`, `radii`, `typography`, `shadows`
+- Never paste raw hex values into screen or component files
+- Never hardcode spacing or border-radius values that map cleanly to the scale
+  - `padding: 16` → `spacing.lg`, `borderRadius: 12` → `radii.lg`, etc.
+- Token file is the single source of truth — if a color is missing, add it there first
 
 ## Navigation
 Expo Router (file-based). Mirrors Next.js App Router mental model.

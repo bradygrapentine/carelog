@@ -15,6 +15,7 @@ import {
   canLogExpense,
   canDeleteExpense,
 } from "../../../utils/wave5Utils";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 type Expense = {
   id: string;
@@ -93,7 +94,11 @@ export default function ExpensesScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0369a1" />
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+          color={colors.primary}
+        />
       ) : (
         <SectionList
           sections={sections}
@@ -150,37 +155,37 @@ export default function ExpensesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: colors.surfaceRaised },
   loader: { marginTop: 48 },
-  list: { padding: 16, paddingBottom: 80 },
+  list: { padding: spacing.lg, paddingBottom: 80 },
   sectionHeader: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#6b7280",
-    marginTop: 16,
-    marginBottom: 8,
+    color: colors.muted,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: colors.surfaceSubtle,
   },
-  rowLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  amount: { fontSize: 16, fontWeight: "700", color: "#111827" },
+  rowLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  amount: { fontSize: 16, fontWeight: "700", color: colors.textPrimary },
   catBadge: {
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 8,
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: radii.md,
   },
-  catText: { fontSize: 11, color: "#374151" },
-  rowRight: { alignItems: "flex-end", flex: 1, marginLeft: 12 },
-  desc: { fontSize: 13, color: "#374151" },
-  date: { fontSize: 12, color: "#9ca3af", marginTop: 2 },
-  empty: { color: "#9ca3af", textAlign: "center", marginTop: 48 },
+  catText: { fontSize: 11, color: colors.textSecondary },
+  rowRight: { alignItems: "flex-end", flex: 1, marginLeft: spacing.md },
+  desc: { fontSize: 13, color: colors.textSecondary },
+  date: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
+  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
   fab: {
     position: "absolute",
     bottom: 24,
@@ -188,15 +193,15 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#0369a1",
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     zIndex: 10,
   },
-  fabText: { color: "#fff", fontSize: 28, lineHeight: 30 },
+  fabText: { color: colors.white, fontSize: 28, lineHeight: 30 },
 });

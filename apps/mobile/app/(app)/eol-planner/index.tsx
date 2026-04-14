@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useApp } from "../../../context/AppContext";
 import { trpc } from "../../../utils/trpc";
+import { colors, spacing, radii } from "../../../constants/tokens";
 
 export default function EolPlannerScreen() {
   const { orgId, recipientId, currentRole } = useApp();
@@ -149,34 +150,34 @@ export default function EolPlannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surfaceRaised,
   },
   content: {
-    padding: 20,
+    padding: spacing.xl,
     paddingBottom: 40,
   },
   heading: {
     fontSize: 22,
     fontWeight: "700",
-    marginBottom: 20,
-    color: "#111827",
+    marginBottom: spacing.xl,
+    color: colors.textPrimary,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: colors.textSecondary,
     marginBottom: 4,
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: colors.borderInput,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
     fontSize: 15,
-    color: "#111827",
-    backgroundColor: "#f9fafb",
+    color: colors.textPrimary,
+    backgroundColor: colors.surfaceSubtle,
   },
   multiline: {
     minHeight: 80,
@@ -186,17 +187,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   saveBtn: {
     marginTop: 28,
-    backgroundColor: "#4f46e5",
-    borderRadius: 10,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     paddingVertical: 14,
     alignItems: "center",
   },
   saveBtnText: {
-    color: "#fff",
+    color: colors.white,
     fontWeight: "700",
     fontSize: 16,
   },
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     fontSize: 16,
-    color: "#6b7280",
+    color: colors.muted,
     textAlign: "center",
   },
 });

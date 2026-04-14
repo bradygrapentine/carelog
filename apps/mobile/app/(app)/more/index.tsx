@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { colors, radii, spacing, typography } from "../../../constants/tokens";
 
 const ITEMS = [
   { title: "Symptoms", route: "/symptoms" as const, icon: "🩺" },
@@ -37,24 +38,32 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  heading: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: colors.surfaceRaised,
+    padding: spacing.lg,
   },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  heading: {
+    fontSize: typography.titleSize,
+    fontWeight: typography.weightBold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xl,
+  },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
   card: {
     width: "47%",
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 20,
+    borderColor: colors.borderNeutral,
+    padding: spacing.xl,
     alignItems: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   icon: { fontSize: 28 },
-  label: { fontSize: 15, fontWeight: "600", color: "#111827" },
+  label: {
+    fontSize: typography.bodySize,
+    fontWeight: typography.weightSemibold,
+    color: colors.textPrimary,
+  },
 });

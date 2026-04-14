@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { getSession } from "../../utils/auth";
+import { colors } from "../../constants/tokens";
 
 export default function AppLayout() {
   const router = useRouter();
@@ -12,7 +13,12 @@ export default function AppLayout() {
   }, []);
 
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: "#0369a1" }}>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
+      }}
+    >
       <Tabs.Screen name="index" options={{ title: "Home", href: null }} />
       <Tabs.Screen name="journal/index" options={{ title: "Journal" }} />
       <Tabs.Screen name="journal/[eventId]" options={{ href: null }} />
