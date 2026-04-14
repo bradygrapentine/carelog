@@ -12,8 +12,10 @@ import { expensesRouter } from "../routers/expenses";
 import { benefitsRouter } from "../routers/benefits";
 import { documentsRouter } from "../routers/documents";
 import { eolPlanRouter } from "../routers/eolPlan";
+import { userRouter } from "../routers/user";
 
 export const appRouter = router({
+  user: userRouter,
   careEvents: careEventsRouter,
   organizations: organizationsRouter,
   memberships: membershipsRouter,
