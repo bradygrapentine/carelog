@@ -64,7 +64,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | A11Y-001 | ⚡ In progress | — | — | **Web: axe + Playwright** | Wire `@axe-core/playwright` into `e2e/helpers.ts` `afterEach`. Fail on `serious`/`critical`. 40+ existing specs inherit coverage. |
 | A11Y-002 | ⚡ In progress | — | — | **Web: `eslint-plugin-jsx-a11y` at `error`** | Verify `eslint-config-next` includes it; bump severity for `alt-text`, `click-events-have-key-events`, `no-static-element-interactions`. |
 | A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| ON-43 | ⚡ In progress | — | — | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
+| ON-43 | 🔎 In review | — | feat/on43-messaging | **In-app messaging (DM + group)** | See §5. ~3 days, split across schema/RLS, web UI, mobile UI + push. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -89,7 +89,7 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
 
-### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons · 🔎 In review, Branch: feat/on20-mobile-a11y-labels
+### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 **Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
 **Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
 **AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
@@ -119,7 +119,6 @@ Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Car
 
 ### 🌙 ON-27 — Web alt-text audit
 `grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
-**Status:** 🔎 In review, Branch: feat/on27-alt-text
 
 ### 🌙 ON-28 — Mobile loading skeletons on list screens
 Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
@@ -128,8 +127,8 @@ Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, docu
 ### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
-One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
+### 🌙 ON-30 — JSDoc on public exports in `packages/shared`
+One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
@@ -137,17 +136,17 @@ Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, asse
 ### 🌙 ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
+### 🌙 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
 
-### 🔎 ON-34 — PostHog funnel events: web ↔ mobile parity audit
-Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr. **Status:** 🔎 In review. **Branch:** feat/on34-on36-audits
+### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
+Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
 
 ### ✅ 🌙 ON-35 — `.gitignore` hygiene
 Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
 
-### 🔎 ON-36 — TODO/FIXME audit + backlog backfill
-Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr. **Status:** 🔎 In review. **Branch:** feat/on34-on36-audits
+### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
+Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
@@ -155,9 +154,8 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### 🔎 ON-39 — Eliminate `any` types
+### 🌙 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
-**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
 
 ### ✅ ON-40 — Vitest flake detection + quarantine
 Run `pnpm test` 5×; `.skip` any intermittent failure with `// FLAKY: ON-XX` linking new story. Report at `docs/project-info/technology/FLAKE_REPORT.md`. **Size:** 2 hr.
@@ -168,12 +166,15 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### 🔎 A11Y-004 — Token contrast validator script · Branch: feat/a11y-scripts
-**Status:** 🔎 In review · Branch: feat/a11y-scripts
-Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm a11y:contrast`. **Size:** ~1 hr. **Note:** danger on white fails (3.76:1 < 4.5 threshold) — open a11y follow-up.
+### 🔎 ON-47 — Add data-testid attrs to medication components for e2e reliability
+Surfaced by ON-36 TODO audit. Add `data-testid` attributes to `MedicationPanel` and `MedicationChecklist` so Playwright tests can reliably target elements without brittle placeholder/text selectors. Update the `e2e/medications.spec.ts` TODOs to use the new selectors. **Size:** 1 hr.
+Status: In review
+Branch: feat/on47-medication-testids
 
-### 🔎 A11Y-010 — Add colorblindness walkthrough to UI review checklist · Branch: feat/a11y-scripts
-**Status:** 🔎 In review · Branch: feat/a11y-scripts
+### 🌙 A11Y-004 — Token contrast validator script
+Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
+
+### 🌙 A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
 
 ---
@@ -224,12 +225,6 @@ Table `shift_trade_requests` (shift_id, requested_by, target_user_id nullable, s
 
 ### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
-
-### 🌙 ON-47 — Add `data-testid` attributes to medication components · ~30 min
-Six E2E TODOs in `e2e/medications.spec.ts` reference missing `data-testid` attrs (`medication-name-input`, `medication-dosage-input`, `add-medication-btn`, `medication-checklist`, `dose-given-indicator`). Add them to the corresponding web components so E2E selectors are stable. **Status:** 🟢 Ready. **Size:** 30 min.
-
-### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
-19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
 ---
 

@@ -13,6 +13,7 @@ import { benefitsRouter } from "../routers/benefits";
 import { documentsRouter } from "../routers/documents";
 import { eolPlanRouter } from "../routers/eolPlan";
 import { userRouter } from "../routers/user";
+import { messagesRouter } from "../routers/messages";
 
 export const appRouter = router({
   user: userRouter,
@@ -29,6 +30,7 @@ export const appRouter = router({
   benefits: benefitsRouter,
   documents: documentsRouter,
   eolPlan: eolPlanRouter,
+  messages: messagesRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -10,6 +10,7 @@ const NAV_ITEMS: { dest: Destination; label: string; icon: string }[] = [
   { dest: "team", label: "Team", icon: "👥" },
   { dest: "shifts", label: "Shifts", icon: "📅" },
   { dest: "documents", label: "Documents", icon: "📁" },
+  { dest: "messages", label: "Messages", icon: "💬" },
   { dest: "more", label: "More", icon: "⋯" },
 ];
 

@@ -31,12 +31,10 @@ test.describe("Medications", () => {
 
     const drugName = "Metformin-" + Date.now();
 
-    await page.click('button:has-text("Add medication")');
-    // TODO: add data-testid="medication-name-input" to component
-    await page.fill('[placeholder="e.g. Lisinopril"]', drugName);
-    // TODO: add data-testid="medication-dosage-input" to component
+    await page.click('[data-testid="add-medication-btn"]');
+    await page.fill('[data-testid="medication-name-input"]', drugName);
     await page.fill(
-      '[placeholder="e.g. 10mg once daily"]',
+      '[data-testid="medication-dosage-input"]',
       "500mg twice daily",
     );
     await page.click('button[type="submit"]:has-text("Add medication")');
@@ -54,9 +52,9 @@ test.describe("Medications", () => {
     await goToMedicationsTab(page);
 
     const drugName = "ToDelete-Med-" + Date.now();
-    await page.click('button:has-text("Add medication")');
-    await page.fill('[placeholder="e.g. Lisinopril"]', drugName);
-    await page.fill('[placeholder="e.g. 10mg once daily"]', "5mg daily");
+    await page.click('[data-testid="add-medication-btn"]');
+    await page.fill('[data-testid="medication-name-input"]', drugName);
+    await page.fill('[data-testid="medication-dosage-input"]', "5mg daily");
     await page.click('button[type="submit"]:has-text("Add medication")');
     await expect(page.getByText(drugName)).toBeVisible({ timeout: 8000 });
 
@@ -76,10 +74,13 @@ test.describe("Medications", () => {
       await goToMedicationsTab(coordinatorPage);
 
       const drugName = "SharedMed-" + Date.now();
-      await coordinatorPage.click('button:has-text("Add medication")');
-      await coordinatorPage.fill('[placeholder="e.g. Lisinopril"]', drugName);
+      await coordinatorPage.click('[data-testid="add-medication-btn"]');
       await coordinatorPage.fill(
-        '[placeholder="e.g. 10mg once daily"]',
+        '[data-testid="medication-name-input"]',
+        drugName,
+      );
+      await coordinatorPage.fill(
+        '[data-testid="medication-dosage-input"]',
         "10mg nightly",
       );
       await coordinatorPage.click(
@@ -122,10 +123,13 @@ test.describe("Medications", () => {
       await goToMedicationsTab(coordinatorPage);
 
       const drugName = "SupporterMed-" + Date.now();
-      await coordinatorPage.click('button:has-text("Add medication")');
-      await coordinatorPage.fill('[placeholder="e.g. Lisinopril"]', drugName);
+      await coordinatorPage.click('[data-testid="add-medication-btn"]');
       await coordinatorPage.fill(
-        '[placeholder="e.g. 10mg once daily"]',
+        '[data-testid="medication-name-input"]',
+        drugName,
+      );
+      await coordinatorPage.fill(
+        '[data-testid="medication-dosage-input"]',
         "20mg daily",
       );
       await coordinatorPage.click(
@@ -149,9 +153,8 @@ test.describe("Medications", () => {
           timeout: 8000,
         });
         // Supporters should not see an "Add medication" button
-        // TODO: add data-testid="add-medication-btn" to component
         await expect(
-          supporterPage.getByRole("button", { name: /add medication/i }),
+          supporterPage.locator('[data-testid="add-medication-btn"]'),
         ).not.toBeVisible();
       } finally {
         await supporterCtx.close();
@@ -168,13 +171,12 @@ test.describe("Medications", () => {
     await goToMedicationsTab(page);
 
     const drugName = "ChecklistMed-" + Date.now();
-    await page.click('button:has-text("Add medication")');
-    await page.fill('[placeholder="e.g. Lisinopril"]', drugName);
-    await page.fill('[placeholder="e.g. 10mg once daily"]', "5mg morning");
+    await page.click('[data-testid="add-medication-btn"]');
+    await page.fill('[data-testid="medication-name-input"]', drugName);
+    await page.fill('[data-testid="medication-dosage-input"]', "5mg morning");
     await page.click('button[type="submit"]:has-text("Add medication")');
     await expect(page.getByText(drugName)).toBeVisible({ timeout: 8000 });
 
-    // TODO: add data-testid="medication-checklist" to component
     // Look for the checklist section and "Gave it" button
     const checklistItem = page.locator(
       '[data-testid="medication-checklist-item"]',
@@ -184,14 +186,12 @@ test.describe("Medications", () => {
       const gaveItBtn = checklistItem.getByRole("button", { name: /gave it/i });
       await expect(gaveItBtn).toBeVisible();
       await gaveItBtn.click();
-      // After marking as given, the button text or state should change
-      // TODO: add data-testid="dose-given-indicator" to component
-      await expect(checklistItem.getByText(/given|done|✓/i)).toBeVisible({
-        timeout: 5000,
-      });
+      // After marking as given, a dose-given-indicator replaces the buttons
+      await expect(
+        checklistItem.locator('[data-testid="dose-given-indicator"]'),
+      ).toBeVisible({ timeout: 5000 });
     } else {
-      // Checklist may be on a different tab or section
-      // TODO: add data-testid="medication-checklist" to MedicationChecklist component
+      // Checklist only appears when scheduled doses exist; confirm the med is listed
       await expect(page.getByText(drugName)).toBeVisible();
     }
   });
