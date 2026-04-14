@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -15,7 +16,7 @@ import {
   canLogExpense,
   canDeleteExpense,
 } from "../../../utils/wave5Utils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 type Expense = {
@@ -57,6 +58,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function ExpensesScreen() {
   const router = useRouter();
   const { orgId, recipientId, currentRole } = useApp();
+  const { colors, spacing, radii } = useAppTheme();
 
   const { data, isLoading, refetch } = trpc.expenses.list.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
@@ -80,6 +82,65 @@ export default function ExpensesScreen() {
   }
 
   const sections = groupByMonth((data as Expense[]) ?? []);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        panel: { flex: 1 },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        loader: { marginTop: 48 },
+        sectionHeader: {
+          fontSize: 14,
+          fontWeight: "700",
+          color: colors.muted,
+          marginTop: spacing.lg,
+          marginBottom: spacing.sm,
+        },
+        row: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        rowLeft: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+        },
+        amount: { fontSize: 16, fontWeight: "700", color: colors.textPrimary },
+        catBadge: {
+          backgroundColor: colors.surfaceSubtle,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 2,
+          borderRadius: radii.md,
+        },
+        catText: { fontSize: 11, color: colors.textSecondary },
+        rowRight: {
+          alignItems: "flex-end",
+          flex: 1,
+          marginLeft: spacing.md,
+        },
+        desc: { fontSize: 13, color: colors.textSecondary },
+        date: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+      }),
+    [colors, spacing, radii],
+  );
 
   const addAction = canLogExpense(currentRole) ? (
     <TouchableOpacity
@@ -159,38 +220,3 @@ export default function ExpensesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
-  panel: { flex: 1 },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  loader: { marginTop: 48 },
-  sectionHeader: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.muted,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  rowLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  amount: { fontSize: 16, fontWeight: "700", color: colors.textPrimary },
-  catBadge: {
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radii.md,
-  },
-  catText: { fontSize: 11, color: colors.textSecondary },
-  rowRight: { alignItems: "flex-end", flex: 1, marginLeft: spacing.md },
-  desc: { fontSize: 13, color: colors.textSecondary },
-  date: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});

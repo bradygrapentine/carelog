@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ import {
   canUploadDocument,
   type DocType,
 } from "../../../utils/wave5Utils";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -44,6 +44,7 @@ export default function DocumentsScreen() {
     mimeType: string;
   } | null>(null);
   const [docType, setDocType] = useState<DocType>("other");
+  const { colors, spacing, radii } = useAppTheme();
 
   const { data, isLoading, refetch } = trpc.documents.list.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
@@ -54,6 +55,128 @@ export default function DocumentsScreen() {
     onSuccess: () => refetch(),
     onError: (err) => Alert.alert("Error", err.message),
   });
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+          gap: spacing.md,
+        },
+        panel: { flex: 1 },
+        scanButton: {
+          padding: 14,
+          borderRadius: radii.md,
+          backgroundColor: colors.primarySubtle,
+          borderWidth: 1,
+          borderColor: colors.primaryLight,
+          alignItems: "center",
+        },
+        scanButtonText: {
+          color: colors.primary,
+          fontWeight: "600",
+          fontSize: 15,
+        },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        loader: { marginTop: 48 },
+        row: {
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        rowMain: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+        },
+        docName: {
+          fontSize: 15,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          flex: 1,
+        },
+        docTypeBadge: {
+          backgroundColor: colors.surfaceSubtle,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 2,
+          borderRadius: radii.md,
+        },
+        docTypeText: { fontSize: 11, color: colors.textSecondary },
+        rowMeta: { flexDirection: "row", gap: 12, marginTop: 4 },
+        metaText: { fontSize: 12, color: colors.mutedLight },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+        modalOverlay: {
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.4)",
+          justifyContent: "flex-end",
+        },
+        modalContent: {
+          backgroundColor: colors.surfaceRaised,
+          borderTopLeftRadius: spacing.lg,
+          borderTopRightRadius: spacing.lg,
+          padding: spacing.xl,
+          paddingBottom: 40,
+        },
+        modalTitle: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: colors.textPrimary,
+          marginBottom: spacing.sm,
+        },
+        fileName: {
+          fontSize: 14,
+          color: colors.muted,
+          marginBottom: spacing.lg,
+        },
+        fieldLabel: {
+          fontSize: 13,
+          fontWeight: "600",
+          color: colors.muted,
+          marginBottom: spacing.sm,
+        },
+        chipRow: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: spacing.sm,
+          marginBottom: spacing.lg,
+        },
+        chip: {
+          paddingHorizontal: spacing.md,
+          paddingVertical: 6,
+          borderRadius: spacing.lg,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+        },
+        chipActive: {
+          borderColor: colors.primary,
+          backgroundColor: colors.primarySubtle,
+        },
+        chipText: { fontSize: 12, color: colors.textSecondary },
+        chipTextActive: { color: colors.primary, fontWeight: "600" },
+        uploadBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: 14,
+          alignItems: "center",
+          marginBottom: spacing.sm,
+        },
+        uploadDisabled: { opacity: 0.4 },
+        uploadText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+        cancelBtn: { alignItems: "center", padding: 10 },
+        cancelText: { color: colors.muted, fontSize: 15 },
+      }),
+    [colors, spacing, radii],
+  );
 
   function confirmDelete(id: string) {
     Alert.alert("Delete document?", "This cannot be undone.", [
@@ -334,101 +457,3 @@ export default function DocumentsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  panel: { flex: 1 },
-  scanButton: {
-    padding: 14,
-    borderRadius: radii.md,
-    backgroundColor: colors.primarySubtle,
-    borderWidth: 1,
-    borderColor: colors.primaryLight,
-    alignItems: "center",
-  },
-  scanButtonText: { color: colors.primary, fontWeight: "600", fontSize: 15 },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  loader: { marginTop: 48 },
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  rowMain: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  docName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  docTypeBadge: {
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radii.md,
-  },
-  docTypeText: { fontSize: 11, color: colors.textSecondary },
-  rowMeta: { flexDirection: "row", gap: 12, marginTop: 4 },
-  metaText: { fontSize: 12, color: colors.mutedLight },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: colors.surfaceRaised,
-    borderTopLeftRadius: spacing.lg,
-    borderTopRightRadius: spacing.lg,
-    padding: spacing.xl,
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
-  },
-  fileName: { fontSize: 14, color: colors.muted, marginBottom: spacing.lg },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.muted,
-    marginBottom: spacing.sm,
-  },
-  chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderNeutral,
-  },
-  chipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySubtle,
-  },
-  chipText: { fontSize: 12, color: colors.textSecondary },
-  chipTextActive: { color: colors.primary, fontWeight: "600" },
-  uploadBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  uploadDisabled: { opacity: 0.4 },
-  uploadText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  cancelBtn: { alignItems: "center", padding: 10 },
-  cancelText: { color: colors.muted, fontSize: 15 },
-});

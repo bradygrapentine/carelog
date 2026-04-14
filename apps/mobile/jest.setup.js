@@ -1,4 +1,13 @@
 // Mock native modules that don't run under Jest.
+jest.mock("posthog-react-native", () => {
+  const ph = {
+    identify: jest.fn(),
+    reset: jest.fn(),
+    capture: jest.fn(),
+  };
+  return { __esModule: true, default: jest.fn().mockImplementation(() => ph) };
+});
+
 jest.mock("@sentry/react-native", () => ({
   init: jest.fn(),
   wrap: (Component) => Component,

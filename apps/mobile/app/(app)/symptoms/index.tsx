@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -12,13 +13,14 @@ import { useApp } from "../../../context/AppContext";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { canLogSymptoms } from "../../../utils/wave5Utils";
 import { MOOD_COLORS, type Mood } from "../../../utils/journalUtils";
-import { colors, spacing } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 export default function SymptomsScreen() {
   const router = useRouter();
   const { orgId, recipientId, currentRole } = useApp();
   const syncStatus = useSyncStatus();
+  const { colors, spacing } = useAppTheme();
 
   const { data, isLoading } = trpc.symptoms.list.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
@@ -33,6 +35,57 @@ export default function SymptomsScreen() {
       d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     );
   }
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        syncBanner: {
+          paddingVertical: 6,
+          paddingHorizontal: spacing.md,
+          marginBottom: spacing.sm,
+        },
+        offlineBanner: { backgroundColor: colors.secondarySubtle },
+        pendingBanner: { backgroundColor: colors.primarySubtle },
+        syncText: { fontSize: 12, color: colors.textSecondary },
+        actionBtnText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        loader: { marginTop: 48 },
+        row: {
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        date: { fontSize: 12, color: colors.mutedLight, marginBottom: 4 },
+        metrics: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: spacing.sm,
+          alignItems: "center",
+        },
+        metric: { fontSize: 13, color: colors.textSecondary },
+        moodBadge: {
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 2,
+          borderRadius: 12,
+        },
+        moodText: { fontSize: 11, fontWeight: "500" },
+        notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
+        empty: {
+          color: colors.mutedLight,
+          textAlign: "center",
+          marginTop: 48,
+        },
+      }),
+    [colors, spacing],
+  );
 
   const logAction = canLogSymptoms(currentRole) ? (
     <TouchableOpacity
@@ -131,38 +184,3 @@ export default function SymptomsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface, padding: spacing.lg },
-  syncBanner: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  offlineBanner: { backgroundColor: colors.secondarySubtle },
-  pendingBanner: { backgroundColor: colors.primarySubtle },
-  syncText: { fontSize: 12, color: colors.textSecondary },
-  actionBtnText: { fontSize: 13, color: colors.primary, fontWeight: "600" },
-  loader: { marginTop: 48 },
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  date: { fontSize: 12, color: colors.mutedLight, marginBottom: 4 },
-  metrics: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    alignItems: "center",
-  },
-  metric: { fontSize: 13, color: colors.textSecondary },
-  moodBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  moodText: { fontSize: 11, fontWeight: "500" },
-  notes: { fontSize: 13, color: colors.muted, marginTop: 4 },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});
