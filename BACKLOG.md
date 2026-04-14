@@ -110,7 +110,7 @@ Root of org scoping — cannot ship multi-tenant without this. Cases: org member
 ### 🌙 ON-24 — pgTAP RLS test: `mood_entries`
 PHI. Cases: org member reads for in-org recipients only; author-only update/delete; anon blocked. **Size:** 1.5 hr.
 
-### 🌙 ON-25 — Zod schema tests for shared validators
+### ✅ ON-25 — Zod schema tests for shared validators
 `find packages -name "*.ts" -path "*schema*"`; for each without a `.test.ts`, add one valid case + 2–3 invalid edge cases. **AC:** every exported schema in `packages/shared` has a test. **Size:** 3 hr.
 
 ### 🌙 ON-26 — Mobile empty-state copy pass
@@ -157,10 +157,10 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### 🌙 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
 
-### 🌙 ON-40 — Vitest flake detection + quarantine
+### ✅ ON-40 — Vitest flake detection + quarantine
 Run `pnpm test` 5×; `.skip` any intermittent failure with `// FLAKY: ON-XX` linking new story. Report at `docs/project-info/technology/FLAKE_REPORT.md`. **Size:** 2 hr.
 
-### 🌙 ON-41 — Audit stale snapshot tests
+### ✅ ON-41 — Audit stale snapshot tests
 Review each `__snapshots__` dir. Replace full-tree snapshots with targeted assertions where feasible. **AC:** no snapshot >100 lines without a justification comment. **Size:** 3 hr.
 
 ### 🌙 ON-42 — Next.js caching directive audit
