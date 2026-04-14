@@ -25,6 +25,13 @@ Turbopack is the default bundler. The `experimental.turbo` config key is removed
 See `docs/project-info/technology/CODE_STANDARDS.md` for Turbopack/JSX rules, auth
 patterns, form handling, and API route conventions.
 
+## UI standards — read before every UI change
+Hard rules for Tailwind, shadcn, design tokens, WCAG 2.2 AA, responsive breakpoints,
+and the panel / form / tinted-header patterns live in `.claude/rules/ui-standards.md`.
+Load that file before touching anything under `app/` or `components/`. Violations
+should block review — no raw hex, no raw font imports, no un-labelled inputs, no
+missing focus rings, no click-only interactions without a keyboard path.
+
 ## Service role key
 See `docs/project-info/technology/SECURITY_MODEL.md` for service role isolation rules.
 

@@ -128,6 +128,7 @@ Run Claude non-interactively for automated QA:
 - `docs/project-info/technology/ARCHITECTURE.md` — data model, system design, design rationale
 - `docs/project-info/technology/CODE_STANDARDS.md` — hard-won coding rules, conventions, testing patterns, git format
 - `docs/project-info/product/UX_DECISIONS.md` — language and tone rules
+- `.claude/rules/ui-standards.md` — hard UI rules (tokens, WCAG AA, responsive, panel/form patterns). Load before any work under `apps/web/app/` or `apps/web/components/`.
 - `docs/project-info/technology/TECH_DEBT.md` — known issues before production
 - `docs/project-info/product/BUILD_STATUS.md` — what's done / in progress / next
 - `docs/project-info/technology/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
