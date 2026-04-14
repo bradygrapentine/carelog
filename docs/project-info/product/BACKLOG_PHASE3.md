@@ -313,13 +313,13 @@ and the E2E suite has reliable infra (mailpit, Supabase local, Chromium warm).
 | Gap | File to create | Notes |
 |-----|---------------|-------|
 | ~~Expenses list — coordinator adds expense, appears in list~~ | `e2e/expenses.spec.ts` | ✅ DONE 2026-04-13 |
-| Team admin remove-member flow | `e2e/team-admin.spec.ts` (extend) | Blocked — no remove-member UI or `memberships.remove` mutation exists yet |
+| ~~Team admin remove-member flow~~ | `e2e/team-admin.spec.ts` (extend) | ✅ DONE 2026-04-13 — shipped `memberships.remove` + TeamPanel Remove button |
 | ~~Outer circle creation from coordinator side~~ | `e2e/outer-circle.spec.ts` (extend) | ✅ DONE 2026-04-13 |
 | ~~Care brief generation and share URL~~ | `e2e/care-brief.spec.ts` | ✅ DONE 2026-04-13 |
 | ~~EOL planner save flow (coordinator)~~ | `e2e/eol-planner.spec.ts` | ✅ DONE 2026-04-13 |
 | ~~Benefits navigator coordinator view~~ | `e2e/benefits.spec.ts` | ✅ DONE 2026-04-13 |
 | ~~Contact page form submission~~ | `e2e/contact.spec.ts` | ✅ DONE 2026-04-13 |
-| Burnout privacy suppression | Extend `e2e/burnout.spec.ts` | Blocked — no coordinator org-summary component exists yet to test suppression against |
+| ~~Burnout privacy suppression~~ | Extend `e2e/burnout.spec.ts` | ✅ DONE 2026-04-13 — shipped `BurnoutOrgSummary` with min-group=3 suppression |
 | ~~OCR review panel — review and confirm~~ | `e2e/ocr-review.spec.ts` | ✅ DONE 2026-04-13 |
 
 ---

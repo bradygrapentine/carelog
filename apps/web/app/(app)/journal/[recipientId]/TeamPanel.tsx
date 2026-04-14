@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,8 @@ type Props = {
   readonly onInvite: (email: string, role: string) => Promise<void>;
   readonly showInvite: boolean;
   readonly onToggleInvite: () => void;
+  readonly orgId?: string;
+  readonly canRemove?: boolean;
 };
 
 const ROLE_BADGE: Record<string, string> = {
@@ -55,10 +58,36 @@ export function TeamPanel({
   onInvite,
   showInvite,
   onToggleInvite,
+  orgId,
+  canRemove = false,
 }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("caregiver");
   const [sending, setSending] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  const utils = trpc.useUtils();
+  const removeMutation = trpc.memberships.remove.useMutation({
+    onSuccess: () => {
+      utils.memberships.list.invalidate();
+    },
+    onError: (err) => {
+      setRemoveError(err.message);
+    },
+  });
+
+  async function handleRemove(membershipId: string, displayLabel: string) {
+    if (!orgId) return;
+    if (!window.confirm(`Remove ${displayLabel} from the team?`)) return;
+    setRemoveError(null);
+    setRemovingId(membershipId);
+    try {
+      await removeMutation.mutateAsync({ orgId, membershipId });
+    } finally {
+      setRemovingId(null);
+    }
+  }
 
   async function handleInvite(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -189,7 +218,10 @@ export function TeamPanel({
                 </div>
                 <div>
                   <span className="text-sm text-foreground">
-                    {member.display_name ?? (member.email ? member.email.split("@")[0] : "Team member")}
+                    {member.display_name ??
+                      (member.email
+                        ? member.email.split("@")[0]
+                        : "Team member")}
                   </span>
                   {member.user_id === currentUserId && (
                     <span className="ml-2 text-xs text-muted-foreground">
@@ -198,16 +230,45 @@ export function TeamPanel({
                   )}
                 </div>
               </div>
-              <Badge
-                variant="outline"
-                className={
-                  "capitalize text-xs " + (ROLE_BADGE[member.role] ?? "")
-                }
-              >
-                {ROLE_LABELS[member.role] ?? member.role}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={
+                    "capitalize text-xs " + (ROLE_BADGE[member.role] ?? "")
+                  }
+                >
+                  {ROLE_LABELS[member.role] ?? member.role}
+                </Badge>
+                {canRemove && orgId && member.user_id !== currentUserId && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleRemove(
+                        member.id,
+                        member.display_name ?? member.email ?? "this member",
+                      )
+                    }
+                    disabled={removingId === member.id}
+                    aria-label={
+                      "Remove " +
+                      (member.display_name ?? member.email ?? "member")
+                    }
+                    className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80 disabled:opacity-50"
+                  >
+                    {removingId === member.id ? "Removing..." : "Remove"}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
+          {removeError && (
+            <div
+              role="alert"
+              className="px-4 py-2 text-xs text-[var(--color-danger)]"
+            >
+              {removeError}
+            </div>
+          )}
           {members.length === 0 && (
             <div className="px-4 py-6 text-center">
               <p className="text-sm text-muted-foreground">

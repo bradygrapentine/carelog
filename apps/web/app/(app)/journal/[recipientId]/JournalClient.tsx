@@ -334,6 +334,8 @@ function JournalLayout({
                 onInvite={onInvite}
                 showInvite={showInvite}
                 onToggleInvite={onToggleInvite}
+                orgId={org?.id}
+                canRemove={currentUserRole === "coordinator"}
               />
               {currentUserRole === "coordinator" && org && (
                 <OuterCirclePanel

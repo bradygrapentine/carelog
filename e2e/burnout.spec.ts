@@ -35,6 +35,27 @@ test.beforeEach(async () => {
   await clearMailpit();
 });
 
+test.describe("Burnout org summary privacy", () => {
+  test("coordinator sees 'Team wellbeing' panel", async ({ page }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await goToMorePanel(page);
+    await expect(page.getByText("Team wellbeing")).toBeVisible({
+      timeout: 8000,
+    });
+  });
+
+  test("suppression copy shown when fewer than 3 check-ins exist", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await goToMorePanel(page);
+    // min-group suppression: body explains individual scores are never shown
+    await expect(
+      page.getByText(/Individual scores are never shown/),
+    ).toBeVisible({ timeout: 8000 });
+  });
+});
+
 test.describe("Burnout check-in", () => {
   test("coordinator sees burnout check-in form on More panel", async ({
     page,

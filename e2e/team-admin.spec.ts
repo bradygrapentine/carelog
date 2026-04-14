@@ -61,3 +61,55 @@ test.describe("Team Admin", () => {
     );
   });
 });
+
+test.describe("Team member removal (TeamPanel)", () => {
+  test("coordinator sees a Remove button for another member", async ({
+    browser,
+  }) => {
+    const email = "e2e-teamrm-caregiver-" + Date.now() + "@test.com";
+    const coordinatorCtx = await browser.newContext();
+    const coordinatorPage = await coordinatorCtx.newPage();
+
+    try {
+      await signIn(coordinatorPage, COORDINATOR_EMAIL);
+      await navigateToJournal(coordinatorPage);
+
+      const inviteUrl = await sendInviteAndGetUrl(
+        coordinatorPage,
+        email,
+        "caregiver",
+      );
+      const { ctx: caregiverCtx } = await acceptInviteAsNewUser(
+        browser,
+        inviteUrl,
+        email,
+      );
+      await caregiverCtx.close();
+
+      // Back to coordinator — go to Team panel and confirm Remove button exists
+      await coordinatorPage.getByRole("button", { name: "Team" }).click();
+
+      const removeBtn = coordinatorPage
+        .getByRole("button", { name: /^Remove / })
+        .first();
+      await expect(removeBtn).toBeVisible({ timeout: 10000 });
+    } finally {
+      await coordinatorCtx.close();
+    }
+  });
+
+  test("coordinator cannot see a Remove button for themselves", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await navigateToJournal(page);
+    await page.getByRole("button", { name: "Team" }).click();
+
+    // The coordinator row carries a "you" suffix; a Remove button on it would be a bug
+    const youRow = page.locator('div:has-text("you")').first();
+    await expect(youRow).toBeVisible({ timeout: 8000 });
+    await expect(youRow.getByRole("button", { name: /^Remove / })).toHaveCount(
+      0,
+    );
+  });
+});

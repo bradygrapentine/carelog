@@ -325,3 +325,191 @@ describe("memberships.accept — logic", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("memberships.remove — logic", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const TARGET_MEMBERSHIP_ID = "58dc6d19-6712-4b26-8797-b4e544e01b88";
+  const TARGET_USER_ID = "68dc6d19-6712-4b26-8797-b4e544e01b89";
+
+  function mockCaller(role: string, acceptedAt: string | null = "2024-01-01") {
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { role, accepted_at: acceptedAt },
+        error: null,
+      }),
+    };
+  }
+
+  function mockTarget(
+    role: string,
+    orgId: string,
+    userId: string = TARGET_USER_ID,
+  ) {
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: TARGET_MEMBERSHIP_ID,
+          user_id: userId,
+          role,
+          org_id: orgId,
+        },
+        error: null,
+      }),
+    };
+  }
+
+  function mockCount(count: number) {
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockResolvedValue({ count, error: null }),
+    };
+  }
+
+  function mockDelete() {
+    return {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+  }
+
+  it("coordinator removes a caregiver", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget("caregiver", ORG_ID) as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockDelete() as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    const result = await authedCaller.memberships.remove({
+      orgId: ORG_ID,
+      membershipId: TARGET_MEMBERSHIP_ID,
+    });
+
+    expect(result).toEqual({ removed: true });
+  });
+
+  it("non-coordinator is rejected with FORBIDDEN", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+      mockCaller("caregiver") as unknown as ReturnType<
+        typeof supabaseAdmin.from
+      >,
+    );
+
+    await expect(
+      authedCaller.memberships.remove({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("cross-org target rejected with FORBIDDEN", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget(
+          "caregiver",
+          "99999999-9999-9999-9999-999999999999",
+        ) as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    await expect(
+      authedCaller.memberships.remove({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("removing self rejected with BAD_REQUEST", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget("coordinator", ORG_ID, USER_ID) as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      );
+
+    await expect(
+      authedCaller.memberships.remove({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("removing last coordinator rejected with BAD_REQUEST", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget("coordinator", ORG_ID) as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockCount(1) as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    await expect(
+      authedCaller.memberships.remove({
+        orgId: ORG_ID,
+        membershipId: TARGET_MEMBERSHIP_ID,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("removing a coordinator succeeds when other coordinators remain", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        mockCaller("coordinator") as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockTarget("coordinator", ORG_ID) as unknown as ReturnType<
+          typeof supabaseAdmin.from
+        >,
+      )
+      .mockReturnValueOnce(
+        mockCount(2) as unknown as ReturnType<typeof supabaseAdmin.from>,
+      )
+      .mockReturnValueOnce(
+        mockDelete() as unknown as ReturnType<typeof supabaseAdmin.from>,
+      );
+
+    const result = await authedCaller.memberships.remove({
+      orgId: ORG_ID,
+      membershipId: TARGET_MEMBERSHIP_ID,
+    });
+
+    expect(result).toEqual({ removed: true });
+  });
+});
