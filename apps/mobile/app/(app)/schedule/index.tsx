@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { trpc } from "../../../utils/trpc";
 import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
-import { colors, spacing } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
 // DB columns: start_at / end_at (not starts_at / ends_at)
@@ -33,6 +33,7 @@ function formatShiftTime(iso: string) {
 
 export default function ScheduleScreen() {
   const { orgId, recipientId } = useApp();
+  const { colors, spacing } = useAppTheme();
 
   // shiftListInput requires 'from'/'to' — NOT 'since'/'until'
   const from = new Date().toISOString();
@@ -59,6 +60,31 @@ export default function ScheduleScreen() {
   }, [shifts]);
 
   const list = (shifts as unknown as Shift[]) ?? [];
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.surface,
+          padding: spacing.lg,
+        },
+        loader: { marginTop: 48 },
+        row: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        time: { flex: 1 },
+        timeText: { fontSize: 15, fontWeight: "500" },
+        duration: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
+        assignee: { fontSize: 14, color: colors.textSecondary },
+        empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+      }),
+    [colors, spacing],
+  );
 
   return (
     <View style={styles.container}>
@@ -103,24 +129,3 @@ export default function ScheduleScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-  },
-  loader: { marginTop: 48 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceSubtle,
-  },
-  time: { flex: 1 },
-  timeText: { fontSize: 15, fontWeight: "500" },
-  duration: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
-  assignee: { fontSize: 14, color: colors.textSecondary },
-  empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
-});

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { getSession } from "../../../utils/auth";
-import { colors, spacing, radii } from "../../../constants/tokens";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 
 type InviteDetails = {
   org_name: string;
@@ -25,6 +25,34 @@ export default function InviteScreen() {
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+  const { colors, spacing, radii } = useAppTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: "center",
+          padding: spacing.xxl,
+          backgroundColor: colors.surfaceRaised,
+        },
+        title: { fontSize: 24, fontWeight: "700", marginBottom: spacing.sm },
+        subtitle: {
+          fontSize: 16,
+          color: colors.muted,
+          marginBottom: 32,
+          lineHeight: 24,
+        },
+        btn: {
+          backgroundColor: colors.primary,
+          borderRadius: radii.md,
+          padding: spacing.lg,
+          alignItems: "center",
+        },
+        btnText: { color: colors.white, fontWeight: "600", fontSize: 16 },
+      }),
+    [colors, spacing, radii],
+  );
 
   useEffect(() => {
     async function init() {
@@ -110,26 +138,3 @@ export default function InviteScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: spacing.xxl,
-    backgroundColor: colors.surfaceRaised,
-  },
-  title: { fontSize: 24, fontWeight: "700", marginBottom: spacing.sm },
-  subtitle: {
-    fontSize: 16,
-    color: colors.muted,
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  btn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    padding: spacing.lg,
-    alignItems: "center",
-  },
-  btnText: { color: colors.white, fontWeight: "600", fontSize: 16 },
-});
