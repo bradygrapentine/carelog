@@ -1,3 +1,4 @@
+import type React from 'react'
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin }    from '@/server/supabaseAdmin.server'
 import { getRequestUser }   from '@/lib/supabaseServer'
@@ -129,9 +130,10 @@ export async function POST(request: NextRequest) {
     const React = (await import('react')).default
     const { ExportDocument } = await import('./ExportDocument')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buffer = await renderToBuffer(
-      React.createElement(ExportDocument, { data: exportPayload }) as any
+      // @react-pdf/renderer expects DocumentProps generic; React.createElement returns
+      // React.ReactElement which is compatible at runtime but not at the type level.
+      React.createElement(ExportDocument, { data: exportPayload }) as React.ReactElement
     )
     return new NextResponse(new Uint8Array(buffer), {
       status:  200,

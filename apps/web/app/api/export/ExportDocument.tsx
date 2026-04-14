@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import type { EventType } from '@carelog/types'
 
 const s = StyleSheet.create({
   page:        { padding: 48, fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a' },
@@ -13,15 +14,54 @@ const s = StyleSheet.create({
   footer:      { position: 'absolute', bottom: 24, left: 48, right: 48, textAlign: 'center', color: '#9ca3af', fontSize: 8 },
 })
 
+type CareEventRow = {
+  id:           string
+  event_type:   EventType
+  entry_kind:   'human' | 'system'
+  occurred_at:  string
+  flagged:      boolean
+  payload:      Record<string, unknown>
+}
+
+type SymptomReadingRow = {
+  id:          string
+  pain_level:  number | null
+  mood:        string | null
+  appetite:    string | null
+  mobility:    string | null
+  notes:       string | null
+  recorded_at: string
+}
+
+type MedicationRow = {
+  id:           string
+  drug_name:    string
+  dosage:       string | null
+  form:         string | null
+  instructions: string | null
+  prescriber:   string | null
+  active:       boolean
+  created_at:   string
+}
+
+type ShiftRow = {
+  id:               string
+  assignee_user_id: string | null
+  start_at:         string
+  end_at:           string | null
+  notes:            string | null
+  status:           string
+}
+
 type ExportData = {
   recipient_name:   string
   dob:              string | null
   exported_at:      string
   since:            string | null
-  care_events:      any[]
-  symptom_readings: any[]
-  medications:      any[]
-  shifts:           any[]
+  care_events:      CareEventRow[]
+  symptom_readings: SymptomReadingRow[]
+  medications:      MedicationRow[]
+  shifts:           ShiftRow[]
 }
 
 function formatDate(iso: string) {
@@ -96,11 +136,11 @@ export function ExportDocument({ data }: { data: ExportData }) {
 
         {/* Journal entries */}
         <View style={s.section}>
-          <Text style={s.sectionHead}>{'Journal Entries (' + data.care_events.filter((e: any) => e.entry_kind === 'human').length + ')'}</Text>
-          {data.care_events.filter((e: any) => e.entry_kind === 'human').length === 0 && (
+          <Text style={s.sectionHead}>{'Journal Entries (' + data.care_events.filter((e) => e.entry_kind === 'human').length + ')'}</Text>
+          {data.care_events.filter((e) => e.entry_kind === 'human').length === 0 && (
             <Text style={s.value}>No journal entries on record.</Text>
           )}
-          {data.care_events.filter((e: any) => e.entry_kind === 'human').map((e: any, i: number) => (
+          {data.care_events.filter((e) => e.entry_kind === 'human').map((e, i) => (
             <View key={i} style={s.item}>
               <View style={s.row}>
                 <Text style={s.label}>{formatDate(e.occurred_at)}</Text>

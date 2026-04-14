@@ -70,10 +70,10 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-01 | 🟢 Ready | **Harden `any` remaining usages** | `console` types crept back; run ON-39 follow-up once baseline count drops. |
+| TD-01 | ✅ Shipped | **Harden `any` remaining usages** | 10 → 0 (100% reduction). `ExportDocument`, `careEvents` router, `export/route` all typed precisely. |
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
-| TD-04 | 🟢 Ready | **Consolidate `images/` → `apps/web/public/images/`** | Root-level `images/` staging dir still holds uncommitted renames (see git status); finish move + delete `images/`. |
+| TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
 
 ---
 
@@ -142,7 +142,7 @@ Add breadcrumb with procedure name + operation type (NEVER input values — PHI)
 ### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
 Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
 
-### 🌙 ON-35 — `.gitignore` hygiene
+### ✅ 🌙 ON-35 — `.gitignore` hygiene
 Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
 
 ### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
@@ -151,7 +151,7 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
 
-### 🌙 ON-38 — Dependency freshness report
+### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
 ### 🌙 ON-39 — Eliminate `any` types
@@ -163,7 +163,7 @@ Run `pnpm test` 5×; `.skip` any intermittent failure with `// FLAKY: ON-XX` lin
 ### ✅ ON-41 — Audit stale snapshot tests
 Review each `__snapshots__` dir. Replace full-tree snapshots with targeted assertions where feasible. **AC:** no snapshot >100 lines without a justification comment. **Size:** 3 hr.
 
-### 🌙 ON-42 — Next.js caching directive audit
+### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
 ### 🌙 A11Y-004 — Token contrast validator script

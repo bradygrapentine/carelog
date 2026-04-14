@@ -8,6 +8,7 @@ import {
   insertEventIdempotent,
 } from "../repositories/careEventsRepository";
 import { supabaseAdmin } from "../supabaseAdmin.server";
+import type { EventType, EntryKind } from "@carelog/types";
 
 const eventTypeEnum = z.enum([
   "journal",
@@ -33,7 +34,7 @@ export const careEventsRouter = router({
     .query(async ({ ctx, input }) => {
       return getTimeline(ctx.supabase, {
         recipientId: input.recipientId,
-        eventType: input.eventType as any,
+        eventType: input.eventType as EventType,
         limit: input.limit,
         before: input.before,
       });
@@ -69,8 +70,8 @@ export const careEventsRouter = router({
           orgId: input.orgId,
           recipientId: input.recipientId,
           actorId: ctx.user.id,
-          eventType: input.eventType as any,
-          entryKind: input.entryKind as any,
+          eventType: input.eventType as EventType,
+          entryKind: input.entryKind as EntryKind,
           payload: input.payload,
           occurredAt: input.occurredAt,
           flagged: input.flagged,
@@ -82,8 +83,8 @@ export const careEventsRouter = router({
         orgId: input.orgId,
         recipientId: input.recipientId,
         actorId: ctx.user.id,
-        eventType: input.eventType as any,
-        entryKind: input.entryKind as any,
+        eventType: input.eventType as EventType,
+        entryKind: input.entryKind as EntryKind,
         payload: input.payload,
         occurredAt: input.occurredAt,
         flagged: input.flagged,

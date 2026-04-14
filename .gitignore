@@ -15,3 +15,9 @@ apps/web/.eslintcache
 
 # Playwright production session (contains auth cookies)
 .playwright/
+
+# Generated reports / analysis artifacts
+apps/web/sonar-report.xml
+
+# Claude memory search index
+.memsearch/
