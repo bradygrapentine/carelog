@@ -81,7 +81,6 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
 
-<<<<<<< feat/on39-eliminate-any
 ### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 **Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
 **Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
@@ -123,8 +122,6 @@ Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with proj
 ### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
-=======
->>>>>>> main
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
 
@@ -144,7 +141,6 @@ Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
 ### 🌙 ON-37 — `ts-prune` unused exports sweep
-<<<<<<< feat/on39-eliminate-any
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
 
 ### ✅ 🌙 ON-38 — Dependency freshness report
@@ -153,9 +149,6 @@ Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 
 ### 🔎 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
 **Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
-=======
-`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr. **Note:** two agent attempts timed out; consider splitting into separate web + mobile subtasks.
->>>>>>> main
 
 ### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
 19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
