@@ -10,6 +10,14 @@ Monorepo: `apps/`, `packages/`, `supabase/`.
 3. `pnpm test`
 4. Before PR: `pnpm lint` + full test suite + `supabase test db`
 
+### Pre-flight audit (before multi-task sessions)
+
+Before starting any planned or multi-task work, verify what is already done. Run `git log --oneline -20`, grep the codebase for the target files/symbols, and check the relevant backlog doc for `✅ DONE`/strike-through markers. Produce a status table (done/partial/todo) before touching code. Skipping this step has repeatedly led to re-implementing completed work.
+
+### Testing first
+
+When asked to fix failing tests, run the test command first and read the actual failure output. Do not explore the codebase before seeing the real errors — the failure message usually points at the exact file and line.
+
 ## Commands
 
 ```sh
@@ -38,6 +46,7 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Always verify current branch with `git branch --show-current` before any commit
 - When dispatching subagents, explicitly pass the target branch name and instruct them to verify it before committing
 - Never commit directly to main/master without confirmation
+- A concurrent Claude instance may switch branches under you. Re-run `git branch --show-current` immediately before every commit, not just at the start of a session. If the wrong branch was committed to, `git cherry-pick` onto the correct branch rather than reset.
 
 ## Parallel Work
 
@@ -142,16 +151,20 @@ Run Claude non-interactively for automated QA:
 - Don't claim done without running verification commands first
 - Don't edit files during code review — only read and report findings
 
-## Code Reviews
+## Review Mode (READ-ONLY)
 
-- When asked to perform a 'review' or 'adversarial review': ONLY read and analyze code. Do NOT edit files or make implementation changes unless explicitly asked to fix issues afterward.
+Any request containing "review", "audit", "adversarial", "security check", or "coverage gap analysis" is a READ-ONLY task. Rules:
+
+- Do NOT use Edit, Write, or any mutation tool until the review report is delivered AND the user explicitly authorizes fixes.
+- Output a single report: severity-ranked findings (Critical / Medium / Low / None), each with `file:line`, the issue, and a suggested fix.
+- Do NOT explore files looking for "things to fix along the way" — stay scoped to the requested surface.
+- If you catch yourself about to open an Edit tool during a review, stop and emit the report instead.
+- Prefer the `/review` skill (parallel subagents) over a single-agent review path.
+- If a dispatched review agent stalls or returns empty, report immediately rather than retrying silently.
+
+## Code Reviews (general)
+
 - When the user confirms 'Yes' or similar affirmation: treat it as confirmation of the previously proposed action — not as answering a question.
-
-## Adversarial Reviews
-
-- When asked for a review, DO NOT edit files — produce review output only
-- Prefer the `/review` skill (parallel subagents) over any single-agent review path
-- If a dispatched review agent stalls or returns empty, report immediately rather than retrying silently
 
 ## General Rules
 
