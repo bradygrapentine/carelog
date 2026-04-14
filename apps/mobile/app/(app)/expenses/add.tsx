@@ -10,6 +10,7 @@ import {
   Platform,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { haptics } from "../../../utils/haptics";
 import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
@@ -39,6 +40,7 @@ export default function ExpenseAddScreen() {
     !isNaN(numericAmount) && numericAmount > 0 && description.trim();
 
   async function handleSubmit() {
+    haptics.tap();
     if (!valid || !orgId || !recipientId) return;
     setSubmitting(true);
     try {

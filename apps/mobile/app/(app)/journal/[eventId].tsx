@@ -1,3 +1,4 @@
+import { haptics } from "../../../utils/haptics";
 // apps/mobile/app/(app)/journal/[eventId].tsx
 import {
   View,
@@ -36,7 +37,10 @@ export default function JournalDetailScreen() {
   const unreactMut = trpc.careEvents.unreact.useMutation({
     onSuccess: () => refetchReactions(),
   });
-  const flagMut = trpc.careEvents.flag.useMutation();
+  const flagMut = trpc.careEvents.flag.useMutation({
+    onSuccess: () => haptics.success(),
+    onError: () => haptics.error(),
+  });
 
   const counts = reactions?.counts ?? {};
   const myReaction = reactions?.myReaction ?? null;

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { haptics } from "../../../utils/haptics";
 import {
   View,
   Text,
@@ -35,6 +36,7 @@ export default function SymptomLogScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit() {
+    haptics.tap();
     if (!orgId || !recipientId) return;
     setSubmitting(true);
     try {
