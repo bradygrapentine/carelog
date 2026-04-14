@@ -191,7 +191,7 @@ export function TeamPanel({
                 </div>
                 <div>
                   <span className="text-sm text-foreground">
-                    {member.display_name ?? member.email ?? "Team member"}
+                    {member.display_name ?? (member.email ? member.email.split("@")[0] : "Team member")}
                   </span>
                   {member.user_id === currentUserId && (
                     <span className="ml-2 text-xs text-muted-foreground">

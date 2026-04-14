@@ -216,7 +216,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <option value="">Select a caregiver...</option>
           {assignableMembers.map((m) => (
             <option key={m.user_id} value={m.user_id}>
-              {m.display_name ?? m.email ?? m.user_id}
+              {m.display_name ?? (m.email ? m.email.split("@")[0] : m.user_id)}
             </option>
           ))}
         </select>
@@ -295,7 +295,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             setExpanded(false);
             setError(null);
           }}
-          className="text-muted-foreground lg:hidden"
+          className="text-muted-foreground"
         >
           Cancel
         </Button>
@@ -314,14 +314,14 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
   // Desktop (lg+): always expanded
   return (
     <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
         <CardTitle className="text-sm">Schedule a shift</CardTitle>
         {/* Mobile toggle */}
         {!expanded && (
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + New shift
           </button>
@@ -333,7 +333,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
               setExpanded(false);
               setError(null);
             }}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             Cancel
           </button>
@@ -348,14 +348,14 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + Schedule a shift
           </button>
         )}
 
         {/* Form: on mobile shown when expanded; on desktop always shown */}
-        <div className={expanded ? "block" : "hidden lg:block"}>
+        <div className={expanded ? "block" : "hidden"}>
           {shiftForm}
         </div>
       </CardContent>

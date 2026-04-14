@@ -313,7 +313,7 @@ and the E2E suite has reliable infra (mailpit, Supabase local, Chromium warm).
 | Gap | File to create | Notes |
 |-----|---------------|-------|
 | ~~Expenses list — coordinator adds expense, appears in list~~ | `e2e/expenses.spec.ts` | ✅ DONE 2026-04-13 |
-| Team admin remove-member flow | `e2e/team-admin.spec.ts` (extend) | Requires multi-user context; coordinator removes caregiver |
+| Team admin remove-member flow | `e2e/team-admin.spec.ts` (extend) | Blocked — no remove-member UI or `memberships.remove` mutation exists yet |
 | ~~Outer circle creation from coordinator side~~ | `e2e/outer-circle.spec.ts` (extend) | ✅ DONE 2026-04-13 |
 | ~~Care brief generation and share URL~~ | `e2e/care-brief.spec.ts` | ✅ DONE 2026-04-13 |
 | ~~EOL planner save flow (coordinator)~~ | `e2e/eol-planner.spec.ts` | ✅ DONE 2026-04-13 |

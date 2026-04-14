@@ -223,7 +223,7 @@ export function OuterCirclePanel({
             setShowForm(false);
             setError(null);
           }}
-          className="text-sm text-muted-foreground hover:text-foreground/80 lg:hidden"
+          className="text-sm text-muted-foreground hover:text-foreground/80"
         >
           Cancel
         </button>
@@ -236,7 +236,7 @@ export function OuterCirclePanel({
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
         <CardTitle className="text-sm">Volunteer requests</CardTitle>
       </CardHeader>
 
@@ -295,14 +295,14 @@ export function OuterCirclePanel({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + New request
           </button>
         )}
 
         {/* Form: on mobile shown when showForm; on desktop always shown */}
-        <div className={showForm ? "block" : "hidden lg:block"}>
+        <div className={showForm ? "block" : "hidden"}>
           {requestForm}
         </div>
       </CardContent>

@@ -116,7 +116,7 @@ export function BenefitsNavigator({
 
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
         <CardTitle className="text-sm">Benefits navigator</CardTitle>
       </CardHeader>
 
@@ -178,7 +178,7 @@ export function BenefitsNavigator({
 
         {/* No results yet — show Start screener button on mobile only */}
         {!showForm && displayResults === null && (
-          <div className="lg:hidden">
+          <div>
             <p className="text-sm text-muted-foreground mb-3">
               Answer a few questions to find matching benefit programs for the
               care recipient.
@@ -198,7 +198,7 @@ export function BenefitsNavigator({
             displayResults === null || showForm
               ? showForm
                 ? "block"
-                : "hidden lg:block"
+                : "hidden"
               : "hidden"
           }
         >

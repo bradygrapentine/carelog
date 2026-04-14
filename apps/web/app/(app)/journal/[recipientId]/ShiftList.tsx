@@ -95,7 +95,7 @@ export function ShiftList({
 
   function lookupName(userId: string): string {
     const m = members.find((mem) => mem.user_id === userId);
-    return m?.display_name ?? m?.email ?? "Unknown";
+    return m?.display_name ?? (m?.email ? m.email.split("@")[0] : "Unknown");
   }
 
   return (

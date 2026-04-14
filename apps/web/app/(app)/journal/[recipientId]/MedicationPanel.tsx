@@ -190,7 +190,7 @@ export function MedicationPanel({
             setShowForm(false);
             setError(null);
           }}
-          className="lg:hidden"
+         
         >
           Cancel
         </Button>
@@ -207,14 +207,14 @@ export function MedicationPanel({
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
         <CardTitle className="text-sm">Medications</CardTitle>
         {/* Mobile-only toggle */}
         {isCoordinator && !showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
           >
             + Add
           </button>
@@ -305,13 +305,13 @@ export function MedicationPanel({
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
               >
                 + Add medication
               </button>
             )}
             {/* Form: on mobile shown when showForm; on desktop always shown */}
-            <div className={"mt-2 " + (showForm ? "block" : "hidden lg:block")}>
+            <div className={"mt-2 " + (showForm ? "block" : "hidden")}>
               {medications.length > 0 && <Separator className="mb-4" />}
               {addForm}
             </div>

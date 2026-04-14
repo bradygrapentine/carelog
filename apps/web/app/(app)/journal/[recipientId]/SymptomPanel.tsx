@@ -326,7 +326,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
         <button
           type="button"
           onClick={resetForm}
-          className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+          className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
         >
           Cancel
         </button>
@@ -339,7 +339,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 bg-[var(--color-secondary-subtle)] border-b border-[var(--color-border)] rounded-t-lg">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm">Symptom readings</CardTitle>
           {readings.length > 0 && (
@@ -442,13 +442,13 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors lg:hidden"
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
               >
                 + Log reading
               </button>
             )}
             {/* Form: on mobile shown when showForm; on desktop always shown via lg:block */}
-            <div className={"mt-2 " + (showForm ? "block" : "hidden lg:block")}>
+            <div className={"mt-2 " + (showForm ? "block" : "hidden")}>
               {readings.length > 0 && <Separator className="mb-4" />}
               {logForm}
             </div>
