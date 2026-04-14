@@ -126,7 +126,7 @@ describe("OuterCircleScreen", () => {
       expect.objectContaining({
         title: "Meal prep",
         slots_total: 2,
-        request_type: "volunteer",
+        request_type: "other",
         org_id: "org-1",
         recipient_id: "r-1",
       }),

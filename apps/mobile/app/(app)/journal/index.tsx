@@ -106,7 +106,7 @@ export default function JournalScreen() {
     try {
       await write({
         event_type: "journal",
-        entry_kind: "human",
+        entry_kind: "journal_entry",
         payload: { text: entry, mood },
         recipient_id: recipientId,
       });

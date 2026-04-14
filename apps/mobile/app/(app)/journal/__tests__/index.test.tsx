@@ -25,14 +25,14 @@ const mockTimeline = [
   {
     id: "ev-1",
     event_type: "journal",
-    entry_kind: "human",
+    entry_kind: "journal_entry",
     occurred_at: "2026-04-01T10:00:00Z",
     payload: { text: "Feeling better today", mood: "okay" },
   },
   {
     id: "ev-2",
     event_type: "journal",
-    entry_kind: "human",
+    entry_kind: "journal_entry",
     occurred_at: "2026-04-02T09:00:00Z",
     payload: { text: "Rough night", mood: "difficult" },
   },
@@ -108,7 +108,7 @@ describe("JournalScreen", () => {
       expect(mockWrite).toHaveBeenCalledWith(
         expect.objectContaining({
           event_type: "journal",
-          entry_kind: "human",
+          entry_kind: "journal_entry",
           payload: expect.objectContaining({ text: "New entry text" }),
         }),
       );

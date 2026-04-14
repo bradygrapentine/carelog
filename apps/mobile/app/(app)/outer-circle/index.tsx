@@ -71,7 +71,7 @@ export default function OuterCircleScreen() {
       recipient_id: recipientId ?? "",
       title: titleVal,
       description: descVal || undefined,
-      request_type: "volunteer",
+      request_type: "other",
       slots_total: slotsVal,
     });
   }
