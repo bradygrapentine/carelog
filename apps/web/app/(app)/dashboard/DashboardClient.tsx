@@ -154,14 +154,13 @@ export function DashboardClient({ user }: Props) {
                   router.push("/journal/" + team.recipientId);
                 }}
               >
-                <CardHeader className="pb-0" />
-                <CardContent className="pt-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-medium text-foreground">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <h2 className="text-base font-semibold text-foreground truncate">
                         {team.org.name}
                       </h2>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         View care journal
                       </p>
                     </div>

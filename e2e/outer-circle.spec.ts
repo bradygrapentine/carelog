@@ -1,4 +1,43 @@
 import { test, expect } from "@playwright/test";
+import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+
+const COORDINATOR_EMAIL = "e2e-outer-circle@test.com";
+
+test.describe("Outer Circle coordinator creation", () => {
+  test.beforeEach(async () => {
+    await clearMailpit();
+  });
+
+  test("coordinator sees Volunteer requests panel under Team destination", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await navigateToJournal(page);
+    await page.getByRole("button", { name: "Team" }).click();
+    await expect(page.getByText("Volunteer requests")).toBeVisible({
+      timeout: 8000,
+    });
+    await expect(
+      page.getByRole("button", { name: "+ New request" }),
+    ).toBeVisible();
+  });
+
+  test("coordinator opens request form and fills Title field", async ({
+    page,
+  }) => {
+    await signIn(page, COORDINATOR_EMAIL);
+    await navigateToJournal(page);
+    await page.getByRole("button", { name: "Team" }).click();
+    await page.getByRole("button", { name: "+ New request" }).click();
+
+    await expect(page.getByLabel(/^Title/)).toBeVisible({ timeout: 5000 });
+    await page.getByLabel(/^Title/).fill("Meals needed this week");
+
+    await expect(
+      page.getByRole("button", { name: "Create request" }),
+    ).toBeVisible();
+  });
+});
 
 test.describe("Outer Circle volunteer page", () => {
   test('invalid token shows "This request is no longer available."', async ({

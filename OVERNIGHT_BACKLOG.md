@@ -288,3 +288,26 @@ router.replace("/dashboard");
 
 **Blocked by:** nothing
 **Blocks:** nothing
+
+---
+
+### ON-10 — Full-text search across document vault contents
+
+**Context:** The document vault only supports substring search on `display_name`. Users need to find documents by their *contents* — e.g. "find the POA that mentions Dr. Chen". Requires OCR/text extraction and a Postgres FTS index.
+
+**Technical details:**
+- Add `documents.extracted_text text` column (nullable) + `documents.extracted_text_tsv tsvector` generated column + GIN index on the tsvector
+- On `POST /api/documents/upload`, after successful storage write, enqueue an Inngest job `documents/extract-text` analogous to the existing `ocr/job.created` pattern
+- The Inngest handler calls the same OCR pipeline used for prescription labels (or a PDF-to-text library for `application/pdf`) and writes the extracted text back
+- Extend `trpc.documents.list` to accept an optional `q` param; when present, use `websearch_to_tsquery` against `extracted_text_tsv` (fall back to `display_name ILIKE` when the tsvector column is null for that row)
+- UI: extend the existing `DocumentVault` search input to search both name AND contents; show a small "matched in content" snippet when the match is body-only
+
+**Acceptance criteria:**
+- [ ] Existing documents get backfilled (admin script or automatic on next access)
+- [ ] New uploads have text extracted within 60s
+- [ ] Search input filters by name OR content, client sees a snippet for content matches
+- [ ] pgTAP test confirms FTS query returns only org-scoped rows (RLS respected)
+
+**Blocked by:** nothing
+**Blocks:** nothing
+**Size:** ~1 day
