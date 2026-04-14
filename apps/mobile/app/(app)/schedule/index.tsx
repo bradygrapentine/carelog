@@ -11,6 +11,7 @@ import { writeWatchData } from "../../../utils/watchBridge";
 import { useApp } from "../../../context/AppContext";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 // DB columns: start_at / end_at (not starts_at / ends_at)
 type Shift = {
@@ -90,11 +91,12 @@ export default function ScheduleScreen() {
     <View style={styles.container}>
       <Panel title="Next 7 days">
         {isLoading ? (
-          <ActivityIndicator
-            style={styles.loader}
-            size="large"
-            color={colors.primary}
-          />
+          <>
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+          </>
         ) : (
           <FlatList
             data={list}
@@ -120,7 +122,7 @@ export default function ScheduleScreen() {
             }}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                No shifts scheduled for the next 7 days.
+                No shifts coming up. Ask your coordinator to add coverage.
               </Text>
             }
           />

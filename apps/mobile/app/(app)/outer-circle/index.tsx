@@ -301,7 +301,9 @@ export default function OuterCircleScreen() {
             scrollEnabled={false}
             renderItem={renderItem}
             ListEmptyComponent={
-              <Text style={styles.empty}>No volunteer requests yet.</Text>
+              <Text style={styles.empty}>
+                No volunteer requests yet. Coordinators can post requests to get help from friends and community.
+              </Text>
             }
           />
         )}

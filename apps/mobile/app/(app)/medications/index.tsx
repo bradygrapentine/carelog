@@ -14,6 +14,7 @@ import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 // Supabase join returns medications as an array; we use the first element
 type ScheduledMed = {
@@ -142,11 +143,12 @@ export default function MedicationsScreen() {
       )}
       <Panel title="Today's medications">
         {isLoading ? (
-          <ActivityIndicator
-            style={styles.loader}
-            size="large"
-            color={colors.primary}
-          />
+          <>
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+          </>
         ) : (
           <FlatList
             data={meds}
@@ -196,7 +198,7 @@ export default function MedicationsScreen() {
             }}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                No medications scheduled for today.
+                No medications scheduled today. Your coordinator can add medications from the web app.
               </Text>
             }
           />

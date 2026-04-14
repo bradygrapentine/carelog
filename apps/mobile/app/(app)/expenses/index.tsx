@@ -212,7 +212,9 @@ export default function ExpensesScreen() {
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={styles.empty}>No expenses logged yet.</Text>
+              <Text style={styles.empty}>
+                No expenses yet. Tap + to log a shared expense.
+              </Text>
             }
           />
         )}

@@ -24,6 +24,7 @@ import {
 } from "../../../utils/journalUtils";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 const MOOD_TAGS = ["good", "okay", "difficult", "crisis"] as const;
 
@@ -257,11 +258,13 @@ export default function JournalScreen() {
 
       <Panel title="Journal" style={styles.journalPanel}>
         {isLoading ? (
-          <ActivityIndicator
-            style={styles.loader}
-            size="large"
-            color={colors.primary}
-          />
+          <>
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+          </>
         ) : (
           <FlatList
             data={timeline ?? []}
@@ -331,7 +334,7 @@ export default function JournalScreen() {
             }}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                No entries yet. Add the first one below.
+                Nothing logged yet. Tap + to write your first journal entry.
               </Text>
             }
           />

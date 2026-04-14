@@ -82,7 +82,9 @@ export default function OrgSelectorScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>No care teams yet.</Text>
+          <Text style={styles.empty}>
+            You're not on any care teams yet. Ask a coordinator to invite you, or create a care team to get started.
+          </Text>
         }
       />
     </View>
