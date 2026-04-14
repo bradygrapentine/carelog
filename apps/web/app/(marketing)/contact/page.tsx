@@ -42,8 +42,29 @@ export default function ContactPage() {
           <ContactForm />
         </div>
 
-        {/* Right — info + FAQ */}
+        {/* Right — FAQ first, then contact details */}
         <div className="flex flex-col gap-8">
+          <div>
+            <h2 className="mb-4 text-lg font-semibold text-[var(--color-ink)]">
+              Frequently asked
+            </h2>
+            <ul className="flex flex-col gap-4" role="list">
+              {FAQ.map(({ q, a }) => (
+                <li
+                  key={q}
+                  className="rounded-2xl border border-[var(--color-border)] bg-white p-5"
+                >
+                  <p className="text-sm font-semibold text-[var(--color-ink)]">
+                    {q}
+                  </p>
+                  <p className="mt-1.5 text-sm text-[var(--color-muted)]">
+                    {a}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div>
             <h2 className="mb-3 text-lg font-semibold text-[var(--color-ink)]">
               Contact details
@@ -60,20 +81,6 @@ export default function ContactPage() {
             <p className="mt-1 text-sm text-[var(--color-muted)]">
               Response time: within 24 hours
             </p>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-[var(--color-ink)]">
-              Frequently asked
-            </h2>
-            <ul className="flex flex-col gap-4" role="list">
-              {FAQ.map(({ q, a }) => (
-                <li key={q} className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-                  <p className="text-sm font-semibold text-[var(--color-ink)]">{q}</p>
-                  <p className="mt-1.5 text-sm text-[var(--color-muted)]">{a}</p>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>
