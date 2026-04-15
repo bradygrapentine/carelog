@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: **2026-04-15**.
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: **2026-04-14**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 TD-02, TD-03 |
+| 🟢 Ready | 3 | §1 TD-02, TD-03 · §2 TD-05 |
 | ⚡ In progress | 1 | §1 PP-006 |
-| 🔎 In review | 8 | §2 TD-05 #61 · ON-37 #62 · ON-48 #58 · §4 A11Y-005 #59 · A11Y-006 #63 · §6 UX-01 #54 · UX-05 #60 · UX-07 #53 |
+| 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
-| 🌙 Overnight queue | 2 | §2 ON-15, ON-31 |
-| 🧊 Deferred | 8 | §6 UX-02/04/08/09/11 (5) + §1 PP-013 + §3 PP-002/003 |
+| 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
+| 🧊 Deferred | 11 | §6 UX (10) + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -119,8 +119,8 @@ Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, docu
 ### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### ✅ ON-30 — JSDoc on public exports in `packages/shared`
-One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared. Shipped PR #50.
+### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
+One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
 ### 🌙 ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
@@ -128,8 +128,8 @@ Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, asse
 ### 🌙 ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### ✅ ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs. Shipped PR #51.
+### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
 
 ### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
 Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
@@ -140,23 +140,23 @@ Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --
 ### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
-### 🔎 ON-37 — `ts-prune` unused exports sweep
+### 🌙 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
-**PR:** #62. Mobile: 55 → 10 flags (82% reduction). Expo Router defaults + test helpers annotated; `getPostHog()` deleted.
 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### ✅ ON-39 — Eliminate `any` types
+### 🔎 ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
-**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Shipped PR #52.
+**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
 
-### 🔎 ON-48 — Add neutral design tokens + update brief page · ~1 hr
-19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens. Added `--color-neutral-{50,100,200,400}` and `--color-white` to `globals.css`; replaced all inline hex in brief page. **PR:** #58. **Size:** 1 hr.
+### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
+19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
-### 🔎 TD-05 — Regenerate Supabase TypeScript types after messaging migration
-Regenerated message_threads, message_thread_members, messages types after messaging migration. Removed 10 `as any` casts from messagesRepository.ts.
-**AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min. **PR:** #61.
+### 🟢 TD-05 — Regenerate Supabase TypeScript types after messaging migration
+Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
+**AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
+**Status:** 🟢 Ready
 
 ---
 
@@ -185,12 +185,11 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| 🔎 A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) | **PR:** #59 |
-| 🔎 A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) | **PR:** #63. 15 test files scaffolded; all `it.skip` pending tRPC mock infra. Follow-up: A11Y-011. |
+| A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) |
+| A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) |
 | A11Y-007 | P2 | Lighthouse a11y audit on each Vercel preview via `chrome-devtools-mcp` |
 | A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow |
 | A11Y-009 | P3 | Honor `prefers-reduced-motion` (web) + `AccessibilityInfo.isReduceMotionEnabled()` (mobile) |
-| 🟢 A11Y-011 | P2 | Shared tRPC mock provider for mobile test rendering — unblocks A11Y-006 a11y snapshot tests. Build a `renderWithTrpc()` wrapper in `apps/mobile/__tests__/helpers/` that stubs all used tRPC queries with empty-array defaults. **AC:** A11Y-006 test files can `it(...)` instead of `it.skip(...)`. |
 
 ---
 
@@ -212,18 +211,19 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### High
-- **🔎 UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.* **PR:** #54
+- **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
 - **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass.
+- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Medium
 - **UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`.
-- **🔎 UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row). **PR:** #60. BottomSheet + MoodRow; FAB trigger; 852 tests green.
-~~- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`).~~ ✅ Shipped 2026-04-14
-- **🔎 UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext. **PR:** #53
+- **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
+- **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
+- **UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system.
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
 
 ---
@@ -284,11 +284,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-28** Mobile loading skeletons on journal, medications, documents, team index (PR #32)
 ✅ **ON-43** In-app messaging (DM + group) — `message_threads` + `message_thread_members` + `messages`, RLS, tRPC router, Supabase Realtime web UI, Inngest delayed push (PR #49)
 ✅ **Security** PostHog contact PHI fix (`distinctId: crypto.randomUUID()`) + WCAG danger token `#c41a1a` (PR #44)
-✅ **UX-10** Export page token alignment — `/brief/[token]` + `/care/[token]` migrated from inline hex to design tokens; tinted CardHeader pattern applied
 ✅ **TD-01** Harden remaining `any` usages (PR #47)
-✅ **UX-03** Micro-interactions — card hover lift (`transition-shadow hover:shadow-md`) + button press feedback (`motion-safe:active:scale-[0.97]`) in `card.tsx` + `button.tsx` (branch: feat/ux-03-micro-interactions)
 ✅ **TD-04** Consolidate `images/` → `apps/web/public/images/` (root dir absent — no-op confirmed)
-✅ **UX-06** Sidebar tooltip labels on hover — `TooltipProvider` + `Tooltip`/`TooltipContent side="right"` wrapping icon-only buttons in `SidebarNav` when `showLabels=false` (branch: feat/ux-06-sidebar-tooltips)
+✅ **UX-06** Sidebar tooltip labels on hover — `TooltipProvider` wraps `<nav>`, icon-only mode wraps each button in `Tooltip`/`TooltipContent side="right"` (2026-04-14)
 
 ---
 
