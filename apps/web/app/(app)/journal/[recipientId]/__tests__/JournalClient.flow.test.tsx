@@ -154,7 +154,8 @@ describe("JournalClient", () => {
       single: vi.fn().mockReturnValue(new Promise(() => {})),
     });
     render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
-    expect(document.querySelector(".animate-spin")).toBeTruthy();
+    // Loading state renders skeleton placeholders instead of content
+    expect(document.querySelector(".animate-pulse")).toBeTruthy();
   });
 
   it("renders the journal panel by default when no ?panel= param is set", async () => {

@@ -27,6 +27,7 @@ import {
   SidebarContext,
   SidebarProvider,
 } from "../../../../components/sidebar/SidebarContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   recipientId: string;
@@ -189,8 +190,17 @@ export function JournalClient({ recipientId, user }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--color-surface)]">
+        <div className="max-w-2xl lg:max-w-6xl w-full mx-auto px-4 lg:px-8 py-6 space-y-4">
+          <Skeleton className="h-5 w-40 rounded" />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-3/4 rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-5/6 rounded" />
+          </div>
+        </div>
       </div>
     );
   }
