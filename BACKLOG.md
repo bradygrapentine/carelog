@@ -21,7 +21,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
-| 🧊 Deferred | 11 | §6 UX (10) + PP-013 |
+| 🧊 Deferred | 10 | §6 UX (9) + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -140,9 +140,8 @@ Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --
 ### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
-### 🔎 ON-37 — `ts-prune` unused exports sweep
+### 🌙 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
-**Branch:** chore/on37-ts-prune. Mobile: 55 → 10 flags (82% reduction). Applied `// ts-prune-ignore-next` to Expo Router defaults, test helpers, design tokens. Deleted `getPostHog()` true orphan.
 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
@@ -154,10 +153,10 @@ Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unkn
 ### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
 19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
-### 🔎 TD-05 — Regenerate Supabase TypeScript types after messaging migration
+### 🟢 TD-05 — Regenerate Supabase TypeScript types after messaging migration
 Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
 **AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
-**Branch:** chore/td-05-regen-types. Regenerated message_threads, message_thread_members, messages; removed 10 `as any` casts from messagesRepository.ts.
+**Status:** 🟢 Ready
 
 ---
 
@@ -187,7 +186,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 | ID | Priority | Story |
 |---|---|---|
 | A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) |
-| ✅ A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) |
+| A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) |
 | A11Y-007 | P2 | Lighthouse a11y audit on each Vercel preview via `chrome-devtools-mcp` |
 | A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow |
 | A11Y-009 | P3 | Honor `prefers-reduced-motion` (web) + `AccessibilityInfo.isReduceMotionEnabled()` (mobile) |
@@ -212,19 +211,18 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### High
+- **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
 - **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass.
-- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Medium
 - **UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`.
-- **🔎 UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row). **Branch:** feat/ux-05-mobile-journal-bottom-sheet. BottomSheet + MoodRow components; FAB trigger; 852 tests green.
-- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`).
+- **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
+~~- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`).~~ ✅ Shipped 2026-04-14
 - **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
-- **UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system.
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
 
 ---
@@ -285,9 +283,11 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-28** Mobile loading skeletons on journal, medications, documents, team index (PR #32)
 ✅ **ON-43** In-app messaging (DM + group) — `message_threads` + `message_thread_members` + `messages`, RLS, tRPC router, Supabase Realtime web UI, Inngest delayed push (PR #49)
 ✅ **Security** PostHog contact PHI fix (`distinctId: crypto.randomUUID()`) + WCAG danger token `#c41a1a` (PR #44)
+✅ **UX-10** Export page token alignment — `/brief/[token]` + `/care/[token]` migrated from inline hex to design tokens; tinted CardHeader pattern applied
 ✅ **TD-01** Harden remaining `any` usages (PR #47)
+✅ **UX-03** Micro-interactions — card hover lift (`transition-shadow hover:shadow-md`) + button press feedback (`motion-safe:active:scale-[0.97]`) in `card.tsx` + `button.tsx` (branch: feat/ux-03-micro-interactions)
 ✅ **TD-04** Consolidate `images/` → `apps/web/public/images/` (root dir absent — no-op confirmed)
-✅ **UX-01** Loading skeletons — `DashboardClient`, `JournalClient`, `TeamAdminClient`, `messages/page` (2026-04-14)
+✅ **UX-06** Sidebar tooltip labels on hover — `TooltipProvider` + `Tooltip`/`TooltipContent side="right"` wrapping icon-only buttons in `SidebarNav` when `showLabels=false` (branch: feat/ux-06-sidebar-tooltips)
 
 ---
 
