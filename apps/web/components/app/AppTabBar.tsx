@@ -127,7 +127,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                 aria-controls={id + "-panel"}
                 onClick={() => handleTabClick(id)}
                 className={cn(
-                  "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+                  "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
                   isActive
                     ? "border-[var(--color-primary-light)] text-white"
                     : "border-transparent text-violet-300 hover:text-white",
@@ -139,6 +139,13 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
             );
           })}
         </div>
+      )}
+
+      {/* Active panel title — sr-only h1 announces current panel to screen readers */}
+      {recipientId && (
+        <h1 className="sr-only">
+          {TABS.find((t) => t.id === activeTab)?.label ?? "Journal"}
+        </h1>
       )}
     </header>
   );
