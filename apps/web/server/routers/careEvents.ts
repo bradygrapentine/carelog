@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
+import { careEventCommentsRouter } from "./careEventComments";
 import {
   getTimeline,
   insertEvent,
@@ -55,14 +56,17 @@ export const careEventsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { data: recipient } = await supabaseAdmin
-        .from('care_recipients')
-        .select('id')
-        .eq('id', input.recipientId)
-        .eq('org_id', input.orgId)
+        .from("care_recipients")
+        .select("id")
+        .eq("id", input.recipientId)
+        .eq("org_id", input.orgId)
         .single();
 
       if (!recipient) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Recipient does not belong to the specified org' });
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Recipient does not belong to the specified org",
+        });
       }
 
       if (input.idempotencyKey) {
@@ -101,12 +105,12 @@ export const careEventsRouter = router({
     .input(z.object({ eventId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const { data, error } = await ctx.supabase
-        .from('care_events')
-        .select('*')
-        .eq('id', input.eventId)
+        .from("care_events")
+        .select("*")
+        .eq("id", input.eventId)
         .single();
       if (error || !data) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
       }
       return data;
     }),
@@ -115,18 +119,23 @@ export const careEventsRouter = router({
     .input(
       z.object({
         eventId: z.string().uuid(),
-        reaction: z.enum(['heart', 'thinking_of_you', 'strong', 'grateful']),
+        reaction: z.enum(["heart", "thinking_of_you", "strong", "grateful"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { error } = await ctx.supabase
-        .from('journal_reactions')
-        .upsert(
-          { event_id: input.eventId, user_id: ctx.user.id, reaction: input.reaction },
-          { onConflict: 'event_id,user_id' },
-        );
+      const { error } = await ctx.supabase.from("journal_reactions").upsert(
+        {
+          event_id: input.eventId,
+          user_id: ctx.user.id,
+          reaction: input.reaction,
+        },
+        { onConflict: "event_id,user_id" },
+      );
       if (error) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
       }
     }),
 
@@ -134,12 +143,15 @@ export const careEventsRouter = router({
     .input(z.object({ eventId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase
-        .from('journal_reactions')
+        .from("journal_reactions")
         .delete()
-        .eq('event_id', input.eventId)
-        .eq('user_id', ctx.user.id);
+        .eq("event_id", input.eventId)
+        .eq("user_id", ctx.user.id);
       if (error) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
       }
     }),
 
@@ -147,11 +159,14 @@ export const careEventsRouter = router({
     .input(z.object({ eventId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const { data, error } = await ctx.supabase
-        .from('journal_reactions')
-        .select('reaction, user_id')
-        .eq('event_id', input.eventId);
+        .from("journal_reactions")
+        .select("reaction, user_id")
+        .eq("event_id", input.eventId);
       if (error) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
       }
       const counts: Record<string, number> = {};
       let myReaction: string | null = null;
@@ -169,31 +184,39 @@ export const careEventsRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Verify the event exists and get its org
       const { data: event } = await ctx.supabase
-        .from('care_events')
-        .select('id, org_id')
-        .eq('id', input.eventId)
+        .from("care_events")
+        .select("id, org_id")
+        .eq("id", input.eventId)
         .single();
       if (!event) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
       }
 
       // Only coordinators may flag
       const { data: membership } = await supabaseAdmin
-        .from('memberships')
-        .select('role')
-        .eq('user_id', ctx.user.id)
-        .eq('org_id', event.org_id)
+        .from("memberships")
+        .select("role")
+        .eq("user_id", ctx.user.id)
+        .eq("org_id", event.org_id)
         .single();
-      if (!membership || membership.role !== 'coordinator') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only coordinators can flag events' });
+      if (!membership || membership.role !== "coordinator") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only coordinators can flag events",
+        });
       }
 
       const { error } = await ctx.supabase
-        .from('care_events')
+        .from("care_events")
         .update({ flagged: input.flagged })
-        .eq('id', input.eventId);
+        .eq("id", input.eventId);
       if (error) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
       }
     }),
+
+  comments: careEventCommentsRouter,
 });
