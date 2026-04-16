@@ -10,6 +10,7 @@
     "lint:contrast": "node ../../scripts/a11y-contrast.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
     "@base-ui/react": "^1.3.0",
     "@carelog/schemas": "workspace:*",
     "@carelog/types": "workspace:*",
