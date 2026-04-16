@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16 (session 2).
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16 (session 3).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -57,7 +57,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 2 | §1 · TD-02, TD-03 |
-| ⚡ In progress | 2 | §1 · PP-006, ON-49 |
+| ⚡ In progress | 1 | §1 · PP-006 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
 | 🌙 Overnight queue | 1 | §2 · ON-15 |
@@ -99,8 +99,6 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| UX-12 | 🔎 In review · PR pending | — | feat/ux-12-caresync-rename | **Rename UI branding: Carelog → CareSync** | Find-and-replace all user-visible "Carelog" strings in web + mobile UI: page titles, nav labels, `<title>` tags, `metadata.title`, toast copy, empty-state copy, `app.json` `name`/`slug`. **Do NOT touch:** package names, env vars, Supabase project refs, iOS bundle ID, GitHub repo name. **AC:** `grep -r "Carelog" apps/ --include="*.tsx" --include="*.ts" --include="*.json"` returns only non-UI references (package.json name field, ios/android config). `pnpm typecheck` + `pnpm test` green. |
-| ON-49 | 🔎 In review · PR pending | — | feat/on49-dynamic-type | **ON-15 PixelRatio Dynamic Type code changes (simulator-verifiable portion)** | ON-15 full audit requires physical device, but the code changes are automatable: grep `apps/mobile` for hardcoded `fontSize` values; replace with `Math.min(size * PixelRatio.getFontScale(), size * 1.5)` pattern using a shared `scaledFont(n)` helper in `apps/mobile/lib/typography.ts`. Screens: journal list, journal detail, medications, schedule. **AC:** no bare `fontSize: <number>` in screen files; `pnpm --filter mobile typecheck` + `pnpm --filter mobile test` green. Link to TD-02 (physical device follow-up). |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -291,7 +289,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
 - **✅ UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system. *(Shipped: token migration + print styles)*
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
-- **UX-12** — 🔎 In review · PR: #TBD — Rename all user-visible "Carelog" → "CareSync" in web + mobile UI (page titles, nav, metadata, signin/invite copy, marketing pages, export/brief footers, app.json name).
+- **✅ UX-12** — UI branding renamed Carelog → CareSync. *(Shipped: PR #82)*
 
 ---
 
@@ -341,10 +339,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ ON-44 Comment threads on care events, RLS, Realtime (PR #73) · ON-45 Shift trade requests + Inngest expiry cron (PR #74) · ON-46 Medication tagging + chip-filter bars + detail panels (PR #75)
 
 ### UX polish wave (2026-04-15..16)
-✅ UX-01 Loading skeletons (PR #54) · UX-02 Illustrated empty states (PR #70) · UX-03 Micro-interactions (PR #57) · UX-04 Full dark mode (PR #71) · UX-05 Mobile journal bottom-sheet (PR #60) · UX-06 Sidebar tooltip labels (PR #65) · UX-07 Active-panel breadcrumb (PR #53) · UX-10 Export page token alignment (PR #55)
+✅ UX-01 Loading skeletons (PR #54) · UX-02 Illustrated empty states (PR #70) · UX-03 Micro-interactions (PR #57) · UX-04 Full dark mode (PR #71) · UX-05 Mobile journal bottom-sheet (PR #60) · UX-06 Sidebar tooltip labels (PR #65) · UX-07 Active-panel breadcrumb (PR #53) · UX-10 Export page token alignment (PR #55) · UX-12 CareSync UI rename (PR #82)
 
 ### AI assistant + education (2026-04-16)
-✅ AI assistant FAB with PHI-safe Claude integration, consent modal, de-identification utilities, RLS-protected conversations table, 5 E2E tests (PR #72) · A11Y-008 mobile-ui skill VoiceOver/TalkBack extension (PR #78) · PP-14 education & guidance library with browse/detail/dashboard tip widget (PR #76) · PP-15 persist education tip dismissal 7-day gate (PR #76) · TD-06 dark mode variants for comment + trade-request components (PR #77)
+✅ AI assistant FAB with PHI-safe Claude integration, consent modal, de-identification utilities, RLS-protected conversations table, 5 E2E tests (PR #72) · A11Y-008 mobile-ui skill VoiceOver/TalkBack extension (PR #78) · PP-14 education & guidance library with browse/detail/dashboard tip widget (PR #76) · PP-15 persist education tip dismissal 7-day gate (PR #76) · TD-06 dark mode variants for comment + trade-request components (PR #77) · UX-12 CareSync UI rename (PR #82) · ON-49 Mobile Dynamic Type scaledFont() helper (PR #84)
 
 ---
 
