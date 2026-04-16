@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
 import { ThreadList } from "./ThreadList";
 import { MessageView } from "./MessageView";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,12 @@ export default async function MessagesPage() {
       >
         <Suspense
           fallback={
-            <div className="p-4 text-sm text-[var(--color-muted)]">
-              Loading…
+            <div className="p-4 space-y-3">
+              <Skeleton className="h-4 w-full rounded" />
+              <Skeleton className="h-4 w-full rounded" />
+              <Skeleton className="h-4 w-3/4 rounded" />
+              <Skeleton className="h-4 w-full rounded" />
+              <Skeleton className="h-4 w-5/6 rounded" />
             </div>
           }
         >
@@ -42,8 +47,10 @@ export default async function MessagesPage() {
       <main className="flex-1 flex flex-col overflow-hidden">
         <Suspense
           fallback={
-            <div className="flex-1 flex items-center justify-center text-sm text-[var(--color-muted)]">
-              Select a conversation
+            <div className="flex-1 p-6 space-y-3">
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
             </div>
           }
         >

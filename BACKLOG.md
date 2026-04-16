@@ -21,7 +21,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
-| 🧊 Deferred | 12 | §6 UX (11) + PP-013 |
+| 🧊 Deferred | 11 | §6 UX (10) + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -212,7 +212,6 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### High
-- **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
 - **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass.
 - **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
@@ -288,6 +287,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **Security** PostHog contact PHI fix (`distinctId: crypto.randomUUID()`) + WCAG danger token `#c41a1a` (PR #44)
 ✅ **TD-01** Harden remaining `any` usages (PR #47)
 ✅ **TD-04** Consolidate `images/` → `apps/web/public/images/` (root dir absent — no-op confirmed)
+✅ **UX-01** Loading skeletons — `DashboardClient`, `JournalClient`, `TeamAdminClient`, `messages/page` (2026-04-14)
 
 ---
 

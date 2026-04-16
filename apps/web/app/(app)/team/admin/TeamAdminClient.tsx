@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RoleBadge } from "../../../../components/ui/RoleBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Member = {
   id: string;
@@ -40,8 +41,15 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-[var(--color-muted)]">Loading…</p>
+      <div className="mx-auto max-w-3xl px-6 py-10 space-y-4">
+        <Skeleton className="h-8 w-36 rounded" />
+        <Skeleton className="h-4 w-64 rounded" />
+        <div className="space-y-3 mt-6">
+          <Skeleton className="h-12 w-full rounded" />
+          <Skeleton className="h-12 w-full rounded" />
+          <Skeleton className="h-12 w-full rounded" />
+          <Skeleton className="h-12 w-full rounded" />
+        </div>
       </div>
     );
   }

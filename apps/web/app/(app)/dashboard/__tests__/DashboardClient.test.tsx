@@ -48,7 +48,8 @@ describe("DashboardClient", () => {
       not: vi.fn().mockReturnValue(new Promise(() => {})),
     });
     render(<DashboardClient user={mockUser} />);
-    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    // Loading state renders skeleton placeholders instead of a spinner
+    expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("renders 'Your care teams' heading when user is authenticated", async () => {

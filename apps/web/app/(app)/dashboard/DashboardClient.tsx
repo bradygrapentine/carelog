@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -114,8 +115,16 @@ export function DashboardClient({ user }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--color-surface)]">
+        <div className="max-w-4xl mx-auto py-12 px-4 space-y-4">
+          <Skeleton className="h-7 w-48 rounded" />
+          <Skeleton className="h-4 w-72 rounded" />
+          <div className="space-y-3 mt-4">
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }

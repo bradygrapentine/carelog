@@ -84,8 +84,8 @@ describe("DashboardClient (flow)", () => {
 
     render(<DashboardClient user={MOCK_USER} />);
 
-    // Initially shows spinner
-    expect(document.querySelector(".animate-spin")).toBeTruthy();
+    // Initially shows skeleton loading state
+    expect(document.querySelector(".animate-pulse")).toBeTruthy();
 
     await waitFor(() => {
       expect(screen.getByText("Smith Family")).toBeInTheDocument();
