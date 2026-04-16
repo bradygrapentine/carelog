@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "vitest-axe";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { expect, it, describe } from "vitest";
 import { Button } from "../button";
 
-expect.extend(toHaveNoViolations);
+expect.extend({ toHaveNoViolations });
 
 describe("<Button /> accessibility", () => {
   it("default button has no axe violations", async () => {

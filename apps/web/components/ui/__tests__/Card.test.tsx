@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "vitest-axe";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { expect, it, describe } from "vitest";
 import { Card, CardHeader, CardTitle, CardContent } from "../card";
 
-expect.extend(toHaveNoViolations);
+expect.extend({ toHaveNoViolations });
 
 describe("<Card /> accessibility", () => {
   it("has no axe violations", async () => {

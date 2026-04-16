@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "vitest-axe";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { expect, it, describe } from "vitest";
 import { Input } from "../input";
 
-expect.extend(toHaveNoViolations);
+expect.extend({ toHaveNoViolations });
 
 describe("<Input /> accessibility", () => {
   it("with associated label has no axe violations", async () => {

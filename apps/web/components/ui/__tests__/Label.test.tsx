@@ -1,8 +1,9 @@
 import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "vitest-axe";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { expect, it, describe } from "vitest";
 
-expect.extend(toHaveNoViolations);
+expect.extend({ toHaveNoViolations });
 
 describe("<Label /> accessibility", () => {
   it.skip("with htmlFor association has no axe violations", async () => {
