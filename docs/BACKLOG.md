@@ -99,9 +99,9 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| ON-50 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI context enrichment** | Fetch `missedDosesThisWeek` (care_events medication/missed, 7d), `upcomingShiftCount` (shifts table, next 7d), `recentJournalCount` (care_events journal, 7d) in ai router; pass to formatContextBlob; add "education" to pageContext enum; surface counts on dashboard context too. AC: context blob includes these fields when non-zero; typecheck + tests green. |
-| ON-51 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI action execution — deep-link nav** | Wire `handleConfirmAction` in AIPanel.tsx to navigate to relevant route (log_mood→/journal, send_message→/messages, log_medication_dose→/medications, suggest_shift→/schedule) via `useRouter` + close panel. Remove stub comment. AC: each action type navigates; panel closes. |
-| ON-52 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI quick prompts expansion** | Add education page suggestions to CONTEXT_SUGGESTIONS (was mapped but missing); add caregiver self-care global suggestions; add care-events/symptoms suggestions. AC: education page shows relevant chips; global has self-care option. |
+| ON-50 | ✅ Shipped · PR #86 | Opus | feat/on50-ai-enhancements | **AI context enrichment** | Fetch `missedDosesThisWeek` (care_events medication/missed, 7d), `upcomingShiftCount` (shifts table, next 7d), `recentJournalCount` (care_events journal, 7d) in ai router; pass to formatContextBlob; add "education" to pageContext enum; surface counts on dashboard context too. |
+| ON-51 | ✅ Shipped · PR #86 | Opus | feat/on50-ai-enhancements | **AI action execution — deep-link nav** | Wire `handleConfirmAction` in AIPanel.tsx to navigate to relevant route (log_mood→/journal, send_message→/messages, log_medication_dose→/medications, suggest_shift→/schedule) via `useRouter` + close panel. |
+| ON-52 | ✅ Shipped · PR #86 | Opus | feat/on50-ai-enhancements | **AI quick prompts expansion** | Added education page suggestions (3 chips), caregiver self-care global prompt, medication adherence dashboard chip. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -348,7 +348,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ PP-005 Web browser push via Push API — service worker, VAPID, subscribe API, settings toggle, 14 pgTAP assertions (PR #85)
 
 ### AI assistant + education (2026-04-16)
-✅ AI assistant FAB with PHI-safe Claude integration, consent modal, de-identification utilities, RLS-protected conversations table, 5 E2E tests (PR #72) · A11Y-008 mobile-ui skill VoiceOver/TalkBack extension (PR #78) · PP-14 education & guidance library with browse/detail/dashboard tip widget (PR #76) · PP-15 persist education tip dismissal 7-day gate (PR #76) · TD-06 dark mode variants for comment + trade-request components (PR #77) · UX-12 CareSync UI rename (PR #82) · ON-49 Mobile Dynamic Type scaledFont() helper (PR #84)
+✅ AI assistant FAB with PHI-safe Claude integration, consent modal, de-identification utilities, RLS-protected conversations table, 5 E2E tests (PR #72) · A11Y-008 mobile-ui skill VoiceOver/TalkBack extension (PR #78) · PP-14 education & guidance library with browse/detail/dashboard tip widget (PR #76) · PP-15 persist education tip dismissal 7-day gate (PR #76) · TD-06 dark mode variants for comment + trade-request components (PR #77) · UX-12 CareSync UI rename (PR #82) · ON-49 Mobile Dynamic Type scaledFont() helper (PR #84) · ON-50 AI context enrichment (missed doses, shifts, journal count) · ON-51 AI action deep-link nav · ON-52 AI quick prompts expansion (education page, self-care, adherence) (PR #86)
 
 ---
 
