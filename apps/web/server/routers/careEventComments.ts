@@ -38,7 +38,6 @@ export const careEventCommentsRouter = router({
             careEventId: input.careEventId,
             orgId,
             authorId: ctx.user.id,
-            body: input.body,
           },
         })
         .catch(() => {});

@@ -18,18 +18,29 @@ import * as push from "../../pushNotification";
 import { runFanout } from "../careEventCommentFanout";
 
 function mockPrefs(userPrefs: Record<string, boolean>) {
-  mockSupabaseFrom.mockImplementation(() => ({
-    select: () => ({
-      in: (_col: string, ids: string[]) => ({
-        data: ids.map((id) => ({
-          user_id: id,
-          care_event_comments: userPrefs[id] ?? true,
-          push_enabled: true,
-        })),
-        error: null,
+  mockSupabaseFrom.mockImplementation((table: string) => {
+    if (table === "care_event_comments") {
+      return {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => ({ data: { body: "test comment" } }),
+          }),
+        }),
+      };
+    }
+    return {
+      select: () => ({
+        in: (_col: string, ids: string[]) => ({
+          data: ids.map((id) => ({
+            user_id: id,
+            care_event_comments: userPrefs[id] ?? true,
+            push_enabled: true,
+          })),
+          error: null,
+        }),
       }),
-    }),
-  }));
+    };
+  });
 }
 
 describe("careEventCommentFanout.runFanout", () => {
@@ -53,7 +64,6 @@ describe("careEventCommentFanout.runFanout", () => {
       careEventId: "e1",
       orgId: "org-1",
       authorId: "dave",
-      body: "hello world",
     });
 
     const calledWith = (push.getPushTokensForUsers as any).mock
@@ -80,7 +90,6 @@ describe("careEventCommentFanout.runFanout", () => {
       careEventId: "e1",
       orgId: "org-1",
       authorId: "dave",
-      body: "hi",
     });
 
     const calledWith = (push.getPushTokensForUsers as any).mock
@@ -102,7 +111,6 @@ describe("careEventCommentFanout.runFanout", () => {
       careEventId: "e1",
       orgId: "org-1",
       authorId: "dave",
-      body: "hi",
     });
 
     expect(result.pushed).toBe(0);
