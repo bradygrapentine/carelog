@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(6);
+SELECT plan(8);
 
 -- Setup
 SELECT tests.create_supabase_user('member@example.com', 'password123');
@@ -59,6 +59,18 @@ SELECT throws_ok(
   '42501',
   NULL,
   'member cannot delete from education_tip_cache'
+);
+
+-- 7. Member UPDATE silently no-ops (no permissive UPDATE policy = 0 rows affected)
+SELECT tests.authenticate_as('member@example.com');
+SELECT lives_ok(
+  $$ UPDATE education_tip_cache SET guide_slug = 'wandering' WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
+  'member UPDATE does not throw'
+);
+SELECT results_eq(
+  $$ SELECT guide_slug FROM education_tip_cache WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
+  $$ VALUES ('sundowning'::text) $$,
+  'member UPDATE did not change guide_slug'
 );
 
 SELECT * FROM finish();
