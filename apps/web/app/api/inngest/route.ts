@@ -11,6 +11,7 @@ import { documentsExtractText } from "../../../inngest/functions/documentsExtrac
 import { messagingPushFn } from "../../../inngest/functions/messagingPush";
 import { careEventCommentFanoutFn } from "../../../inngest/functions/careEventCommentFanout";
 import { shiftTradeExpiry } from "../../../inngest/functions/shiftTradeExpiry";
+import { educationTipRefresh } from "../../../inngest/functions/educationTipRefresh";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -26,5 +27,6 @@ export const { GET, POST, PUT } = serve({
     messagingPushFn,
     careEventCommentFanoutFn,
     shiftTradeExpiry,
+    educationTipRefresh,
   ],
 });
