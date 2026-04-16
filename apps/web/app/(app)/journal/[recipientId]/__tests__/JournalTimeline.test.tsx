@@ -6,6 +6,9 @@ const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
+vi.mock("@/components/care-events/CommentThread", () => ({
+  CommentThread: () => null,
+}));
 
 const STUB_FETCH = vi.fn().mockResolvedValue({
   json: () => Promise.resolve({ counts: {}, myReaction: null }),
