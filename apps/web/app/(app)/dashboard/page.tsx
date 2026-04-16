@@ -31,10 +31,20 @@ export default async function DashboardPage() {
 
   const tipGuide = tipCache ? getGuideBySlug(tipCache.guide_slug) : null;
 
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("education_tip_dismissed_until")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const tipDismissed =
+    !!profile?.education_tip_dismissed_until &&
+    new Date(profile.education_tip_dismissed_until) > new Date();
+
   return (
     <ErrorBoundary>
       <DashboardViewTracker orgId={membership?.org_id ?? undefined} />
-      {tipGuide && (
+      {tipGuide && !tipDismissed && (
         <EducationTipWidget
           guideSlug={tipGuide.slug}
           guideTitle={tipGuide.title}

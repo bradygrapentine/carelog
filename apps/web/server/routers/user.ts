@@ -51,6 +51,20 @@ export const userRouter = router({
       return { ok: true };
     }),
 
+  /** Dismiss the education tip widget for 7 days */
+  dismissEducationTip: protectedProcedure.mutation(async ({ ctx }) => {
+    const dismissUntil = new Date();
+    dismissUntil.setDate(dismissUntil.getDate() + 7);
+
+    const { error } = await ctx.supabase
+      .from("user_profiles")
+      .update({ education_tip_dismissed_until: dismissUntil.toISOString() })
+      .eq("user_id", ctx.user.id);
+
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  }),
+
   /** Update notification preferences stored in user_metadata */
   updateNotifications: protectedProcedure
     .input(

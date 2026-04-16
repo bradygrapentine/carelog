@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
 
 type Props = {
   guideSlug: string;
@@ -17,6 +18,7 @@ export function EducationTipWidget({
   guideSummary,
 }: Props) {
   const [dismissed, setDismissed] = useState(false);
+  const dismissMutation = trpc.user.dismissEducationTip.useMutation();
 
   if (dismissed) return null;
 
@@ -50,7 +52,10 @@ export function EducationTipWidget({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => setDismissed(true)}
+            onClick={() => {
+              setDismissed(true);
+              dismissMutation.mutate();
+            }}
             className="text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             Dismiss
