@@ -80,7 +80,15 @@ jest.mock("../../../../store/offlineQueue", () => ({
   incrementAttempts: jest.fn(),
 }));
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
 
 describe("JournalScreen", () => {
   it("renders timeline entries", () => {
