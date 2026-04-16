@@ -60,12 +60,12 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
   const toggle = useCallback(() => setExpanded((e) => !e), []);
 
   return (
-    <section className="border-t border-[var(--color-border)] bg-[var(--color-primary-subtle)]/40">
+    <section className="border-t border-[var(--color-border)] bg-[var(--color-primary-subtle)]/40 dark:bg-[var(--color-primary-subtle)]/60">
       <button
         type="button"
         onClick={toggle}
         aria-expanded={expanded}
-        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
       >
         <MessageSquare size={16} aria-hidden="true" />
         <span>{label}</span>

@@ -40,22 +40,22 @@ const STATUS_BADGE: Record<TradeStatus, { label: string; className: string }> =
     accepted: {
       label: "Accepted",
       className:
-        "bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/30",
+        "bg-[var(--color-success)]/10 dark:bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30 dark:border-[var(--color-success)]/50",
     },
     declined: {
       label: "Declined",
       className:
-        "bg-[var(--color-muted)]/10 text-[var(--color-muted)] border border-[var(--color-muted)]/30",
+        "bg-[var(--color-muted)]/10 dark:bg-[var(--color-muted)]/20 text-[var(--color-muted)] border border-[var(--color-muted)]/30 dark:border-[var(--color-muted)]/50",
     },
     expired: {
       label: "Expired",
       className:
-        "bg-[var(--color-muted)]/10 text-[var(--color-muted)] border border-[var(--color-muted)]/30",
+        "bg-[var(--color-muted)]/10 dark:bg-[var(--color-muted)]/20 text-[var(--color-muted)] border border-[var(--color-muted)]/30 dark:border-[var(--color-muted)]/50",
     },
     cancelled: {
       label: "Cancelled",
       className:
-        "bg-[var(--color-muted)]/10 text-[var(--color-muted)] border border-[var(--color-muted)]/30",
+        "bg-[var(--color-muted)]/10 dark:bg-[var(--color-muted)]/20 text-[var(--color-muted)] border border-[var(--color-muted)]/30 dark:border-[var(--color-muted)]/50",
     },
   };
 
