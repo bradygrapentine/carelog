@@ -2,6 +2,7 @@ export * from "./careEvents";
 export * from "./invites";
 export * from "./organizations";
 export * from "./shifts";
+export * from "./shiftTradeRequests";
 export * from "./coverageWindows";
 export * from "./medications";
 export * from "./outerCircle";
