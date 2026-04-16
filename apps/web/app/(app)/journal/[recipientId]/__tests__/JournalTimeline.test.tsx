@@ -55,7 +55,7 @@ function makeEvent(
 }
 
 describe("JournalTimeline — empty state", () => {
-  it("shows empty state when canFlag is true", () => {
+  it("shows empty state when no entries and canFlag is true", () => {
     render(
       <JournalTimeline
         events={[]}
@@ -65,10 +65,10 @@ describe("JournalTimeline — empty state", () => {
         onFlag={vi.fn()}
       />,
     );
-    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
+    expect(screen.getByText(/no journal entries yet/i)).toBeInTheDocument();
   });
 
-  it("shows empty state when canFlag is false", () => {
+  it("shows empty state when no entries and canFlag is false", () => {
     render(
       <JournalTimeline
         events={[]}
@@ -78,7 +78,7 @@ describe("JournalTimeline — empty state", () => {
         onFlag={vi.fn()}
       />,
     );
-    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
+    expect(screen.getByText(/no journal entries yet/i)).toBeInTheDocument();
   });
 });
 

@@ -12,8 +12,12 @@ const TAB_PANELS: Record<string, string> = {
   team: "team",
   shifts: "shifts",
   documents: "documents",
-  education: "education",
   more: "more",
+};
+
+// Tabs that route to standalone pages (not journal panels)
+const STANDALONE_ROUTES: Record<string, string> = {
+  education: "/education",
 };
 
 const TABS: { id: string; label: string; icon: string }[] = [
@@ -40,9 +44,17 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   const recipientId = journalMatch ? journalMatch[1] : null;
 
   const panelParam = searchParams?.get("panel") ?? "journal";
-  const activeTab = panelParam in TAB_PANELS ? panelParam : "journal";
+  const activeTab = pathname?.startsWith("/education")
+    ? "education"
+    : panelParam in TAB_PANELS
+      ? panelParam
+      : "journal";
 
   function handleTabClick(tabId: string) {
+    if (tabId in STANDALONE_ROUTES) {
+      router.push(STANDALONE_ROUTES[tabId]!);
+      return;
+    }
     if (!recipientId) return;
     router.push("/journal/" + recipientId + "?panel=" + tabId);
   }
