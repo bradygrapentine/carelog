@@ -74,6 +74,15 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Never force-push to `main` or to a PR branch owned by someone else. Force-push on your own PR branch is allowed after rebase (`git push --force-with-lease`, never `--force`).
 - If the PR is merged and new work should continue, branch fresh off updated `origin/main` rather than reusing a merged branch.
 
+## PHI & Privacy Rules
+
+Hard invariant — applies to every agent, subagent, and Claude instance working in this repo:
+
+- `posthog.identify()` and `posthog.capture()` must use **anonymous UUID only** — never email, name, phone number, or any PII/PHI.
+- This applies to all analytics calls across web, mobile, and any future surface.
+- Any subagent touching analytics files (`posthog`, `identify`, `capture`) must have its diff reviewed by Opus before merge.
+- When writing the subagent scope contract, always include: `PHI RULE: posthog.identify() and posthog.capture() must use UUID only — never email, name, or any PII`
+
 ## Parallel Work
 
 - Subagents only for genuinely independent tasks (different files, no shared state)
