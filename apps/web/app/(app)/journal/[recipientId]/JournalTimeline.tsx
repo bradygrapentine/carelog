@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { BookOpen } from "lucide-react";
 
 const MOOD_DOT: Record<string, string> = {
   good: "bg-green-500",
@@ -445,15 +447,17 @@ export function JournalTimeline({
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-[var(--color-muted)] text-sm">
-            {hasActiveFilters
-              ? "No entries match your filters."
-              : canFlag
-                ? "No entries yet. Share how today is going above."
-                : "No entries have been shared yet."}
-          </p>
-        </div>
+        hasActiveFilters ? (
+          <div className="text-center py-12">
+            <p className="text-[var(--color-muted)] text-sm">No entries match your filters.</p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={BookOpen}
+            title="No journal entries yet"
+            description="Journal entries help your care team stay in sync. Add your first entry to get started."
+          />
+        )
       )}
 
       {filtered.length > 0 && (

@@ -92,13 +92,13 @@ describe("MedicationPanel — loading and empty", () => {
     expect(screen.getByText(/loading\.\.\./i)).toBeInTheDocument();
   });
 
-  it('shows "No medications added yet" when data is empty', () => {
+  it('shows "No medications tracked" when data is empty', () => {
     vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
       data: [],
       isLoading: false,
     } as any);
     render(<MedicationPanel {...coordinatorProps} />);
-    expect(screen.getByText(/no medications added yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no medications tracked/i)).toBeInTheDocument();
   });
 });
 

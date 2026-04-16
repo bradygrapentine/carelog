@@ -72,9 +72,9 @@ describe("TeamPanel — member list", () => {
     expect(screen.queryByText("you")).not.toBeInTheDocument();
   });
 
-  it('shows "No team members yet" when members list is empty', () => {
+  it('shows "Just you so far" when members list is empty', () => {
     render(<TeamPanel {...makeProps({ members: [] })} />);
-    expect(screen.getByText("No team members yet.")).toBeInTheDocument();
+    expect(screen.getByText("Just you so far")).toBeInTheDocument();
   });
 
   it("shows member count in header", () => {

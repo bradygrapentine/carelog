@@ -6,6 +6,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Pill } from "lucide-react";
 
 type Props = {
   orgId: string;
@@ -244,9 +246,11 @@ export function MedicationPanel({
         )}
 
         {!isLoading && medications.length === 0 && (
-          <p className="text-sm text-muted-foreground mb-3">
-            No medications added yet.
-          </p>
+          <EmptyState
+            icon={Pill}
+            title="No medications tracked"
+            description="Track medications, dosages, and schedules to keep the whole team informed."
+          />
         )}
 
         {medications.length > 0 && (
