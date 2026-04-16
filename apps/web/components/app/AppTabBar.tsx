@@ -12,6 +12,7 @@ const TAB_PANELS: Record<string, string> = {
   team: "team",
   shifts: "shifts",
   documents: "documents",
+  education: "education",
   more: "more",
 };
 
@@ -21,6 +22,7 @@ const TABS: { id: string; label: string; icon: string }[] = [
   { id: "team", label: "Team", icon: "👥" },
   { id: "shifts", label: "Shifts", icon: "📅" },
   { id: "documents", label: "Documents", icon: "📁" },
+  { id: "education", label: "Education", icon: "🎓" },
   { id: "more", label: "More", icon: "⋯" },
 ];
 
