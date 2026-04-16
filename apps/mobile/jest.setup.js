@@ -1,3 +1,8 @@
+// Set test environment variables
+process.env.EXPO_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = "test-key";
+process.env.EXPO_PUBLIC_API_URL = "http://localhost:3000";
+
 // Mock native modules that don't run under Jest.
 jest.mock("posthog-react-native", () => {
   const ph = {
