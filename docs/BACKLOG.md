@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-14 (session start × 3).
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -54,12 +54,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 · TD-02, TD-03 |
+| 🟢 Ready | 3 | §1 · TD-02, TD-03, TD-07 |
 | ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 8 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-26, ON-28, ON-29, ON-48 |
-| 🔴 Blocked | 5 | §2 ON-31 · §3 PP-007–010 |
-| 🌙 Overnight queue | 8 | §2 · ON-15, ON-20, ON-27, ON-30, ON-33, ON-37, ON-39, A11Y-010 |
-| 🧊 Deferred | 12 | §6 UX polish (11) + §3 PP-013 |
+| 🔎 In review | 3 | §1 · TD-06 · §5 · PP-14+PP-15 (#76), A11Y-008 (#78) |
+| 🔴 Blocked | 4 | §3 · PP-007–010 |
+| 🌙 Overnight queue | 1 | §2 · ON-15 |
+| 🧊 Deferred | 5 | §3 · PP-013 · §4 · A11Y-008 pending · §6 · UX-08, UX-09, UX-11 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -97,10 +97,6 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
-| PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
-| PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
-| A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
-| A11Y-005 | 🔎 In review | — | feat/a11y-005-vitest-axe | **Web: `vitest-axe` a11y assertions on primitives** | Card, Button, Input test coverage (3 of 5: Label + Dialog components do not yet exist). Tests: 173 passing. Added `vitest-axe` dep. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -110,6 +106,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
+| TD-06 | 🔎 In review · PR #77 | **Dark mode variants for comment + trade-request components** | Needs rebase after ON-44/45/46 merges. |
+| TD-07 | 🟢 Ready | **Strip PHI from care-event-comment Inngest event** | `careEventComments.ts` sends comment `body` (free text / PHI) in Inngest payload. Should send `commentId` only; fanout re-fetches via `supabaseAdmin`. Also fix `(p: any)` in `careEventCommentFanout.ts:30`. **AC:** no `body` field in `inngest.send()` call; `(p: any)` replaced with typed row type. |
 
 ---
 

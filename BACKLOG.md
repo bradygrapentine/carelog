@@ -111,7 +111,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow |
+| 🔎 A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow | **PR:** #78 |
 
 ---
 

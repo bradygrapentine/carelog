@@ -1,6 +1,6 @@
 ---
 name: mobile-ui
-description: Drive the iOS Simulator OR Android emulator to investigate the Carelog mobile UI — boot device, launch Expo, deep-link to routes, capture screenshots, toggle light/dark. Use for design review, visual regression checks, reproducing UI bugs, or testing new screens in apps/mobile/.
+description: Drive the iOS Simulator OR Android emulator to investigate the Carelog mobile UI — boot device, launch Expo, deep-link to routes, capture screenshots, toggle light/dark, enable VoiceOver/TalkBack for accessibility narration testing. Use for design review, visual regression checks, reproducing UI bugs, accessibility audits, or testing new screens in apps/mobile/.
 ---
 
 # Mobile UI Investigation
@@ -16,6 +16,7 @@ Platform is selected with `-p ios|android` (default `ios`).
 - Verifying a design change in `apps/mobile/`
 - Comparing light/dark appearance, or iOS vs Android rendering
 - Side-by-side platform QA (screenshot same route on both, compare)
+- Accessibility audit: checking VoiceOver (iOS) or TalkBack (Android) narration order, focus rings, and label coverage
 
 ## First-time setup check
 
@@ -67,7 +68,36 @@ If doctor fails, report the failure to the user and stop — do not try to insta
 
 6. **Cross-platform parity check**: screenshot the same route on both platforms, then compare side-by-side. This is the canonical workflow for PP-009 (Android visual QA pass).
 
-7. **Cleanup**: `./scripts/mobile-ui.sh -p <plat> stop` at end of session (emulator/sim keep running; kill manually if needed).
+7. **VoiceOver / TalkBack** — accessibility narration audit:
+   ```bash
+   # Enable screen reader
+   ./scripts/mobile-ui.sh -p ios a11y on       # VoiceOver (iOS)
+   ./scripts/mobile-ui.sh -p android a11y on   # TalkBack (Android)
+
+   # Navigate to a route, then capture — VoiceOver focus ring appears in screenshot
+   ./scripts/mobile-ui.sh -p ios route /journal
+   ./scripts/mobile-ui.sh -p ios shot journal-vo
+
+   # Android: dump UI hierarchy XML (reads element labels + roles)
+   ./scripts/mobile-ui.sh -p android a11y dump  # → /tmp/carelog-ui/android-a11y-<ts>.xml
+
+   # Disable when done
+   ./scripts/mobile-ui.sh -p ios a11y off
+   ./scripts/mobile-ui.sh -p android a11y off
+   ```
+   **Workflow**: enable → deep-link to target route → `shot` → `Read` screenshot → verify focus
+   ring order and badge labels → fix any missing `accessible`, `accessibilityLabel`, or
+   `accessibilityRole` props → hot-reload → `shot` again to confirm.
+
+   **iOS notes**: VoiceOver on a simulator does not narrate aloud; the focus highlight
+   (black outline) in the screenshot shows which element is currently selected. Swipe to
+   advance focus is not scriptable — use the screenshot + element order in code to reason
+   about narration order.
+
+   **Android notes**: `dump` writes `android-a11y-<ts>.xml` — `Read` it to inspect `content-desc`
+   and `class` attributes for every element, which maps to TalkBack announcement order.
+
+8. **Cleanup**: `./scripts/mobile-ui.sh -p <plat> stop` at end of session (emulator/sim keep running; kill manually if needed).
 
 ## Rules
 
@@ -94,6 +124,10 @@ If doctor fails, report the failure to the user and stop — do not try to insta
 | Deep link to route | `./scripts/mobile-ui.sh -p <plat> route /journal` |
 | Screenshot | `./scripts/mobile-ui.sh -p <plat> shot <label>` |
 | Toggle dark mode | `./scripts/mobile-ui.sh -p <plat> appearance dark` |
+| Enable VoiceOver / TalkBack | `./scripts/mobile-ui.sh -p <plat> a11y on` |
+| Disable VoiceOver / TalkBack | `./scripts/mobile-ui.sh -p <plat> a11y off` |
+| Dump Android a11y tree (XML) | `./scripts/mobile-ui.sh -p android a11y dump` |
+| Capture iOS VoiceOver screenshot | `./scripts/mobile-ui.sh -p ios a11y dump` |
 | Tail Expo log | `./scripts/mobile-ui.sh -p <plat> logs 100` |
 | Status | `./scripts/mobile-ui.sh -p <plat> status` |
 | Stop Expo | `./scripts/mobile-ui.sh -p <plat> stop` |
