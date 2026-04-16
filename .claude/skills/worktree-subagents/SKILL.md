@@ -14,6 +14,43 @@ Use when two or more subagents would otherwise edit the same files, or when you 
 
 ---
 
+## Pre-flight (required before every dispatch)
+
+Run these checks before creating worktrees or dispatching any subagent. Fix blockers before continuing.
+
+```bash
+# 1. Confirm working tree is clean
+git status --short   # should be empty or only untracked files
+
+# 2. Each worktree needs node_modules — bootstrap after creation
+#    Run immediately after each `git worktree add`:
+#    cd .worktrees/<name> && pnpm install --frozen-lockfile
+
+# 3. Docker must be running if any subagent touches Supabase/migrations
+docker info > /dev/null 2>&1 && echo "docker ok" || echo "BLOCKER: start Docker first"
+
+# 4. No interactive-login CLIs in scope
+#    If the task requires eas login / supabase login, ask the user to run it first
+
+# 5. Pass relevant DB table names in subagent prompts
+#    Run: grep -r "create table" supabase/migrations/ | tail -20
+#    Include the table list in each subagent prompt to prevent schema invention
+```
+
+**Model selection:**
+- Sonnet (`Task` tool) for multi-file or judgment-heavy subagent work
+- Local Ollama (`/ollama`) for single-file, boilerplate, or exploration tasks
+- Haiku only if Ollama is unavailable
+
+**After subagents return — review checklist:**
+- [ ] Read each diff: `git -C .worktrees/<name> diff origin/main`
+- [ ] Check for invented DB tables not in `supabase/migrations/`
+- [ ] Check for out-of-scope file changes
+- [ ] Check analytics calls for PHI (grep for `identify\|capture` and confirm UUID-only)
+- [ ] Each subagent returned a diff summary
+
+---
+
 ## Step 1 — Create a worktree per agent
 
 ```bash
