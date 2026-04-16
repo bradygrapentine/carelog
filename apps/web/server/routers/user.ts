@@ -5,12 +5,20 @@ const IANA_TIMEZONE_PATTERN =
   /^[A-Za-z_]+(?:\/[A-Za-z_]+){1,2}$|^UTC$|^GMT$/;
 
 export const userRouter = router({
-  /** Get the current user's profile metadata stored in auth.users user_metadata */
+  /** Get the current user's profile metadata stored in auth.users user_metadata and notification_preferences */
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const { data, error } = await ctx.supabase.auth.getUser();
     if (error || !data.user) return null;
 
     const meta = data.user.user_metadata ?? {};
+
+    // Fetch web_push_enabled from notification_preferences table
+    const { data: notifPrefs } = await ctx.supabase
+      .from("notification_preferences")
+      .select("web_push_enabled")
+      .eq("user_id", data.user.id)
+      .single();
+
     return {
       email: data.user.email ?? "",
       displayName: (meta.display_name as string | undefined) ?? "",
@@ -20,6 +28,7 @@ export const userRouter = router({
       emailMentions: (meta.email_mentions as boolean | undefined) ?? true,
       emailShiftReminders:
         (meta.email_shift_reminders as boolean | undefined) ?? true,
+      webPushEnabled: (notifPrefs?.web_push_enabled as boolean | undefined) ?? true,
     };
   }),
 
@@ -65,26 +74,42 @@ export const userRouter = router({
     return { ok: true };
   }),
 
-  /** Update notification preferences stored in user_metadata */
+  /** Update notification preferences stored in user_metadata and notification_preferences table */
   updateNotifications: protectedProcedure
     .input(
       z.object({
         emailDigest: z.boolean().optional(),
         emailMentions: z.boolean().optional(),
         emailShiftReminders: z.boolean().optional(),
+        webPushEnabled: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, boolean> = {};
+      const metaUpdates: Record<string, boolean> = {};
       if (input.emailDigest !== undefined)
-        updates.email_digest = input.emailDigest;
+        metaUpdates.email_digest = input.emailDigest;
       if (input.emailMentions !== undefined)
-        updates.email_mentions = input.emailMentions;
+        metaUpdates.email_mentions = input.emailMentions;
       if (input.emailShiftReminders !== undefined)
-        updates.email_shift_reminders = input.emailShiftReminders;
+        metaUpdates.email_shift_reminders = input.emailShiftReminders;
 
-      const { error } = await ctx.supabase.auth.updateUser({ data: updates });
-      if (error) throw new Error(error.message);
+      if (Object.keys(metaUpdates).length > 0) {
+        const { error } = await ctx.supabase.auth.updateUser({
+          data: metaUpdates,
+        });
+        if (error) throw new Error(error.message);
+      }
+
+      if (input.webPushEnabled !== undefined) {
+        const { error } = await ctx.supabase
+          .from("notification_preferences")
+          .upsert(
+            { user_id: ctx.user.id, web_push_enabled: input.webPushEnabled },
+            { onConflict: "user_id" },
+          );
+        if (error) throw new Error(error.message);
+      }
+
       return { ok: true };
     }),
 });

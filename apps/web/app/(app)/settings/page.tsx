@@ -6,6 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import {
+  registerServiceWorker,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "@/lib/webPush";
 
 // IANA timezone list (abbreviated — common zones). Full list can be sourced from
 // Intl.supportedValuesOf('timeZone') at runtime but we keep this static for SSR.
@@ -254,19 +259,136 @@ function NotificationsSection() {
     emailDigest: true,
     emailMentions: true,
     emailShiftReminders: true,
+    webPushEnabled: true,
   });
   const [initialized, setInitialized] = useState(false);
+  const [webPushError, setWebPushError] = useState<string | null>(null);
+  const [webPushLoading, setWebPushLoading] = useState(false);
 
   if (profile && !initialized) {
     setPrefs({
       emailDigest: profile.emailDigest,
       emailMentions: profile.emailMentions,
       emailShiftReminders: profile.emailShiftReminders,
+      webPushEnabled: profile.webPushEnabled,
     });
     setInitialized(true);
   }
 
   async function handleToggle(key: keyof typeof prefs, value: boolean) {
+    // Special handling for webPushEnabled
+    if (key === "webPushEnabled") {
+      setWebPushError(null);
+      setWebPushLoading(true);
+
+      if (value) {
+        // Enable push: request permission, register SW, subscribe, then update DB
+        try {
+          if (typeof Notification === "undefined") {
+            setWebPushError(
+              "Push notifications are not supported in this browser.",
+            );
+            setWebPushLoading(false);
+            return;
+          }
+
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            setWebPushError(
+              "Notifications are blocked in your browser settings.",
+            );
+            setWebPushLoading(false);
+            return;
+          }
+
+          const registration = await registerServiceWorker();
+          if (!registration) {
+            setWebPushError("Failed to register service worker.");
+            setWebPushLoading(false);
+            return;
+          }
+
+          const subscription = await subscribeToPush(registration);
+          if (!subscription) {
+            setWebPushError("Failed to subscribe to push notifications.");
+            setWebPushLoading(false);
+            return;
+          }
+
+          // Send subscription to server
+          const { endpoint, keys } = subscription.toJSON();
+          if (!endpoint || !keys) {
+            setWebPushError("Invalid subscription data.");
+            setWebPushLoading(false);
+            return;
+          }
+
+          // POST to /api/push/web-subscribe
+          const response = await fetch("/api/push/web-subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              endpoint,
+              keys: {
+                p256dh: keys.p256dh,
+                auth: keys.auth,
+              },
+            }),
+          });
+
+          if (!response.ok) {
+            setWebPushError("Failed to subscribe on server.");
+            setWebPushLoading(false);
+            return;
+          }
+
+          // Finally, update DB preferences
+          const next = { ...prefs, [key]: value };
+          setPrefs(next);
+          await updateNotifications.mutateAsync({ webPushEnabled: value });
+        } catch (err) {
+          setWebPushError(
+            err instanceof Error ? err.message : "An error occurred.",
+          );
+        } finally {
+          setWebPushLoading(false);
+        }
+      } else {
+        // Disable push: unsubscribe, notify server, then update DB
+        try {
+          const registration = await registerServiceWorker();
+          if (registration) {
+            const subscription =
+              await registration.pushManager.getSubscription();
+            if (subscription) {
+              const { endpoint } = subscription.toJSON();
+              if (endpoint) {
+                // DELETE from /api/push/web-subscribe
+                await fetch("/api/push/web-subscribe", {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ endpoint }),
+                });
+              }
+              await unsubscribeFromPush(registration);
+            }
+          }
+
+          const next = { ...prefs, [key]: value };
+          setPrefs(next);
+          await updateNotifications.mutateAsync({ webPushEnabled: value });
+        } catch (err) {
+          setWebPushError(
+            err instanceof Error ? err.message : "An error occurred.",
+          );
+        } finally {
+          setWebPushLoading(false);
+        }
+      }
+      return;
+    }
+
+    // Standard email notification toggles
     const next = { ...prefs, [key]: value };
     setPrefs(next);
     await updateNotifications.mutateAsync({ [key]: value });
@@ -283,7 +405,7 @@ function NotificationsSection() {
         ) : (
           <div
             role="group"
-            aria-label="Email notification preferences"
+            aria-label="Notification preferences"
             className="flex flex-col divide-y divide-[var(--color-border)]"
           >
             <NotifToggle
@@ -307,6 +429,55 @@ function NotificationsSection() {
               checked={prefs.emailShiftReminders}
               onChange={(v) => handleToggle("emailShiftReminders", v)}
             />
+            <div className="flex items-start justify-between gap-4 py-2">
+              <div className="flex flex-col gap-0.5">
+                <label
+                  htmlFor="notif-push"
+                  className="text-sm font-medium text-[var(--color-ink)] cursor-pointer"
+                >
+                  Browser push notifications
+                </label>
+                <p className="text-xs text-[var(--color-muted)]">
+                  Receive notifications in this browser when new entries or
+                  shifts are posted.
+                </p>
+                {webPushError && (
+                  <p
+                    role="alert"
+                    className="text-xs text-[var(--color-danger)] mt-1"
+                  >
+                    {webPushError}
+                  </p>
+                )}
+              </div>
+              <button
+                id="notif-push"
+                type="button"
+                role="switch"
+                aria-checked={prefs.webPushEnabled}
+                onClick={() =>
+                  handleToggle("webPushEnabled", !prefs.webPushEnabled)
+                }
+                disabled={webPushLoading}
+                aria-label="Browser push notifications"
+                className={[
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                  "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  prefs.webPushEnabled
+                    ? "bg-[var(--color-primary)]"
+                    : "bg-[var(--color-muted)]",
+                ].join(" ")}
+              >
+                <span
+                  aria-hidden="true"
+                  className={[
+                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                    prefs.webPushEnabled ? "translate-x-5" : "translate-x-0",
+                  ].join(" ")}
+                />
+              </button>
+            </div>
           </div>
         )}
       </CardContent>
