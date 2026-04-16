@@ -13,10 +13,6 @@ export async function initPostHog(): Promise<PostHog | null> {
   return client;
 }
 
-export function getPostHog(): PostHog | null {
-  return client;
-}
-
 // Identify by auth user UUID only — never email or display_name (PHI rule).
 export function identifyUser(userId: string): void {
   client?.identify(userId);
