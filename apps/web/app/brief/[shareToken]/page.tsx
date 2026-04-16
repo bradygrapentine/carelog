@@ -32,7 +32,6 @@ type Brief = {
   created_at: string;
 };
 
-// TODO: no token for mood background tints (#dcfce7, #fef9c3, #fee2e2, #fecdd3) — add --color-mood-*-subtle tokens to globals.css if needed
 const moodColors: Record<string, string> = {
   good: "#dcfce7",
   okay: "#fef9c3",
@@ -116,7 +115,7 @@ export default function BriefPage({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--color-surface)", // TODO: no token for #f9fafb (gray-50); using --color-surface (violet-tinted)
+          background: "var(--color-neutral-50)",
         }}
       >
         <div
@@ -142,7 +141,7 @@ export default function BriefPage({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--color-surface)", // TODO: no token for #f9fafb (gray-50); using --color-surface (violet-tinted)
+          background: "var(--color-neutral-50)",
         }}
       >
         <div style={{ textAlign: "center", maxWidth: 400, padding: "2rem" }}>
@@ -161,7 +160,7 @@ export default function BriefPage({
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-surface)", // TODO: no token for #f9fafb (gray-50); using --color-surface (violet-tinted)
+        background: "var(--color-neutral-50)",
         padding: "2rem 1rem",
       }}
     >
@@ -169,7 +168,7 @@ export default function BriefPage({
         style={{
           maxWidth: 640,
           margin: "0 auto",
-          background: "#fff", // TODO: no token for #fff (white)
+          background: "var(--color-white)",
           borderRadius: 12,
           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
           padding: "2rem",
@@ -179,7 +178,7 @@ export default function BriefPage({
         <div
           style={{
             marginBottom: "1.5rem",
-            borderBottom: "1px solid var(--color-border)", // TODO: no token for #e5e7eb (gray-200); using --color-border (violet-tinted)
+            borderBottom: "1px solid var(--color-neutral-200)",
             paddingBottom: "1.5rem",
           }}
         >
@@ -221,7 +220,7 @@ export default function BriefPage({
               style={{
                 fontSize: "0.75rem",
                 fontWeight: 600,
-                color: "var(--color-text-secondary)", // TODO: no token for #374151 (gray-700); using --color-text-secondary (#4b5563)
+                color: "var(--color-neutral-700)",
                 marginBottom: "0.75rem",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -230,7 +229,13 @@ export default function BriefPage({
               Medications
             </h2>
             {content.medications.length === 0 ? (
-              <p style={{ color: "var(--color-muted)", fontSize: "0.875rem" }}> {/* TODO: no token for #9ca3af (gray-400); using --color-muted (#6b7280) */}
+              <p
+                style={{
+                  color: "var(--color-neutral-400)",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {" "}
                 No active medications recorded.
               </p>
             ) : (
@@ -249,16 +254,23 @@ export default function BriefPage({
                     key={i}
                     style={{
                       padding: "0.75rem",
-                      background: "var(--color-surface)", // TODO: no token for #f9fafb (gray-50); using --color-surface (violet-tinted)
+                      background: "var(--color-neutral-50)",
                       borderRadius: 8,
-                      border: "1px solid var(--color-border)", // TODO: no token for #e5e7eb (gray-200); using --color-border (violet-tinted)
+                      border: "1px solid var(--color-neutral-200)",
                     }}
                   >
-                    <span style={{ fontWeight: 600, color: "var(--color-ink)" }}>
+                    <span
+                      style={{ fontWeight: 600, color: "var(--color-ink)" }}
+                    >
                       {med.drug_name}
                     </span>
                     {med.dosage && (
-                      <span style={{ color: "var(--color-muted)", marginLeft: "0.5rem" }}>
+                      <span
+                        style={{
+                          color: "var(--color-muted)",
+                          marginLeft: "0.5rem",
+                        }}
+                      >
                         {med.dosage}
                       </span>
                     )}
@@ -287,7 +299,7 @@ export default function BriefPage({
               style={{
                 fontSize: "0.75rem",
                 fontWeight: 600,
-                color: "var(--color-text-secondary)", // TODO: no token for #374151 (gray-700); using --color-text-secondary (#4b5563)
+                color: "var(--color-neutral-700)",
                 marginBottom: "0.75rem",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -296,7 +308,13 @@ export default function BriefPage({
               Recent Journal Entries
             </h2>
             {content.recent_entries.length === 0 ? (
-              <p style={{ color: "var(--color-muted)", fontSize: "0.875rem" }}> {/* TODO: no token for #9ca3af (gray-400); using --color-muted (#6b7280) */}
+              <p
+                style={{
+                  color: "var(--color-neutral-400)",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {" "}
                 No recent journal entries.
               </p>
             ) : (
@@ -312,7 +330,7 @@ export default function BriefPage({
               >
                 {content.recent_entries.map((entry, i) => {
                   const moodBg = entry.mood
-                    ? (moodColors[entry.mood] ?? "#f3f4f6") // TODO: no token for #f3f4f6 (gray-100) fallback
+                    ? (moodColors[entry.mood] ?? "var(--color-neutral-100)")
                     : undefined;
                   const moodLabel = entry.mood
                     ? (moodLabels[entry.mood] ?? entry.mood)
@@ -322,9 +340,9 @@ export default function BriefPage({
                       key={i}
                       style={{
                         padding: "0.75rem",
-                        background: "var(--color-surface)", // TODO: no token for #f9fafb (gray-50); using --color-surface (violet-tinted)
+                        background: "var(--color-neutral-50)",
                         borderRadius: 8,
-                        border: "1px solid var(--color-border)", // TODO: no token for #e5e7eb (gray-200); using --color-border (violet-tinted)
+                        border: "1px solid var(--color-neutral-200)",
                       }}
                     >
                       <div
@@ -335,7 +353,12 @@ export default function BriefPage({
                           marginBottom: "0.375rem",
                         }}
                       >
-                        <span style={{ color: "var(--color-muted)", fontSize: "0.8rem" }}>
+                        <span
+                          style={{
+                            color: "var(--color-muted)",
+                            fontSize: "0.8rem",
+                          }}
+                        >
                           {formatDate(entry.occurred_at)}
                         </span>
                         {moodLabel && (
@@ -346,7 +369,7 @@ export default function BriefPage({
                               borderRadius: 12,
                               fontSize: "0.75rem",
                               fontWeight: 500,
-                              color: "var(--color-text-secondary)", // TODO: no token for #374151 (gray-700); using --color-text-secondary (#4b5563)
+                              color: "var(--color-neutral-700)",
                             }}
                           >
                             {moodLabel}
@@ -356,7 +379,7 @@ export default function BriefPage({
                       {entry.text && (
                         <p
                           style={{
-                            color: "var(--color-text-secondary)", // TODO: no token for #374151 (gray-700); using --color-text-secondary (#4b5563)
+                            color: "var(--color-neutral-700)",
                             fontSize: "0.875rem",
                             margin: 0,
                           }}
@@ -375,14 +398,14 @@ export default function BriefPage({
         {/* Footer */}
         <div
           style={{
-            borderTop: "1px solid var(--color-border)", // TODO: no token for #e5e7eb (gray-200); using --color-border (violet-tinted)
+            borderTop: "1px solid var(--color-neutral-200)",
             paddingTop: "1rem",
             marginTop: "0.5rem",
           }}
         >
           <p
             style={{
-              color: "var(--color-muted)", // TODO: no token for #9ca3af (gray-400); using --color-muted (#6b7280)
+              color: "var(--color-neutral-400)",
               fontSize: "0.75rem",
               textAlign: "center",
               margin: 0,
