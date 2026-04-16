@@ -39,9 +39,8 @@ export function SidebarNav({ showLabels = false, onNavigate }: Props) {
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map(({ dest, label, icon }) => {
           const isActive = activeDestination === dest;
-          const button = (
+          const buttonEl = (
             <button
-              key={dest}
               aria-label={label}
               aria-current={isActive ? "page" : undefined}
               onClick={() => handleClick(dest)}
@@ -65,12 +64,12 @@ export function SidebarNav({ showLabels = false, onNavigate }: Props) {
           );
 
           if (showLabels) {
-            return button;
+            return <div key={dest}>{buttonEl}</div>;
           }
 
           return (
             <Tooltip key={dest}>
-              <TooltipTrigger render={button} />
+              <TooltipTrigger asChild>{buttonEl}</TooltipTrigger>
               <TooltipContent side="right">{label}</TooltipContent>
             </Tooltip>
           );
