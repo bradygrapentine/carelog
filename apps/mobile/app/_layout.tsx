@@ -19,6 +19,7 @@ import { initSentry, Sentry } from "../utils/sentry";
 import { initPostHog, identifyUser, resetUser } from "../utils/posthog";
 import { supabase } from "../utils/supabase";
 import { useAppTheme } from "../hooks/useAppTheme";
+import { isOnboardingComplete } from "../lib/onboarding";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initSentry();
@@ -38,6 +39,13 @@ function RootLayoutInner() {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user?.id) {
         identifyUser(session.user.id);
+        // Check if the user needs onboarding (client-side AsyncStorage flag).
+        // schema flag (is_onboarded column) is tracked as a separate TD-*.
+        isOnboardingComplete().then((done) => {
+          if (!done) {
+            router.replace("/(auth)/onboarding/welcome");
+          }
+        });
       } else if (event === "SIGNED_OUT") {
         resetUser();
       }
