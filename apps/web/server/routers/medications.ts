@@ -6,7 +6,24 @@ import {
   medicationCreateInput,
   medicationListInput,
   medicationUpdateInput,
+  tagCareEventInput,
+  untagCareEventInput,
+  listTagsForEventInput,
+  tagDocumentInput,
+  untagDocumentInput,
+  listTagsForDocumentInput,
+  medicationGetInput,
 } from "@carelog/schemas";
+import {
+  tagCareEvent,
+  untagCareEvent,
+  listTagsForCareEvent,
+  tagDocument,
+  untagDocument,
+  listTagsForDocument,
+  listEventsForMedication,
+  listDocumentsForMedication,
+} from "../repositories/medicationTaggingRepository";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -179,6 +196,82 @@ export const medicationsRouter = router({
             action: string;
           },
       );
+    }),
+
+  tagEvent: protectedProcedure
+    .input(tagCareEventInput)
+    .mutation(async ({ ctx, input }) => {
+      await tagCareEvent({
+        careEventId: input.care_event_id,
+        medicationId: input.medication_id,
+        orgId: input.org_id,
+        confidence: "manual",
+        taggedBy: ctx.user.id,
+      });
+      return { success: true };
+    }),
+
+  untagEvent: protectedProcedure
+    .input(untagCareEventInput)
+    .mutation(async ({ input }) => {
+      await untagCareEvent(input.tag_id);
+      return { success: true };
+    }),
+
+  getTagsForEvent: protectedProcedure
+    .input(listTagsForEventInput)
+    .query(async ({ input }) => {
+      return listTagsForCareEvent(input.care_event_id);
+    }),
+
+  tagDocument: protectedProcedure
+    .input(tagDocumentInput)
+    .mutation(async ({ ctx, input }) => {
+      await requireCoordinator(input.org_id, ctx.user.id);
+      await tagDocument({
+        documentId: input.document_id,
+        medicationId: input.medication_id,
+        orgId: input.org_id,
+        confidence: "manual",
+        taggedBy: ctx.user.id,
+      });
+      return { success: true };
+    }),
+
+  untagDocument: protectedProcedure
+    .input(untagDocumentInput)
+    .mutation(async ({ ctx, input }) => {
+      await requireCoordinator(input.org_id, ctx.user.id);
+      await untagDocument(input.tag_id);
+      return { success: true };
+    }),
+
+  getTagsForDocument: protectedProcedure
+    .input(listTagsForDocumentInput)
+    .query(async ({ input }) => {
+      return listTagsForDocument(input.document_id);
+    }),
+
+  get: protectedProcedure
+    .input(medicationGetInput)
+    .query(async ({ ctx, input }) => {
+      const { data: medication, error } = await ctx.supabase
+        .from("medications")
+        .select("*")
+        .eq("id", input.medication_id)
+        .eq("org_id", input.org_id)
+        .single();
+
+      if (error || !medication) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const [recentEvents, linkedDocuments] = await Promise.all([
+        listEventsForMedication(input.medication_id),
+        listDocumentsForMedication(input.medication_id),
+      ]);
+
+      return { ...medication, recentEvents, linkedDocuments };
     }),
 
   logAdministration: protectedProcedure
