@@ -43,7 +43,7 @@ export function EducationTipWidget({
           <Button
             asChild
             size="sm"
-            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90"
+            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             <Link href={`/education/${guideSlug}`}>Read guide</Link>
           </Button>
@@ -51,7 +51,7 @@ export function EducationTipWidget({
             size="sm"
             variant="ghost"
             onClick={() => setDismissed(true)}
-            className="text-[var(--color-muted)]"
+            className="text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             Dismiss
           </Button>
