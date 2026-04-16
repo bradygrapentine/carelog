@@ -56,11 +56,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 · TD-02, TD-03 |
+| 🟢 Ready | 1 | §1 · TD-03 |
 | ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 0 | — |
+| 🔎 In review | 2 | §1 · TD-02 · §3 · PP-005 |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
-| 🌙 Overnight queue | 1 | §2 · ON-15 |
+| 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 4 | §3 · PP-013 · §6 · UX-08, UX-09, UX-11 |
 | 🧑 Needs human | 3 | §8 |
 
@@ -108,7 +108,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-01 | ✅ Shipped | **Harden `any` remaining usages** | 10 → 0 (100% reduction). `ExportDocument`, `careEvents` router, `export/route` all typed precisely. |
-| TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
+| TD-02 | 🔎 In review | **Dynamic Type + screen-reader audit (mobile)** | `scaledFont()` applied to medications + schedule screens; `accessibilityRole`/`accessibilityLabel` added to all interactive buttons on both screens. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
 | TD-06 | ✅ Shipped · PR #77 | **Dark mode variants for comment + trade-request components** | |
@@ -122,11 +122,12 @@ Picked up automatically by the nightly agent. Rules: mark `✅` when done; list 
 
 All items below are independent (no shared-state conflicts) — the agent may fan out in parallel.
 
-### 🌙 ON-15 — Mobile: accessibility audit (iOS Dynamic Type + VoiceOver)
+### ✅ ON-15 — Mobile: accessibility audit (iOS Dynamic Type + VoiceOver)
 **Why:** Mobile uses fixed `fontSize` throughout; never tested against 200% Dynamic Type or VoiceOver navigation order.
 **Work:** Run app under max Larger Accessibility Sizes on journal/medications/schedule; migrate fixed sizes to `PixelRatio.getFontScale()` capped at 1.5×. VoiceOver-complete a medication-log flow end-to-end. File follow-up ON-XX for issues deferred.
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
+**Done:** `scaledFont()` helper (capped at 1.5×) applied to medications + schedule; `accessibilityRole`/`accessibilityLabel` on all interactive buttons in both screens.
 
 ### ✅ ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
 **Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.

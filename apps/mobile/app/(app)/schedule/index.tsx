@@ -15,6 +15,7 @@ import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 import { SkeletonRow } from "../../../components/Skeleton";
 import { TradeRequestSheet } from "../../../components/shifts/TradeRequestSheet";
+import { scaledFont } from "../../../lib/typography";
 
 // DB columns: start_at / end_at (not starts_at / ends_at)
 type Shift = {
@@ -86,9 +87,13 @@ export default function ScheduleScreen() {
           borderBottomColor: colors.surfaceSubtle,
         },
         time: { flex: 1 },
-        timeText: { fontSize: 15, fontWeight: "500" },
-        duration: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
-        assignee: { fontSize: 14, color: colors.textSecondary },
+        timeText: { fontSize: scaledFont(15), fontWeight: "500" },
+        duration: {
+          fontSize: scaledFont(12),
+          color: colors.mutedLight,
+          marginTop: 2,
+        },
+        assignee: { fontSize: scaledFont(14), color: colors.textSecondary },
         empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
         rowWithButton: {
           flexDirection: "row",
@@ -105,7 +110,7 @@ export default function ScheduleScreen() {
           backgroundColor: colors.primarySubtle,
         },
         tradeButtonText: {
-          fontSize: 12,
+          fontSize: scaledFont(12),
           fontWeight: "500",
           color: colors.primary,
         },
@@ -174,6 +179,8 @@ export default function ScheduleScreen() {
                   <TouchableOpacity
                     style={styles.tradeButton}
                     onPress={() => handleOpenTradeSheet(item.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Request trade for shift on ${formatShiftTime(item.start_at)}`}
                   >
                     <Text style={styles.tradeButtonText}>+ Trade</Text>
                   </TouchableOpacity>
