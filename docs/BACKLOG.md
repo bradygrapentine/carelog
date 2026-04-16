@@ -8,9 +8,44 @@ Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.
 
 Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
 
-## Human Feature Ideas
-> Don't make changes here. I will add ideas here when they come to me. Add backlog items as I add them (should add this to the backlog sync). Ask me questions to fill out the design.
+---
 
+## Human Feature Ideas
+> Don't make additions here. I will add ideas here when they come to me. Add backlog items as I add them (should add this to the backlog sync). Ask me questions to fill out the design.
+
+- LLM Chatbot agent integrated in UI that can execute actions in the UI, answer questions, analyze data, etc (open to other ways of using an LLM agent in the app, very loose idea here obviously).
+- Practical Ways to Use the LLM (Real-World Prompts)
+    - Summarize & Stay on Top of Updates
+        Ask: “Summarize all new messages and wellness journal entries from the last 48 hours.”
+        → Gets a clear overview without scrolling through everything.
+    - Messaging the Team
+        Ask: “Draft a polite message to the team about grandma’s increased sundowning and request evening help.”
+        → Generates ready-to-send messages; you can edit and post directly in the group chat.
+    - Managing the Team’s Schedule
+        Ask: “Review the calendar for next week and suggest how to cover medication times and meals with available family members.”
+        → It analyzes gaps and proposes balanced assignments.
+    - Managing Documentation
+        Ask: “Find and summarize the latest care plan and any medication changes from uploaded documents.”
+        → Quickly locates and condenses key info.
+    - Medication Management
+        Ask: “Check today’s medication adherence and flag any missed doses or potential interactions from the list.”
+        → Pulls data and alerts you proactively.
+    - Safety & Remote Monitoring
+        Ask: “Analyze recent sensor/motion data — any unusual patterns like night wandering?”
+        → Turns raw alerts into actionable insights.
+    - Symptom & Wellness Tracking
+        Ask: “What trends are showing in grandma’s mood, sleep, and agitation logs this month?”
+        → Spots patterns (e.g., sundowning triggers) and suggests simple adjustments.
+    - Caregiver Self-Care & Support
+        Ask: “I’m feeling overwhelmed today — suggest a quick 10-minute self-care break and breathing exercise.”
+        → Provides personalized, on-demand emotional support.
+    - Education & Behavior Guidance
+        Ask: “Grandma is repeating questions constantly — give me 3 evidence-based strategies for dementia and how to log this in the journal.”
+        → Delivers tailored tips without leaving the app.
+
+- Education & Behavior Guidance: Access to dementia-specific tips, behavior management strategies, research updates, or AI-driven advice for handling common challenges.
+
+- Add calendar to shift scheduling page
 ---
 
 ## 0. Status board (at-a-glance)
@@ -65,6 +100,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | PP-001 | 🔎 In review · Branch: feat/mobile-team-admin | — | feat/mobile-team-admin | **Mobile: team admin actions** | Mobile `(app)/team` shows members only. Add change-role / remove / re-invite gated on admin role. pgTAP coverage exists already. AC: parity with web `/team/admin`. |
 | PP-004 | 🔎 In review | — | feat/pp004-settings · PR #36 | **Web: unified settings hub** | Today scattered across panels. Create `/settings` with profile, notification prefs, timezone, language, danger zone. |
 | A11Y-003 | 🔎 In review | — | feat/mobile-a11y-lint | **Mobile: `eslint-plugin-react-native-a11y`** | Add dep, set `recommended`. Matches web approach. |
+| A11Y-005 | 🔎 In review | — | feat/a11y-005-vitest-axe | **Web: `vitest-axe` a11y assertions on primitives** | Card, Button, Input test coverage (3 of 5: Label + Dialog components do not yet exist). Tests: 173 passing. Added `vitest-axe` dep. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 

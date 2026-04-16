@@ -58,6 +58,7 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4",
+    "vitest-axe": "^0.1.0",
     "vitest-sonar-reporter": "^3.0.0"
   }
 }
