@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS education_tip_cache (
 );
 
 ALTER TABLE education_tip_cache ENABLE ROW LEVEL SECURITY;
+ALTER TABLE education_tip_cache FORCE ROW LEVEL SECURITY;
 
 -- Org members can read their own org's tip; no user writes (Inngest uses service role)
 CREATE POLICY "org members read own tip"
@@ -18,6 +19,11 @@ CREATE POLICY "org members read own tip"
       WHERE user_id = auth.uid() AND accepted_at IS NOT NULL
     )
   );
+
+-- Explicitly prohibit member deletes (belt-and-suspenders: no permissive DELETE policy already blocks)
+CREATE POLICY "deny member delete"
+  ON education_tip_cache FOR DELETE
+  USING (false);
 
 -- user_profiles: add education tip dismissal
 ALTER TABLE user_profiles

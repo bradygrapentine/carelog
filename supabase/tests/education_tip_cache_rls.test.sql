@@ -1,23 +1,23 @@
 BEGIN;
-SELECT plan(5);
+SELECT plan(6);
 
 -- Setup
 SELECT tests.create_supabase_user('member@example.com', 'password123');
 SELECT tests.create_supabase_user('outsider@example.com', 'password123');
 
--- Seed
-INSERT INTO organizations (id, name) VALUES ('org-edu-1', 'Edu Org');
+-- Seed (use valid UUID)
+INSERT INTO organizations (id, name) VALUES ('00000000-0000-0000-0000-000000000010', 'Edu Org');
 INSERT INTO memberships (org_id, user_id, role, accepted_at)
-  VALUES ('org-edu-1',
+  VALUES ('00000000-0000-0000-0000-000000000010',
           (SELECT id FROM auth.users WHERE email = 'member@example.com'),
           'caregiver', now());
 INSERT INTO education_tip_cache (org_id, guide_slug)
-  VALUES ('org-edu-1', 'sundowning');
+  VALUES ('00000000-0000-0000-0000-000000000010', 'sundowning');
 
 -- 1. Member can read own org tip
 SELECT tests.authenticate_as('member@example.com');
 SELECT results_eq(
-  $$ SELECT guide_slug FROM education_tip_cache WHERE org_id = 'org-edu-1' $$,
+  $$ SELECT guide_slug FROM education_tip_cache WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
   $$ VALUES ('sundowning'::text) $$,
   'member can read own org tip'
 );
@@ -25,7 +25,7 @@ SELECT results_eq(
 -- 2. Outsider cannot read
 SELECT tests.authenticate_as('outsider@example.com');
 SELECT is_empty(
-  $$ SELECT * FROM education_tip_cache WHERE org_id = 'org-edu-1' $$,
+  $$ SELECT * FROM education_tip_cache WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
   'outsider cannot read another org tip'
 );
 
@@ -39,7 +39,7 @@ SELECT is_empty(
 -- 4. Member cannot insert (service role only)
 SELECT tests.authenticate_as('member@example.com');
 SELECT throws_ok(
-  $$ INSERT INTO education_tip_cache (org_id, guide_slug) VALUES ('org-edu-1', 'wandering') $$,
+  $$ INSERT INTO education_tip_cache (org_id, guide_slug) VALUES ('00000000-0000-0000-0000-000000000010', 'wandering') $$,
   '42501',
   NULL,
   'member cannot insert into education_tip_cache'
@@ -47,10 +47,18 @@ SELECT throws_ok(
 
 -- 5. Member cannot update
 SELECT throws_ok(
-  $$ UPDATE education_tip_cache SET guide_slug = 'wandering' WHERE org_id = 'org-edu-1' $$,
+  $$ UPDATE education_tip_cache SET guide_slug = 'wandering' WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
   '42501',
   NULL,
   'member cannot update education_tip_cache'
+);
+
+-- 6. Member cannot delete (explicit deny policy)
+SELECT throws_ok(
+  $$ DELETE FROM education_tip_cache WHERE org_id = '00000000-0000-0000-0000-000000000010' $$,
+  '42501',
+  NULL,
+  'member cannot delete from education_tip_cache'
 );
 
 SELECT * FROM finish();
