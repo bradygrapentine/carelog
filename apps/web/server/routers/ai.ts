@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { router, protectedProcedure } from "../trpc/index";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import { formatContextBlob, type PageContext } from "../../lib/ai-context";
-import { buildNameMap } from "../../lib/ai-deidentify";
+import { buildNameMap, deidentifyText } from "../../lib/ai-deidentify";
 
 const SYSTEM_PROMPT = `You are a helpful assistant for Carelog, a family caregiving coordination app.
 You help caregivers stay on top of care data, draft communications, and manage schedules.
@@ -40,11 +40,18 @@ export const aiRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // 1. Check consent
-      const { data: profile } = await supabaseAdmin
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from("user_profiles")
         .select("ai_assistant_enabled")
         .eq("id", ctx.user.id)
         .single();
+
+      if (profileError) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to check AI assistant consent.",
+        });
+      }
 
       if (!profile?.ai_assistant_enabled) {
         throw new TRPCError({
@@ -94,6 +101,7 @@ export const aiRouter = router({
         (recipientRes as { data: { display_name?: string } | null }).data
           ?.display_name ?? "care recipient";
       const nameMap = buildNameMap(recipientName, teamNames);
+      const safePrompt = deidentifyText(input.prompt, nameMap);
 
       const contextBlob = formatContextBlob(input.pageContext as PageContext, {
         recentMoodScores: (moodRes.data ?? []).map((e) => e.mood),
@@ -110,7 +118,7 @@ export const aiRouter = router({
         messages: [
           {
             role: "user",
-            content: `Context:\n${contextBlob}\n\nQuestion: ${input.prompt}`,
+            content: `Context:\n${contextBlob}\n\nQuestion: ${safePrompt}`,
           },
         ],
       });
@@ -119,12 +127,20 @@ export const aiRouter = router({
         message.content[0]?.type === "text" ? message.content[0].text : "";
 
       // 5. Parse optional action proposal
+      const ALLOWED_ACTION_TYPES = new Set([
+        "send_message",
+        "log_mood",
+        "suggest_shift",
+        "log_medication_dose",
+      ]);
+
       const actionMatch = responseText.match(
         /ACTION:\s*(\w+)\s*\|\s*(.+?)(?:\n|$)/i,
       );
-      const action = actionMatch
-        ? { type: actionMatch[1]!, description: actionMatch[2]!.trim() }
-        : null;
+      const action =
+        actionMatch && ALLOWED_ACTION_TYPES.has(actionMatch[1]!)
+          ? { type: actionMatch[1]!, description: actionMatch[2]!.trim() }
+          : null;
 
       // Strip the ACTION line from the displayed response
       const displayText = responseText
@@ -135,19 +151,29 @@ export const aiRouter = router({
     }),
 
   enableConsent: protectedProcedure.mutation(async ({ ctx }) => {
-    await supabaseAdmin
+    const { error } = await ctx.supabase
       .from("user_profiles")
       .update({ ai_assistant_enabled: true })
       .eq("id", ctx.user.id);
+    if (error)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to enable consent.",
+      });
     return { ok: true };
   }),
 
   revokeConsent: protectedProcedure.mutation(async ({ ctx }) => {
-    await supabaseAdmin
+    const { error: updateError } = await ctx.supabase
       .from("user_profiles")
       .update({ ai_assistant_enabled: false })
       .eq("id", ctx.user.id);
-    await supabaseAdmin
+    if (updateError)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to revoke consent.",
+      });
+    await ctx.supabase
       .from("ai_conversations")
       .delete()
       .eq("user_id", ctx.user.id);
