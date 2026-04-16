@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import type { CareEventComment } from "@carelog/schemas";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 type Props = {
   comment: CareEventComment;
@@ -39,9 +40,9 @@ export function CommentItem({
           marginBottom: 2,
         },
         author: { fontWeight: "600", color: colors.ink },
-        timestamp: { color: colors.muted, fontSize: 12 },
-        edited: { color: colors.muted, fontSize: 12 },
-        body: { fontSize: 14, color: colors.textPrimary },
+        timestamp: { color: colors.muted, fontSize: scaledFont(12) },
+        edited: { color: colors.muted, fontSize: scaledFont(12) },
+        body: { fontSize: scaledFont(14), color: colors.textPrimary },
         editContainer: { marginTop: 4 },
         editInput: {
           borderWidth: 1,
@@ -49,7 +50,7 @@ export function CommentItem({
           borderRadius: 6,
           padding: 8,
           minHeight: 60,
-          fontSize: 14,
+          fontSize: scaledFont(14),
           color: colors.textPrimary,
         },
         editActions: {

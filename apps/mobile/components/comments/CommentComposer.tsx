@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 type Props = { onSubmit: (body: string) => Promise<void> };
 
@@ -36,7 +37,7 @@ export function CommentComposer({ onSubmit }: Props) {
           borderWidth: 1,
           borderColor: colors.border,
           borderRadius: 6,
-          fontSize: 14,
+          fontSize: scaledFont(14),
           color: colors.textPrimary,
         },
         footer: {
@@ -45,8 +46,8 @@ export function CommentComposer({ onSubmit }: Props) {
           alignItems: "center",
           gap: 8,
         },
-        counterOk: { fontSize: 12, color: colors.muted },
-        counterOver: { fontSize: 12, color: colors.danger },
+        counterOk: { fontSize: scaledFont(12), color: colors.muted },
+        counterOver: { fontSize: scaledFont(12), color: colors.danger },
         postBtn: {
           color: colors.primary,
           fontWeight: "600",

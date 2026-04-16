@@ -57,8 +57,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 2 | §1 · TD-02, TD-03 |
-| ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 1 | §6 · UX-12 |
+| ⚡ In progress | 2 | §1 · PP-006, ON-49 |
+| 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
 | 🌙 Overnight queue | 1 | §2 · ON-15 |
 | 🧊 Deferred | 4 | §3 · PP-013 · §6 · UX-08, UX-09, UX-11 |
@@ -99,6 +99,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
+| UX-12 | 🔎 In review · PR pending | — | feat/ux-12-caresync-rename | **Rename UI branding: Carelog → CareSync** | Find-and-replace all user-visible "Carelog" strings in web + mobile UI: page titles, nav labels, `<title>` tags, `metadata.title`, toast copy, empty-state copy, `app.json` `name`/`slug`. **Do NOT touch:** package names, env vars, Supabase project refs, iOS bundle ID, GitHub repo name. **AC:** `grep -r "Carelog" apps/ --include="*.tsx" --include="*.ts" --include="*.json"` returns only non-UI references (package.json name field, ios/android config). `pnpm typecheck` + `pnpm test` green. |
+| ON-49 | 🔎 In review · PR pending | — | feat/on49-dynamic-type | **ON-15 PixelRatio Dynamic Type code changes (simulator-verifiable portion)** | ON-15 full audit requires physical device, but the code changes are automatable: grep `apps/mobile` for hardcoded `fontSize` values; replace with `Math.min(size * PixelRatio.getFontScale(), size * 1.5)` pattern using a shared `scaledFont(n)` helper in `apps/mobile/lib/typography.ts`. Screens: journal list, journal detail, medications, schedule. **AC:** no bare `fontSize: <number>` in screen files; `pnpm --filter mobile typecheck` + `pnpm --filter mobile test` green. Link to TD-02 (physical device follow-up). |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 

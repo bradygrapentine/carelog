@@ -1,6 +1,13 @@
-import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from "react-native";
 import { Mood } from "../../utils/journalUtils";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 type MoodRowProps = {
   selectedMood: Mood | null;
@@ -40,7 +47,7 @@ export function MoodRow({ selectedMood, onMoodSelect }: MoodRowProps) {
       backgroundColor: colors.primarySubtle,
     },
     text: {
-      fontSize: 14,
+      fontSize: scaledFont(14),
       fontWeight: "500",
       color: colors.textSecondary,
     },
@@ -67,9 +74,7 @@ export function MoodRow({ selectedMood, onMoodSelect }: MoodRowProps) {
               accessibilityLabel={`${MOOD_DISPLAY[mood]} mood`}
               accessibilityState={{ selected: isSelected }}
             >
-              <Text
-                style={[styles.text, isSelected && styles.textSelected]}
-              >
+              <Text style={[styles.text, isSelected && styles.textSelected]}>
                 {MOOD_DISPLAY[mood]}
               </Text>
             </TouchableOpacity>

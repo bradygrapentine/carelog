@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../utils/trpc";
 import { useApp } from "../../context/AppContext";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 // ts-prune-ignore-next // Expo Router page component
 export default function OrgSelectorScreen() {
@@ -30,7 +31,7 @@ export default function OrgSelectorScreen() {
         },
         center: { flex: 1, justifyContent: "center", alignItems: "center" },
         title: {
-          fontSize: 22,
+          fontSize: scaledFont(22),
           fontWeight: "700",
           marginBottom: spacing.lg,
           marginTop: 48,
@@ -42,7 +43,7 @@ export default function OrgSelectorScreen() {
           padding: spacing.lg,
           marginBottom: 10,
         },
-        cardTitle: { fontSize: 17, fontWeight: "600" },
+        cardTitle: { fontSize: scaledFont(17), fontWeight: "600" },
         empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
       }),
     [colors, spacing, radii],
@@ -85,7 +86,8 @@ export default function OrgSelectorScreen() {
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            You're not on any care teams yet. Ask a coordinator to invite you, or create a care team to get started.
+            You're not on any care teams yet. Ask a coordinator to invite you,
+            or create a care team to get started.
           </Text>
         }
       />
