@@ -42,6 +42,7 @@ CREATE POLICY "str_assignee_insert"
       SELECT 1 FROM shifts s
       WHERE s.id = shift_trade_requests.shift_id
         AND s.assignee_user_id = auth.uid()
+        AND s.org_id = shift_trade_requests.org_id
     )
     AND EXISTS (
       SELECT 1 FROM memberships m
