@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  TouchableOpacity,
+  Modal,
 } from "react-native";
 import { trpc } from "../../../utils/trpc";
 import { writeWatchData } from "../../../utils/watchBridge";
@@ -12,6 +14,7 @@ import { useApp } from "../../../context/AppContext";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 import { SkeletonRow } from "../../../components/Skeleton";
+import { TradeRequestSheet } from "../../../components/shifts/TradeRequestSheet";
 
 // DB columns: start_at / end_at (not starts_at / ends_at)
 type Shift = {
@@ -35,6 +38,8 @@ function formatShiftTime(iso: string) {
 export default function ScheduleScreen() {
   const { orgId, recipientId } = useApp();
   const { colors, spacing } = useAppTheme();
+  const [tradeSheetVisible, setTradeSheetVisible] = useState(false);
+  const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
 
   // shiftListInput requires 'from'/'to' — NOT 'since'/'until'
   const from = new Date().toISOString();
@@ -44,6 +49,8 @@ export default function ScheduleScreen() {
     { org_id: orgId ?? "", recipient_id: recipientId ?? "", from, to },
     { enabled: !!orgId && !!recipientId, staleTime: 5 * 60 * 1000 },
   );
+
+  const createTradeMutation = trpc.shiftTradeRequests.create.useMutation();
 
   // Feed next shift to watch complications after data loads
   useEffect(() => {
@@ -83,9 +90,56 @@ export default function ScheduleScreen() {
         duration: { fontSize: 12, color: colors.mutedLight, marginTop: 2 },
         assignee: { fontSize: 14, color: colors.textSecondary },
         empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
+        rowWithButton: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingVertical: spacing.md,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.surfaceSubtle,
+        },
+        tradeButton: {
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: 6,
+          backgroundColor: colors.primarySubtle,
+        },
+        tradeButtonText: {
+          fontSize: 12,
+          fontWeight: "500",
+          color: colors.primary,
+        },
+        modalOverlay: {
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          justifyContent: "flex-end",
+        },
+        modalContent: {
+          backgroundColor: colors.surface,
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+        },
       }),
     [colors, spacing],
   );
+
+  const handleOpenTradeSheet = (shiftId: string) => {
+    setSelectedShiftId(shiftId);
+    setTradeSheetVisible(true);
+  };
+
+  const handleSubmitTrade = (message?: string) => {
+    if (!selectedShiftId || !orgId) return;
+    createTradeMutation.mutate(
+      { shift_id: selectedShiftId, org_id: orgId, message },
+      {
+        onSuccess: () => {
+          setTradeSheetVisible(false);
+          setSelectedShiftId(null);
+        },
+      },
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -109,7 +163,7 @@ export default function ScheduleScreen() {
                   3_600_000,
               );
               return (
-                <View style={styles.row}>
+                <View style={styles.rowWithButton}>
                   <View style={styles.time}>
                     <Text style={styles.timeText}>
                       {formatShiftTime(item.start_at)}
@@ -117,6 +171,12 @@ export default function ScheduleScreen() {
                     <Text style={styles.duration}>{durationHours}h</Text>
                   </View>
                   <Text style={styles.assignee}>{item.notes ?? "—"}</Text>
+                  <TouchableOpacity
+                    style={styles.tradeButton}
+                    onPress={() => handleOpenTradeSheet(item.id)}
+                  >
+                    <Text style={styles.tradeButtonText}>+ Trade</Text>
+                  </TouchableOpacity>
                 </View>
               );
             }}
@@ -128,6 +188,25 @@ export default function ScheduleScreen() {
           />
         )}
       </Panel>
+
+      <Modal
+        visible={tradeSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTradeSheetVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TradeRequestSheet
+              shiftId={selectedShiftId ?? ""}
+              orgId={orgId ?? ""}
+              onSubmit={handleSubmitTrade}
+              onCancel={() => setTradeSheetVisible(false)}
+              isLoading={createTradeMutation.isPending}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
