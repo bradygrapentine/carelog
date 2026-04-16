@@ -5,12 +5,20 @@ const IANA_TIMEZONE_PATTERN =
   /^[A-Za-z_]+(?:\/[A-Za-z_]+){1,2}$|^UTC$|^GMT$/;
 
 export const userRouter = router({
-  /** Get the current user's profile metadata stored in auth.users user_metadata */
+  /** Get the current user's profile metadata stored in auth.users user_metadata and notification_preferences */
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const { data, error } = await ctx.supabase.auth.getUser();
     if (error || !data.user) return null;
 
     const meta = data.user.user_metadata ?? {};
+
+    // Fetch web_push_enabled from notification_preferences table
+    const { data: notifPrefs } = await ctx.supabase
+      .from("notification_preferences")
+      .select("web_push_enabled")
+      .eq("user_id", data.user.id)
+      .single();
+
     return {
       email: data.user.email ?? "",
       displayName: (meta.display_name as string | undefined) ?? "",
@@ -20,6 +28,7 @@ export const userRouter = router({
       emailMentions: (meta.email_mentions as boolean | undefined) ?? true,
       emailShiftReminders:
         (meta.email_shift_reminders as boolean | undefined) ?? true,
+      webPushEnabled: (notifPrefs?.web_push_enabled as boolean | undefined) ?? true,
     };
   }),
 
