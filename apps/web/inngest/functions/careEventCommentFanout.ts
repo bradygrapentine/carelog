@@ -9,7 +9,12 @@ type Payload = {
   careEventId: string;
   orgId: string;
   authorId: string;
-  body: string;
+};
+
+type NotifPref = {
+  user_id: string;
+  care_event_comments: boolean | null;
+  push_enabled: boolean | null;
 };
 
 export async function runFanout(data: Payload) {
@@ -27,7 +32,7 @@ export async function runFanout(data: Payload) {
     .in("user_id", Array.from(recipientSet));
   if (prefErr) throw prefErr;
 
-  const prefsMap = new Map((prefs ?? []).map((p: any) => [p.user_id, p]));
+  const prefsMap = new Map((prefs ?? []).map((p: NotifPref) => [p.user_id, p]));
 
   const finalRecipients = Array.from(recipientSet).filter((id) => {
     const p = prefsMap.get(id);
@@ -39,8 +44,13 @@ export async function runFanout(data: Payload) {
 
   const tokens = await getPushTokensForUsers(finalRecipients);
   if (tokens.length > 0) {
-    const truncated =
-      data.body.length > 120 ? `${data.body.slice(0, 117)}…` : data.body;
+    const { data: commentRow } = await supabaseAdmin
+      .from("care_event_comments")
+      .select("body")
+      .eq("id", data.commentId)
+      .maybeSingle();
+    const body = commentRow?.body ?? "";
+    const truncated = body.length > 120 ? `${body.slice(0, 117)}…` : body;
     await sendExpoPush(
       tokens.map((to) => ({
         to,

@@ -109,7 +109,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
 | TD-06 | ✅ Shipped · PR #77 | **Dark mode variants for comment + trade-request components** | |
-| TD-07 | 🟢 Ready | **Strip PHI from care-event-comment Inngest event** | `careEventComments.ts` sends comment `body` (free text / PHI) in Inngest payload. Should send `commentId` only; fanout re-fetches via `supabaseAdmin`. Also fix `(p: any)` in `careEventCommentFanout.ts:30`. **AC:** no `body` field in `inngest.send()` call; `(p: any)` replaced with typed row type. |
+| TD-07 | 🔎 In review · PR #80 | **Strip PHI from care-event-comment Inngest event** | `careEventComments.ts` sends comment `body` (free text / PHI) in Inngest payload. Should send `commentId` only; fanout re-fetches via `supabaseAdmin`. Also fix `(p: any)` in `careEventCommentFanout.ts:30`. **AC:** no `body` field in `inngest.send()` call; `(p: any)` replaced with typed row type. |
 
 ---
 
