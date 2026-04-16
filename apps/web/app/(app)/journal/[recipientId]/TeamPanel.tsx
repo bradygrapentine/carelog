@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Users } from "lucide-react";
 
 type Member = {
   id: string;
@@ -270,11 +272,11 @@ export function TeamPanel({
             </div>
           )}
           {members.length === 0 && (
-            <div className="px-4 py-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                No team members yet.
-              </p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="Just you so far"
+              description="Invite family members or caregivers to collaborate on care coordination."
+            />
           )}
         </div>
       </CardContent>

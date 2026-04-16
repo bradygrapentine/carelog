@@ -212,7 +212,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### High
 - **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
-- **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass.
+- **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass. **Status:** 🔎 In review, Branch: feat/ux-02-empty-states
 - **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Medium

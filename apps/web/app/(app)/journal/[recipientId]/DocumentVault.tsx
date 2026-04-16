@@ -6,6 +6,8 @@ import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { FolderOpen } from "lucide-react";
 
 type Props = {
   orgId: string;
@@ -142,9 +144,11 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
         )}
 
         {!isLoading && docs.length === 0 && (
-          <p className="text-sm text-muted-foreground pt-3">
-            No documents uploaded yet.
-          </p>
+          <EmptyState
+            icon={FolderOpen}
+            title="No documents uploaded"
+            description="Store medical records, legal documents, and important files in one secure place."
+          />
         )}
 
         {!isLoading && docs.length > 0 && (
