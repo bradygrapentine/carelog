@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type { Shift } from "./ShiftCalendar";
 
@@ -10,7 +11,6 @@ type Props = {
   isCoordinator: boolean;
   onEdit: (shift: Shift) => void;
   onCancel: (shiftId: string) => void;
-  anchorEl?: HTMLElement | null;
 };
 
 export function ShiftPopover({
@@ -21,6 +21,15 @@ export function ShiftPopover({
   onEdit,
   onCancel,
 }: Props) {
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!shift) return null;
 
   const start = new Date(shift.start_at).toLocaleString([], {

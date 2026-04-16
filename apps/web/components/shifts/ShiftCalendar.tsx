@@ -14,7 +14,7 @@ export type Shift = {
   start_at: string;
   end_at: string;
   status: "scheduled" | "in_progress" | "completed" | "cancelled";
-  assigned_user_id: string | null;
+  assignee_user_id: string | null;
   assigned_display_name: string | null;
 };
 
@@ -52,7 +52,7 @@ export function getShiftEventClass(
 }
 
 function eventPropGetter(event: CalendarEvent) {
-  const cls = event.resource.assigned_user_id
+  const cls = event.resource.assignee_user_id
     ? getShiftEventClass(event.resource.status)
     : "shift-event--unassigned";
   return { className: cls };
@@ -74,9 +74,15 @@ type Props = {
   shifts: Shift[];
   onSelectEvent?: (shift: Shift) => void;
   onSelectSlot?: (start: Date, end: Date) => void;
+  onNavigate?: (date: Date) => void;
 };
 
-export function ShiftCalendar({ shifts, onSelectEvent, onSelectSlot }: Props) {
+export function ShiftCalendar({
+  shifts,
+  onSelectEvent,
+  onSelectSlot,
+  onNavigate,
+}: Props) {
   const events: CalendarEvent[] = shifts.map(shiftToCalendarEvent);
   return (
     <div className="h-[600px]">
@@ -88,6 +94,7 @@ export function ShiftCalendar({ shifts, onSelectEvent, onSelectSlot }: Props) {
         onSelectEvent={(e) => onSelectEvent?.(e.resource)}
         selectable
         onSelectSlot={(s) => onSelectSlot?.(s.start, s.end)}
+        onNavigate={(date) => onNavigate?.(date)}
         eventPropGetter={eventPropGetter}
         components={{ event: ShiftEventCard }}
       />

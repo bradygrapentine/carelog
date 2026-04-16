@@ -22,20 +22,27 @@ type Props = {
   currentUserRole: string;
 };
 
-function getMonthRange(): { from: string; to: string } {
-  const now = new Date();
+function getRangeForDate(centerDate: Date): { from: string; to: string } {
   const from = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+    Date.UTC(centerDate.getUTCFullYear(), centerDate.getUTCMonth() - 1, 1),
   );
   const to = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 2, 0, 23, 59, 59),
+    Date.UTC(
+      centerDate.getUTCFullYear(),
+      centerDate.getUTCMonth() + 2,
+      0,
+      23,
+      59,
+      59,
+    ),
   );
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
 export function ShiftList({ orgId, recipientId, currentUserRole }: Props) {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
-  const { from, to } = getMonthRange();
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const { from, to } = getRangeForDate(calendarDate);
 
   const { data: shifts = [] } = trpc.shifts.list.useQuery({
     org_id: orgId,
@@ -65,11 +72,12 @@ export function ShiftList({ orgId, recipientId, currentUserRole }: Props) {
         </CardHeader>
         <CardContent className="pt-2 pb-4">
           <ShiftCalendar
-            shifts={shifts as Shift[]}
+            shifts={shifts}
             onSelectEvent={(shift) => setSelectedShift(shift)}
             onSelectSlot={() => {
               /* ShiftForm handles creation */
             }}
+            onNavigate={(date) => setCalendarDate(date)}
           />
         </CardContent>
       </Card>

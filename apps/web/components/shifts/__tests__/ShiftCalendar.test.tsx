@@ -9,7 +9,7 @@ describe("shiftToCalendarEvent", () => {
     start_at: "2026-04-15T08:00:00Z",
     end_at: "2026-04-15T12:00:00Z",
     status: "scheduled" as const,
-    assigned_user_id: "user-1",
+    assignee_user_id: "user-1",
     assigned_display_name: "Sarah M.",
   };
 
@@ -25,7 +25,7 @@ describe("shiftToCalendarEvent", () => {
   it("labels unassigned shift as Unassigned", () => {
     const event = shiftToCalendarEvent({
       ...baseShift,
-      assigned_user_id: null,
+      assignee_user_id: null,
       assigned_display_name: null,
     });
     expect(event.title).toBe("Unassigned");

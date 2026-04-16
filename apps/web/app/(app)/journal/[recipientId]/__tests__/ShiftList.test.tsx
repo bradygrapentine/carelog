@@ -124,7 +124,7 @@ function makeShift(overrides: Partial<Shift> = {}): Shift {
     id: "00000000-0000-0000-0000-000000000099",
     org_id: ORG_ID,
     recipient_id: REC_ID,
-    assigned_user_id: USER_B_ID,
+    assignee_user_id: USER_B_ID,
     assigned_display_name: "Bob",
     start_at: "2026-04-10T09:00:00.000Z",
     end_at: "2026-04-10T11:00:00.000Z",
