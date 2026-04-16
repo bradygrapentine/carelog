@@ -15,6 +15,11 @@ const CONTEXT_SUGGESTIONS: Record<string, Suggestion[]> = {
       label: "⚠️ Flag anything urgent",
       prompt: "Are there any urgent items I should know about?",
     },
+    {
+      label: "💊 Medication adherence",
+      prompt:
+        "How is medication adherence looking this week? Were there any missed doses?",
+    },
   ],
   medications: [
     {
@@ -59,6 +64,22 @@ const CONTEXT_SUGGESTIONS: Record<string, Suggestion[]> = {
       prompt: "Who on the team is available this week?",
     },
   ],
+  education: [
+    {
+      label: "📚 Explain this symptom",
+      prompt:
+        "Explain the most common symptoms I should know about for dementia caregiving.",
+    },
+    {
+      label: "🧠 Behavior strategies",
+      prompt:
+        "Give me 3 evidence-based strategies for managing repetitive questions in dementia patients.",
+    },
+    {
+      label: "💡 Today's care tip",
+      prompt: "Share a practical caregiving tip I can use today.",
+    },
+  ],
 };
 
 const GLOBAL_SUGGESTIONS: Suggestion[] = [
@@ -69,6 +90,11 @@ const GLOBAL_SUGGESTIONS: Suggestion[] = [
   {
     label: "✉️ Draft team message",
     prompt: "Help me draft a message to the team.",
+  },
+  {
+    label: "🌿 Caregiver self-care",
+    prompt:
+      "I'm feeling overwhelmed — suggest a quick 5-minute self-care break I can do right now.",
   },
 ];
 
