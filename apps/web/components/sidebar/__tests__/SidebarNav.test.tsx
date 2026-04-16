@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SidebarContext } from "../SidebarContext";
 import { SidebarNav } from "../SidebarNav";
 import type { Destination } from "../SidebarContext";
@@ -89,5 +89,22 @@ describe("SidebarNav", () => {
     // Visible label text should appear in the DOM
     expect(screen.getAllByText("Journal").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Medications").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("displays tooltip content on hover when showLabels is false", async () => {
+    renderNav("journal", vi.fn(), false);
+
+    // Get the Journal button (first nav item)
+    const journalBtn = screen.getByRole("button", { name: /journal/i });
+
+    // Simulate hover using fireEvent.mouseEnter
+    fireEvent.mouseEnter(journalBtn);
+
+    // Wait for the tooltip content to appear in the DOM
+    // The TooltipContent renders "Journal" text
+    await waitFor(() => {
+      const tooltipContent = screen.getByText("Journal");
+      expect(tooltipContent).toBeVisible();
+    });
   });
 });
