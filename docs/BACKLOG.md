@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16 (session 3).
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16 (session 4).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -57,7 +57,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 2 | §1 · TD-02, TD-03 |
-| ⚡ In progress | 1 | §1 · PP-006 |
+| ⚡ In progress | 2 | §1 · PP-006 · §3 · PP-005 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
 | 🌙 Overnight queue | 1 | §2 · ON-15 |
@@ -222,7 +222,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 |---|---|---|---|
 | PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ⏳ |
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ⏳ |
-| PP-005 | P2 | Web: push notifications (browser Push API) | ⏳ |
+| PP-005 | P2 | Web: push notifications (browser Push API) | ⚡ In progress · Branch: feat/pp005-web-push |
 | PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🔴 PP-006 |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
