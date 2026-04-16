@@ -21,6 +21,7 @@ import {
   canFlag,
 } from "../../../utils/journalUtils";
 import { useAppTheme } from "../../../hooks/useAppTheme";
+import { CommentSection } from "../../../components/comments/CommentSection";
 
 // ts-prune-ignore-next // Expo Router page component
 export default function JournalDetailScreen() {
@@ -242,6 +243,8 @@ export default function JournalDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      <CommentSection careEventId={eventId ?? ""} />
     </ScrollView>
   );
 }
