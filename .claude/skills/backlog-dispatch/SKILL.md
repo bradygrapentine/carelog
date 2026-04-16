@@ -27,6 +27,13 @@ supabase test db 2>&1 | tail -5
 
 # 4. Verify Ollama (optional but faster for mechanical tasks)
 curl -sf http://localhost:11434/api/tags > /dev/null && echo "ollama ok" || echo "ollama unavailable — subagents will use Claude directly"
+
+# 5. Verify worktrees will have node_modules — bootstrap after each worktree creation
+#    cd .worktrees/<name> && pnpm install --frozen-lockfile
+#    Do this BEFORE dispatching the subagent, not inside the subagent prompt
+
+# 6. Docker running if any Ready item touches supabase/migrations/
+docker info > /dev/null 2>&1 && echo "docker ok" || echo "WARN: start Docker if any item has a migration"
 ```
 
 If tests are failing on HEAD, stop and report. Do not dispatch into a broken baseline.
@@ -91,3 +98,4 @@ Then run `/backlog-sync` to update BACKLOG.md status board.
 - If a subagent fails, record the failure and continue with others — don't abort the batch.
 - Max 5 items per dispatch. If BACKLOG.md has more Ready items, ask which 5 to start with.
 - If an item has no acceptance criteria, skip it and list it as "needs spec" in the report.
+- Before dispatching, scan each Ready item's description for PHI-touching work (keywords: `posthog`, `analytics`, `identify`, `capture`, `email`, `auth`). Flag those tickets — their PRs require Opus review before merge, not autonomous merge.
