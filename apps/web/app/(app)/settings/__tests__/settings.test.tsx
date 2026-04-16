@@ -12,11 +12,31 @@ vi.mock("@/lib/trpc", () => ({
       getProfile: {
         useQuery: vi.fn(),
       },
+      updateProfile: {
+        useMutation: vi.fn().mockReturnValue({
+          mutateAsync: vi.fn().mockResolvedValue({}),
+          isPending: false,
+        }),
+      },
+      updateTimezone: {
+        useMutation: vi.fn().mockReturnValue({
+          mutateAsync: vi.fn().mockResolvedValue({}),
+          isPending: false,
+        }),
+      },
       updateNotifications: {
         useMutation: vi.fn(),
       },
+      changePassword: {
+        useMutation: vi.fn().mockReturnValue({
+          mutateAsync: vi.fn().mockResolvedValue({}),
+          isPending: false,
+        }),
+      },
     },
-    useUtils: vi.fn(),
+    useUtils: vi.fn().mockReturnValue({
+      user: { getProfile: { invalidate: vi.fn() } },
+    }),
   },
 }));
 
@@ -130,23 +150,22 @@ describe("SettingsPage - Browser Push Notifications", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          /Notifications are blocked in your browser settings/,
-        ),
+        screen.getByText(/Notifications are blocked in your browser settings/),
       ).toBeInTheDocument();
     });
   });
 
   it("toggle is disabled during web push loading", async () => {
     global.Notification = {
-      requestPermission: vi.fn(() =>
-        new Promise((resolve) => setTimeout(() => resolve("granted"), 100)),
+      requestPermission: vi.fn(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve("granted"), 100)),
       ),
     } as any;
 
-    vi.mocked(webPush.registerServiceWorker).mockResolvedValue(
-      { pushManager: { subscribe: vi.fn() } } as any,
-    );
+    vi.mocked(webPush.registerServiceWorker).mockResolvedValue({
+      pushManager: { subscribe: vi.fn() },
+    } as any);
 
     vi.mocked(webPush.subscribeToPush).mockImplementation(
       () =>
