@@ -88,6 +88,7 @@ export default defineConfig({
             "server/**/*.test.ts",
             "app/api/**/*.test.ts",
             "inngest/**/*.test.ts",
+            "lib/**/__tests__/**/*.test.ts",
             "lib/**/*.test.ts",
           ],
           setupFiles: ["./vitest.setup.node.ts"],

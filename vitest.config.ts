@@ -67,6 +67,7 @@ export default defineConfig({
           include: [
             "apps/web/server/**/*.test.ts",
             "apps/web/app/api/**/*.test.ts",
+            "apps/web/lib/**/*.test.ts",
           ],
           setupFiles: [path.join(webRoot, "vitest.setup.node.ts")],
           globals: true,
