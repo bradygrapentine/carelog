@@ -9,6 +9,7 @@ import { burnoutAlert } from "../../../inngest/functions/burnoutAlert";
 import { journalFlagAlert } from "../../../inngest/functions/journalFlagAlert";
 import { documentsExtractText } from "../../../inngest/functions/documentsExtractText";
 import { messagingPushFn } from "../../../inngest/functions/messagingPush";
+import { careEventCommentFanoutFn } from "../../../inngest/functions/careEventCommentFanout";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -22,5 +23,6 @@ export const { GET, POST, PUT } = serve({
     journalFlagAlert,
     documentsExtractText,
     messagingPushFn,
+    careEventCommentFanoutFn,
   ],
 });
