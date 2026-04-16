@@ -17,8 +17,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 2 | §1 TD-02, TD-03 |
-| ⚡ In progress | 2 | §1 PP-006 · §5 ON-46 |
-| 🔎 In review | 2 | §1 ON-44 (PR #73) · ON-45 (PR #74) |
+| ⚡ In progress | 1 | §1 PP-006 |
+| 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
 | 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
@@ -121,7 +121,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
 
 ### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
-**Status:** ⚡ In progress · **Branch:** `feat/on46-medication-tagging` · **Plan:** `docs/superpowers/plans/2026-04-16-on46-medication-tagging.md`
+**Status:** 🔎 In review · **Branch:** `feat/on46-medication-tagging` · **Plan:** `docs/superpowers/plans/2026-04-16-on46-medication-tagging.md`
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
 
 ---
