@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalPageLayout } from "../../../components/marketing/LegalPageLayout";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Carelog",
+  title: "Privacy Policy — CareSync",
 };
 
 const SECTIONS = [
@@ -19,13 +19,13 @@ export default function PrivacyPage() {
       <h2 id="information">Information we collect</h2>
       <p>
         We collect the email address you use to sign in, and the care information
-        your team logs in Carelog (journal entries, medications, shifts, documents).
+        your team logs in CareSync (journal entries, medications, shifts, documents).
         We do not collect payment information directly — billing is handled by Stripe.
       </p>
 
       <h2 id="use">How we use your information</h2>
       <p>
-        We use your information to operate Carelog: to authenticate you, to deliver
+        We use your information to operate CareSync: to authenticate you, to deliver
         the weekly digest email, and to provide support when you contact us. We do
         not use your information for advertising.
       </p>

@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         to: normalizedEmail,
         subject: "You have been invited to join a care team",
         html: [
-          "<p>You have been invited to join a care team on Carelog.</p>",
+          "<p>You have been invited to join a care team on CareSync.</p>",
           '<p><a href="' + inviteUrl + '">Accept your invitation</a></p>',
           "<p>This link expires in 48 hours.</p>",
         ].join(""),

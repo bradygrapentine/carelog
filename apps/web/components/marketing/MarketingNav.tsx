@@ -8,10 +8,10 @@ export function MarketingNav() {
         aria-label="Main navigation"
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2" aria-label="Carelog home">
+        <Link href="/" className="flex items-center gap-2" aria-label="CareSync home">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary)]" aria-hidden="true" />
           <span className="text-base font-bold tracking-tight text-[var(--color-ink)]">
-            Carelog
+            CareSync
           </span>
         </Link>
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 const quotes = [
   {
     quote:
-      "My brother and I live six hours apart. Before Carelog we were constantly on the phone guessing what mom had eaten or whether she'd taken her afternoon meds. Now it's all just… there.",
+      "My brother and I live six hours apart. Before CareSync we were constantly on the phone guessing what mom had eaten or whether she'd taken her afternoon meds. Now it's all just… there.",
     name: "Priya S.",
     role: "Daughter · primary coordinator",
     avatar:
@@ -11,7 +11,7 @@ const quotes = [
   },
   {
     quote:
-      "I've been a home health aide for twelve years. Carelog is the first tool that actually respects how families want to communicate about their loved one. I leave every shift feeling like I handed the baton cleanly.",
+      "I've been a home health aide for twelve years. CareSync is the first tool that actually respects how families want to communicate about their loved one. I leave every shift feeling like I handed the baton cleanly.",
     name: "Marcus T.",
     role: "Professional caregiver",
     avatar:

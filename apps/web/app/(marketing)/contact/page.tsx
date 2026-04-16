@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ContactForm } from "../../../components/marketing/ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact — Carelog",
+  title: "Contact — CareSync",
   description: "Get in touch. We reply within 24 hours.",
 };
 

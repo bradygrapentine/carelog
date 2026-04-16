@@ -41,7 +41,7 @@ export function HowItWorks() {
             A shared rhythm, not another app to manage
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
-            Carelog is designed to feel like a quiet family notebook — not a
+            CareSync is designed to feel like a quiet family notebook — not a
             hospital portal and not a chat app. Three small steps and your whole
             circle is on the same page.
           </p>

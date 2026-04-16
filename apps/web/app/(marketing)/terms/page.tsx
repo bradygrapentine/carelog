@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalPageLayout } from "../../../components/marketing/LegalPageLayout";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Carelog",
+  title: "Terms of Service — CareSync",
 };
 
 const SECTIONS = [
@@ -19,14 +19,14 @@ export default function TermsPage() {
     <LegalPageLayout title="Terms of Service" lastUpdated="April 10, 2026" sections={SECTIONS}>
       <h2 id="acceptance">Acceptance</h2>
       <p>
-        By using Carelog you agree to these terms. If you do not agree, do not use
+        By using CareSync you agree to these terms. If you do not agree, do not use
         the service.
       </p>
 
       <h2 id="service">The service</h2>
       <p>
-        Carelog is a care coordination tool for families. We provide it as-is and
-        may update features over time. We are not a medical provider and Carelog is
+        CareSync is a care coordination tool for families. We provide it as-is and
+        may update features over time. We are not a medical provider and CareSync is
         not a substitute for professional medical advice.
       </p>
 
@@ -56,7 +56,7 @@ export default function TermsPage() {
 
       <h2 id="liability">Limitation of liability</h2>
       <p>
-        To the maximum extent permitted by law, Carelog is not liable for indirect,
+        To the maximum extent permitted by law, CareSync is not liable for indirect,
         incidental, or consequential damages arising from your use of the service.
         Our total liability is limited to the amount you paid us in the 12 months
         before the claim.

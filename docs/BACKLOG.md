@@ -58,7 +58,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 |---|---|---|
 | 🟢 Ready | 2 | §1 · TD-02, TD-03 |
 | ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 0 | — |
+| 🔎 In review | 1 | §6 · UX-12 |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
 | 🌙 Overnight queue | 1 | §2 · ON-15 |
 | 🧊 Deferred | 4 | §3 · PP-013 · §6 · UX-08, UX-09, UX-11 |
@@ -289,6 +289,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
 - **✅ UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system. *(Shipped: token migration + print styles)*
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
+- **UX-12** — 🔎 In review · PR: #TBD — Rename all user-visible "Carelog" → "CareSync" in web + mobile UI (page titles, nav, metadata, signin/invite copy, marketing pages, export/brief footers, app.json name).
 
 ---
 

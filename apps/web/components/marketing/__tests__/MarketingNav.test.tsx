@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { MarketingNav } from "../MarketingNav";
 
 describe("MarketingNav", () => {
-  it("renders Carelog logo text", () => {
+  it("renders CareSync logo text", () => {
     render(<MarketingNav />);
-    expect(screen.getByText("Carelog")).toBeInTheDocument();
+    expect(screen.getByText("CareSync")).toBeInTheDocument();
   });
 
   it("renders all nav links", () => {

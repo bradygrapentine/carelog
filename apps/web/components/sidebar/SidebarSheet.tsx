@@ -38,7 +38,7 @@ export function SidebarSheet() {
         className="w-64 bg-[var(--color-ink)] text-white border-none p-0"
       >
         <SheetHeader className="px-4 py-4">
-          <SheetTitle className="text-white">Carelog</SheetTitle>
+          <SheetTitle className="text-white">CareSync</SheetTitle>
         </SheetHeader>
         <div className="px-2">
           <SidebarNav showLabels={true} onNavigate={() => setOpen(false)} />

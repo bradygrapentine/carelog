@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — Carelog",
-  description: "Built by a caregiver, for caregivers.",
+  title: "About — CareSync",
+  description: "CareSync — built by a caregiver, for caregivers.",
 };
 
 const VALUES = [
@@ -45,7 +45,7 @@ export default function AboutPage() {
       {/* Origin story */}
       <div className="mb-16 rounded-3xl bg-[var(--color-primary-subtle)] p-10">
         <p className="text-lg leading-relaxed text-[var(--color-ink)]">
-          Carelog started because coordinating care for a family member meant
+          CareSync started because coordinating care for a family member meant
           endless group texts, lost medication lists, and no shared memory of
           what happened during the night shift. We built the tool we wished
           existed — simple enough for the whole family, structured enough for

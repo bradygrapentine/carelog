@@ -26,13 +26,13 @@ export function WhoItsFor() {
     <section id="who-its-for" className="mx-auto max-w-7xl px-6 py-20 md:py-28">
       <div className="mx-auto mb-14 max-w-2xl text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
-          Who Carelog is for
+          Who CareSync is for
         </p>
         <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--color-ink)] md:text-4xl">
           Built for the people holding it all together
         </h2>
         <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
-          Carelog is designed for the daily reality of caring for an aging
+          CareSync is designed for the daily reality of caring for an aging
           parent, a partner with a chronic condition, or a loved one with a
           disability. Whoever is showing up, we make it easier to do it
           together.
