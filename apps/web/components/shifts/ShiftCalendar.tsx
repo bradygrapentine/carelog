@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { ShiftEventCard } from "./ShiftEventCard";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 
@@ -88,6 +89,7 @@ export function ShiftCalendar({ shifts, onSelectEvent, onSelectSlot }: Props) {
         selectable
         onSelectSlot={(s) => onSelectSlot?.(s.start, s.end)}
         eventPropGetter={eventPropGetter}
+        components={{ event: ShiftEventCard }}
       />
     </div>
   );
