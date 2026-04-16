@@ -33,11 +33,12 @@ type Brief = {
   created_at: string;
 };
 
-const moodTokens: Record<string, string> = {
-  good: "var(--color-mood-good)",
-  okay: "var(--color-mood-okay)",
-  difficult: "var(--color-mood-difficult)",
-  crisis: "var(--color-mood-crisis)",
+// pale badge bg tints — no token yet; see ON-48 for token pattern
+const moodColors: Record<string, string> = {
+  good: "#dcfce7",
+  okay: "#fef9c3",
+  difficult: "#fee2e2",
+  crisis: "#fecdd3",
 };
 
 const moodLabels: Record<string, string> = {
@@ -156,7 +157,7 @@ export default function BriefPage({
           .page-content .border {
             border-color: var(--color-ink);
           }
-          .page-content [class*="bg-"] {
+          .page-content [class^="bg-"] {
             break-inside: avoid;
           }
         }
@@ -234,7 +235,7 @@ export default function BriefPage({
                   <ul className="flex flex-col gap-2">
                     {content.recent_entries.map((entry, i) => {
                       const moodBg = entry.mood
-                        ? (moodTokens[entry.mood] ?? "var(--color-surface)")
+                        ? (moodColors[entry.mood] ?? "var(--color-surface)")
                         : undefined;
                       const moodLabel = entry.mood
                         ? (moodLabels[entry.mood] ?? entry.mood)

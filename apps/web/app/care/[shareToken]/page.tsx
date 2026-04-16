@@ -190,7 +190,7 @@ export default function OuterCirclePage({
           .page-content .border {
             border-color: var(--color-ink);
           }
-          .page-content [class*="bg-"] {
+          .page-content [class^="bg-"] {
             break-inside: avoid;
           }
         }
