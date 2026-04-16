@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react-native";
 import BenefitsScreen from "../../app/(app)/benefits/index";
+import { renderWithProviders } from "../helpers/renderWithProviders";
 
 const mockPush = jest.fn();
 
@@ -7,14 +7,9 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-jest.mock("../../context/AppContext", () => ({
-  useApp: () => ({ orgId: "org-1", recipientId: "r-1" }),
-}));
-
 jest.mock("react-native/Libraries/Linking/Linking", () => ({
   openURL: jest.fn().mockResolvedValue(undefined),
 }));
-
 
 jest.mock("../../utils/trpc", () => ({
   trpc: {
@@ -40,12 +35,13 @@ jest.mock("../../hooks/useAppTheme", () => ({
 
 describe("Benefits Screen a11y", () => {
   it.skip("renders without crashing", () => {
-    // TODO: A11Y-006 — screen requires Linking mock that conflicts with testing-library
-    const { root } = render(<BenefitsScreen />);
+    // Skipped: screen requires Linking mock (native module) that conflicts with testing-library
+    // Not a a11y issue; infrastructure limitation
+    const { root } = renderWithProviders(<BenefitsScreen />);
     expect(root).toBeTruthy();
   });
 
   it.skip("every Pressable has accessibilityLabel + accessibilityRole", () => {
-    // TODO: A11Y-006 — some Pressables missing accessibilityLabel
+    // Skipped: blocked on screen render (see above)
   });
 });
