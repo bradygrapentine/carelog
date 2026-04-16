@@ -13,6 +13,8 @@
 #   shot [label]            Screenshot → /tmp/carelog-ui/<platform>-<label>-<ts>.png
 #   route <path>            Deep link via scheme yourcarelog:// (from app.json).
 #   appearance light|dark   Toggle light/dark.
+#   a11y on|off|dump        iOS: enable/disable VoiceOver; capture screenshot.
+#                           Android: enable/disable TalkBack; dump uiautomator tree.
 #   logs [n]                Tail last n lines of Expo dev server log.
 #   status                  Print device + expo pid + last shot.
 #   stop                    Stop Expo dev server (does not kill sim/emulator).
@@ -114,6 +116,29 @@ ios_appearance() {
   echo "appearance: ${1:-light}"
 }
 
+ios_a11y() {
+  require_mac
+  [[ -n "$(ios_booted_udid)" ]] || { echo "no booted simulator — run: boot"; exit 1; }
+  local action="${1:-on}"
+  case "$action" in
+    on)
+      xcrun simctl accessibility booted enable VoiceOver
+      echo "VoiceOver enabled — use 'shot' to capture focus rings"
+      ;;
+    off)
+      xcrun simctl accessibility booted disable VoiceOver
+      echo "VoiceOver disabled"
+      ;;
+    dump)
+      # Take a labelled screenshot with VoiceOver active for visual inspection
+      ios_shot "a11y-dump"
+      echo "Captured accessibility screenshot (Read the path above to see VoiceOver focus rings)"
+      ;;
+    *)
+      echo "usage: a11y on|off|dump"; exit 1 ;;
+  esac
+}
+
 ios_status() {
   echo "platform: ios"
   echo "booted:   $(ios_booted_udid || echo none)"
@@ -199,6 +224,34 @@ android_appearance() {
   echo "appearance: $mode"
 }
 
+android_a11y() {
+  require_android_sdk
+  android_device_online || { echo "no online android device — run: boot"; exit 1; }
+  local action="${1:-on}"
+  case "$action" in
+    on)
+      "$ADB" shell settings put secure enabled_accessibility_services \
+        com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService
+      "$ADB" shell settings put secure accessibility_enabled 1
+      echo "TalkBack enabled — use 'shot' to capture focus outlines"
+      ;;
+    off)
+      "$ADB" shell settings put secure enabled_accessibility_services ":"
+      "$ADB" shell settings put secure accessibility_enabled 0
+      echo "TalkBack disabled"
+      ;;
+    dump)
+      local ts; ts=$(date +%Y%m%d-%H%M%S)
+      local path="$OUT_DIR/android-a11y-${ts}.xml"
+      "$ADB" shell uiautomator dump /sdcard/ui.xml
+      "$ADB" pull /sdcard/ui.xml "$path"
+      echo "$path"
+      ;;
+    *)
+      echo "usage: a11y on|off|dump"; exit 1 ;;
+  esac
+}
+
 android_status() {
   echo "platform: android"
   if [[ -x "$ADB" ]] && android_device_online; then
@@ -260,11 +313,13 @@ case "$PLATFORM:$sub" in
   ios:shot)          ios_shot "$@" ;;
   ios:route)         ios_route "$@" ;;
   ios:appearance)    ios_appearance "$@" ;;
+  ios:a11y)          ios_a11y "$@" ;;
   android:boot)      android_boot "$@" ;;
   android:start)     android_start "$@" ;;
   android:shot)      android_shot "$@" ;;
   android:route)     android_route "$@" ;;
   android:appearance) android_appearance "$@" ;;
+  android:a11y)      android_a11y "$@" ;;
   *:logs)            cmd_logs "$@" ;;
   *:status)          cmd_status ;;
   *:stop)            cmd_stop ;;
