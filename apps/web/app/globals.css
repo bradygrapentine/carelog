@@ -90,3 +90,89 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
 }
+
+/* ─── react-big-calendar overrides ─────────────────────────────── */
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+.rbc-calendar {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.rbc-header {
+  border-bottom-color: var(--color-border);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 4px;
+}
+.rbc-today {
+  background-color: var(--color-primary-subtle);
+}
+.rbc-off-range-bg {
+  background-color: #f9fafb;
+}
+.rbc-time-slot,
+.rbc-timeslot-group,
+.rbc-time-content,
+.rbc-time-header-content,
+.rbc-time-view,
+.rbc-month-view,
+.rbc-agenda-view {
+  border-color: var(--color-border);
+}
+.rbc-event {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.rbc-event:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+/* ─── shift event status classes ─────────────────────────────────── */
+.shift-event--scheduled {
+  background-color: var(--color-primary-subtle);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.shift-event--in-progress {
+  background-color: #f0fdf4;
+  border-left: 3px solid var(--color-success);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: var(--color-success);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.shift-event--completed {
+  background-color: #f9fafb;
+  border-left: 3px solid var(--color-muted);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+.shift-event--cancelled {
+  background-color: #f9fafb;
+  border-left: 3px solid var(--color-muted);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  text-decoration: line-through;
+}
+.shift-event--unassigned {
+  background-color: #fef2f2;
+  border-left: 3px solid var(--color-danger);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
