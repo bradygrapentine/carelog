@@ -71,9 +71,9 @@ describe("DocumentVault — renders expanded by default", () => {
 });
 
 describe("DocumentVault — empty state", () => {
-  it('shows "No documents uploaded yet" when empty', () => {
+  it('shows "No documents uploaded" when empty', () => {
     renderVault();
-    expect(screen.getByText(/no documents uploaded yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no documents uploaded/i)).toBeInTheDocument();
   });
 });
 
