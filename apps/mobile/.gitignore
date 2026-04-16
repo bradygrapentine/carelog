@@ -36,10 +36,8 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# Expo plugins — compiled JS (TS plugins handled natively by Expo SDK 50+)
-plugins/*.js
+# Expo plugins — compiled JS is committed for prebuild plugin resolution
+# withCarelogWatch.js is intentionally tracked (Expo SDK 55 canary requires resolved JS for config plugins)
 
-# generated native folders
-/ios
-/android
-ios/
+# generated native folders — both ios/ and android/ are committed to git (PP-006)
+# do NOT add ios/ or android/ to this file
