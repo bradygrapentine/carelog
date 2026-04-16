@@ -35,6 +35,28 @@ export function shiftToCalendarEvent(shift: Shift): CalendarEvent {
   };
 }
 
+// ─── status → CSS class mapper ──────────────────────────────────────────────
+
+export function getShiftEventClass(
+  statusOrNull: Shift["status"] | null,
+): string {
+  if (!statusOrNull) return "shift-event--unassigned";
+  const map: Record<Shift["status"], string> = {
+    scheduled: "shift-event--scheduled",
+    in_progress: "shift-event--in-progress",
+    completed: "shift-event--completed",
+    cancelled: "shift-event--cancelled",
+  };
+  return map[statusOrNull];
+}
+
+function eventPropGetter(event: CalendarEvent) {
+  const cls = event.resource.assigned_user_id
+    ? getShiftEventClass(event.resource.status)
+    : "shift-event--unassigned";
+  return { className: cls };
+}
+
 // ─── localizer ───────────────────────────────────────────────────────────────
 
 const localizer = dateFnsLocalizer({
@@ -65,6 +87,7 @@ export function ShiftCalendar({ shifts, onSelectEvent, onSelectSlot }: Props) {
         onSelectEvent={(e) => onSelectEvent?.(e.resource)}
         selectable
         onSelectSlot={(s) => onSelectSlot?.(s.start, s.end)}
+        eventPropGetter={eventPropGetter}
       />
     </div>
   );

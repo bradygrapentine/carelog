@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shiftToCalendarEvent } from "../ShiftCalendar";
+import { shiftToCalendarEvent, getShiftEventClass } from "../ShiftCalendar";
 
 describe("shiftToCalendarEvent", () => {
   const baseShift = {
@@ -34,5 +34,17 @@ describe("shiftToCalendarEvent", () => {
   it("includes full shift as resource", () => {
     const event = shiftToCalendarEvent(baseShift);
     expect(event.resource).toEqual(baseShift);
+  });
+});
+
+describe("getShiftEventClass", () => {
+  it("returns primary class for scheduled shifts", () => {
+    expect(getShiftEventClass("scheduled")).toBe("shift-event--scheduled");
+  });
+  it("returns danger class for unassigned shifts", () => {
+    expect(getShiftEventClass(null)).toBe("shift-event--unassigned");
+  });
+  it("returns muted class for cancelled shifts", () => {
+    expect(getShiftEventClass("cancelled")).toBe("shift-event--cancelled");
   });
 });
