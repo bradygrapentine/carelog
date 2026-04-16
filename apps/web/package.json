@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint && node ../../scripts/a11y-contrast.mjs",
-    "lint:contrast": "node ../../scripts/a11y-contrast.mjs"
+    "lint:contrast": "node ../../scripts/a11y-contrast.mjs",
+    "lighthouse:a11y": "node ../../scripts/lighthouse-a11y.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
