@@ -65,7 +65,7 @@ export function BillingClient({ org, role }: Props) {
           {isPaid ? (
             <div>
               <p className="mb-4 text-sm text-[var(--color-muted)]">
-                Your team has full access to all Carelog features.
+                Your team has full access to all CareSync features.
               </p>
               <Button onClick={handleManage}>Manage subscription</Button>
             </div>

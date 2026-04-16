@@ -67,7 +67,7 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in to Carelog</Text>
+      <Text style={styles.title}>Sign in to CareSync</Text>
       <Text style={styles.subtitle}>
         We'll send a 6-digit code to your email.
       </Text>

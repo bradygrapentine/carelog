@@ -7,7 +7,7 @@ export function MarketingFooter() {
         <p className="text-sm text-[var(--color-muted)]">
           {"© "}
           {new Date().getFullYear()}
-          {" Carelog. Private, secure, and ad-free."}
+          {" CareSync. Private, secure, and ad-free."}
         </p>
         <nav aria-label="Footer navigation">
           <ul className="flex items-center gap-6" role="list">

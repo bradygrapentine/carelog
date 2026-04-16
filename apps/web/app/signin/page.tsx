@@ -12,13 +12,13 @@ export default async function SignInPage({
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]" aria-hidden="true" />
-        <span className="text-xl font-bold tracking-tight text-[var(--color-ink)]">Carelog</span>
+        <span className="text-xl font-bold tracking-tight text-[var(--color-ink)]">CareSync</span>
       </div>
 
       {/* Card */}
       <div className="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-white px-8 py-10 shadow-sm">
         <h1 className="mb-6 text-center text-xl font-bold text-[var(--color-ink)]">
-          Sign in to Carelog
+          Sign in to CareSync
         </h1>
 
         {params.error && (

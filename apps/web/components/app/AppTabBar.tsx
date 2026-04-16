@@ -72,7 +72,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
             className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]"
             aria-hidden="true"
           />
-          <span className="text-sm font-bold text-white">Carelog</span>
+          <span className="text-sm font-bold text-white">CareSync</span>
         </Link>
 
         {/* Tab list — desktop (only inside a team context) */}

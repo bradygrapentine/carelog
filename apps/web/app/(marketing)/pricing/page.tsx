@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PricingCards } from "../../../components/marketing/PricingCards";
 
 export const metadata: Metadata = {
-  title: "Pricing — Carelog",
+  title: "Pricing — CareSync",
   description: "Simple pricing for families. $14/mo covers everyone.",
 };
 

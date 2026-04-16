@@ -146,7 +146,7 @@ export default function InvitePage({ params }: Props) {
             href="/signin"
             className="inline-block px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg"
           >
-            Go to Carelog
+            Go to CareSync
           </a>
         </div>
       </div>
