@@ -23,6 +23,11 @@ vi.mock("@/lib/trpc", () => ({
       list: { useQuery: mockListUseQuery },
       delete: { useMutation: mockDeleteMutation },
     },
+    medications: {
+      getDocumentIdsForMedication: {
+        useQuery: vi.fn().mockReturnValue({ data: undefined }),
+      },
+    },
   },
 }));
 
@@ -118,5 +123,22 @@ describe("DocumentVault — upload form", () => {
   it("hides upload form for supporter", () => {
     renderVault({ currentUserRole: "supporter" });
     expect(screen.queryByRole("button", { name: /^upload$/i })).toBeNull();
+  });
+});
+
+describe("DocumentVault — medication chip filter", () => {
+  it("shows chip bar when medications provided", () => {
+    mockListUseQuery.mockReturnValue({ data: sampleDocs, isLoading: false });
+    renderVault({
+      medications: [{ id: "med-1", drug_name: "Metformin" }],
+    });
+    expect(screen.getByText("Metformin")).toBeInTheDocument();
+  });
+
+  it("hides chip bar when no medications", () => {
+    renderVault();
+    expect(
+      screen.queryByRole("group", { name: /filter by medication/i }),
+    ).toBeNull();
   });
 });

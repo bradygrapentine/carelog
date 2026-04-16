@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FolderOpen } from "lucide-react";
+import { MedicationChipBar } from "@/components/medications/MedicationChipBar";
 
 type Props = {
   orgId: string;
   recipientId: string;
   currentUserRole: string;
+  medications?: Array<{ id: string; drug_name: string }>;
 };
 
 type DocRow = {
@@ -50,12 +52,18 @@ function formatBytes(bytes: number | null): string {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
-export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
+export function DocumentVault({
+  orgId,
+  recipientId,
+  currentUserRole,
+  medications,
+}: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [docType, setDocType] = useState("other");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedMedId, setSelectedMedId] = useState<string | null>(null);
 
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -72,7 +80,21 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
     q: debouncedSearch || undefined,
   });
 
-  const filteredDocs = docs;
+  const { data: taggedDocIds } =
+    trpc.medications.getDocumentIdsForMedication.useQuery(
+      { medication_id: selectedMedId! },
+      { enabled: !!selectedMedId },
+    );
+
+  const taggedDocSet = useMemo(
+    () => new Set(taggedDocIds ?? []),
+    [taggedDocIds],
+  );
+
+  const filteredDocs = docs.filter((d) => {
+    if (selectedMedId && !taggedDocSet.has(d.id)) return false;
+    return true;
+  });
 
   const deleteMutation = trpc.documents.delete.useMutation({
     onSuccess: () => utils.documents.list.invalidate(),
@@ -139,6 +161,11 @@ export function DocumentVault({ orgId, recipientId, currentUserRole }: Props) {
       </div>
 
       <div className="px-4 pb-4 border-t border-border space-y-4">
+        <MedicationChipBar
+          medications={medications ?? []}
+          selected={selectedMedId}
+          onSelect={setSelectedMedId}
+        />
         {isLoading && (
           <p className="text-sm text-muted-foreground pt-3">Loading...</p>
         )}

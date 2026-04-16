@@ -281,6 +281,13 @@ export const medicationsRouter = router({
       return events.map((e) => e.id);
     }),
 
+  getDocumentIdsForMedication: protectedProcedure
+    .input(z.object({ medication_id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const docs = await listDocumentsForMedication(input.medication_id, 200);
+      return docs.map((d) => d.id);
+    }),
+
   logAdministration: protectedProcedure
     .input(
       z.object({
