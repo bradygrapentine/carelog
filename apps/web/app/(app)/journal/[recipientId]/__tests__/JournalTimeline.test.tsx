@@ -9,6 +9,15 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/care-events/CommentThread", () => ({
   CommentThread: () => null,
 }));
+vi.mock("@/lib/trpc", () => ({
+  trpc: {
+    medications: {
+      getEventIdsForMedication: {
+        useQuery: vi.fn().mockReturnValue({ data: undefined }),
+      },
+    },
+  },
+}));
 
 const STUB_FETCH = vi.fn().mockResolvedValue({
   json: () => Promise.resolve({ counts: {}, myReaction: null }),
