@@ -46,6 +46,25 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+vi.mock("../../../../hooks/useOnlineStatus", () => ({
+  useOnlineStatus: () => ({ isOnline: true }),
+}));
+
+vi.mock("../../../../lib/offline-queue", () => ({
+  pushEntry: vi.fn().mockResolvedValue(undefined),
+  getAll: vi.fn().mockResolvedValue([]),
+  removeEntry: vi.fn().mockResolvedValue(undefined),
+  markAttempt: vi.fn().mockResolvedValue(undefined),
+  getDeadLetters: vi.fn().mockResolvedValue([]),
+  clearAll: vi.fn().mockResolvedValue(undefined),
+  queueDepth: vi.fn().mockResolvedValue(0),
+  QueueFullError: class QueueFullError extends Error {},
+}));
+
 // Mock all child panels to keep tests focused on routing
 vi.mock("../JournalEntryForm", () => ({
   JournalEntryForm: () => <div data-testid="journal-entry-form" />,

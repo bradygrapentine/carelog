@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabaseServer";
 import { AppShellClient } from "../../components/app/AppShellClient";
 import { AIAssistantProvider } from "@/components/ai/AIAssistantProvider";
+import { Toaster } from "sonner";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createServerSupabase();
@@ -22,12 +23,15 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const orgId = membership?.org_id ?? null;
 
   return (
-    <AppShellClient userInitials={userInitials}>
-      {orgId ? (
-        <AIAssistantProvider orgId={orgId}>{children}</AIAssistantProvider>
-      ) : (
-        children
-      )}
-    </AppShellClient>
+    <>
+      <Toaster position="top-right" richColors />
+      <AppShellClient userInitials={userInitials}>
+        {orgId ? (
+          <AIAssistantProvider orgId={orgId}>{children}</AIAssistantProvider>
+        ) : (
+          children
+        )}
+      </AppShellClient>
+    </>
   );
 }
