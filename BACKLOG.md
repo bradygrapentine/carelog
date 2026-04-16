@@ -140,8 +140,9 @@ Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --
 ### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
-### 🌙 ON-37 — `ts-prune` unused exports sweep
+### 🔎 ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
+**Branch:** chore/on37-ts-prune. Mobile: 55 → 10 flags (82% reduction). Applied `// ts-prune-ignore-next` to Expo Router defaults, test helpers, design tokens. Deleted `getPostHog()` true orphan.
 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
