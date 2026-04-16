@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,12 +35,15 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
     <form onSubmit={handleSubmit} className="space-y-4 pt-2">
       {/* Message */}
       <div className="space-y-1">
-        <Label htmlFor="trade-message">
+        <label
+          htmlFor="trade-message"
+          className="text-sm font-medium text-[var(--color-ink)]"
+        >
           Message{" "}
           <span className="text-[var(--color-muted)] font-normal">
             (optional)
           </span>
-        </Label>
+        </label>
         <Textarea
           id="trade-message"
           name="trade-message"
@@ -72,15 +74,23 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
           disabled={disabled}
           className="h-4 w-4 rounded border-[var(--color-border)] accent-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
         />
-        <Label htmlFor="open-trade" className="cursor-pointer">
+        <label
+          htmlFor="open-trade"
+          className="cursor-pointer text-sm font-medium text-[var(--color-ink)]"
+        >
           Post as open trade
-        </Label>
+        </label>
       </div>
 
       {/* Target user input — shown only when NOT open trade */}
       {!isOpenTrade && (
         <div className="space-y-1">
-          <Label htmlFor="target-user-id">Target user ID</Label>
+          <label
+            htmlFor="target-user-id"
+            className="text-sm font-medium text-[var(--color-ink)]"
+          >
+            Target user ID
+          </label>
           <Input
             id="target-user-id"
             name="target-user-id"
