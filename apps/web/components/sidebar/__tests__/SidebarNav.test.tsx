@@ -91,6 +91,12 @@ describe("SidebarNav", () => {
     expect(screen.getAllByText("Medications").length).toBeGreaterThanOrEqual(1);
   });
 
+  it("active nav item has border-l-2 class for left accent indicator", () => {
+    renderNav("journal");
+    const activeBtn = screen.getByRole("button", { name: /journal/i });
+    expect(activeBtn.className).toContain("border-l-2");
+  });
+
   it("icon-only buttons have aria-label and are keyboard-accessible via Tooltip", () => {
     renderNav("journal", vi.fn(), false);
     // Each icon-only button must retain aria-label (Tooltip is supplementary)
