@@ -131,7 +131,7 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Medium
-- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
+- **UX-03** — **Status:** ⚡ In progress · Branch: `feat/ux-03-micro-interactions` — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).

@@ -9,6 +9,9 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/care-events/CommentThread", () => ({
   CommentThread: () => null,
 }));
+vi.mock("@/components/medications/MedicationChipBar", () => ({
+  MedicationChipBar: () => null,
+}));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     medications: {

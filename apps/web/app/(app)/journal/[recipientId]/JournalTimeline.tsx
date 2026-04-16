@@ -308,7 +308,7 @@ function Chip({
       type="button"
       onClick={onClick}
       className={
-        "px-2.5 py-1 text-xs rounded-full border transition-all font-medium " +
+        "px-2.5 py-1 text-xs rounded-full border transition-all font-medium motion-safe:active:scale-95 motion-safe:transition-transform motion-safe:duration-75 " +
         (active
           ? activeCls
           : "bg-card text-muted-foreground border-border hover:text-foreground/80")
