@@ -27,15 +27,16 @@ function readGuideFile(filename: string): Guide | null {
     const { data, content } = matter(raw);
     return {
       slug,
-      title: data.title as string,
-      summary: data.summary as string,
-      challenges: (data.challenges as string[]) ?? [],
-      topics: (data.topics as string[]) ?? [],
-      tips: (data.tips as string[]) ?? [],
-      external_url: (data.external_url as string) ?? "",
+      title: typeof data.title === "string" ? data.title : "",
+      summary: typeof data.summary === "string" ? data.summary : "",
+      challenges: Array.isArray(data.challenges) ? (data.challenges as string[]) : [],
+      topics: Array.isArray(data.topics) ? (data.topics as string[]) : [],
+      tips: Array.isArray(data.tips) ? (data.tips as string[]) : [],
+      external_url: typeof data.external_url === "string" ? data.external_url : "",
       content,
     };
-  } catch {
+  } catch (err) {
+    console.error(`Failed to read guide: ${filename}`, err);
     return null;
   }
 }
