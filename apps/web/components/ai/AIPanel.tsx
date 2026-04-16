@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { useAIContext, type Suggestion } from "@/hooks/useAIContext";
 import { AIChatThread } from "./AIChatThread";
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function AIPanel({ orgId, recipientId, onClose }: Props) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [actionPending, setActionPending] = useState<number | null>(null);
@@ -65,16 +67,20 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
     });
   }
 
-  function handleConfirmAction(_actionType: string, _description: string) {
-    // Route to the appropriate existing tRPC mutation per action type.
-    // Each action type corresponds to an existing router procedure:
-    //   send_message       → trpc.messages.send (requires thread_id + body)
-    //   log_mood           → trpc.moodEntries.create (requires mood + org_id + recipient_id)
-    //   suggest_shift      → trpc.shifts.create (requires start_at + end_at + org_id — coordinator only)
-    //   log_medication_dose → trpc.medications.logDose (requires medication_id + status + org_id)
-    //
-    // For v1: dismiss the action card. Full deep-link integration is a follow-up.
-    setActionPending(null);
+  function handleConfirmAction(actionType: string, _description: string) {
+    const paths: Record<string, string> = {
+      log_mood: "/journal",
+      send_message: "/messages",
+      log_medication_dose: "/medications",
+      suggest_shift: "/schedule",
+    };
+    const path = paths[actionType];
+    if (path) {
+      router.push(path);
+      onClose();
+    } else {
+      setActionPending(null);
+    }
   }
 
   function handleCancelAction(messageIndex: number) {
