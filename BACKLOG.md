@@ -196,9 +196,6 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 ## 5. Large features (multi-day, not overnight-eligible)
 
-### ON-44 — Comment threads on care events · ~1.5 days
-Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
-
 ### ON-45 — Shift trade requests · ~2 days
 Table `shift_trade_requests` (shift_id, requested_by, target_user_id nullable, status, message). Only assignee opens; target-only accept if set, else any caregiver. Acceptance atomically reassigns `shifts.assigned_user_id` + marks accepted in one transaction. Coordinator force-override logs to `audit_events`. Inngest cron `shiftTrades.expire` every 15 min marks ≤24 h stale requests expired + pushes. pgTAP for every state transition.
 
@@ -244,6 +241,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Phase 5 — Financial + legal (2026-04-13)
 ✅ P5-01 Shared expense log (`ExpensePanel`) · P5-02 Benefits navigator (`BenefitsNavigator` + eligibility lib) · P5-03 Document vault (`DocumentVault` + upload/download API + FTS migration) · P5-04 EOL planner (coordinator-only, linked to vault)
+
+### 2026-04-15 parallel agent session
+✅ **ON-44** Comment threads on care events — `care_event_comments` table + RLS + pgTAP + tRPC sub-router + web `CommentThread`/`CommentItem`/`CommentComposer` + mobile `CommentSection` + E2E spec
 
 ### Before-launch — Claude tasks
 ✅ B1 Sentry PII hardened (`sendDefaultPii: false`, env DSN, `sentry.client.config.ts` added)
