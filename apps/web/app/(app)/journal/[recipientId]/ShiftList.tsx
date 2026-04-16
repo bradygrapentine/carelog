@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ShiftCalendar, type Shift } from "@/components/shifts/ShiftCalendar";
+import { ShiftPopover } from "@/components/shifts/ShiftPopover";
 
 type Member = {
   id: string;
@@ -20,229 +22,68 @@ type Props = {
   currentUserRole: string;
 };
 
-function getWeekRange(offset: number): { from: string; to: string } {
+function getMonthRange(): { from: string; to: string } {
   const now = new Date();
-  // Monday of current week
-  const day = now.getUTCDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + diffToMonday + offset * 7,
-    ),
+  const from = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
   );
-  // Sunday end = Monday + 14 days (two-week window)
-  const sundayEnd = new Date(monday.getTime() + 14 * 24 * 60 * 60 * 1000 - 1);
-  return {
-    from: monday.toISOString(),
-    to: sundayEnd.toISOString(),
-  };
+  const to = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 2, 0, 23, 59, 59),
+  );
+  return { from: from.toISOString(), to: to.toISOString() };
 }
 
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
+export function ShiftList({ orgId, recipientId, currentUserRole }: Props) {
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const { from, to } = getMonthRange();
 
-function groupByDay(
-  shifts: Array<{ start_at: string }>,
-): Map<string, typeof shifts> {
-  const map = new Map<string, typeof shifts>();
-  for (const shift of shifts) {
-    const key = new Date(shift.start_at).toLocaleDateString([], {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    });
-    const group = map.get(key) ?? [];
-    group.push(shift);
-    map.set(key, group);
-  }
-  return map;
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  scheduled: "bg-[var(--color-surface)] text-foreground/80",
-  in_progress: "bg-[var(--color-primary-subtle)] text-primary",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-[var(--color-surface)] text-muted-foreground line-through",
-};
-
-export function ShiftList({
-  orgId,
-  recipientId,
-  members,
-  currentUserId,
-  currentUserRole,
-}: Props) {
-  const [weekOffset, setWeekOffset] = useState(0);
-  const { from, to } = getWeekRange(weekOffset);
-
-  const utils = trpc.useUtils();
-  const { data, isLoading } = trpc.shifts.list.useQuery({
+  const { data: shifts = [] } = trpc.shifts.list.useQuery({
     org_id: orgId,
     recipient_id: recipientId,
     from,
     to,
   });
-  const cancelMutation = trpc.shifts.cancel.useMutation({
-    onSuccess: () => utils.shifts.list.invalidate(),
-  });
 
-  const shifts = data ?? [];
-  const grouped = groupByDay(shifts);
+  const cancelMutation = trpc.shifts.cancel.useMutation();
+  const utils = trpc.useUtils();
 
-  function lookupName(userId: string): string {
-    const m = members.find((mem) => mem.user_id === userId);
-    return m?.display_name ?? (m?.email ? m.email.split("@")[0] : "Unknown");
+  function handleCancel(shiftId: string) {
+    cancelMutation.mutate(
+      { id: shiftId, org_id: orgId },
+      { onSuccess: () => utils.shifts.list.invalidate() },
+    );
+    setSelectedShift(null);
   }
 
+  const isCoordinator = currentUserRole === "coordinator";
+
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm">Shifts</CardTitle>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setWeekOffset((w) => w - 1)}
-            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
-            aria-label="Previous week"
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            onClick={() => setWeekOffset(0)}
-            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
-          >
-            This week
-          </button>
-          <button
-            type="button"
-            onClick={() => setWeekOffset((w) => w + 1)}
-            className="text-xs text-muted-foreground hover:text-foreground/80 px-2 py-1"
-            aria-label="Next week"
-          >
-            Next
-          </button>
-        </div>
-      </CardHeader>
+    <>
+      <Card className="shadow-sm gap-2">
+        <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+          <CardTitle className="text-sm">Shift Schedule</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-2 pb-4">
+          <ShiftCalendar
+            shifts={shifts as Shift[]}
+            onSelectEvent={(shift) => setSelectedShift(shift)}
+            onSelectSlot={() => {
+              /* ShiftForm handles creation */
+            }}
+          />
+        </CardContent>
+      </Card>
 
-      <CardContent>
-        {isLoading && (
-          <p className="text-sm text-muted-foreground">Loading shifts...</p>
-        )}
-
-        {!isLoading && shifts.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No shifts scheduled this week.
-          </p>
-        )}
-
-        {!isLoading && shifts.length > 0 && (
-          <div className="space-y-4">
-            {Array.from(grouped.entries()).map(([dayLabel, dayShifts]) => (
-              <div key={dayLabel}>
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  {dayLabel}
-                </p>
-                <div className="space-y-2">
-                  {dayShifts.map((shift: Record<string, unknown>) => {
-                    const shiftId = shift.id as string;
-                    const assigneeId = shift.assignee_user_id as string;
-                    const status = shift.status as string;
-                    const startAt = shift.start_at as string;
-                    const endAt = shift.end_at as string;
-                    const notes = shift.notes as string | undefined;
-                    const isRecurring = !!(shift.recurring as
-                      | boolean
-                      | undefined);
-                    const isOwn = assigneeId === currentUserId;
-                    const isCancelled = status === "cancelled";
-                    const canCancel =
-                      currentUserRole === "coordinator" && !isCancelled;
-                    const statusStyle =
-                      STATUS_STYLES[status] ?? STATUS_STYLES.scheduled;
-                    const timeRange =
-                      formatTime(startAt) + " - " + formatTime(endAt);
-                    const assigneeName = lookupName(assigneeId);
-
-                    return (
-                      <div
-                        key={shiftId}
-                        className="flex items-start justify-between py-2 border-b border-border last:border-0"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-foreground">
-                              {timeRange}
-                            </span>
-                            <span
-                              className={
-                                "text-xs px-2 py-0.5 rounded-full " +
-                                statusStyle
-                              }
-                            >
-                              {status.replace("_", " ")}
-                            </span>
-                            {isOwn && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                                Your shift
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-foreground/80 mt-0.5">
-                            {assigneeName}
-                          </p>
-                          {notes && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {notes}
-                            </p>
-                          )}
-                        </div>
-                        {canCancel && (
-                          <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                cancelMutation.mutate({
-                                  id: shiftId,
-                                  org_id: orgId,
-                                })
-                              }
-                              disabled={cancelMutation.isPending}
-                              className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
-                            >
-                              Cancel
-                            </button>
-                            {isRecurring && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  cancelMutation.mutate({
-                                    id: shiftId,
-                                    org_id: orgId,
-                                    cancel_future: true,
-                                  })
-                                }
-                                disabled={cancelMutation.isPending}
-                                className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
-                              >
-                                Cancel series
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <ShiftPopover
+        shift={selectedShift}
+        isOpen={!!selectedShift}
+        onClose={() => setSelectedShift(null)}
+        isCoordinator={isCoordinator}
+        onEdit={() => {
+          /* TODO: open ShiftForm in edit mode */
+        }}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }
