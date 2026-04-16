@@ -23,6 +23,11 @@ vi.mock("@/lib/trpc", () => ({
       list: { useQuery: mockListUseQuery },
       delete: { useMutation: mockDeleteMutation },
     },
+    medications: {
+      getDocumentIdsForMedication: {
+        useQuery: vi.fn().mockReturnValue({ data: undefined }),
+      },
+    },
   },
 }));
 

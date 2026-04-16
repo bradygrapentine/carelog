@@ -45,6 +45,8 @@ Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-i
 
 - Education & Behavior Guidance: Access to dementia-specific tips, behavior management strategies, research updates, or AI-driven advice for handling common challenges.
 
+- Rename the app to CareSync. Just update the UI for now.
+
 - Add calendar to shift scheduling page
 ---
 
@@ -56,10 +58,10 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 |---|---|---|
 | 🟢 Ready | 3 | §1 · TD-02, TD-03, TD-07 |
 | ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 3 | §1 · TD-06 · §5 · PP-14+PP-15 (#76), A11Y-008 (#78) |
+| 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
 | 🌙 Overnight queue | 1 | §2 · ON-15 |
-| 🧊 Deferred | 5 | §3 · PP-013 · §4 · A11Y-008 pending · §6 · UX-08, UX-09, UX-11 |
+| 🧊 Deferred | 4 | §3 · PP-013 · §6 · UX-08, UX-09, UX-11 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -106,7 +108,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
-| TD-06 | 🔎 In review · PR #77 | **Dark mode variants for comment + trade-request components** | Needs rebase after ON-44/45/46 merges. |
+| TD-06 | ✅ Shipped · PR #77 | **Dark mode variants for comment + trade-request components** | |
 | TD-07 | 🟢 Ready | **Strip PHI from care-event-comment Inngest event** | `careEventComments.ts` sends comment `body` (free text / PHI) in Inngest payload. Should send `commentId` only; fanout re-fetches via `supabaseAdmin`. Also fix `(p: any)` in `careEventCommentFanout.ts:30`. **AC:** no `body` field in `inngest.send()` call; `(p: any)` replaced with typed row type. |
 
 ---
@@ -129,7 +131,7 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
 **Size:** ~2 hr. **Blocked by:** nothing.
 
-### 🌙 ON-21 — Web raw-hex audit + token migration · 🔎 PR #34
+### ✅ ON-21 — Web raw-hex audit + token migration · PR #34
 **Why:** `.claude/rules/ui-standards.md` forbids raw hex in component files.
 **Work:** `grep -rn "#[0-9a-fA-F]\{3,8\}" apps/web/app apps/web/components`; replace with closest `var(--color-*)`. If no close token, add note in PR — do NOT invent a token. Skip `.svg/.ico/public/`.
 **AC:** no raw hex in `.tsx/.ts`; visual spot-check on dashboard + journal + billing; `pnpm typecheck` + `pnpm test` green.
@@ -147,30 +149,28 @@ PHI. Cases: org member reads for in-org recipients only; author-only update/dele
 ### ✅ ON-25 — Zod schema tests for shared validators
 `find packages -name "*.ts" -path "*schema*"`; for each without a `.test.ts`, add one valid case + 2–3 invalid edge cases. **AC:** every exported schema in `packages/shared` has a test. **Size:** 3 hr.
 
-### 🌙 ON-26 — Mobile empty-state copy pass
+### ✅ ON-26 — Mobile empty-state copy pass
 Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Carelog voice (see `UX_DECISIONS.md`) with a concrete next-action CTA. Keep layouts identical. **Size:** 2 hr.
-**Status:** 🔎 In review, Branch: feat/mobile-ux
 
-### 🌙 ON-27 — Web alt-text audit
+### ✅ ON-27 — Web alt-text audit
 `grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
 
-### 🌙 ON-28 — Mobile loading skeletons on list screens
+### ✅ ON-28 — Mobile loading skeletons on list screens
 Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
-**Status:** 🔎 In review, Branch: feat/mobile-ux
 
-### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
+### ✅ ON-29 — Replace `console.log` with logger in `apps/web` · PR #35
 Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
 
-### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
+### ✅ ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr.
 
-### 🌙 ON-31 — E2E: settings page notification prefs
+### ✅ ON-31 — E2E: settings page notification prefs
 Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
 
 ### ✅ ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
 
-### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
+### ✅ ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
 Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr.
 
 ### ✅ ON-34 — PostHog funnel events: web ↔ mobile parity audit
@@ -182,13 +182,13 @@ Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --
 ### ✅ ON-36 — TODO/FIXME audit + backlog backfill
 Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
 
-### 🌙 ON-37 — `ts-prune` unused exports sweep
+### ✅ ON-37 — `ts-prune` unused exports sweep
 `pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
 
 ### ✅ 🌙 ON-38 — Dependency freshness report
 `pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
 
-### 🔎 ON-39 — Eliminate `any` types
+### ✅ ON-39 — Eliminate `any` types
 Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
 
 ### ✅ ON-40 — Vitest flake detection + quarantine
@@ -200,10 +200,10 @@ Review each `__snapshots__` dir. Replace full-tree snapshots with targeted asser
 ### ✅ 🌙 ON-42 — Next.js caching directive audit
 Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each matches intent (auth = dynamic, marketing = static). Report at `docs/project-info/technology/CACHING_AUDIT.md`. Report only. **Size:** 2 hr.
 
-### ⚡ A11Y-004 — Token contrast validator script
+### ✅ A11Y-004 — Token contrast validator script
 Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
 
-### 🔎 ON-48 — Neutral design tokens + brief-page hex sweep
+### ✅ ON-48 — Neutral design tokens + brief-page hex sweep
 **Why:** brief share page uses fallback inline hex for grays; no formal neutral palette tokens.
 **Work:** Add six neutral tokens to `@theme inline` in `globals.css` (–50, –100, –200, –400, –700, –white). Replace all marked `TODO` hex in `/brief/[shareToken]/page.tsx` with `var(--color-neutral-*)`. Note: mood background tints and chart colors remain inline (separate from neutral palette).
 **AC:** No TODO comments remain; no neutral hex inline; `pnpm type-check` + `pnpm lint` clean.
@@ -239,27 +239,33 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) |
-| A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) |
-| A11Y-007 | P2 | Lighthouse a11y audit on each Vercel preview via `chrome-devtools-mcp` |
-| A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow |
-| A11Y-009 | P3 | Honor `prefers-reduced-motion` (web) + `AccessibilityInfo.isReduceMotionEnabled()` (mobile) |
+| ✅ A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) · PR #59 |
+| ✅ A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) · PR #63 |
+| ✅ A11Y-007 | P2 | Lighthouse a11y audit on each Vercel preview via `chrome-devtools-mcp` · PR #68 |
+| ✅ A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow · PR #78 |
+| ✅ A11Y-009 | P3 | Honor `prefers-reduced-motion` (web) + `AccessibilityInfo.isReduceMotionEnabled()` (mobile) · PR #67 |
 
 ---
 
 ## 5. Large features (multi-day, not overnight-eligible)
 
-### ON-43 — In-app messaging (DM + group) · ~3 days
+### ✅ ON-43 — In-app messaging (DM + group) · PR #49
 Tables `message_threads`, `message_thread_members`, `messages` (all org-scoped, RLS via `org_memberships`). tRPC `messagesRouter` (listThreads, getThread, sendMessage, createDm, createGroup, markRead). Supabase Realtime on `messages` filtered by thread membership. Web `/messages` shell + composer; mobile 2-screen list + inverted FlatList. Push on new message when `last_read_at < last_message_at` AND pref enabled. pgTAP RLS for all cases. DM creation idempotent (same user → same thread). **Split:** schema/RLS · web UI · mobile UI + push.
 
-### ON-44 — Comment threads on care events · ~1.5 days
+### ✅ ON-44 — Comment threads on care events · PR #73
 Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
 
-### ON-45 — Shift trade requests · ~2 days
+### ✅ ON-45 — Shift trade requests · PR #74
 Table `shift_trade_requests` (shift_id, requested_by, target_user_id nullable, status, message). Only assignee opens; target-only accept if set, else any caregiver. Acceptance atomically reassigns `shifts.assigned_user_id` + marks accepted in one transaction. Coordinator force-override logs to `audit_events`. Inngest cron `shiftTrades.expire` every 15 min marks ≤24 h stale requests expired + pushes. pgTAP for every state transition.
 
-### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
+### ✅ ON-46 — Medication tagging + tag filters + document links · PR #75
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
+
+### ✅ PP-14 — Education & guidance library · PR #76
+Education content library with guide cards, tag-filter browse page (`/education`), guide detail page (`/education/[slug]`), dashboard tip widget surfacing a contextual guide based on recent org activity (via Inngest cron), and sidebar nav entry. `lib/education.ts` as the static content store. pgTAP RLS on `education_tip_cache`. **Bundled with PP-15.**
+
+### ✅ PP-15 — Persist education tip dismissal · PR #76
+`user_profiles.education_tip_dismissed_until` set to `now() + 7 days` on dismiss via `trpc.user.dismissEducationTip`. Server-side gate in `dashboard/page.tsx` suppresses widget for dismissed users. **Bundled with PP-14.**
 
 ---
 
@@ -268,15 +274,15 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### High
-- **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
-- **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass.
-- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
+- **✅ UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). PR #54.
+- **✅ UX-02** — Illustrated empty states (journal, medications, team, vault). PR #70.
+- **✅ UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). PR #57.
 
 ### Medium
-- **UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`.
-- **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
-- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`). **Status:** 🔎 In review, Branch: feat/ux-06-sidebar-tooltips
-- **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
+- **✅ UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`. PR #71.
+- **✅ UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row). PR #60.
+- **✅ UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`). PR #65.
+- **✅ UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). PR #53.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
@@ -321,6 +327,21 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### A11Y tooling + messaging (2026-04-14)
 ✅ A11Y-001 `@axe-core/playwright` wired into e2e `afterEach`, fails on serious/critical · A11Y-002 `eslint-plugin-jsx-a11y` at `error` for alt-text, keyboard, static-element rules (PR #39) · ON-43 In-app messaging: DM + group threads, Supabase Realtime, read receipts, delayed push via Inngest, full pgTAP RLS (PR #49)
+
+### Overnight sweep batch (2026-04-14..16)
+✅ ON-21 Web raw-hex audit + token migration (PR #34) · ON-26 Mobile empty-state copy pass (PR #32) · ON-27 Web alt-text audit (PR #45) · ON-28 Mobile loading skeletons (PR #32) · ON-29 Replace console.log with logger (PR #35) · ON-30 JSDoc on packages/shared public exports (PR #50) · ON-31 E2E notification preferences spec (PR #69) · ON-33 Mobile Sentry breadcrumbs (PR #51) · ON-37 ts-prune unused exports sweep (PR #62) · ON-39 Eliminate any types (PR #52) · ON-48 Neutral design tokens + brief hex sweep (PR #58) · A11Y-004 Token contrast validator script
+
+### A11Y polish wave (2026-04-15..16)
+✅ A11Y-005 vitest-axe assertions on web UI primitives (PR #59) · A11Y-006 Mobile a11y snapshot tests (PR #63) · A11Y-007 Lighthouse a11y audit script + CI workflow (PR #68) · A11Y-009 prefers-reduced-motion web + mobile (PR #67)
+
+### Large features wave (2026-04-16)
+✅ ON-44 Comment threads on care events, RLS, Realtime (PR #73) · ON-45 Shift trade requests + Inngest expiry cron (PR #74) · ON-46 Medication tagging + chip-filter bars + detail panels (PR #75)
+
+### UX polish wave (2026-04-15..16)
+✅ UX-01 Loading skeletons (PR #54) · UX-02 Illustrated empty states (PR #70) · UX-03 Micro-interactions (PR #57) · UX-04 Full dark mode (PR #71) · UX-05 Mobile journal bottom-sheet (PR #60) · UX-06 Sidebar tooltip labels (PR #65) · UX-07 Active-panel breadcrumb (PR #53) · UX-10 Export page token alignment (PR #55)
+
+### AI assistant + education (2026-04-16)
+✅ AI assistant FAB with PHI-safe Claude integration, consent modal, de-identification utilities, RLS-protected conversations table, 5 E2E tests (PR #72) · A11Y-008 mobile-ui skill VoiceOver/TalkBack extension (PR #78) · PP-14 education & guidance library with browse/detail/dashboard tip widget (PR #76) · PP-15 persist education tip dismissal 7-day gate (PR #76) · TD-06 dark mode variants for comment + trade-request components (PR #77)
 
 ---
 
