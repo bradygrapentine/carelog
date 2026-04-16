@@ -18,10 +18,10 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 |---|---|---|
 | 🟢 Ready | 3 | §1 TD-02, TD-03 · §2 TD-05 |
 | ⚡ In progress | 1 | §1 PP-006 |
-| 🔎 In review | 0 | — |
+| 🔎 In review | 1 | §1 UX-04 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
-| 🧊 Deferred | 11 | §6 UX (10) + PP-013 |
+| 🧊 Deferred | 10 | §6 UX (9) + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -58,6 +58,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
+| UX-04 | 🔎 In review | — | `feat/ux-04-dark-mode` | **Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`** | Anti-FOUC script in layout.tsx. System/Light/Dark toggle in settings. globals.css: dark tokens + .dark class + print-mode overrides. 173 tests passing. |
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
@@ -216,7 +217,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 - **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Medium
-- **UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`.
 - **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
 - **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
 

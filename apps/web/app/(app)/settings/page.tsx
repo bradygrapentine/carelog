@@ -5,6 +5,7 @@ import { trpc } from "../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 // IANA timezone list (abbreviated — common zones). Full list can be sourced from
 // Intl.supportedValuesOf('timeZone') at runtime but we keep this static for SSR.
@@ -313,6 +314,26 @@ function NotificationsSection() {
   );
 }
 
+// ─── Appearance Section ──────────────────────────────────────────────────────
+
+function AppearanceSection() {
+  return (
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+        <CardTitle className="text-sm">Appearance</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-[var(--color-ink)]">
+            Color theme
+          </label>
+          <ThemeToggle />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Language Section ─────────────────────────────────────────────────────────
 
 function LanguageSection() {
@@ -458,6 +479,7 @@ export default function SettingsPage() {
       <div className="mt-8 space-y-6">
         <ProfileSection />
         <NotificationsSection />
+        <AppearanceSection />
         <LanguageSection />
         <DangerZoneSection />
       </div>

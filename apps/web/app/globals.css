@@ -191,3 +191,109 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Dark mode token overrides ────────────────────────────────────────── */
+
+/* System preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary:          #a78bfa;
+    --color-primary-light:    #c4b5fd;
+    --color-primary-subtle:   #2e1065;
+    --color-secondary:        #fbbf24;
+    --color-secondary-light:  #fde68a;
+    --color-secondary-subtle: #451a03;
+    --color-ink:              #f5f3ff;
+    --color-surface:          #0f0a1a;
+    --color-text-primary:     #e8e0f0;
+    --color-text-secondary:   #a89bc2;
+    --color-muted:            #9ca3af;
+    --color-border:           #2e1065;
+    --color-mood-good:        #22c55e;
+    --color-mood-okay:        #eab308;
+    --color-mood-difficult:   #f97316;
+    --color-mood-crisis:      #ef4444;
+    --color-warning:          #f59e0b;
+    --color-success:          #22c55e;
+    --color-danger:           #ef4444;
+    /* shadcn/ui HSL bridge — dark */
+    --background:          270 95%  7%;
+    --foreground:          270 100% 97%;
+    --card:                270 80%  10%;
+    --card-foreground:     270 100% 97%;
+    --border:              270 80%  20%;
+    --input:               270 80%  20%;
+    --ring:                270 100% 67%;
+    --primary:             270 100% 67%;
+    --primary-foreground:  270 95%  7%;
+    --secondary:           270 80%  15%;
+    --secondary-foreground: 270 100% 97%;
+    --muted:               270 40%  20%;
+    --muted-foreground:    270 30%  70%;
+    --accent:              270 80%  15%;
+    --accent-foreground:   270 100% 97%;
+    --destructive:         0   84%  60%;
+    --destructive-foreground: 0 0% 100%;
+    --popover:             270 80%  10%;
+    --popover-foreground:  270 100% 97%;
+  }
+}
+
+/* Manual toggle via .dark class (takes precedence over system preference) */
+.dark {
+  --color-primary:          #a78bfa;
+  --color-primary-light:    #c4b5fd;
+  --color-primary-subtle:   #2e1065;
+  --color-secondary:        #fbbf24;
+  --color-secondary-light:  #fde68a;
+  --color-secondary-subtle: #451a03;
+  --color-ink:              #f5f3ff;
+  --color-surface:          #0f0a1a;
+  --color-text-primary:     #e8e0f0;
+  --color-text-secondary:   #a89bc2;
+  --color-muted:            #9ca3af;
+  --color-border:           #2e1065;
+  --color-mood-good:        #22c55e;
+  --color-mood-okay:        #eab308;
+  --color-mood-difficult:   #f97316;
+  --color-mood-crisis:      #ef4444;
+  --color-warning:          #f59e0b;
+  --color-success:          #22c55e;
+  --color-danger:           #ef4444;
+  /* shadcn/ui HSL bridge — dark */
+  --background:          270 95%  7%;
+  --foreground:          270 100% 97%;
+  --card:                270 80%  10%;
+  --card-foreground:     270 100% 97%;
+  --border:              270 80%  20%;
+  --input:               270 80%  20%;
+  --ring:                270 100% 67%;
+  --primary:             270 100% 67%;
+  --primary-foreground:  270 95%  7%;
+  --secondary:           270 80%  15%;
+  --secondary-foreground: 270 100% 97%;
+  --muted:               270 40%  20%;
+  --muted-foreground:    270 30%  70%;
+  --accent:              270 80%  15%;
+  --accent-foreground:   270 100% 97%;
+  --destructive:         0   84%  60%;
+  --destructive-foreground: 0 0% 100%;
+  --popover:             270 80%  10%;
+  --popover-foreground:  270 100% 97%;
+}
+
+/* Print: always use light mode */
+@media print {
+  :root {
+    --color-primary:          #7c3aed;
+    --color-primary-subtle:   #ede9fe;
+    --color-ink:              #1e0a3c;
+    --color-surface:          #faf5ff;
+    --color-text-primary:     #1e0a3c;
+    --color-text-secondary:   #4b5563;
+    --background:          270 100% 98%;
+    --foreground:          270 90%  14%;
+    --card:                0   0%   100%;
+    --card-foreground:     270 90%  14%;
+  }
+}
