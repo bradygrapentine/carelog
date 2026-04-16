@@ -13,13 +13,13 @@ describe("SidebarSheet", () => {
     expect(screen.getByRole("button", { name: /menu/i })).toBeInTheDocument();
   });
 
-  it('opens the sheet and shows "Carelog" when the trigger is clicked', () => {
+  it('opens the sheet and shows "CareSync" when the trigger is clicked', () => {
     render(
       <SidebarProvider>
         <SidebarSheet />
       </SidebarProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /menu/i }));
-    expect(screen.getByText("Carelog")).toBeInTheDocument();
+    expect(screen.getByText("CareSync")).toBeInTheDocument();
   });
 });
