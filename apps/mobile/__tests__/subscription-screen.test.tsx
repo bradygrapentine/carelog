@@ -6,11 +6,10 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
-// Mock expo-linking
-const mockOpenURL = jest.fn().mockResolvedValue(undefined);
-jest.mock("expo-linking", () => ({
-  openURL: (...args: unknown[]) => mockOpenURL(...args),
-  createURL: jest.fn(),
+// Mock expo-web-browser
+const mockOpenBrowserAsync = jest.fn().mockResolvedValue({ type: "dismiss" });
+jest.mock("expo-web-browser", () => ({
+  openBrowserAsync: (...args: unknown[]) => mockOpenBrowserAsync(...args),
 }));
 
 // Mock auth utils so we don't need SecureStore in tests
@@ -104,7 +103,7 @@ describe("SubscriptionScreen", () => {
 
     fireEvent.press(getByLabelText("Manage subscription on web"));
 
-    expect(mockOpenURL).toHaveBeenCalledWith(
+    expect(mockOpenBrowserAsync).toHaveBeenCalledWith(
       "https://yourcarelog.com/subscriptions",
     );
   });

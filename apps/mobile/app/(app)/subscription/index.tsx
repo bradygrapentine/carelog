@@ -2,7 +2,7 @@
  * PP-003: Subscription read-only view
  *
  * Shows plan name, status badge, renewal date, and seat count.
- * "Manage on web" opens the Carelog web subscriptions page via expo-linking.
+ * "Manage on web" opens the Carelog web subscriptions page via expo-web-browser
  *
  * NOTE: No billing tRPC router exists yet in AppRouter. This screen uses a
  * placeholder REST fetch (TODO: wire trpc.billing.getSubscription once the
@@ -16,7 +16,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { getAccessToken } from "../../../utils/auth";
 
@@ -198,7 +198,7 @@ export default function SubscriptionScreen() {
   );
 
   async function handleManageOnWeb() {
-    await Linking.openURL(MANAGE_URL);
+    await WebBrowser.openBrowserAsync(MANAGE_URL);
   }
 
   if (fetchState.phase === "loading") {
