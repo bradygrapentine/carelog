@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 1 | §1 TD-02, TD-03 |
+| 🟢 Ready | 1 | §1 TD-03 |
 | ⚡ In progress | 1 | §1 PP-006 |
-| 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
+| 🔎 In review | 4 | §1 TD-02 · ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
-| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 + PP-013 |
+| 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -66,8 +66,9 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
+| TD-02 | 🔎 In review | **Dynamic Type + screen-reader audit (mobile)** | Physical device VoiceOver test still required by a human. Code changes (scaledFont + accessibility labels on medications + schedule) complete. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-06 | 🟢 Ready | **Add `dark:` variants to ON-44/ON-45 components** | Post-dark-mode (UX-04) follow-up: CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList lack `dark:` class variants. ~1 hr mechanical sweep. |
 
 ---
 
@@ -78,6 +79,8 @@ Picked up automatically by the nightly agent. Rules: mark `✅` when done; list 
 All items below are independent (no shared-state conflicts) — the agent may fan out in parallel.
 
 ### 🌙 ON-15 — Mobile: accessibility audit (iOS Dynamic Type + VoiceOver)
+**Status:** ✅ Shipped (code complete; physical device VoiceOver verification deferred to human)
+
 **Why:** Mobile uses fixed `fontSize` throughout; never tested against 200% Dynamic Type or VoiceOver navigation order.
 **Work:** Run app under max Larger Accessibility Sizes on journal/medications/schedule; migrate fixed sizes to `PixelRatio.getFontScale()` capped at 1.5×. VoiceOver-complete a medication-log flow end-to-end. File follow-up ON-XX for issues deferred.
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
@@ -91,14 +94,14 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 
 | ID | Priority | Story | Status |
 |---|---|---|---|
-| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | 🔵 In progress |
+| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ⏳ |
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ⏳ |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ⏳ |
 | PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🔴 PP-006 |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
 | PP-010 | P2 | Android: document-share intent verification | 🔴 PP-006 |
-| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
+| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ⏳ |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
@@ -128,6 +131,9 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 ## 6. Deferred UI polish (UX-*) — intentionally parked
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
+
+### Medium
+- **UX-03** — **Status:** ⚡ In progress · Branch: `feat/ux-03-micro-interactions` — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
@@ -169,9 +175,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
 
-### 2026-04-16 tech debt follow-ups
-✅ **TD-06** Dark variants on CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList (commit 012bbb8)
-
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)
 ✅ **A11Y-006** Mobile a11y snapshot tests per top-level screen (PR #63)
@@ -182,7 +185,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-48** Neutral design tokens + brief page hex sweep (PR #58)
 ✅ **TD-05** Regenerate Supabase TS types after messaging migration; removes `as any` in messagesRepository
 ✅ **UX-01** Loading skeletons across dashboard/journal/team/messages panels (PR #54)
-✅ **UX-03** Micro-interactions — sidebar active indicator, mood chip press scale, card hover lift, toast slide-in via sonner (PR #88)
 ✅ **UX-02** Illustrated empty states — journal, meds, team, vault (PR #70)
 ✅ **UX-04** Full dark mode via CSS custom properties + ThemeToggle + anti-FOUC script (PR #71)
 ✅ **UX-05** Mobile journal bottom-sheet + horizontal mood row (PR #60)
