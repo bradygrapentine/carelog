@@ -122,8 +122,8 @@ Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with proj
 ### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
 One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
 
-### 🌙 ON-31 — E2E: settings page notification prefs
-Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Blocked by:** PP-004 (if settings page is the new hub).
+### 🔎 ON-31 — E2E: settings page notification prefs
+Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Status:** 🔎 In review. **Branch:** feat/on31-e2e-settings-notifs. **Blocked by:** PP-004 (if settings page is the new hub).
 
 ### 🌙 ON-32 — E2E: invite-accept happy path
 Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
