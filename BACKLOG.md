@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 TD-02, TD-03 |
-| ⚡ In progress | 1 | §1 PP-006 |
+| 🟢 Ready | 1 | §1 TD-02, TD-03 |
+| ⚡ In progress | 3 | §1 PP-006 · §5 UX-03 · §3 PP-011 |
 | 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
@@ -68,7 +68,6 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
-| TD-06 | 🟢 Ready | **Add `dark:` variants to ON-44/ON-45 components** | Post-dark-mode (UX-04) follow-up: CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList lack `dark:` class variants. ~1 hr mechanical sweep. |
 
 ---
 
@@ -99,7 +98,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
 | PP-010 | P2 | Android: document-share intent verification | 🔴 PP-006 |
-| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ⏳ |
+| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ⚡ In progress · Branch: `feat/pp011-offline-journal-queue` |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
@@ -172,6 +171,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
+
+### 2026-04-16 tech debt follow-ups
+✅ **TD-06** Dark variants on CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList (commit 012bbb8)
 
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)
