@@ -1,8 +1,4 @@
 // apps/web/server/repositories/messagesRepository.ts
-// NOTE: message_threads, message_thread_members, messages tables are new in
-// migration 20260422000000. Until supabase-types is regenerated, we cast
-// .from() calls for these tables with `as any` to bypass TypeScript's strict
-// table-name check on the generated Database type.
 import { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import type { Database } from "@carelog/types";
@@ -15,8 +11,7 @@ export async function listThreadsForUser(
   userId: string,
   orgId: string,
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (client as any)
+  const { data, error } = await client
     .from("message_threads")
     .select(
       `id, thread_type, name, created_at,
@@ -40,8 +35,7 @@ export async function getThreadMessages(
   limit = 50,
   before?: string, // ISO datetime cursor
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (client as any)
+  let query = client
     .from("messages")
     .select("*, sender:user_profiles(display_name)")
     .eq("thread_id", threadId)
@@ -58,8 +52,7 @@ export async function getThreadMessages(
 
 /** Returns thread members with display names. */
 export async function getThreadMembers(client: Client, threadId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (client as any)
+  const { data, error } = await client
     .from("message_thread_members")
     .select("*, profile:user_profiles(display_name)")
     .eq("thread_id", threadId);
@@ -83,7 +76,7 @@ export async function findOrCreateDm(
   if (existing) return existing as string;
 
   // Create new DM thread
-  const { data: thread, error: threadErr } = await (supabaseAdmin as any)
+  const { data: thread, error: threadErr } = await supabaseAdmin
     .from("message_threads")
     .insert({ org_id: orgId, thread_type: "dm", created_by: userId })
     .select("id")
@@ -91,7 +84,7 @@ export async function findOrCreateDm(
 
   if (threadErr || !thread) throw threadErr ?? new Error("Failed to create DM");
 
-  await (supabaseAdmin as any).from("message_thread_members").insert([
+  await supabaseAdmin.from("message_thread_members").insert([
     { thread_id: thread.id, user_id: userId },
     { thread_id: thread.id, user_id: targetUserId },
   ]);
@@ -106,7 +99,7 @@ export async function createGroupThread(
   name: string,
   memberUserIds: string[],
 ): Promise<string> {
-  const { data: thread, error } = await (supabaseAdmin as any)
+  const { data: thread, error } = await supabaseAdmin
     .from("message_threads")
     .insert({ org_id: orgId, thread_type: "group", name, created_by: userId })
     .select("id")
@@ -115,7 +108,7 @@ export async function createGroupThread(
   if (error || !thread) throw error ?? new Error("Failed to create group");
 
   const allMembers = Array.from(new Set([userId, ...memberUserIds]));
-  await (supabaseAdmin as any)
+  await supabaseAdmin
     .from("message_thread_members")
     .insert(allMembers.map((uid) => ({ thread_id: thread.id, user_id: uid })));
 
@@ -129,7 +122,7 @@ export async function insertMessage(
   senderId: string,
   body: string,
 ) {
-  const { data, error } = await (client as any)
+  const { data, error } = await client
     .from("messages")
     .insert({ thread_id: threadId, sender_id: senderId, body })
     .select("*, sender:user_profiles(display_name)")
@@ -153,7 +146,7 @@ export async function markThreadRead(
   threadId: string,
   userId: string,
 ) {
-  const { error } = await (client as any)
+  const { error } = await client
     .from("message_thread_members")
     .update({ last_read_at: new Date().toISOString() })
     .eq("thread_id", threadId)
@@ -164,7 +157,7 @@ export async function markThreadRead(
 
 /** Used by the Inngest push function: returns member user_ids + last_read_at for a thread. */
 export async function getThreadMembersForPush(threadId: string) {
-  const { data, error } = await (supabaseAdmin as any)
+  const { data, error } = await supabaseAdmin
     .from("message_thread_members")
     .select("user_id, last_read_at")
     .eq("thread_id", threadId);
