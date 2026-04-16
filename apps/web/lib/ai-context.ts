@@ -7,6 +7,7 @@ export type PageContext =
   | "journal"
   | "messages"
   | "team"
+  | "education"
   | "other";
 
 export type ContextData = {
@@ -15,6 +16,7 @@ export type ContextData = {
   unreadMessageCount: number;
   upcomingShiftCount?: number;
   missedDosesThisWeek?: number;
+  recentJournalCount?: number;
   nameMap: NameMap;
 };
 
@@ -51,8 +53,15 @@ export function formatContextBlob(
     lines.push(`Unread messages: ${data.unreadMessageCount}`);
   }
 
-  if (pageContext === "schedule" && data.upcomingShiftCount !== undefined) {
+  if (
+    (pageContext === "schedule" || pageContext === "dashboard") &&
+    data.upcomingShiftCount !== undefined
+  ) {
     lines.push(`Upcoming shifts this week: ${data.upcomingShiftCount}`);
+  }
+
+  if (pageContext === "journal" && data.recentJournalCount !== undefined) {
+    lines.push(`Journal entries this week: ${data.recentJournalCount}`);
   }
 
   return lines.join("\n");
