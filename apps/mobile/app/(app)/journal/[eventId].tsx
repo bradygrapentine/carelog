@@ -22,6 +22,7 @@ import {
 } from "../../../utils/journalUtils";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { CommentSection } from "../../../components/comments/CommentSection";
+import { scaledFont } from "../../../lib/typography";
 
 // ts-prune-ignore-next // Expo Router page component
 export default function JournalDetailScreen() {
@@ -53,7 +54,7 @@ export default function JournalDetailScreen() {
         content: { padding: spacing.lg },
         center: { flex: 1, alignItems: "center", justifyContent: "center" },
         backBtn: { marginBottom: spacing.md },
-        backText: { fontSize: 14, color: colors.primary },
+        backText: { fontSize: scaledFont(14), color: colors.primary },
         card: {
           backgroundColor: colors.surfaceRaised,
           borderRadius: radii.lg,
@@ -64,7 +65,7 @@ export default function JournalDetailScreen() {
           shadowOffset: { width: 0, height: 1 },
         },
         entryText: {
-          fontSize: 16,
+          fontSize: scaledFont(16),
           color: colors.textPrimary,
           lineHeight: 24,
           marginBottom: spacing.md,
@@ -81,8 +82,8 @@ export default function JournalDetailScreen() {
           paddingVertical: 3,
           borderRadius: 12,
         },
-        moodText: { fontSize: 12, fontWeight: "500" },
-        dateText: { fontSize: 12, color: colors.mutedLight },
+        moodText: { fontSize: scaledFont(12), fontWeight: "500" },
+        dateText: { fontSize: scaledFont(12), color: colors.mutedLight },
         reactionRow: {
           flexDirection: "row",
           gap: spacing.sm,
@@ -104,10 +105,13 @@ export default function JournalDetailScreen() {
           borderColor: colors.primaryLight,
           backgroundColor: colors.primarySubtle,
         },
-        reactionEmoji: { fontSize: 16 },
-        reactionLabel: { fontSize: 13, color: colors.textSecondary },
+        reactionEmoji: { fontSize: scaledFont(16) },
+        reactionLabel: {
+          fontSize: scaledFont(13),
+          color: colors.textSecondary,
+        },
         reactionCount: {
-          fontSize: 12,
+          fontSize: scaledFont(12),
           color: colors.textSecondary,
           fontWeight: "600",
         },
@@ -123,7 +127,7 @@ export default function JournalDetailScreen() {
           backgroundColor: colors.primarySubtle,
         },
         flagText: {
-          fontSize: 14,
+          fontSize: scaledFont(14),
           color: colors.textSecondary,
           fontWeight: "500",
         },

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 type ShiftTradeRow = {
   id: string;
@@ -92,12 +93,12 @@ export function TradeRequestCard({
           marginBottom: spacing.sm,
         },
         requesterText: {
-          fontSize: 14,
+          fontSize: scaledFont(14),
           fontWeight: "500",
           color: colors.ink,
         },
         targetText: {
-          fontSize: 13,
+          fontSize: scaledFont(13),
           color: colors.textSecondary,
           marginBottom: spacing.sm,
         },
@@ -108,7 +109,7 @@ export function TradeRequestCard({
           marginVertical: spacing.sm,
         },
         messageText: {
-          fontSize: 13,
+          fontSize: scaledFont(13),
           color: colors.textPrimary,
           lineHeight: 18,
         },
@@ -135,7 +136,7 @@ export function TradeRequestCard({
           backgroundColor: colors.danger,
         },
         buttonText: {
-          fontSize: 13,
+          fontSize: scaledFont(13),
           fontWeight: "600",
           color: colors.surface,
         },
@@ -146,7 +147,7 @@ export function TradeRequestCard({
           backgroundColor: statusColor,
         },
         statusText: {
-          fontSize: 11,
+          fontSize: scaledFont(11),
           fontWeight: "600",
           color: colors.surface,
         },

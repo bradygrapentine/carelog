@@ -22,6 +22,7 @@ import {
   REACTIONS,
   formatEntryTime,
 } from "../../../utils/journalUtils";
+import { scaledFont } from "../../../lib/typography";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 import { SkeletonRow } from "../../../components/Skeleton";
@@ -100,7 +101,7 @@ function buildStyles(
     syncBanner: { paddingVertical: 6, paddingHorizontal: spacing.md },
     offlineBanner: { backgroundColor: colors.secondarySubtle },
     pendingBanner: { backgroundColor: colors.primarySubtle },
-    syncText: { fontSize: 12, color: colors.textSecondary },
+    syncText: { fontSize: scaledFont(12), color: colors.textSecondary },
     journalPanel: { flex: 1 },
     formPanel: {},
     loader: { marginTop: 48 },
@@ -117,14 +118,18 @@ function buildStyles(
       gap: spacing.sm,
       marginBottom: 2,
     },
-    entryTime: { fontSize: 12, color: colors.mutedLight },
+    entryTime: { fontSize: scaledFont(12), color: colors.mutedLight },
     moodBadge: {
       paddingHorizontal: spacing.sm,
       paddingVertical: 2,
       borderRadius: 12,
     },
-    moodText: { fontSize: 11, fontWeight: "500" },
-    entryText: { fontSize: 15, color: colors.textPrimary, lineHeight: 22 },
+    moodText: { fontSize: scaledFont(11), fontWeight: "500" },
+    entryText: {
+      fontSize: scaledFont(15),
+      color: colors.textPrimary,
+      lineHeight: 22,
+    },
     reactionRow: {
       flexDirection: "row",
       gap: 6,
@@ -146,14 +151,18 @@ function buildStyles(
       borderColor: colors.primaryLight,
       backgroundColor: colors.primarySubtle,
     },
-    reactionEmoji: { fontSize: 14 },
+    reactionEmoji: { fontSize: scaledFont(14) },
     reactionCount: {
-      fontSize: 12,
+      fontSize: scaledFont(12),
       color: colors.textSecondary,
       fontWeight: "500",
     },
     openBtn: { marginTop: spacing.sm, alignSelf: "flex-start" },
-    openBtnText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+    openBtnText: {
+      fontSize: scaledFont(13),
+      color: colors.primary,
+      fontWeight: "500",
+    },
     empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
     moodRow: { flexDirection: "row", gap: spacing.sm, marginBottom: 10 },
     moodTag: {
@@ -163,13 +172,13 @@ function buildStyles(
       borderWidth: 1,
       borderColor: colors.borderNeutral,
     },
-    moodTagText: { fontSize: 13, color: colors.textSecondary },
+    moodTagText: { fontSize: scaledFont(13), color: colors.textSecondary },
     input: {
       borderWidth: 1,
       borderColor: colors.borderNeutral,
       borderRadius: radii.md,
       padding: 10,
-      fontSize: 15,
+      fontSize: scaledFont(15),
       minHeight: 72,
       textAlignVertical: "top",
       marginBottom: 10,
@@ -367,7 +376,7 @@ export default function JournalScreen() {
         accessibilityRole="button"
         accessibilityLabel="Add new journal entry"
       >
-        <Text style={{ fontSize: 28, color: colors.white }}>+</Text>
+        <Text style={{ fontSize: scaledFont(28), color: colors.white }}>+</Text>
       </TouchableOpacity>
 
       {/* Bottom sheet for new entry */}
@@ -378,7 +387,13 @@ export default function JournalScreen() {
           setText("");
         }}
       >
-        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+        <Text
+          style={{
+            fontSize: scaledFont(16),
+            fontWeight: "600",
+            color: colors.textPrimary,
+          }}
+        >
           New Entry
         </Text>
 

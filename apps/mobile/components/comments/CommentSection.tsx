@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, Text, View } from "react-native";
 import { trpc } from "../../utils/trpc";
 import { useApp } from "../../context/AppContext";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 import { CommentItem } from "./CommentItem";
 import { CommentComposer } from "./CommentComposer";
 
@@ -25,7 +26,7 @@ export function CommentSection({ careEventId }: { careEventId: string }) {
       <Text
         style={{
           fontWeight: "600",
-          fontSize: 16,
+          fontSize: scaledFont(16),
           paddingHorizontal: 16,
           marginBottom: 8,
         }}

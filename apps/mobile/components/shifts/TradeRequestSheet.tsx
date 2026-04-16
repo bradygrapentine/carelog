@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useAppTheme } from "../../hooks/useAppTheme";
+import { scaledFont } from "../../lib/typography";
 
 interface TradeRequestSheetProps {
   shiftId: string;
@@ -40,13 +41,13 @@ export function TradeRequestSheet({
           backgroundColor: colors.surface,
         },
         title: {
-          fontSize: 16,
+          fontSize: scaledFont(16),
           fontWeight: "600",
           color: colors.ink,
           marginBottom: spacing.md,
         },
         label: {
-          fontSize: 13,
+          fontSize: scaledFont(13),
           fontWeight: "500",
           color: colors.textPrimary,
           marginBottom: spacing.sm,
@@ -57,19 +58,19 @@ export function TradeRequestSheet({
           borderRadius: 6,
           padding: spacing.md,
           minHeight: 100,
-          fontSize: 13,
+          fontSize: scaledFont(13),
           color: colors.textPrimary,
           textAlignVertical: "top",
           marginBottom: spacing.sm,
         },
         charCount: {
-          fontSize: 11,
+          fontSize: scaledFont(11),
           color: isAtLimit ? colors.danger : colors.mutedLight,
           textAlign: "right",
           marginBottom: spacing.md,
         },
         note: {
-          fontSize: 12,
+          fontSize: scaledFont(12),
           color: colors.textSecondary,
           marginBottom: spacing.md,
           lineHeight: 16,
@@ -96,7 +97,7 @@ export function TradeRequestSheet({
           backgroundColor: colors.primary,
         },
         buttonText: {
-          fontSize: 14,
+          fontSize: scaledFont(14),
           fontWeight: "600",
         },
         cancelText: {
