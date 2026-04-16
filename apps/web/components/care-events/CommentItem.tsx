@@ -92,7 +92,7 @@ export function CommentItem({
             type="button"
             aria-label="Edit comment"
             onClick={() => setEditing(true)}
-            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             <Pencil size={14} aria-hidden="true" />
           </button>
@@ -102,7 +102,7 @@ export function CommentItem({
             onClick={() => {
               if (confirm("Delete this comment?")) onDelete(comment.id);
             }}
-            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             <Trash2 size={14} aria-hidden="true" />
           </button>
