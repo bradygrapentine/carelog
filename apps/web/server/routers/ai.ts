@@ -32,6 +32,7 @@ export const aiRouter = router({
           "journal",
           "messages",
           "team",
+          "education",
           "other",
         ] as const),
         orgId: z.string().uuid(),
@@ -62,36 +63,69 @@ export const aiRouter = router({
 
       // 2. Fetch structured data for context (no free-text fields)
       const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const since7d = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
 
-      const [moodRes, medRes, msgRes, membersRes, recipientRes] =
-        await Promise.all([
-          ctx.supabase
-            .from("mood_entries")
-            .select("mood")
-            .eq("org_id", input.orgId)
-            .gte("occurred_at", since48h),
-          ctx.supabase
-            .from("medications")
-            .select("id")
-            .eq("org_id", input.orgId)
-            .eq("is_active", true),
-          ctx.supabase
-            .from("message_threads")
-            .select("id")
-            .eq("org_id", input.orgId),
-          ctx.supabase
-            .from("memberships")
-            .select("display_name")
-            .eq("org_id", input.orgId)
-            .not("accepted_at", "is", null),
-          input.recipientId
-            ? ctx.supabase
-                .from("care_recipients")
-                .select("display_name")
-                .eq("id", input.recipientId)
-                .single()
-            : Promise.resolve({ data: null }),
-        ]);
+      const [
+        moodRes,
+        medRes,
+        msgRes,
+        membersRes,
+        recipientRes,
+        missedDosesRes,
+        shiftsRes,
+        journalRes,
+      ] = await Promise.all([
+        ctx.supabase
+          .from("mood_entries")
+          .select("mood")
+          .eq("org_id", input.orgId)
+          .gte("occurred_at", since48h),
+        ctx.supabase
+          .from("medications")
+          .select("id")
+          .eq("org_id", input.orgId)
+          .eq("is_active", true),
+        ctx.supabase
+          .from("message_threads")
+          .select("id")
+          .eq("org_id", input.orgId),
+        ctx.supabase
+          .from("memberships")
+          .select("display_name")
+          .eq("org_id", input.orgId)
+          .not("accepted_at", "is", null),
+        input.recipientId
+          ? ctx.supabase
+              .from("care_recipients")
+              .select("display_name")
+              .eq("id", input.recipientId)
+              .single()
+          : Promise.resolve({ data: null }),
+        ctx.supabase
+          .from("care_events")
+          .select("id", { count: "exact", head: true })
+          .eq("org_id", input.orgId)
+          .eq("event_type", "medication")
+          .contains("payload", { action: "missed" })
+          .gte("occurred_at", since7d),
+        ctx.supabase
+          .from("shifts")
+          .select("id", { count: "exact", head: true })
+          .eq("org_id", input.orgId)
+          .gte("start_at", new Date().toISOString())
+          .lte(
+            "start_at",
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          ),
+        ctx.supabase
+          .from("care_events")
+          .select("id", { count: "exact", head: true })
+          .eq("org_id", input.orgId)
+          .eq("event_type", "journal")
+          .gte("occurred_at", since7d),
+      ]);
 
       // 3. Build de-identified context blob
       const teamNames = (membersRes.data ?? [])
@@ -107,6 +141,9 @@ export const aiRouter = router({
         recentMoodScores: (moodRes.data ?? []).map((e) => e.mood),
         activeMedCount: medRes.data?.length ?? 0,
         unreadMessageCount: msgRes.data?.length ?? 0,
+        missedDosesThisWeek: missedDosesRes.count ?? 0,
+        upcomingShiftCount: shiftsRes.count ?? 0,
+        recentJournalCount: journalRes.count ?? 0,
         nameMap,
       });
 

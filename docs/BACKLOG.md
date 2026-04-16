@@ -99,6 +99,9 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
+| ON-50 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI context enrichment** | Fetch `missedDosesThisWeek` (care_events medication/missed, 7d), `upcomingShiftCount` (shifts table, next 7d), `recentJournalCount` (care_events journal, 7d) in ai router; pass to formatContextBlob; add "education" to pageContext enum; surface counts on dashboard context too. AC: context blob includes these fields when non-zero; typecheck + tests green. |
+| ON-51 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI action execution — deep-link nav** | Wire `handleConfirmAction` in AIPanel.tsx to navigate to relevant route (log_mood→/journal, send_message→/messages, log_medication_dose→/medications, suggest_shift→/schedule) via `useRouter` + close panel. Remove stub comment. AC: each action type navigates; panel closes. |
+| ON-52 | 🔎 In review | Opus | feat/on50-ai-enhancements | **AI quick prompts expansion** | Add education page suggestions to CONTEXT_SUGGESTIONS (was mapped but missing); add caregiver self-care global suggestions; add care-events/symptoms suggestions. AC: education page shows relevant chips; global has self-care option. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
