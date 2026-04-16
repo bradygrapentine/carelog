@@ -76,11 +76,11 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 
 ## PHI & Privacy Rules
 
-Hard invariant — applies to every agent, subagent, and Claude instance working in this repo:
+Hard invariant — applies to every agent, subagent, and Claude instance (including the main orchestrator) working in this repo:
 
 - `posthog.identify()` and `posthog.capture()` must use **anonymous UUID only** — never email, name, phone number, or any PII/PHI.
-- This applies to all analytics calls across web, mobile, and any future surface.
-- Any subagent touching analytics files (`posthog`, `identify`, `capture`) must have its diff reviewed by Opus before merge.
+- This applies to all analytics platforms (PostHog, Segment, Amplitude, or any future service) across web, mobile, and any future surface.
+- Any subagent touching analytics files (any file importing `posthog` or a similar analytics SDK, or containing `identify`/`capture` calls) must have its diff reviewed by Opus before merge.
 - When writing the subagent scope contract, always include: `PHI RULE: posthog.identify() and posthog.capture() must use UUID only — never email, name, or any PII`
 
 ## Parallel Work
