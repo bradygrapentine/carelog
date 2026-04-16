@@ -43,6 +43,14 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
     });
   }, [messages]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   function sendPrompt(prompt: string) {
     if (!prompt.trim()) return;
     setMessages((prev) => [...prev, { role: "user", content: prompt }]);

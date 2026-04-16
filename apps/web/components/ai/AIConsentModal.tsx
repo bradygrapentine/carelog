@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -8,6 +9,46 @@ type Props = {
 };
 
 export function AIConsentModal({ onEnable, onDismiss }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Move focus into modal on open
+    const firstFocusable = containerRef.current?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    firstFocusable?.focus();
+  }, []);
+
+  useEffect(() => {
+    // Trap focus within modal
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onDismiss();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onDismiss]);
+
   return (
     <div
       role="dialog"
@@ -15,7 +56,10 @@ export function AIConsentModal({ onEnable, onDismiss }: Props) {
       aria-labelledby="ai-consent-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
     >
-      <div className="bg-white rounded-2xl shadow-2xl border border-[var(--color-border)] p-6 max-w-sm w-full space-y-4">
+      <div
+        ref={containerRef}
+        className="bg-white rounded-2xl shadow-2xl border border-[var(--color-border)] p-6 max-w-sm w-full space-y-4"
+      >
         <div className="space-y-1">
           <h2
             id="ai-consent-title"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 export function useAIConsent() {
@@ -12,19 +13,22 @@ export function useAIConsent() {
   });
 
   // Store consent locally so UI updates immediately without a round-trip
-  const enabled =
+  const [enabled, setEnabled] = useState(() =>
     typeof window !== "undefined"
       ? localStorage.getItem("ai_consent") === "true"
-      : false;
+      : false,
+  );
 
   return {
     enabled,
     enable: () => {
       localStorage.setItem("ai_consent", "true");
+      setEnabled(true);
       enableMutation.mutate();
     },
     revoke: () => {
       localStorage.removeItem("ai_consent");
+      setEnabled(false);
       revokeMutation.mutate();
     },
   };

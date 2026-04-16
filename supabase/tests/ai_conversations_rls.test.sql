@@ -39,6 +39,8 @@ SELECT tests.authenticate_as('bob@example.com');
 SELECT throws_ok(
   $$ INSERT INTO ai_conversations (user_id, org_id) VALUES
      ((SELECT id FROM auth.users WHERE email = 'alice@example.com'), 'org-ai-1') $$,
+  '42501',
+  NULL,
   'bob cannot insert as alice'
 );
 
