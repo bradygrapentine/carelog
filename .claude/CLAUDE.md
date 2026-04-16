@@ -34,6 +34,17 @@ Before starting any planned or multi-task work, verify what is already done. Run
 
 When asked to fix failing tests, run the test command first and read the actual failure output. Do not explore the codebase before seeing the real errors — the failure message usually points at the exact file and line.
 
+### Interactive Commands
+
+These CLIs block on stdin — Claude **cannot** run them from Bash. Recognize them immediately and ask the user to run manually, then paste the output. Do not attempt to pipe input or use `expect`.
+
+- `eas login`, `eas build --auto-submit`, `eas submit`
+- `supabase login`
+- Any OAuth / browser-redirect authentication flow
+- `npx create-*` prompts that ask questions interactively
+
+Pattern: if a command requires typing into a prompt, it belongs to the user, not Claude.
+
 ## Commands
 
 ```sh
@@ -228,6 +239,21 @@ When asked to produce a specific artifact (review report, test file, runbook, co
 3. Return the completed artifact
 
 Do NOT read 10 files "to understand the codebase" before producing output. Reading files for exploration instead of writing the artifact is the most common failure mode in review/test/runbook sessions. If you find yourself opening a 4th file before writing a single line of output, stop and start the output file first.
+
+## Status Reporting Honesty
+
+When verifying "is X working?", always check an **authoritative source** — never declare success based on a UI state that could be echoing the user's own input.
+
+| What to verify | Authoritative source |
+|---|---|
+| Server running | `ps aux`, health endpoint, server logs |
+| Tests passing | Test runner exit code (`echo $?`) |
+| DB migration applied | `supabase db diff` or direct query |
+| Build deployed | Deployment platform logs / status API |
+| Message received | Read from inbox, not sent-messages list |
+| Feature flag active | SDK `isEnabled()` call, not UI assumption |
+
+Classic failure: reporting iMessage "working" because sent messages appeared in Messages.app — the channel server was down; those were the user's own outbound texts reflected back.
 
 ## Review Mode (READ-ONLY)
 
