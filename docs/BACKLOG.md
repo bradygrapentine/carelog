@@ -283,7 +283,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
-- **UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system.
+- **✅ UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system. *(Shipped: token migration + print styles)*
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
 
 ---

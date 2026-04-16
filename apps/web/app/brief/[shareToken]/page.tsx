@@ -132,119 +132,151 @@ export default function BriefPage({
   const generatedDate = formatDate(content.generated_at);
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4">
-      <div className="max-w-4xl mx-auto px-4 space-y-4">
-        {/* Header card */}
-        <Card className="shadow-sm gap-2">
-          <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-            <CardTitle className="text-sm">{brief.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <p className="text-lg font-semibold text-[var(--color-ink)]">
-              {content.recipient_name}
-            </p>
-            <p className="text-sm text-[var(--color-muted)] mt-1">
-              Generated on {generatedDate}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Medications */}
-        {brief.includes.includes("medications") && (
+    <>
+      <style>{`
+        @media print {
+          body {
+            background: white;
+            color: var(--color-ink);
+          }
+          .print\\:hidden {
+            display: none;
+          }
+          .page-content {
+            max-width: none;
+            padding: 0;
+            background: white;
+          }
+          .page-content > .space-y-4 {
+            gap: 1rem;
+          }
+          .page-content .shadow-sm {
+            box-shadow: none;
+          }
+          .page-content .border {
+            border-color: var(--color-ink);
+          }
+          .page-content [class*="bg-"] {
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+      <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 page-content">
+        <div className="max-w-4xl mx-auto px-4 space-y-4">
+          {/* Header card */}
           <Card className="shadow-sm gap-2">
             <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-              <CardTitle className="text-sm">Medications</CardTitle>
+              <CardTitle className="text-sm">{brief.title}</CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
-              {content.medications.length === 0 ? (
-                <p className="text-sm text-[var(--color-muted)]">
-                  No active medications recorded.
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {content.medications.map((med, i) => (
-                    <li
-                      key={i}
-                      className="p-3 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]"
-                    >
-                      <span className="font-semibold text-[var(--color-ink)]">
-                        {med.drug_name}
-                      </span>
-                      {med.dosage && (
-                        <span className="text-[var(--color-muted)] ml-2">
-                          {med.dosage}
-                        </span>
-                      )}
-                      {med.instructions && (
-                        <p className="text-sm text-[var(--color-muted)] mt-1">
-                          {med.instructions}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <p className="text-lg font-semibold text-[var(--color-ink)]">
+                {content.recipient_name}
+              </p>
+              <p className="text-sm text-[var(--color-muted)] mt-1">
+                Generated on {generatedDate}
+              </p>
             </CardContent>
           </Card>
-        )}
 
-        {/* Recent journal entries */}
-        {brief.includes.includes("journal") && (
-          <Card className="shadow-sm gap-2">
-            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-              <CardTitle className="text-sm">Recent Journal Entries</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-2">
-              {content.recent_entries.length === 0 ? (
-                <p className="text-sm text-[var(--color-muted)]">
-                  No recent journal entries.
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {content.recent_entries.map((entry, i) => {
-                    const moodBg = entry.mood
-                      ? (moodTokens[entry.mood] ?? "var(--color-surface)")
-                      : undefined;
-                    const moodLabel = entry.mood
-                      ? (moodLabels[entry.mood] ?? entry.mood)
-                      : undefined;
-                    return (
+          {/* Medications */}
+          {brief.includes.includes("medications") && (
+            <Card className="shadow-sm gap-2">
+              <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+                <CardTitle className="text-sm">Medications</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                {content.medications.length === 0 ? (
+                  <p className="text-sm text-[var(--color-muted)]">
+                    No active medications recorded.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {content.medications.map((med, i) => (
                       <li
                         key={i}
                         className="p-3 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]"
                       >
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[0.8rem] text-[var(--color-muted)]">
-                            {formatDate(entry.occurred_at)}
+                        <span className="font-semibold text-[var(--color-ink)]">
+                          {med.drug_name}
+                        </span>
+                        {med.dosage && (
+                          <span className="text-[var(--color-muted)] ml-2">
+                            {med.dosage}
                           </span>
-                          {moodLabel && (
-                            <span
-                              className="px-2 py-0.5 rounded-full text-xs font-medium text-[var(--color-text-secondary)]"
-                              style={{ background: moodBg }}
-                            >
-                              {moodLabel}
-                            </span>
-                          )}
-                        </div>
-                        {entry.text && (
-                          <p className="text-sm text-[var(--color-text-secondary)] m-0">
-                            {truncate(entry.text, 140)}
+                        )}
+                        {med.instructions && (
+                          <p className="text-sm text-[var(--color-muted)] mt-1">
+                            {med.instructions}
                           </p>
                         )}
                       </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Footer */}
-        <p className="text-xs text-[var(--color-muted)] text-center pt-2">
-          This is a point-in-time snapshot generated by Carelog.
-        </p>
+          {/* Recent journal entries */}
+          {brief.includes.includes("journal") && (
+            <Card className="shadow-sm gap-2">
+              <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+                <CardTitle className="text-sm">
+                  Recent Journal Entries
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                {content.recent_entries.length === 0 ? (
+                  <p className="text-sm text-[var(--color-muted)]">
+                    No recent journal entries.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {content.recent_entries.map((entry, i) => {
+                      const moodBg = entry.mood
+                        ? (moodTokens[entry.mood] ?? "var(--color-surface)")
+                        : undefined;
+                      const moodLabel = entry.mood
+                        ? (moodLabels[entry.mood] ?? entry.mood)
+                        : undefined;
+                      return (
+                        <li
+                          key={i}
+                          className="p-3 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]"
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-[0.8rem] text-[var(--color-muted)]">
+                              {formatDate(entry.occurred_at)}
+                            </span>
+                            {moodLabel && (
+                              <span
+                                className="px-2 py-0.5 rounded-full text-xs font-medium text-[var(--color-text-secondary)]"
+                                style={{ background: moodBg }}
+                              >
+                                {moodLabel}
+                              </span>
+                            )}
+                          </div>
+                          {entry.text && (
+                            <p className="text-sm text-[var(--color-text-secondary)] m-0">
+                              {truncate(entry.text, 140)}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Footer */}
+          <p className="text-xs text-[var(--color-muted)] text-center pt-2">
+            This is a point-in-time snapshot generated by Carelog.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -166,134 +166,164 @@ export default function OuterCirclePage({
   const slotsRemaining = data.slots_total - data.slots_filled;
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4">
-      <div className="max-w-4xl mx-auto px-4 space-y-4">
-        <Card className="shadow-sm gap-2">
-          <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-[var(--color-muted)] bg-[var(--color-surface)] rounded-full px-2 py-1">
-                {TYPE_LABELS[data.request_type] ?? data.request_type}
-              </span>
-            </div>
-            <CardTitle className="text-sm mt-1">{data.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {data.description && (
-              <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                {data.description}
-              </p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-[var(--color-muted)]">
-              <span>
-                {slotsRemaining} of {data.slots_total}{" "}
-                {data.slots_total === 1 ? "slot" : "slots"} remaining
-              </span>
-              {data.needed_by && (
-                <span>Needed by {formatDate(data.needed_by)}</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm gap-2">
-          <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-            <CardTitle className="text-sm">Claim a slot</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="claimer-name"
-                  className="block text-xs text-[var(--color-muted)] mb-1"
-                >
-                  Your name
-                </label>
-                <input
-                  id="claimer-name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setFormError(null);
-                  }}
-                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                  placeholder="Jane Smith"
-                />
+    <>
+      <style>{`
+        @media print {
+          body {
+            background: white;
+            color: var(--color-ink);
+          }
+          .print\\:hidden {
+            display: none;
+          }
+          .page-content {
+            max-width: none;
+            padding: 0;
+            background: white;
+          }
+          .page-content > .space-y-4 {
+            gap: 1rem;
+          }
+          .page-content .shadow-sm {
+            box-shadow: none;
+          }
+          .page-content .border {
+            border-color: var(--color-ink);
+          }
+          .page-content [class*="bg-"] {
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+      <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 page-content">
+        <div className="max-w-4xl mx-auto px-4 space-y-4">
+          <Card className="shadow-sm gap-2">
+            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-[var(--color-muted)] bg-[var(--color-surface)] rounded-full px-2 py-1">
+                  {TYPE_LABELS[data.request_type] ?? data.request_type}
+                </span>
               </div>
-
-              <div>
-                <label
-                  htmlFor="claimer-email"
-                  className="block text-xs text-[var(--color-muted)] mb-1"
-                >
-                  Email address
-                </label>
-                <input
-                  id="claimer-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setFormError(null);
-                  }}
-                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                  placeholder="jane@example.com"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="claimer-date"
-                  className="block text-xs text-[var(--color-muted)] mb-1"
-                >
-                  Date (optional)
-                </label>
-                <input
-                  id="claimer-date"
-                  type="date"
-                  value={slotDate}
-                  onChange={(e) => setSlotDate(e.target.value)}
-                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="claimer-note"
-                  className="block text-xs text-[var(--color-muted)] mb-1"
-                >
-                  Note (optional)
-                </label>
-                <textarea
-                  id="claimer-note"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={2}
-                  maxLength={500}
-                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 resize-none"
-                  placeholder="Any details you want to share..."
-                />
-              </div>
-
-              {formError && (
-                <p className="text-sm text-[var(--color-danger)]">
-                  {formError}
+              <CardTitle className="text-sm mt-1">{data.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              {data.description && (
+                <p className="text-sm text-[var(--color-text-secondary)] mb-3">
+                  {data.description}
                 </p>
               )}
+              <div className="flex items-center gap-4 text-sm text-[var(--color-muted)]">
+                <span>
+                  {slotsRemaining} of {data.slots_total}{" "}
+                  {data.slots_total === 1 ? "slot" : "slots"} remaining
+                </span>
+                {data.needed_by && (
+                  <span>Needed by {formatDate(data.needed_by)}</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-              >
-                {submitting ? "Claiming..." : "Claim a slot"}
-              </button>
-            </form>
-          </CardContent>
-        </Card>
+          <Card className="shadow-sm gap-2">
+            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+              <CardTitle className="text-sm">Claim a slot</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="claimer-name"
+                    className="block text-xs text-[var(--color-muted)] mb-1"
+                  >
+                    Your name
+                  </label>
+                  <input
+                    id="claimer-name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setFormError(null);
+                    }}
+                    className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                    placeholder="Jane Smith"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="claimer-email"
+                    className="block text-xs text-[var(--color-muted)] mb-1"
+                  >
+                    Email address
+                  </label>
+                  <input
+                    id="claimer-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFormError(null);
+                    }}
+                    className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="claimer-date"
+                    className="block text-xs text-[var(--color-muted)] mb-1"
+                  >
+                    Date (optional)
+                  </label>
+                  <input
+                    id="claimer-date"
+                    type="date"
+                    value={slotDate}
+                    onChange={(e) => setSlotDate(e.target.value)}
+                    className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="claimer-note"
+                    className="block text-xs text-[var(--color-muted)] mb-1"
+                  >
+                    Note (optional)
+                  </label>
+                  <textarea
+                    id="claimer-note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 resize-none"
+                    placeholder="Any details you want to share..."
+                  />
+                </div>
+
+                {formError && (
+                  <p className="text-sm text-[var(--color-danger)]">
+                    {formError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                >
+                  {submitting ? "Claiming..." : "Claim a slot"}
+                </button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
