@@ -153,10 +153,10 @@ Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unkn
 ### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
 19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
 
-### 🟢 TD-05 — Regenerate Supabase TypeScript types after messaging migration
+### 🔎 TD-05 — Regenerate Supabase TypeScript types after messaging migration
 Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
 **AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
-**Status:** 🟢 Ready
+**Branch:** chore/td-05-regen-types. Regenerated message_threads, message_thread_members, messages; removed 10 `as any` casts from messagesRepository.ts.
 
 ---
 
