@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import type { CareEventComment } from "@carelog/schemas";
+import { useAppTheme } from "../../hooks/useAppTheme";
 
 type Props = {
   comment: CareEventComment;
@@ -22,9 +23,48 @@ export function CommentItem({
   onEdit,
   onDelete,
 }: Props) {
+  const { colors } = useAppTheme();
   const isAuthor = comment.authorId === currentUserId;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(comment.body);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { paddingVertical: 8, paddingHorizontal: 12 },
+        meta: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 6,
+          marginBottom: 2,
+        },
+        author: { fontWeight: "600", color: colors.ink },
+        timestamp: { color: colors.muted, fontSize: 12 },
+        edited: { color: colors.muted, fontSize: 12 },
+        body: { fontSize: 14, color: colors.textPrimary },
+        editContainer: { marginTop: 4 },
+        editInput: {
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 6,
+          padding: 8,
+          minHeight: 60,
+          fontSize: 14,
+          color: colors.textPrimary,
+        },
+        editActions: {
+          flexDirection: "row",
+          gap: 8,
+          marginTop: 6,
+          justifyContent: "flex-end",
+        },
+        cancelBtn: { padding: 4 },
+        cancelText: { color: colors.muted },
+        saveBtn: { padding: 4 },
+        saveText: { color: colors.primary, fontWeight: "600" },
+      }),
+    [colors],
+  );
 
   const showActions = () => {
     if (!isAuthor) return;
@@ -93,32 +133,3 @@ export function CommentItem({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { paddingVertical: 8, paddingHorizontal: 12 },
-  meta: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 2 },
-  author: { fontWeight: "600", color: "#1e0a3c" },
-  timestamp: { color: "#6b7280", fontSize: 12 },
-  edited: { color: "#6b7280", fontSize: 12 },
-  body: { fontSize: 14, color: "#374151" },
-  editContainer: { marginTop: 4 },
-  editInput: {
-    borderWidth: 1,
-    borderColor: "#ede9fe",
-    borderRadius: 6,
-    padding: 8,
-    minHeight: 60,
-    fontSize: 14,
-    color: "#374151",
-  },
-  editActions: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 6,
-    justifyContent: "flex-end",
-  },
-  cancelBtn: { padding: 4 },
-  cancelText: { color: "#6b7280" },
-  saveBtn: { padding: 4 },
-  saveText: { color: "#7c3aed", fontWeight: "600" },
-});

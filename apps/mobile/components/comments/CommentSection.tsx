@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { trpc } from "../../utils/trpc";
 import { useApp } from "../../context/AppContext";
+import { useAppTheme } from "../../hooks/useAppTheme";
 import { CommentItem } from "./CommentItem";
 import { CommentComposer } from "./CommentComposer";
 
 export function CommentSection({ careEventId }: { careEventId: string }) {
   const { user } = useApp();
+  const { colors } = useAppTheme();
   const list = trpc.careEvents.comments.list.useQuery({ careEventId });
   const add = trpc.careEvents.comments.add.useMutation({
     onSuccess: () => list.refetch(),
@@ -49,7 +51,7 @@ export function CommentSection({ careEventId }: { careEventId: string }) {
           />
         }
         ListEmptyComponent={
-          <Text style={{ paddingHorizontal: 16, color: "#6b7280" }}>
+          <Text style={{ paddingHorizontal: 16, color: colors.muted }}>
             Be the first to comment.
           </Text>
         }

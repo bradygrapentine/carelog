@@ -1,5 +1,5 @@
 // apps/mobile/components/comments/CommentComposer.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,14 +9,53 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useAppTheme } from "../../hooks/useAppTheme";
 
 type Props = { onSubmit: (body: string) => Promise<void> };
 
 export function CommentComposer({ onSubmit }: Props) {
+  const { colors } = useAppTheme();
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const trimmed = body.trim();
   const canSubmit = !busy && trimmed.length > 0 && body.length <= 4000;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          padding: 8,
+          gap: 6,
+          backgroundColor: colors.white,
+        },
+        input: {
+          minHeight: 40,
+          padding: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 6,
+          fontSize: 14,
+          color: colors.textPrimary,
+        },
+        footer: {
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 8,
+        },
+        counterOk: { fontSize: 12, color: colors.muted },
+        counterOver: { fontSize: 12, color: colors.danger },
+        postBtn: {
+          color: colors.primary,
+          fontWeight: "600",
+          paddingHorizontal: 4,
+        },
+        postBtnDisabled: { color: colors.textSecondary },
+      }),
+    [colors],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -31,7 +70,7 @@ export function CommentComposer({ onSubmit }: Props) {
         multiline
         maxLength={4000}
         style={styles.input}
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor={colors.textSecondary}
       />
       <View style={styles.footer}>
         {body.length >= 3500 && (
@@ -64,32 +103,3 @@ export function CommentComposer({ onSubmit }: Props) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    borderTopWidth: 1,
-    borderTopColor: "#ede9fe",
-    padding: 8,
-    gap: 6,
-    backgroundColor: "#fff",
-  },
-  input: {
-    minHeight: 40,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#ede9fe",
-    borderRadius: 6,
-    fontSize: 14,
-    color: "#374151",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: 8,
-  },
-  counterOk: { fontSize: 12, color: "#6b7280" },
-  counterOver: { fontSize: 12, color: "#dc2626" },
-  postBtn: { color: "#7c3aed", fontWeight: "600", paddingHorizontal: 4 },
-  postBtnDisabled: { color: "#9ca3af" },
-});
