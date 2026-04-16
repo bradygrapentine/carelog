@@ -3,7 +3,6 @@
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -41,7 +40,7 @@ export function shiftToCalendarEvent(shift: Shift): CalendarEvent {
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
   getDay,
   locales: { "en-US": enUS },
 });
