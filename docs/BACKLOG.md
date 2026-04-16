@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16.
+Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: 2026-04-16 (session 2).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -56,7 +56,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 3 | §1 · TD-02, TD-03, TD-07 |
+| 🟢 Ready | 2 | §1 · TD-02, TD-03 |
 | ⚡ In progress | 1 | §1 · PP-006 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 4 | §3 · PP-007–010 |
@@ -109,7 +109,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-04 | ✅ Shipped | **Consolidate `images/` → `apps/web/public/images/`** | Root `images/` dir already absent — nothing to move. |
 | TD-06 | ✅ Shipped · PR #77 | **Dark mode variants for comment + trade-request components** | |
-| TD-07 | 🔎 In review · PR #80 | **Strip PHI from care-event-comment Inngest event** | `careEventComments.ts` sends comment `body` (free text / PHI) in Inngest payload. Should send `commentId` only; fanout re-fetches via `supabaseAdmin`. Also fix `(p: any)` in `careEventCommentFanout.ts:30`. **AC:** no `body` field in `inngest.send()` call; `(p: any)` replaced with typed row type. |
+| TD-07 | ✅ Shipped · PR #80 | **Strip PHI from care-event-comment Inngest event** | Body removed from Inngest payload; fanout re-fetches via supabaseAdmin. Typed NotifPref replaces `any`. |
 
 ---
 
@@ -207,7 +207,7 @@ Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme
 **Why:** brief share page uses fallback inline hex for grays; no formal neutral palette tokens.
 **Work:** Add six neutral tokens to `@theme inline` in `globals.css` (–50, –100, –200, –400, –700, –white). Replace all marked `TODO` hex in `/brief/[shareToken]/page.tsx` with `var(--color-neutral-*)`. Note: mood background tints and chart colors remain inline (separate from neutral palette).
 **AC:** No TODO comments remain; no neutral hex inline; `pnpm type-check` + `pnpm lint` clean.
-**Size:** ~1 hr. **Status:** 🔎 In review, **Branch:** feat/on48-neutral-tokens
+**Size:** ~1 hr. **Status:** ✅ Shipped · PR #58
 
 ### ✅ A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
