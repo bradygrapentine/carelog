@@ -67,6 +67,10 @@
           {
             "type": "command",
             "command": "python3 -c \"\nimport sys,json,re\nd=json.load(sys.stdin)\nfp=d.get('tool_input',{}).get('file_path','')\ncontent=d.get('tool_input',{}).get('content','')\nif 'supabaseAdmin' in content and not any(p in fp for p in ['/server/','/app/api/','/supabase/']):\n    print(f'[warn] supabaseAdmin used outside server//app/api/ in {fp} - verify this is intentional')\n\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ]; then printf '{\"systemMessage\": \"[warn] Editing on main branch — consider a feature branch\"}'; fi; exit 0"
           }
         ]
       }
