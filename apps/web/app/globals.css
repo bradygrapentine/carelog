@@ -179,3 +179,15 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* Respect prefers-reduced-motion — disable all non-essential animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
