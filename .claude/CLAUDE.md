@@ -103,6 +103,25 @@ VERIFY: run tests before committing; summarize what changed and what was intenti
 
 Subagents that go out of scope (add unrelated features, leak PHI, commit to wrong branch) require reverts and cherry-picks. The scope contract prevents this.
 
+### Subagent Dispatch Rules
+
+1. **Model selection for subagents:**
+   - Sonnet (`Task` tool) for multi-file or judgment-heavy work (2–6 files, moderate refactors)
+   - Local Ollama (`/ollama`) for lower-level tasks: single-file stubs, boilerplate, exploration, known-pattern work
+   - Haiku only as fallback when local Ollama is unavailable
+   - Never use Haiku for code changes touching multiple files
+
+2. **Pre-flight before every dispatch** (inline checklist in each dispatch skill):
+   - Each worktree has `node_modules` installed — run `pnpm install` if missing
+   - Each subagent's target branch ≠ `main` (verify with `git branch --show-current`)
+   - Docker running if Supabase/migration work is involved
+   - No interactive-login CLIs in scope (eas login, supabase login, etc.)
+   - Pass relevant DB table names in the prompt to prevent schema invention
+
+3. **Review before merge:**
+   - Read the subagent diff for: invented DB tables, out-of-scope features, PHI in analytics calls
+   - Require each subagent to include a diff summary in their response
+
 ## Automation & Sessions
 
 - `/loop` — run a skill on a recurring interval
