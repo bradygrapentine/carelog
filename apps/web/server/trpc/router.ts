@@ -1,4 +1,5 @@
 import { router } from "./index";
+import { aiRouter } from "../routers/ai";
 import { careEventsRouter } from "../routers/careEvents";
 import { organizationsRouter } from "../routers/organizations";
 import { membershipsRouter } from "../routers/memberships";
@@ -16,6 +17,7 @@ import { userRouter } from "../routers/user";
 import { messagesRouter } from "../routers/messages";
 
 export const appRouter = router({
+  ai: aiRouter,
   user: userRouter,
   careEvents: careEventsRouter,
   organizations: organizationsRouter,
