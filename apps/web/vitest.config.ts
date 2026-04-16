@@ -58,7 +58,17 @@ export default defineConfig({
             "**/__tests__/**/*.test.tsx",
             "**/__tests__/**/*.flow.test.tsx",
           ],
-          exclude: ["node_modules/**", "server/**", "app/api/**"],
+          exclude: [
+            "node_modules/**",
+            "server/**",
+            "app/api/**",
+            // axe tests run in the a11y jsdom project (vitest-axe requires Node/createRequire)
+            "components/ui/__tests__/Card.test.tsx",
+            "components/ui/__tests__/Button.test.tsx",
+            "components/ui/__tests__/Input.test.tsx",
+            "components/ui/__tests__/Label.test.tsx",
+            "components/ui/__tests__/Dialog.test.tsx",
+          ],
           setupFiles: ["./vitest.setup.ts"],
           globals: true,
         },
@@ -81,6 +91,31 @@ export default defineConfig({
             "lib/**/*.test.ts",
           ],
           setupFiles: ["./vitest.setup.node.ts"],
+          globals: true,
+        },
+      },
+      {
+        // A11Y project — axe accessibility assertions on UI primitives
+        // vitest-axe uses Node's createRequire to load axe-core; jsdom provides the DOM
+        plugins: [
+          react(),
+          tsconfigPaths({ root: __dirname, projects: ["./tsconfig.json"] }),
+        ],
+        resolve: {
+          dedupe: ["react", "react-dom"],
+          alias: { "@": path.resolve(__dirname, ".") },
+        },
+        test: {
+          name: "a11y",
+          environment: "jsdom",
+          include: [
+            "components/ui/__tests__/Card.test.tsx",
+            "components/ui/__tests__/Button.test.tsx",
+            "components/ui/__tests__/Input.test.tsx",
+            "components/ui/__tests__/Label.test.tsx",
+            "components/ui/__tests__/Dialog.test.tsx",
+          ],
+          setupFiles: ["./vitest.setup.ts"],
           globals: true,
         },
       },
