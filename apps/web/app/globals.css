@@ -40,6 +40,14 @@
   --color-mood-difficult: #f97316;
   --color-mood-crisis:    #ef4444;
 
+  /* Neutral palette */
+  --color-neutral-50:   #f9fafb;
+  --color-neutral-100:  #f3f4f6;
+  --color-neutral-200:  #e5e7eb;
+  --color-neutral-400:  #9ca3af;
+  --color-neutral-700:  #374151;
+  --color-white:        #ffffff;
+
   /* Radius scale */
   --radius-sm:   6px;
   --radius-md:   10px;

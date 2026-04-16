@@ -21,9 +21,9 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 |---|---|---|
 | 🟢 Ready | 2 | §1 · TD-02, TD-03 |
 | ⚡ In progress | 1 | §1 · PP-006 |
-| 🔎 In review | 7 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-26, ON-28, ON-29 |
+| 🔎 In review | 8 | §1 · PP-001, PP-004, A11Y-003 · §2 ON-21, ON-26, ON-28, ON-29, ON-48 |
 | 🔴 Blocked | 5 | §2 ON-31 · §3 PP-007–010 |
-| 🌙 Overnight queue | 9 | §2 · ON-15, ON-20, ON-27, ON-30, ON-33, ON-37, ON-39, A11Y-004, A11Y-010 |
+| 🌙 Overnight queue | 8 | §2 · ON-15, ON-20, ON-27, ON-30, ON-33, ON-37, ON-39, A11Y-010 |
 | 🧊 Deferred | 12 | §6 UX polish (11) + §3 PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
@@ -168,6 +168,12 @@ Grep `export const dynamic|revalidate|fetchCache` in `apps/web/app`. Verify each
 
 ### ⚡ A11Y-004 — Token contrast validator script
 Write `scripts/a11y-contrast.mjs` that parses `apps/web/app/globals.css` `@theme inline` tokens, checks WCAG ratios for ink/bg pairings (≥4.5:1 text, ≥3:1 large/borders), exits non-zero on violation. Wire into `pnpm lint`. **Size:** ~1 hr.
+
+### 🔎 ON-48 — Neutral design tokens + brief-page hex sweep
+**Why:** brief share page uses fallback inline hex for grays; no formal neutral palette tokens.
+**Work:** Add six neutral tokens to `@theme inline` in `globals.css` (–50, –100, –200, –400, –700, –white). Replace all marked `TODO` hex in `/brief/[shareToken]/page.tsx` with `var(--color-neutral-*)`. Note: mood background tints and chart colors remain inline (separate from neutral palette).
+**AC:** No TODO comments remain; no neutral hex inline; `pnpm type-check` + `pnpm lint` clean.
+**Size:** ~1 hr. **Status:** 🔎 In review, **Branch:** feat/on48-neutral-tokens
 
 ### ✅ A11Y-010 — Add colorblindness walkthrough to UI review checklist
 Amend `.claude/rules/ui-standards.md` with a "run key screens through Chrome DevTools' colorblind simulator" step. **Size:** 15 min.
