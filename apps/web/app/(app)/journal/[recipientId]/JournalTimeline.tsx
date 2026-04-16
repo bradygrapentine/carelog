@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen } from "lucide-react";
+import { CommentThread } from "@/components/care-events/CommentThread";
 
 const MOOD_DOT: Record<string, string> = {
   good: "bg-green-500",
@@ -154,90 +155,93 @@ function JournalCard({
   const detailUrl = "/journal/" + recipientId + "/entry/" + event.id;
 
   return (
-    <Card
-      data-testid="journal-entry"
-      className="cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => {
-        router.push(detailUrl);
-      }}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3 mb-3">
-          {payload.mood && (
-            <span
-              className={
-                "mt-1 w-2 h-2 rounded-full shrink-0 " +
-                (MOOD_DOT[payload.mood] ?? "bg-slate-300")
-              }
-            />
-          )}
-          <p className="text-sm text-[var(--color-text-primary)] leading-relaxed flex-1">
-            {payload.text}
-          </p>
-          {payload.mood && (
-            <Badge
-              variant="outline"
-              className={
-                "shrink-0 capitalize text-xs " +
-                (MOOD_BADGE[payload.mood] ?? "")
-              }
-            >
-              {payload.mood}
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-[var(--color-muted)]">
-            {formatTime(event.occurred_at)}
-          </p>
-          <div className="flex items-center gap-2">
-            {event.flagged && (
-              <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
-                Flagged for doctor
-              </span>
+    <div>
+      <Card
+        data-testid="journal-entry"
+        className="cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => {
+          router.push(detailUrl);
+        }}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3 mb-3">
+            {payload.mood && (
+              <span
+                className={
+                  "mt-1 w-2 h-2 rounded-full shrink-0 " +
+                  (MOOD_DOT[payload.mood] ?? "bg-slate-300")
+                }
+              />
             )}
-            {canFlag && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFlag(event.id, !event.flagged);
-                }}
-                className={flagBtnClass}
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed flex-1">
+              {payload.text}
+            </p>
+            {payload.mood && (
+              <Badge
+                variant="outline"
+                className={
+                  "shrink-0 capitalize text-xs " +
+                  (MOOD_BADGE[payload.mood] ?? "")
+                }
               >
-                {event.flagged ? "Unflag" : "Flag for doctor"}
-              </button>
+                {payload.mood}
+              </Badge>
             )}
           </div>
-        </div>
 
-        <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)]">
-          {REACTIONS.map((r) => {
-            const count = counts[r.key] ?? 0;
-            const isActive = myReaction === r.key;
-            const btnClass =
-              "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors " +
-              (isActive
-                ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]"
-                : "text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]");
-            return (
-              <button
-                key={r.key}
-                title={r.title}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggle(r.key);
-                }}
-                className={btnClass}
-              >
-                {r.emoji}
-                {count > 0 && <span>{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-[var(--color-muted)]">
+              {formatTime(event.occurred_at)}
+            </p>
+            <div className="flex items-center gap-2">
+              {event.flagged && (
+                <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
+                  Flagged for doctor
+                </span>
+              )}
+              {canFlag && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFlag(event.id, !event.flagged);
+                  }}
+                  className={flagBtnClass}
+                >
+                  {event.flagged ? "Unflag" : "Flag for doctor"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)]">
+            {REACTIONS.map((r) => {
+              const count = counts[r.key] ?? 0;
+              const isActive = myReaction === r.key;
+              const btnClass =
+                "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors " +
+                (isActive
+                  ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]");
+              return (
+                <button
+                  key={r.key}
+                  title={r.title}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle(r.key);
+                  }}
+                  className={btnClass}
+                >
+                  {r.emoji}
+                  {count > 0 && <span>{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+      <CommentThread careEventId={event.id} currentUserId={currentUserId!} />
+    </div>
   );
 }
 
@@ -446,10 +450,12 @@ export function JournalTimeline({
         </div>
       </div>
 
-      {filtered.length === 0 && (
-        hasActiveFilters ? (
+      {filtered.length === 0 &&
+        (hasActiveFilters ? (
           <div className="text-center py-12">
-            <p className="text-[var(--color-muted)] text-sm">No entries match your filters.</p>
+            <p className="text-[var(--color-muted)] text-sm">
+              No entries match your filters.
+            </p>
           </div>
         ) : (
           <EmptyState
@@ -457,8 +463,7 @@ export function JournalTimeline({
             title="No journal entries yet"
             description="Journal entries help your care team stay in sync. Add your first entry to get started."
           />
-        )
-      )}
+        ))}
 
       {filtered.length > 0 && (
         <div className="space-y-4">
