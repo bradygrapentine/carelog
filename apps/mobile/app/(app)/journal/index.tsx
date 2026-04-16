@@ -25,6 +25,8 @@ import {
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 import { SkeletonRow } from "../../../components/Skeleton";
+import { BottomSheet } from "../../../components/journal/BottomSheet";
+import { MoodRow } from "../../../components/journal/MoodRow";
 
 const MOOD_TAGS = ["good", "okay", "difficult", "crisis"] as const;
 
@@ -191,6 +193,7 @@ export default function JournalScreen() {
   const [mood, setMood] = useState<Mood>("okay");
   const [submitting, setSubmitting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const syncStatus = useSyncStatus();
   const { write } = useOfflineWrite(orgId ?? "");
   const { colors, spacing, radii } = useAppTheme();
@@ -232,6 +235,7 @@ export default function JournalScreen() {
         recipient_id: recipientId,
       });
       refetch();
+      setSheetVisible(false);
     } finally {
       setSubmitting(false);
     }
@@ -341,30 +345,45 @@ export default function JournalScreen() {
         )}
       </Panel>
 
-      <Panel title="New Entry" style={styles.formPanel}>
-        <View style={styles.moodRow}>
-          {MOOD_TAGS.map((m) => (
-            <TouchableOpacity
-              key={m}
-              style={[
-                styles.moodTag,
-                mood === m && { backgroundColor: INPUT_MOOD_COLORS[m] },
-              ]}
-              onPress={() => setMood(m)}
-              accessibilityRole="button"
-              accessibilityLabel={m + " mood"}
-            >
-              <Text
-                style={[
-                  styles.moodTagText,
-                  mood === m && { color: colors.white },
-                ]}
-              >
-                {m}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* FAB button to open new entry sheet */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: spacing.lg,
+          right: spacing.lg,
+          backgroundColor: colors.primary,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+          elevation: 4,
+        }}
+        onPress={() => {
+          setText("");
+          setMood("okay");
+          setSheetVisible(true);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel="Add new journal entry"
+      >
+        <Text style={{ fontSize: 28, color: colors.white }}>+</Text>
+      </TouchableOpacity>
+
+      {/* Bottom sheet for new entry */}
+      <BottomSheet
+        visible={sheetVisible}
+        onClose={() => {
+          setSheetVisible(false);
+          setText("");
+        }}
+      >
+        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+          New Entry
+        </Text>
+
+        <MoodRow selectedMood={mood} onMoodSelect={setMood} />
+
         <TextInput
           style={styles.input}
           placeholder="What's happening with care today?"
@@ -373,21 +392,51 @@ export default function JournalScreen() {
           multiline
           maxLength={2000}
         />
-        <TouchableOpacity
-          style={[
-            styles.submitBtn,
-            (!text.trim() || submitting) && styles.submitDisabled,
-          ]}
-          onPress={handleSubmit}
-          disabled={!text.trim() || submitting}
-          accessibilityRole="button"
-          accessibilityLabel={submitting ? "Saving entry" : "Add entry"}
-        >
-          <Text style={styles.submitText}>
-            {submitting ? "Saving…" : "Add entry"}
-          </Text>
-        </TouchableOpacity>
-      </Panel>
+
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: spacing.md,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: colors.borderNeutral,
+              alignItems: "center",
+            }}
+            onPress={() => {
+              setSheetVisible(false);
+              setText("");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+          >
+            <Text style={{ color: colors.textSecondary, fontWeight: "500" }}>
+              Cancel
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              {
+                flex: 1,
+                backgroundColor: colors.primary,
+                paddingVertical: spacing.md,
+                borderRadius: radii.md,
+                alignItems: "center",
+              },
+              (!text.trim() || submitting) && styles.submitDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={!text.trim() || submitting}
+            accessibilityRole="button"
+            accessibilityLabel={submitting ? "Saving entry" : "Save entry"}
+          >
+            <Text style={{ color: colors.white, fontWeight: "600" }}>
+              {submitting ? "Saving…" : "Save"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
     </View>
   );
 }

@@ -80,7 +80,15 @@ jest.mock("../../../../store/offlineQueue", () => ({
   incrementAttempts: jest.fn(),
 }));
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
 
 describe("JournalScreen", () => {
   it("renders timeline entries", () => {
@@ -89,20 +97,26 @@ describe("JournalScreen", () => {
     expect(getByText("Rough night")).toBeTruthy();
   });
 
-  it("shows mood tags in the input form", () => {
-    const { getAllByText, getByText } = render(<JournalScreen />);
-    expect(getByText("good")).toBeTruthy();
-    // "okay" appears in both form and entry badge — getAllByText is safe
-    expect(getAllByText("okay").length).toBeGreaterThan(0);
-    expect(getAllByText("difficult").length).toBeGreaterThan(0);
-    expect(getByText("crisis")).toBeTruthy();
+  it("shows mood tags in the bottom sheet when FAB is pressed", () => {
+    const { getByLabelText, getByText } = render(<JournalScreen />);
+    // Press FAB to open the sheet
+    fireEvent.press(getByLabelText("Add new journal entry"));
+    // Now the mood buttons should be visible
+    expect(getByLabelText("Good mood")).toBeTruthy();
+    expect(getByLabelText("Okay mood")).toBeTruthy();
+    expect(getByLabelText("Difficult mood")).toBeTruthy();
+    expect(getByLabelText("Crisis mood")).toBeTruthy();
   });
 
   it("submits a journal entry via offline write", async () => {
     const { getByPlaceholderText, getByLabelText } = render(<JournalScreen />);
+    // Open the bottom sheet with FAB
+    fireEvent.press(getByLabelText("Add new journal entry"));
+    // Type in the textarea
     const input = getByPlaceholderText("What's happening with care today?");
     fireEvent.changeText(input, "New entry text");
-    fireEvent.press(getByLabelText("Add entry"));
+    // Press Save button
+    fireEvent.press(getByLabelText("Save entry"));
 
     await waitFor(() => {
       expect(mockWrite).toHaveBeenCalledWith(
