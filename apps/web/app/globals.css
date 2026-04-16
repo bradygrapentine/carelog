@@ -33,6 +33,9 @@
   --color-warning: #f59e0b;
   --color-success: #10b981;
   --color-danger:  #c41a1a;
+  --color-success-subtle: #f0fdf4;   /* Green 50 — in-progress event bg */
+  --color-surface-muted:  #f9fafb;   /* Gray 50 — completed/cancelled/off-range bg */
+  --color-danger-subtle:  #fef2f2;   /* Red 50 — unassigned event bg */
 
   /* Mood (journal) */
   --color-mood-good:      #22c55e;
@@ -111,7 +114,7 @@ body {
   background-color: var(--color-primary-subtle);
 }
 .rbc-off-range-bg {
-  background-color: #f9fafb;
+  background-color: var(--color-surface-muted);
 }
 .rbc-time-slot,
 .rbc-timeslot-group,
@@ -142,7 +145,7 @@ body {
   font-weight: 600;
 }
 .shift-event--in-progress {
-  background-color: #f0fdf4;
+  background-color: var(--color-success-subtle);
   border-left: 3px solid var(--color-success);
   border-radius: 3px;
   padding: 2px 5px;
@@ -151,7 +154,7 @@ body {
   font-weight: 600;
 }
 .shift-event--completed {
-  background-color: #f9fafb;
+  background-color: var(--color-surface-muted);
   border-left: 3px solid var(--color-muted);
   border-radius: 3px;
   padding: 2px 5px;
@@ -159,7 +162,7 @@ body {
   font-size: 0.75rem;
 }
 .shift-event--cancelled {
-  background-color: #f9fafb;
+  background-color: var(--color-surface-muted);
   border-left: 3px solid var(--color-muted);
   border-radius: 3px;
   padding: 2px 5px;
@@ -168,7 +171,7 @@ body {
   text-decoration: line-through;
 }
 .shift-event--unassigned {
-  background-color: #fef2f2;
+  background-color: var(--color-danger-subtle);
   border-left: 3px solid var(--color-danger);
   border-radius: 3px;
   padding: 2px 5px;
