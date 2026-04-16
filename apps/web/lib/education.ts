@@ -19,6 +19,13 @@ export type Guide = {
 
 const CONTENT_DIR = path.join(process.cwd(), "../../content/education");
 
+// Verify content directory exists at startup (fails fast in CI/production misconfiguration)
+if (!fs.existsSync(CONTENT_DIR)) {
+  console.warn(
+    `[education] Content directory not found at: ${CONTENT_DIR} — guides will be unavailable`,
+  );
+}
+
 function readGuideFile(filename: string): Guide | null {
   const slug = filename.replace(/\.md$/, "");
   const fullPath = path.join(CONTENT_DIR, filename);
@@ -29,10 +36,13 @@ function readGuideFile(filename: string): Guide | null {
       slug,
       title: typeof data.title === "string" ? data.title : "",
       summary: typeof data.summary === "string" ? data.summary : "",
-      challenges: Array.isArray(data.challenges) ? (data.challenges as string[]) : [],
+      challenges: Array.isArray(data.challenges)
+        ? (data.challenges as string[])
+        : [],
       topics: Array.isArray(data.topics) ? (data.topics as string[]) : [],
       tips: Array.isArray(data.tips) ? (data.tips as string[]) : [],
-      external_url: typeof data.external_url === "string" ? data.external_url : "",
+      external_url:
+        typeof data.external_url === "string" ? data.external_url : "",
       content,
     };
   } catch (err) {

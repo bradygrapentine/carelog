@@ -5,7 +5,11 @@ import type { Guide } from "@/lib/education";
 
 export function GuideCard({ guide }: { guide: Guide }) {
   return (
-    <Link href={`/education/${guide.slug}`} className="block group">
+    <Link
+      href={`/education/${guide.slug}`}
+      className="block group"
+      aria-label={`Read guide: ${guide.title}`}
+    >
       <Card className="shadow-sm hover:shadow-md transition-shadow duration-150 h-full">
         <CardContent className="p-4 space-y-2">
           <h3 className="text-sm font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors">

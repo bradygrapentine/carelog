@@ -23,13 +23,13 @@ export const educationTipRefresh = inngest.createFunction(
 
       const { data: moodEntries } = await supabaseAdmin
         .from("mood_entries")
-        .select("mood, notes")
+        .select("mood")
         .eq("org_id", org.id)
         .gte("created_at", since);
 
       const { data: careEvents } = await supabaseAdmin
         .from("care_events")
-        .select("notes")
+        .select("id")
         .eq("org_id", org.id)
         .gte("created_at", since);
 
