@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Animated, View, StyleSheet } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Animated, View, StyleSheet } from "react-native";
 import { useAppTheme } from "../hooks/useAppTheme";
 
 type SkeletonProps = {
@@ -15,8 +15,22 @@ export function Skeleton({
 }: SkeletonProps) {
   const { colors } = useAppTheme();
   const opacity = useRef(new Animated.Value(0.3)).current;
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
+    const sub = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      setReducedMotion,
+    );
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      opacity.setValue(0.6);
+      return;
+    }
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
@@ -33,7 +47,7 @@ export function Skeleton({
     );
     pulse.start();
     return () => pulse.stop();
-  }, [opacity]);
+  }, [opacity, reducedMotion]);
 
   return (
     <Animated.View
