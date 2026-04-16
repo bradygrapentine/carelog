@@ -277,7 +277,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ### Medium
 - **UX-04** — Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`.
 - **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
-- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`).
+- **UX-06** — Sidebar tooltip labels on hover (shadcn `Tooltip`). **Status:** 🔎 In review, Branch: feat/ux-06-sidebar-tooltips
 - **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
 
 ### Lower
