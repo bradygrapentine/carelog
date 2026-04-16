@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 type Medication = {
   drug_name: string;
@@ -32,6 +33,7 @@ type Brief = {
   created_at: string;
 };
 
+// pale badge bg tints — no token yet; see ON-48 for token pattern
 const moodColors: Record<string, string> = {
   good: "#dcfce7",
   okay: "#fef9c3",
@@ -109,43 +111,17 @@ export default function BriefPage({
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--color-neutral-50)",
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            border: "2px solid var(--color-ink)",
-            borderTopColor: "transparent",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-ink)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error || !brief) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--color-neutral-50)",
-        }}
-      >
-        <div style={{ textAlign: "center", maxWidth: 400, padding: "2rem" }}>
-          <p style={{ color: "var(--color-muted)", fontSize: "1rem" }}>
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
+        <div className="max-w-md text-center p-8">
+          <p className="text-[var(--color-muted)] text-base">
             {error ?? "This care brief is no longer available."}
           </p>
         </div>
@@ -157,264 +133,151 @@ export default function BriefPage({
   const generatedDate = formatDate(content.generated_at);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--color-neutral-50)",
-        padding: "2rem 1rem",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 640,
-          margin: "0 auto",
-          background: "var(--color-white)",
-          borderRadius: 12,
-          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-          padding: "2rem",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            marginBottom: "1.5rem",
-            borderBottom: "1px solid var(--color-neutral-200)",
-            paddingBottom: "1.5rem",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              color: "var(--color-ink)",
-              margin: 0,
-            }}
-          >
-            {brief.title}
-          </h1>
-          <p
-            style={{
-              color: "var(--color-muted)",
-              fontSize: "0.875rem",
-              marginTop: "0.25rem",
-            }}
-          >
-            Generated on {generatedDate}
-          </p>
-          <p
-            style={{
-              fontSize: "1.125rem",
-              fontWeight: 600,
-              color: "var(--color-ink)",
-              marginTop: "0.75rem",
-            }}
-          >
-            {content.recipient_name}
-          </p>
-        </div>
-
-        {/* Medications */}
-        {brief.includes.includes("medications") && (
-          <section style={{ marginBottom: "1.5rem" }}>
-            <h2
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                color: "var(--color-neutral-700)",
-                marginBottom: "0.75rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Medications
-            </h2>
-            {content.medications.length === 0 ? (
-              <p
-                style={{
-                  color: "var(--color-neutral-400)",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {" "}
-                No active medications recorded.
+    <>
+      <style>{`
+        @media print {
+          body {
+            background: white;
+            color: var(--color-ink);
+          }
+          .print\\:hidden {
+            display: none;
+          }
+          .page-content {
+            max-width: none;
+            padding: 0;
+            background: white;
+          }
+          .page-content > .space-y-4 {
+            gap: 1rem;
+          }
+          .page-content .shadow-sm {
+            box-shadow: none;
+          }
+          .page-content .border {
+            border-color: var(--color-ink);
+          }
+          .page-content [class^="bg-"] {
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+      <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 page-content">
+        <div className="max-w-4xl mx-auto px-4 space-y-4">
+          {/* Header card */}
+          <Card className="shadow-sm gap-2">
+            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+              <CardTitle className="text-sm">{brief.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <p className="text-lg font-semibold text-[var(--color-ink)]">
+                {content.recipient_name}
               </p>
-            ) : (
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                {content.medications.map((med, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      padding: "0.75rem",
-                      background: "var(--color-neutral-50)",
-                      borderRadius: 8,
-                      border: "1px solid var(--color-neutral-200)",
-                    }}
-                  >
-                    <span
-                      style={{ fontWeight: 600, color: "var(--color-ink)" }}
-                    >
-                      {med.drug_name}
-                    </span>
-                    {med.dosage && (
-                      <span
-                        style={{
-                          color: "var(--color-muted)",
-                          marginLeft: "0.5rem",
-                        }}
-                      >
-                        {med.dosage}
-                      </span>
-                    )}
-                    {med.instructions && (
-                      <p
-                        style={{
-                          color: "var(--color-muted)",
-                          fontSize: "0.875rem",
-                          margin: "0.25rem 0 0",
-                        }}
-                      >
-                        {med.instructions}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-
-        {/* Recent journal entries */}
-        {brief.includes.includes("journal") && (
-          <section style={{ marginBottom: "1.5rem" }}>
-            <h2
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                color: "var(--color-neutral-700)",
-                marginBottom: "0.75rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Recent Journal Entries
-            </h2>
-            {content.recent_entries.length === 0 ? (
-              <p
-                style={{
-                  color: "var(--color-neutral-400)",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {" "}
-                No recent journal entries.
+              <p className="text-sm text-[var(--color-muted)] mt-1">
+                Generated on {generatedDate}
               </p>
-            ) : (
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                {content.recent_entries.map((entry, i) => {
-                  const moodBg = entry.mood
-                    ? (moodColors[entry.mood] ?? "var(--color-neutral-100)")
-                    : undefined;
-                  const moodLabel = entry.mood
-                    ? (moodLabels[entry.mood] ?? entry.mood)
-                    : undefined;
-                  return (
-                    <li
-                      key={i}
-                      style={{
-                        padding: "0.75rem",
-                        background: "var(--color-neutral-50)",
-                        borderRadius: 8,
-                        border: "1px solid var(--color-neutral-200)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          marginBottom: "0.375rem",
-                        }}
+            </CardContent>
+          </Card>
+
+          {/* Medications */}
+          {brief.includes.includes("medications") && (
+            <Card className="shadow-sm gap-2">
+              <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+                <CardTitle className="text-sm">Medications</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                {content.medications.length === 0 ? (
+                  <p className="text-sm text-[var(--color-muted)]">
+                    No active medications recorded.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {content.medications.map((med, i) => (
+                      <li
+                        key={i}
+                        className="p-3 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]"
                       >
-                        <span
-                          style={{
-                            color: "var(--color-muted)",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          {formatDate(entry.occurred_at)}
+                        <span className="font-semibold text-[var(--color-ink)]">
+                          {med.drug_name}
                         </span>
-                        {moodLabel && (
-                          <span
-                            style={{
-                              background: moodBg,
-                              padding: "0.125rem 0.5rem",
-                              borderRadius: 12,
-                              fontSize: "0.75rem",
-                              fontWeight: 500,
-                              color: "var(--color-neutral-700)",
-                            }}
-                          >
-                            {moodLabel}
+                        {med.dosage && (
+                          <span className="text-[var(--color-muted)] ml-2">
+                            {med.dosage}
                           </span>
                         )}
-                      </div>
-                      {entry.text && (
-                        <p
-                          style={{
-                            color: "var(--color-neutral-700)",
-                            fontSize: "0.875rem",
-                            margin: 0,
-                          }}
-                        >
-                          {truncate(entry.text, 140)}
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
-        )}
+                        {med.instructions && (
+                          <p className="text-sm text-[var(--color-muted)] mt-1">
+                            {med.instructions}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Footer */}
-        <div
-          style={{
-            borderTop: "1px solid var(--color-neutral-200)",
-            paddingTop: "1rem",
-            marginTop: "0.5rem",
-          }}
-        >
-          <p
-            style={{
-              color: "var(--color-neutral-400)",
-              fontSize: "0.75rem",
-              textAlign: "center",
-              margin: 0,
-            }}
-          >
+          {/* Recent journal entries */}
+          {brief.includes.includes("journal") && (
+            <Card className="shadow-sm gap-2">
+              <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+                <CardTitle className="text-sm">
+                  Recent Journal Entries
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                {content.recent_entries.length === 0 ? (
+                  <p className="text-sm text-[var(--color-muted)]">
+                    No recent journal entries.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {content.recent_entries.map((entry, i) => {
+                      const moodBg = entry.mood
+                        ? (moodColors[entry.mood] ?? "var(--color-surface)")
+                        : undefined;
+                      const moodLabel = entry.mood
+                        ? (moodLabels[entry.mood] ?? entry.mood)
+                        : undefined;
+                      return (
+                        <li
+                          key={i}
+                          className="p-3 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]"
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-[0.8rem] text-[var(--color-muted)]">
+                              {formatDate(entry.occurred_at)}
+                            </span>
+                            {moodLabel && (
+                              <span
+                                className="px-2 py-0.5 rounded-full text-xs font-medium text-[var(--color-text-secondary)]"
+                                style={{ background: moodBg }}
+                              >
+                                {moodLabel}
+                              </span>
+                            )}
+                          </div>
+                          {entry.text && (
+                            <p className="text-sm text-[var(--color-text-secondary)] m-0">
+                              {truncate(entry.text, 140)}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Footer */}
+          <p className="text-xs text-[var(--color-muted)] text-center pt-2">
             This is a point-in-time snapshot generated by Carelog.
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
