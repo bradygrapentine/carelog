@@ -13,10 +13,6 @@ export async function initPostHog(): Promise<PostHog | null> {
   return client;
 }
 
-export function getPostHog(): PostHog | null {
-  return client;
-}
-
 // Identify by auth user UUID only — never email or display_name (PHI rule).
 export function identifyUser(userId: string): void {
   client?.identify(userId);
@@ -29,6 +25,7 @@ export function resetUser(): void {
 type EventProperties = Record<string, string | number | boolean | null>;
 
 // Thin wrapper so callers don't have to null-check on every site.
+// ts-prune-ignore-next // analytics wrapper, consumed at module boundaries
 export function capture(event: string, properties?: EventProperties): void {
   client?.capture(event, properties);
 }

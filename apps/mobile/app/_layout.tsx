@@ -97,4 +97,5 @@ function RootLayout() {
   );
 }
 
+// ts-prune-ignore-next // Expo Router root layout page component
 export default Sentry.wrap(RootLayout);

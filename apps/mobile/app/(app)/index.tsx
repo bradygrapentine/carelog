@@ -12,12 +12,14 @@ import { trpc } from "../../utils/trpc";
 import { useApp } from "../../context/AppContext";
 import { useAppTheme } from "../../hooks/useAppTheme";
 
+// ts-prune-ignore-next // Expo Router page component
 export default function OrgSelectorScreen() {
   const router = useRouter();
   const { setOrg } = useApp();
   const { data: orgs, isLoading } = trpc.organizations.list.useQuery();
   const { colors, spacing, radii } = useAppTheme();
 
+  // ts-prune-ignore-next // Expo Router page component
   const styles = useMemo(
     () =>
       StyleSheet.create({

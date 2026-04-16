@@ -22,6 +22,7 @@ import {
 } from "../../../utils/journalUtils";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 
+// ts-prune-ignore-next // Expo Router page component
 export default function JournalDetailScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   const router = useRouter();

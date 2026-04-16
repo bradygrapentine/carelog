@@ -117,4 +117,5 @@ const withCarelogWatch: ConfigPlugin = (config) => {
   return config;
 };
 
+// ts-prune-ignore-next // Expo config plugin, consumed by app.json
 export default withCarelogWatch;

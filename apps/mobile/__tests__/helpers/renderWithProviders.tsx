@@ -9,6 +9,7 @@ type ProviderOptions = {
   role?: string;
 };
 
+// ts-prune-ignore-next // test helper
 export function renderWithProviders(
   ui: ReactElement,
   options?: ProviderOptions & Omit<RenderOptions, "wrapper">,

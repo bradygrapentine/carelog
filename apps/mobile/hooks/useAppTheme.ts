@@ -26,6 +26,7 @@ type DeepWritable<T> = T extends object
     ? string
     : T;
 
+// ts-prune-ignore-next // design token, consumed at runtime
 export type AppColors = DeepWritable<typeof lightColors>;
 
 export function useAppTheme() {
