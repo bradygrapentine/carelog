@@ -196,8 +196,8 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 ## 5. Large features (multi-day, not overnight-eligible)
 
-### ON-45 — Shift trade requests · ~2 days
-Table `shift_trade_requests` (shift_id, requested_by, target_user_id nullable, status, message). Only assignee opens; target-only accept if set, else any caregiver. Acceptance atomically reassigns `shifts.assigned_user_id` + marks accepted in one transaction. Coordinator force-override logs to `audit_events`. Inngest cron `shiftTrades.expire` every 15 min marks ≤24 h stale requests expired + pushes. pgTAP for every state transition.
+### ON-44 — Comment threads on care events · ~1.5 days
+Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
 
 ### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
@@ -242,9 +242,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ### Phase 5 — Financial + legal (2026-04-13)
 ✅ P5-01 Shared expense log (`ExpensePanel`) · P5-02 Benefits navigator (`BenefitsNavigator` + eligibility lib) · P5-03 Document vault (`DocumentVault` + upload/download API + FTS migration) · P5-04 EOL planner (coordinator-only, linked to vault)
 
-### 2026-04-15 parallel agent session
-✅ **ON-44** Comment threads on care events — `care_event_comments` table + RLS + pgTAP + tRPC sub-router + web `CommentThread`/`CommentItem`/`CommentComposer` + mobile `CommentSection` + E2E spec
-
 ### Before-launch — Claude tasks
 ✅ B1 Sentry PII hardened (`sendDefaultPii: false`, env DSN, `sentry.client.config.ts` added)
 ✅ D2 `apps/web/lib/stripe.ts` (renamed from `stripe.server.ts`)
@@ -260,6 +257,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
+
+### 2026-04-15 parallel agent session
+✅ **ON-44** Comment threads on care events — `care_event_comments` table + RLS + pgTAP + tRPC sub-router + web `CommentThread`/`CommentItem`/`CommentComposer` + mobile `CommentSection` + E2E spec
+✅ **ON-45** Shift trade requests — `shift_trade_requests` table + RLS + pgTAP + Zod schemas + repository + tRPC router + Inngest expiry cron + web `TradeRequest{Card,Form,List}` + mobile `TradeRequest{Card,Sheet}` + E2E spec
 
 ### 2026-04-14 parallel agent session (PRs #34–#49)
 ✅ **ON-21** Web raw-hex audit — all hex replaced with `var(--color-*)` design tokens (PR #34)
