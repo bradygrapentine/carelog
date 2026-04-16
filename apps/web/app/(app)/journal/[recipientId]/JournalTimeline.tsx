@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { trpc } from "../../../../lib/trpc";
+import { MedicationChipBar } from "@/components/medications/MedicationChipBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -245,12 +247,19 @@ function JournalCard({
   );
 }
 
+type MedicationOption = {
+  id: string;
+  drug_name: string;
+  brand_name: string | null;
+};
+
 type Props = {
   events: JournalEvent[];
   currentUserId: string | null;
   canFlag: boolean;
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
+  medications?: MedicationOption[];
 };
 
 function formatDateHeader(iso: string) {
@@ -317,11 +326,21 @@ export function JournalTimeline({
   canFlag,
   recipientId,
   onFlag,
+  medications,
 }: Props) {
   const [search, setSearch] = useState("");
   const [moodFilters, setMoodFilters] = useState<Set<MoodFilter>>(new Set());
   const [kindFilters, setKindFilters] = useState<Set<KindFilter>>(new Set());
   const [sortDesc, setSortDesc] = useState(true);
+  const [selectedMedId, setSelectedMedId] = useState<string | null>(null);
+
+  const { data: taggedIds } =
+    trpc.medications.getEventIdsForMedication.useQuery(
+      { medication_id: selectedMedId! },
+      { enabled: !!selectedMedId },
+    );
+
+  const taggedSet = useMemo(() => new Set(taggedIds ?? []), [taggedIds]);
 
   function toggleMood(m: MoodFilter) {
     setMoodFilters((prev) => {
@@ -375,14 +394,43 @@ export function JournalTimeline({
       });
     }
 
+    // Medication filter
+    if (selectedMedId && taggedSet.size > 0) {
+      result = result.filter((e) => taggedSet.has(e.id));
+    } else if (selectedMedId && taggedIds !== undefined) {
+      // Query resolved but returned empty — no matches
+      result = [];
+    }
+
     return result;
-  }, [events, search, moodFilters, kindFilters, sortDesc]);
+  }, [
+    events,
+    search,
+    moodFilters,
+    kindFilters,
+    sortDesc,
+    selectedMedId,
+    taggedSet,
+    taggedIds,
+  ]);
 
   const hasActiveFilters =
-    search.trim() !== "" || moodFilters.size > 0 || kindFilters.size > 0;
+    search.trim() !== "" ||
+    moodFilters.size > 0 ||
+    kindFilters.size > 0 ||
+    selectedMedId !== null;
 
   return (
     <div className="space-y-4">
+      {/* Medication chip filter bar */}
+      {medications && medications.length > 0 && (
+        <MedicationChipBar
+          medications={medications}
+          selected={selectedMedId}
+          onSelect={setSelectedMedId}
+        />
+      )}
+
       {/* Search / filter / sort toolbar */}
       <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -441,6 +489,7 @@ export function JournalTimeline({
                 setSearch("");
                 setMoodFilters(new Set());
                 setKindFilters(new Set());
+                setSelectedMedId(null);
               }}
               className="text-xs text-muted-foreground hover:text-foreground/80 ml-1 transition-colors"
             >
@@ -454,7 +503,12 @@ export function JournalTimeline({
         (hasActiveFilters ? (
           <div className="text-center py-12">
             <p className="text-[var(--color-muted)] text-sm">
-              No entries match your filters.
+              {selectedMedId &&
+              !search.trim() &&
+              moodFilters.size === 0 &&
+              kindFilters.size === 0
+                ? "No journal entries mention this medication."
+                : "No entries match your filters."}
             </p>
           </div>
         ) : (

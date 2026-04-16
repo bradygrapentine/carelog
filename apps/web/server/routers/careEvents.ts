@@ -8,6 +8,7 @@ import {
   getFlaggedEvents,
   insertEventIdempotent,
 } from "../repositories/careEventsRepository";
+import { autoTagCareEvent } from "../repositories/medicationTaggingRepository";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import type { EventType, EntryKind } from "@carelog/types";
 
@@ -70,7 +71,7 @@ export const careEventsRouter = router({
       }
 
       if (input.idempotencyKey) {
-        return insertEventIdempotent(ctx.supabase, {
+        const event = await insertEventIdempotent(ctx.supabase, {
           orgId: input.orgId,
           recipientId: input.recipientId,
           actorId: ctx.user.id,
@@ -81,9 +82,13 @@ export const careEventsRouter = router({
           flagged: input.flagged,
           idempotencyKey: input.idempotencyKey,
         });
+        if (event) {
+          void autoTagCareEvent(event.id, input.orgId, input.recipientId);
+        }
+        return event;
       }
 
-      return insertEvent(ctx.supabase, {
+      const event = await insertEvent(ctx.supabase, {
         orgId: input.orgId,
         recipientId: input.recipientId,
         actorId: ctx.user.id,
@@ -93,6 +98,8 @@ export const careEventsRouter = router({
         occurredAt: input.occurredAt,
         flagged: input.flagged,
       });
+      void autoTagCareEvent(event.id, input.orgId, input.recipientId);
+      return event;
     }),
 
   flagged: protectedProcedure

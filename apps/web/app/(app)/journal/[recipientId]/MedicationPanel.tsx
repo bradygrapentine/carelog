@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Pill } from "lucide-react";
+import { ChevronDown, ChevronUp, Pill } from "lucide-react";
+import { MedicationLinkedDocs } from "@/components/medications/MedicationLinkedDocs";
+import { MedicationRecentEvents } from "@/components/medications/MedicationRecentEvents";
 
 type Props = {
   orgId: string;
@@ -21,6 +23,7 @@ export function MedicationPanel({
   currentUserRole,
 }: Props) {
   const [showForm, setShowForm] = useState(false);
+  const [expandedMedId, setExpandedMedId] = useState<string | null>(null);
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -296,52 +299,81 @@ export function MedicationPanel({
               const isLow = typeof supplyDays === "number" && supplyDays <= 7;
 
               return (
-                <div
-                  key={medId}
-                  data-testid="medication-item"
-                  className="flex items-start justify-between gap-3 rounded-lg border border-border bg-[var(--color-surface)] p-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-foreground">
-                        {name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {dos}
-                      </span>
-                      {isLow && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                          Low supply
+                <div key={medId}>
+                  <div
+                    data-testid="medication-item"
+                    className="flex items-start justify-between gap-3 rounded-lg border border-border bg-[var(--color-surface)] p-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">
+                          {name}
                         </span>
+                        <span className="text-xs text-muted-foreground">
+                          {dos}
+                        </span>
+                        {isLow && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                            Low supply
+                          </span>
+                        )}
+                      </div>
+                      {instStr && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {instStr}
+                        </p>
+                      )}
+                      {pharmStr && (
+                        <p className="text-xs text-muted-foreground">
+                          {pharmStr}
+                        </p>
+                      )}
+                      {typeof supplyDays === "number" && (
+                        <p className="text-xs text-muted-foreground">
+                          {supplyDays} days remaining
+                        </p>
                       )}
                     </div>
-                    {instStr && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {instStr}
-                      </p>
-                    )}
-                    {pharmStr && (
-                      <p className="text-xs text-muted-foreground">
-                        {pharmStr}
-                      </p>
-                    )}
-                    {typeof supplyDays === "number" && (
-                      <p className="text-xs text-muted-foreground">
-                        {supplyDays} days remaining
-                      </p>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        aria-label={
+                          expandedMedId === medId
+                            ? `Hide linked content for ${name}`
+                            : `Show linked content for ${name}`
+                        }
+                        onClick={() =>
+                          setExpandedMedId(
+                            expandedMedId === medId ? null : medId,
+                          )
+                        }
+                        className="p-1 rounded text-muted-foreground hover:text-foreground/80 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                      >
+                        {expandedMedId === medId ? (
+                          <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                        )}
+                      </button>
+                      {isCoordinator && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            deleteMutation.mutate({ id: medId, org_id: orgId })
+                          }
+                          disabled={deleteMutation.isPending}
+                          className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)] ml-1 shrink-0"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {isCoordinator && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        deleteMutation.mutate({ id: medId, org_id: orgId })
-                      }
-                      disabled={deleteMutation.isPending}
-                      className="text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)] ml-3 shrink-0"
-                    >
-                      Remove
-                    </button>
+                  {expandedMedId === medId && (
+                    <div className="mt-2 space-y-2">
+                      <MedicationLinkedDocs medicationId={medId} />
+                      <MedicationRecentEvents medicationId={medId} />
+                    </div>
                   )}
                 </div>
               );

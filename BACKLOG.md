@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-14** (codebase scan same day). Last `/backlog-sync`: **2026-04-14**.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 3 | §1 TD-02, TD-03 · §2 TD-05 |
+| 🟢 Ready | 2 | §1 TD-02, TD-03 |
 | ⚡ In progress | 1 | §1 PP-006 |
-| 🔎 In review | 1 | §1 UX-04 |
+| 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
-| 🌙 Overnight queue | 4 | §2 ON-15, ON-31, ON-37, ON-48 |
-| 🧊 Deferred | 10 | §6 UX (9) + PP-013 |
+| 🌙 Overnight queue | 1 | §2 ON-15 |
+| 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -58,7 +58,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
-| UX-04 | 🔎 In review | — | `feat/ux-04-dark-mode` | **Full dark mode via Tailwind `@theme` dark variant + `prefers-color-scheme`** | Anti-FOUC script in layout.tsx. System/Light/Dark toggle in settings. globals.css: dark tokens + .dark class + print-mode overrides. 173 tests passing. |
+| ON-44 | 🔎 In review | — | `feat/on44-care-event-comments` · PR #73 | **Comment threads on care events** | care_event_comments table + RLS + pgTAP + tRPC sub-router + web CommentThread/CommentItem/CommentComposer + mobile CommentSection + E2E spec. |
+| ON-45 | 🔎 In review | — | `feat/on45-shift-trade-requests` · PR #74 | **Shift trade requests** | shift_trade_requests table + RLS + pgTAP + tRPC router + Inngest cron + web TradeRequestCard/Form/List + mobile TradeRequestSheet + E2E spec. |
 | PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
@@ -67,6 +68,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-06 | 🟢 Ready | **Add `dark:` variants to ON-44/ON-45 components** | Post-dark-mode (UX-04) follow-up: CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList lack `dark:` class variants. ~1 hr mechanical sweep. |
 
 ---
 
@@ -81,83 +83,6 @@ All items below are independent (no shared-state conflicts) — the agent may fa
 **Work:** Run app under max Larger Accessibility Sizes on journal/medications/schedule; migrate fixed sizes to `PixelRatio.getFontScale()` capped at 1.5×. VoiceOver-complete a medication-log flow end-to-end. File follow-up ON-XX for issues deferred.
 **AC:** app usable at 200% DT on 3 key screens; VoiceOver finishes the med-log flow.
 **Size:** ~1 day. **Blocked by:** nothing.
-
-### 🌙 ON-20 — Mobile `accessibilityLabel` sweep on icon-only / emoji buttons
-**Why:** per `apps/mobile/CLAUDE.md`, every icon-only `Touchable/Pressable` must declare `accessibilityLabel` + `accessibilityRole="button"`. Many still missing.
-**Work:** grep mobile for icon-only interactives; add labels + role; do NOT alter layout/handlers.
-**AC:** grep returns 0; `cd apps/mobile && pnpm test` + `pnpm typecheck` green.
-**Size:** ~2 hr. **Blocked by:** nothing.
-
-### 🌙 ON-21 — Web raw-hex audit + token migration · 🔎 PR #34
-**Why:** `.claude/rules/ui-standards.md` forbids raw hex in component files.
-**Work:** `grep -rn "#[0-9a-fA-F]\{3,8\}" apps/web/app apps/web/components`; replace with closest `var(--color-*)`. If no close token, add note in PR — do NOT invent a token. Skip `.svg/.ico/public/`.
-**AC:** no raw hex in `.tsx/.ts`; visual spot-check on dashboard + journal + billing; `pnpm typecheck` + `pnpm test` green.
-**Size:** ~3 hr. **Branch:** feat/on21-raw-hex
-
-### ✅ ON-22 — pgTAP RLS test: `notification_preferences`
-Owner-only RLS, no pgTAP coverage. Template: `supabase/tests/expenses_rls.test.sql`. Cases: owner r/w self pass, cross-user blocked, anon blocked. **AC:** `supabase test db` passes. **Size:** 1 hr.
-
-### ✅ ON-23 — pgTAP RLS test: `care_recipients`
-Root of org scoping — cannot ship multi-tenant without this. Cases: org member reads; non-member blocked; only coordinator can insert/update/delete; anon blocked on all. **AC:** `supabase test db` passes with 5+ assertions. **Size:** 1.5 hr.
-
-### ✅ ON-24 — pgTAP RLS test: `mood_entries`
-PHI. Cases: org member reads for in-org recipients only; author-only update/delete; anon blocked. **Size:** 1.5 hr.
-
-### ✅ ON-25 — Zod schema tests for shared validators
-`find packages -name "*.ts" -path "*schema*"`; for each without a `.test.ts`, add one valid case + 2–3 invalid edge cases. **AC:** every exported schema in `packages/shared` has a test. **Size:** 3 hr.
-
-### 🌙 ON-26 — Mobile empty-state copy pass
-Grep mobile for "No data", "Nothing here", "Empty", "No results"; rewrite in Carelog voice (see `UX_DECISIONS.md`) with a concrete next-action CTA. Keep layouts identical. **Size:** 2 hr.
-**Status:** 🔎 In review, Branch: feat/mobile-ux
-
-### 🌙 ON-27 — Web alt-text audit
-`grep -rn "<Image\|<img "`; verify meaningful `alt`; decoratives get `alt="" aria-hidden="true"`. **AC:** `eslint --rule 'jsx-a11y/alt-text: error'` clean. **Size:** 1 hr. *(Overlap with A11Y-002 — run A11Y-002 first; this becomes a no-op.)*
-
-### 🌙 ON-28 — Mobile loading skeletons on list screens
-Add `<Skeleton>` to `apps/mobile/components/`, use on journal, medications, documents, team index screens. Respect dark mode via `useAppTheme()`. **Size:** 3 hr.
-**Status:** 🔎 In review, Branch: feat/mobile-ux
-
-### 🌙 ON-29 — Replace `console.log` with logger in `apps/web` · 🔎 PR #35
-Grep `console\.(log|warn|error)` in `apps/web/app|lib|server`; replace with project logger (`apps/web/lib/logger.ts`). Skip tests/scripts. **AC:** no `console.*` in prod source; `pnpm lint` clean. **Size:** 1 hr. **Branch:** feat/on29-console-logger
-
-### 🔎 ON-30 — JSDoc on public exports in `packages/shared`
-One-line JSDoc on each exported function/type where purpose isn't obvious. Do NOT invent behavior. **Size:** 2 hr. **Branch:** feat/on30-jsdoc-shared
-
-### 🔎 ON-31 — E2E: settings page notification prefs
-Write `e2e/notification-preferences.spec.ts`: sign-in, toggle pref, reload, assert persisted. Follow `e2e/CLAUDE.md`. **Size:** 2 hr. **Status:** 🔎 In review. **Branch:** feat/on31-e2e-settings-notifs. **Blocked by:** PP-004 (if settings page is the new hub).
-
-### 🌙 ON-32 — E2E: invite-accept happy path
-Write `e2e/invite-accept.spec.ts` using multi-context pattern. Coordinator creates invite → second browser accepts → lands on dashboard with correct role. Cover expired-invite rejection as secondary. **Size:** 3 hr.
-
-### 🔎 ON-33 — Mobile: Sentry breadcrumbs on tRPC errors
-Add breadcrumb with procedure name + operation type (NEVER input values — PHI). Scrub `email`, `name`, free-text. Verify by triggering an error. **Size:** 2 hr. **Branch:** feat/on33-mobile-sentry-breadcrumbs
-
-### 🌙 ON-34 — PostHog funnel events: web ↔ mobile parity audit
-Grep both apps for `posthog.capture(` calls; produce diff table at `docs/project-info/technology/ANALYTICS_EVENTS.md`. Report only — no new events. **Size:** 1 hr.
-
-### ✅ 🌙 ON-35 — `.gitignore` hygiene
-Add `apps/web/sonar-report.xml` + `.memsearch/` to root `.gitignore`; `git rm --cached` both. Verify no other generated artifacts remain tracked. **Size:** 15 min.
-
-### 🌙 ON-36 — TODO/FIXME audit + backlog backfill
-Grep `TODO|FIXME|XXX|HACK` across apps/packages/supabase. Classify: resolve <10 min, convert to new backlog entry (reference ID in comment), or delete if obsolete. Report at `docs/project-info/technology/TODO_AUDIT.md`. **Size:** 2 hr.
-
-### 🌙 ON-37 — `ts-prune` unused exports sweep
-`pnpm dlx ts-prune -p apps/web/tsconfig.json` and mobile. Annotate false positives, delete true orphans. Verify with grep across all apps before deleting workspace `index.ts` exports. **AC:** report reduced ≥50%. **Size:** 3 hr.
-
-### ✅ 🌙 ON-38 — Dependency freshness report
-`pnpm outdated -r` + `pnpm audit --prod`. Write `docs/project-info/technology/DEPENDENCY_AUDIT.md`: advisories, major lags, recommended upgrade order. Report only. **Size:** 1 hr.
-
-### 🔎 ON-39 — Eliminate `any` types
-Grep `: any\b|<any>|as any` in apps/packages. Replace with precise type or `unknown` + narrowing. Do NOT disable ESLint rule. **AC:** `any` count reduced ≥80%. **Size:** 4 hr.
-**Branch:** feat/on39-eliminate-any. Production `any` count: 1 → 0 (100% reduction). Only remaining `any` usages are in test files (excluded from scope). Changed `as any` in `apps/mobile/plugins/withCarelogWatch.ts` to `as XcodeProject` with proper import from `@expo/config-plugins`.
-
-### 🌙 ON-48 — Add neutral design tokens + update brief page · ~1 hr
-19 TODOs in `apps/web/app/brief/[shareToken]/page.tsx` flag missing neutral gray tokens (`gray-50`, `gray-100`, `gray-200`, `gray-400`, `gray-700`, `#fff`). Add `--color-neutral-{50,100,200,400}` and `--color-white` to `apps/web/app/globals.css` `@theme inline` block; replace inline hex and workaround comments in brief page. **Status:** 🟢 Ready. **Size:** 1 hr.
-
-### 🟢 TD-05 — Regenerate Supabase TypeScript types after messaging migration
-Run `/supabase-types` to regenerate `@carelog/supabase-types` after the messaging migration lands. Removes `as any` casts in messagesRepository.ts.
-**AC:** `pnpm typecheck` clean with zero `as any` in messagesRepository.ts. **Size:** 15 min.
-**Status:** 🟢 Ready
 
 ---
 
@@ -186,11 +111,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-005 | P2 | `vitest-axe` assertions on shared web primitives (Card, Button, Input, Label, Dialog) |
-| A11Y-006 | P2 | Mobile a11y snapshot test per top-level screen (every Pressable has label + role) |
-| A11Y-007 | 🔎 In review | Lighthouse a11y audit on each Vercel preview via `chrome-devtools-mcp` |
 | A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow |
-| A11Y-009 | P3 | Honor `prefers-reduced-motion` (web) + `AccessibilityInfo.isReduceMotionEnabled()` (mobile) | 🔎 In review · Branch: `feat/a11y-009-reduced-motion` |
 
 ---
 
@@ -200,6 +121,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
 
 ### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
+**Status:** 🔎 In review · **Branch:** `feat/on46-medication-tagging` · **Plan:** `docs/superpowers/plans/2026-04-16-on46-medication-tagging.md`
 Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
 
 ---
@@ -208,19 +130,12 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
-### High
-- **UX-01** — Loading skeletons across panels (shadcn Skeleton + Suspense per panel). *Partial mobile coverage via ON-28.*
-- **UX-02** — Illustrated empty states (journal, medications, team, vault). Pairs with copywriter pass. **Status:** 🔎 In review, Branch: feat/ux-02-empty-states
-- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
-
 ### Medium
-- **UX-05** — Mobile-optimized journal entry (bottom-sheet + horizontal mood row).
-- **UX-07** — Active-panel breadcrumb / dynamic page title ("Dad · Medications"). Needs SidebarContext.
+- **UX-03** — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
-- **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs) — meaningful *after* dark mode ships.
-- **UX-10** — Export styling (`/brief/[token]`, `/care/[token]`) — align read-only share pages with token system.
+- **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs).
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
 
 ---
@@ -258,9 +173,23 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
 
-### 2026-04-15 parallel agent session
-✅ **ON-44** Comment threads on care events — `care_event_comments` table + RLS + pgTAP + tRPC sub-router + web `CommentThread`/`CommentItem`/`CommentComposer` + mobile `CommentSection` + E2E spec
-✅ **ON-45** Shift trade requests — `shift_trade_requests` table + RLS + pgTAP + Zod schemas + repository + tRPC router + Inngest expiry cron + web `TradeRequest{Card,Form,List}` + mobile `TradeRequest{Card,Sheet}` + E2E spec
+### 2026-04-16 backlog sync (PRs #53–#74)
+✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)
+✅ **A11Y-006** Mobile a11y snapshot tests per top-level screen (PR #63)
+✅ **A11Y-007** Lighthouse a11y audit script + GitHub Actions CI workflow (PR #68)
+✅ **A11Y-009** `prefers-reduced-motion` — web global CSS + mobile `useReducedMotion()` (PR #67)
+✅ **ON-31** E2E: settings page notification prefs (PR #69)
+✅ **ON-37** `ts-prune` unused-exports sweep — removed `getPostHog` + `WatchData` (PR #62)
+✅ **ON-48** Neutral design tokens + brief page hex sweep (PR #58)
+✅ **TD-05** Regenerate Supabase TS types after messaging migration; removes `as any` in messagesRepository
+✅ **UX-01** Loading skeletons across dashboard/journal/team/messages panels (PR #54)
+✅ **UX-02** Illustrated empty states — journal, meds, team, vault (PR #70)
+✅ **UX-04** Full dark mode via CSS custom properties + ThemeToggle + anti-FOUC script (PR #71)
+✅ **UX-05** Mobile journal bottom-sheet + horizontal mood row (PR #60)
+✅ **UX-07** Active-panel breadcrumb / dynamic page title (PR #53)
+✅ **UX-10** Export styling `/brief/[token]` + `/care/[token]` (PR #55)
+✅ **AI assistant** PHI-safe Claude FAB — context-aware suggestions, org-scoped, no PHI sent to API (PR #72)
+✅ **Shift calendar** Replace ShiftList with react-big-calendar day/week/month views (PR #66)
 
 ### 2026-04-14 parallel agent session (PRs #34–#49)
 ✅ **ON-21** Web raw-hex audit — all hex replaced with `var(--color-*)` design tokens (PR #34)

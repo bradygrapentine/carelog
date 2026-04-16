@@ -10,6 +10,16 @@ vi.mock("@/components/care-events/CommentThread", () => ({
   CommentThread: () => null,
 }));
 
+vi.mock("@/lib/trpc", () => ({
+  trpc: {
+    medications: {
+      getEventIdsForMedication: {
+        useQuery: vi.fn().mockReturnValue({ data: undefined }),
+      },
+    },
+  },
+}));
+
 const STUB_FETCH = vi.fn().mockResolvedValue({
   json: () => Promise.resolve({ counts: {}, myReaction: null }),
 });
@@ -45,7 +55,7 @@ function makeEvent(
 }
 
 describe("JournalTimeline — empty state", () => {
-  it("shows caregiver prompt when canFlag is true", () => {
+  it("shows empty state when canFlag is true", () => {
     render(
       <JournalTimeline
         events={[]}
@@ -55,12 +65,10 @@ describe("JournalTimeline — empty state", () => {
         onFlag={vi.fn()}
       />,
     );
-    expect(
-      screen.getByText("No entries yet. Share how today is going above."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
   });
 
-  it("shows supporter message when canFlag is false", () => {
+  it("shows empty state when canFlag is false", () => {
     render(
       <JournalTimeline
         events={[]}
@@ -70,9 +78,7 @@ describe("JournalTimeline — empty state", () => {
         onFlag={vi.fn()}
       />,
     );
-    expect(
-      screen.getByText("No entries have been shared yet."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
   });
 });
 

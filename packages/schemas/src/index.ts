@@ -5,6 +5,7 @@ export * from "./shifts";
 export * from "./shiftTradeRequests";
 export * from "./coverageWindows";
 export * from "./medications";
+export * from "./medicationTagging";
 export * from "./outerCircle";
 export * from "./symptoms";
 export * from "./burnout";
