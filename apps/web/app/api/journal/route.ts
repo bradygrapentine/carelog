@@ -120,8 +120,13 @@ export async function POST(request: NextRequest) {
           .from("care_events")
           .select()
           .eq("client_id", clientId)
-          .single();
-        if (existing) return NextResponse.json({ event: existing });
+          .maybeSingle();
+        if (!existing)
+          return NextResponse.json(
+            { error: "Conflict: duplicate clientId but record not found" },
+            { status: 500 },
+          );
+        return NextResponse.json({ event: existing });
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }

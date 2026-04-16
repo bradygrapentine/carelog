@@ -10,13 +10,16 @@ type Props = {
 };
 
 export function AppShellClient({ userInitials, children }: Props) {
-  function handleSignOut() {
+  async function handleSignOut() {
     const supabase = createClient();
-    clearOfflineQueue().finally(() => {
-      supabase.auth.signOut().then(() => {
-        window.location.href = "/signin";
-      });
-    });
+    try {
+      await clearOfflineQueue();
+      await supabase.auth.signOut();
+    } catch {
+      // best-effort logout even if cleanup fails
+    } finally {
+      window.location.href = "/signin";
+    }
   }
 
   return (

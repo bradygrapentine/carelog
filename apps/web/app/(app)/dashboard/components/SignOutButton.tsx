@@ -9,9 +9,14 @@ export function SignOutButton() {
   const router = useRouter();
 
   async function handleSignOut() {
-    await clearOfflineQueue();
-    await supabase.auth.signOut();
-    router.push("/signin");
+    try {
+      await clearOfflineQueue();
+      await supabase.auth.signOut();
+    } catch {
+      // best-effort logout even if cleanup fails
+    } finally {
+      window.location.href = "/signin";
+    }
   }
 
   return (
