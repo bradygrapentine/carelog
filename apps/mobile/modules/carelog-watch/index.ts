@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 
+// ts-prune-ignore-next // watch module data type, consumed by multiple screens
 export type WatchData = {
   nextShift?: { assigneeName: string; startsAt: string } | null;
   nextMedication?: {
@@ -23,6 +24,7 @@ export type WatchData = {
  * Uses WCSession.updateApplicationContext — delivers latest-only (not queued).
  * Safe to call on Android or when no watch is paired (silently ignored).
  */
+// ts-prune-ignore-next // watch module export, consumed by screens
 export function writeWatchData(data: WatchData): void {
   if (Platform.OS !== "ios") return;
   try {

@@ -18,6 +18,7 @@ type InviteDetails = {
   invited_by: string;
 };
 
+// ts-prune-ignore-next // Expo Router page component
 export default function InviteScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();

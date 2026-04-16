@@ -49,6 +49,7 @@ async function registerPushToken(): Promise<void> {
   }
 }
 
+// ts-prune-ignore-next // Expo Router page component
 export default function SettingsScreen() {
   const router = useRouter();
   const [registering, setRegistering] = useState(false);

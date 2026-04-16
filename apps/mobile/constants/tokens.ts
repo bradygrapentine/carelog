@@ -143,6 +143,7 @@ export const darkColors = {
 
 // Back-compat: `colors` always points at the light palette so existing
 // imports (ON-11 panel migration and other screens) continue to work.
+// ts-prune-ignore-next // design token, consumed at runtime
 export const colors: typeof lightColors = lightColors;
 
 export const spacing = {

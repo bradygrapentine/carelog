@@ -14,6 +14,7 @@ const ITEMS = [
   { title: "End-of-Life", route: "/eol-planner" as const, icon: "📝" },
 ];
 
+// ts-prune-ignore-next // Expo Router page component
 export default function MoreScreen() {
   const router = useRouter();
   const { colors, spacing, radii, typography } = useAppTheme();

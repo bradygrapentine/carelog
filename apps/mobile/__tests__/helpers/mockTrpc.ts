@@ -1,5 +1,6 @@
 // Common mock factories for tRPC queries and mutations
 
+// ts-prune-ignore-next // test helper
 export function mockQuery<T>(data: T) {
   return {
     useQuery: () => ({
@@ -11,6 +12,7 @@ export function mockQuery<T>(data: T) {
   };
 }
 
+// ts-prune-ignore-next // test helper
 export function mockLoadingQuery() {
   return {
     useQuery: () => ({
@@ -22,6 +24,7 @@ export function mockLoadingQuery() {
   };
 }
 
+// ts-prune-ignore-next // test helper
 export function mockMutation() {
   const mutateAsync = jest.fn().mockResolvedValue({ id: "new-1" });
   const mutate = jest.fn();
@@ -40,6 +43,7 @@ export function mockMutation() {
 }
 
 // Standard SecureStore mock
+// ts-prune-ignore-next // test helper
 export const secureStoreMock = (() => {
   const store: Record<string, string> = {};
   return {
@@ -57,6 +61,7 @@ export const secureStoreMock = (() => {
 })();
 
 // Standard NetInfo mock
+// ts-prune-ignore-next // test helper
 export const netInfoMock = {
   addEventListener: jest.fn((cb: (s: { isConnected: boolean }) => void) => {
     cb({ isConnected: true });
