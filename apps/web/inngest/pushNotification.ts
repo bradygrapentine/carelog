@@ -1,6 +1,16 @@
+import webPush from "web-push";
 import { supabaseAdmin } from "../server/supabaseAdmin.server";
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+
+// Configure VAPID once at module load (no-ops when env vars are absent)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webPush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL ?? "admin@caresync.app"}`,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  );
+}
 
 type PushMessage = {
   to: string;
@@ -114,4 +124,42 @@ export async function sendPushToUser(
   }));
 
   await sendExpoPush(messages);
+}
+
+/**
+ * Sends a web push notification to all registered browser subscriptions for a user.
+ * Silently removes expired/invalid subscriptions (HTTP 410).
+ * PHI rule: payload contains only title, body, and a URL — never user PII.
+ */
+export async function sendWebPushToUser(
+  userId: string,
+  payload: { title: string; body: string; url?: string },
+): Promise<void> {
+  const { data: subs } = await supabaseAdmin
+    .from("web_push_subscriptions")
+    .select("endpoint, p256dh_key, auth_key")
+    .eq("auth_user_id", userId);
+
+  if (!subs?.length) return;
+
+  const payloadStr = JSON.stringify(payload);
+
+  await Promise.allSettled(
+    subs.map((sub) =>
+      webPush
+        .sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh_key, auth: sub.auth_key },
+          },
+          payloadStr,
+        )
+        .catch(() =>
+          supabaseAdmin
+            .from("web_push_subscriptions")
+            .delete()
+            .eq("endpoint", sub.endpoint),
+        ),
+    ),
+  );
 }

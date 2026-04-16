@@ -65,26 +65,42 @@ export const userRouter = router({
     return { ok: true };
   }),
 
-  /** Update notification preferences stored in user_metadata */
+  /** Update notification preferences stored in user_metadata and notification_preferences table */
   updateNotifications: protectedProcedure
     .input(
       z.object({
         emailDigest: z.boolean().optional(),
         emailMentions: z.boolean().optional(),
         emailShiftReminders: z.boolean().optional(),
+        webPushEnabled: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, boolean> = {};
+      const metaUpdates: Record<string, boolean> = {};
       if (input.emailDigest !== undefined)
-        updates.email_digest = input.emailDigest;
+        metaUpdates.email_digest = input.emailDigest;
       if (input.emailMentions !== undefined)
-        updates.email_mentions = input.emailMentions;
+        metaUpdates.email_mentions = input.emailMentions;
       if (input.emailShiftReminders !== undefined)
-        updates.email_shift_reminders = input.emailShiftReminders;
+        metaUpdates.email_shift_reminders = input.emailShiftReminders;
 
-      const { error } = await ctx.supabase.auth.updateUser({ data: updates });
-      if (error) throw new Error(error.message);
+      if (Object.keys(metaUpdates).length > 0) {
+        const { error } = await ctx.supabase.auth.updateUser({
+          data: metaUpdates,
+        });
+        if (error) throw new Error(error.message);
+      }
+
+      if (input.webPushEnabled !== undefined) {
+        const { error } = await ctx.supabase
+          .from("notification_preferences")
+          .upsert(
+            { user_id: ctx.user.id, web_push_enabled: input.webPushEnabled },
+            { onConflict: "user_id" },
+          );
+        if (error) throw new Error(error.message);
+      }
+
       return { ok: true };
     }),
 });
