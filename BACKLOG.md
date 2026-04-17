@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 8 | TD-03 · TD-12 · TD-13 · A11Y-010 · PP-009 · PP-014 · UX-12 · UX-13 |
+| 🟢 Ready | 8 | TD-03 · TD-12 · TD-13 · A11Y-011 · PP-009 · PP-014 · UX-12 · UX-13 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -125,7 +125,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-010 | 🟢 Ready | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
+| A11Y-011 | 🟢 Ready | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
 
 ---
 

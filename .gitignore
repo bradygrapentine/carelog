@@ -21,3 +21,4 @@ apps/web/sonar-report.xml
 
 # Claude memory search index
 .memsearch/
+.claude/routing-metrics.jsonl
