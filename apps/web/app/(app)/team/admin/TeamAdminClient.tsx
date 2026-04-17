@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { RoleBadge } from "../../../../components/ui/RoleBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -149,7 +150,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
             className="mt-4 rounded-xl border-2 border-[var(--color-danger)] px-4 py-2 text-sm font-semibold text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
             onClick={() => {
               if (confirm("Are you absolutely sure? This cannot be undone.")) {
-                alert(
+                toast.error(
                   "Delete org: not yet implemented. Contact hello@carelog.app.",
                 );
               }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -621,7 +622,7 @@ function DangerZoneSection() {
                   // Destructive action: not yet wired — requires org context.
                   // Surface a clear message rather than silently failing.
                   setShowLeaveModal(false);
-                  alert(
+                  toast.error(
                     "Leave organization: select your org first from the dashboard, then use the Team panel to remove yourself.",
                   );
                 }}

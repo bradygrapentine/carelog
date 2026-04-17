@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import posthog from "posthog-js";
 
 const PLAN_FEATURES = [
@@ -183,7 +184,7 @@ export default function SubscriptionsPage() {
                     plan: "family",
                   });
                   setShowCancelModal(false);
-                  alert(
+                  toast.error(
                     "Cancellation: contact hello@carelog.app — Stripe not yet wired.",
                   );
                 }}
