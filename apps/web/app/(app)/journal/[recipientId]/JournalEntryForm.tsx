@@ -74,6 +74,13 @@ export function JournalEntryForm({ onPost, posting }: Props) {
       mood: mood || null,
       char_count: text.trim().length,
     });
+    if (
+      typeof window !== "undefined" &&
+      !localStorage.getItem("cl_first_event_fired")
+    ) {
+      localStorage.setItem("cl_first_event_fired", "1");
+      posthog.capture("first_care_event_created");
+    }
     await onPost(text.trim(), mood);
     setText("");
     setMood("");

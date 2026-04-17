@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,7 @@ export function TeamPanel({
     if (!email.trim()) return;
     setSending(true);
     await onInvite(email.trim(), role);
+    posthog.capture("team_member_invited");
     setEmail("");
     setRole("caregiver");
     setSending(false);
