@@ -168,7 +168,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Ready
-- **UX-12** — 🔎 In review · PR #TBD — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
+- **UX-12** — 🔎 In review · PR #120 — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
 - **UX-13** — 🟢 Ready — AIPanel loading + error state: `useMutation` in `components/ai/AIPanel.tsx` has no loading indicator or error feedback. Add spinner + error toast. ~0.5 day.
 
 ### Deferred
