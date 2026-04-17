@@ -1,18 +1,20 @@
 // apps/web/server/repositories/careEventCommentsRepository.ts
-// NOTE: care_event_comments table is new in migration 20260422. Until supabase-types is
-// regenerated, we cast .from() calls for this table with `as any` to bypass TypeScript's
-// strict table-name check on the generated Database type.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import type { CareEventComment } from "@carelog/schemas";
+import type { Database } from "../../lib/database.types";
+
+type CareEventCommentRow =
+  Database["public"]["Tables"]["care_event_comments"]["Row"];
+type CareEventCommentInsert =
+  Database["public"]["Tables"]["care_event_comments"]["Insert"];
 
 /** List non-deleted comments for an event, oldest first, with author display name. */
 export async function listComments(
   supabase: SupabaseClient,
   careEventId: string,
 ): Promise<CareEventComment[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("care_event_comments")
     .select(
       "id, author_id, body, edited_at, created_at, profiles!care_event_comments_author_id_fkey(display_name)",
@@ -23,16 +25,18 @@ export async function listComments(
 
   if (error) throw error;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    authorId: row.author_id,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    authorName: (row.profiles as any)?.display_name ?? "Unknown",
-    body: row.body,
-    editedAt: row.edited_at ?? null,
-    createdAt: row.created_at,
-  }));
+  return (data ?? []).map(
+    (
+      row: CareEventCommentRow & { profiles: { display_name: string } | null },
+    ) => ({
+      id: row.id,
+      authorId: row.author_id,
+      authorName: row.profiles?.display_name ?? "Unknown",
+      body: row.body,
+      editedAt: row.edited_at ?? null,
+      createdAt: row.created_at,
+    }),
+  );
 }
 
 /** Insert a comment. RLS enforces author = auth.uid(). */
@@ -45,8 +49,7 @@ export async function insertComment(
     body: string;
   },
 ): Promise<{ id: string; createdAt: string }> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("care_event_comments")
     .insert({
       care_event_id: input.careEventId,
@@ -68,8 +71,7 @@ export async function editComment(
   body: string,
 ): Promise<{ editedAt: string }> {
   const editedAt = new Date().toISOString();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("care_event_comments")
     .update({ body, edited_at: editedAt })
     .eq("id", commentId)
@@ -85,8 +87,7 @@ export async function softDeleteComment(
   supabase: SupabaseClient,
   commentId: string,
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("care_event_comments")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", commentId);
@@ -105,16 +106,14 @@ export async function getFanoutTargets(
   eventAuthorId: string;
   priorCommenterIds: string[];
 }> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: event, error: eventErr } = await (supabaseAdmin as any)
+  const { data: event, error: eventErr } = await supabaseAdmin
     .from("care_events")
     .select("org_id, actor_id")
     .eq("id", careEventId)
     .single();
   if (eventErr) throw eventErr;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: prior, error: priorErr } = await (supabaseAdmin as any)
+  const { data: prior, error: priorErr } = await supabaseAdmin
     .from("care_event_comments")
     .select("author_id")
     .eq("care_event_id", careEventId)
@@ -122,8 +121,9 @@ export async function getFanoutTargets(
   if (priorErr) throw priorErr;
 
   const priorCommenterIds = Array.from(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new Set((prior ?? []).map((r: any) => r.author_id as string)),
+    new Set(
+      (prior ?? []).map((r: CareEventCommentRow) => r.author_id as string),
+    ),
   );
   return {
     orgId: event.org_id,
@@ -134,8 +134,7 @@ export async function getFanoutTargets(
 
 /** Service-role: fetch the event's org_id for use in insert. */
 export async function getEventOrgId(careEventId: string): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabaseAdmin as any)
+  const { data, error } = await supabaseAdmin
     .from("care_events")
     .select("org_id")
     .eq("id", careEventId)
