@@ -17,10 +17,9 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 1 | §1 TD-03 |
-| ⚡ In progress | 1 | §1 PP-006 |
-| 🔎 In review | 4 | §1 TD-02 · ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
-| 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
-| 🌙 Overnight queue | 1 | §2 ON-15 |
+| 🔎 In review | 2 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
+| 🔴 Blocked | 4 | §3 PP-007..010 (unblocked — PP-006 shipped) |
+| 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
@@ -66,7 +65,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-02 | 🔎 In review | **Dynamic Type + screen-reader audit (mobile)** | Physical device VoiceOver test still required by a human. Code changes (scaledFont + accessibility labels on medications + schedule) complete. |
+| TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 | TD-06 | 🟢 Ready | **Add `dark:` variants to ON-44/ON-45 components** | Post-dark-mode (UX-04) follow-up: CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList lack `dark:` class variants. ~1 hr mechanical sweep. |
 
@@ -94,8 +93,8 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 
 | ID | Priority | Story | Status |
 |---|---|---|---|
-| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ⏳ |
-| PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ⏳ |
+| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ✅ Shipped · PR #92 |
+| PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ✅ Shipped · PR #93 |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ⏳ |
 | PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🔴 PP-006 |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
