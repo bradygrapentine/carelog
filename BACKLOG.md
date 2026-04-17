@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16** (post-tech-debt sprint).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-17**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 TD-03 · §3 PP-009 · PP-010 |
+| 🟢 Ready | 2 | §1 TD-03 · §3 PP-009 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -99,10 +99,10 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ✅ Shipped · PR #93 |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ✅ Shipped · PR #85 |
 | PP-006 | P1 | Android prebuild + boot verification | ✅ Shipped · PR #90 |
-| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | ✅ Shipped · PR #TBD — code complete; needs `google-services.json` from Firebase for live FCM verification |
+| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | ✅ Shipped · PR #99 — needs `google-services.json` from Firebase for live FCM verification |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human — `assetlinks.json` on live domain + EAS SHA-256 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready — `scripts/android-visual-qa.sh` written; run when Android emulator available |
-| PP-010 | P2 | Android: document-share intent verification | ✅ Verified — 17 unit tests cover Android `Alert.alert` path (Platform.OS=android) in `documents/__tests__/index.test.tsx` |
+| PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
@@ -186,6 +186,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **TD-08** Supabase types regen + `as any` cleanup — 10 casts removed (PR #95)
 ✅ **TD-09** ShiftList edit mode — `shifts.update` tRPC + inline edit panel (PR #96)
 ✅ **TD-10** JournalClient refactor — 3 custom hooks + JournalLayout; 624 → 107 lines (PR #97)
+✅ **TD-06** Dark mode variants for Comment + TradeRequest components; WCAG contrast fix (PR #98)
+✅ **PP-007** Android FCM push token registration + notifications tRPC router (PR #99)
+✅ **PP-009** Android visual QA script — `scripts/android-visual-qa.sh` (11 routes, HTML diff report; run when emulator available)
+✅ **PP-010** Android document-share intent — 17 unit tests covering `Platform.OS=android` Alert.alert picker path (2026-04-17)
 
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)
