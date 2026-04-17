@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | TD-03 · §3 PP-009 |
+| 🟢 Ready | 8 | TD-03 · TD-12 · TD-13 · A11Y-010 · PP-009 · PP-014 · UX-12 · UX-13 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -71,6 +71,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-12 | 🟢 Ready | **Fix missing Dialog + Label UI components** | `components/ui/__tests__/Dialog.test.tsx` and `Label.test.tsx` reference components that don't exist. Create minimal shadcn-wrapped versions or remove the orphaned test files. ~0.5 day. |
+| TD-13 | 🟢 Ready | **CommentThread mutation error handling** | `add`, `edit`, `remove` mutations in `components/care-events/CommentThread.tsx` have no `onError` callbacks — errors silently swallow. Add sonner toast on each. ~0.5 day. |
 | TD-11 | ✅ Shipped · 2026-04-17 | **data-testid sweep for medication components** | All data-testids already existed in MedicationPanel.tsx + MedicationChecklist.tsx; e2e spec already uses them. No code changes needed. |
 | TD-06 | ✅ Shipped · PR #98 | **Add `dark:` variants to ON-44/ON-45 components** | dark: sweep across Comment + TradeRequest components; contrast patch (avatar/badge gray-900+gray-50, fixed hover) committed directly to main. |
 | TD-07 | ✅ Shipped · PR #94 | **Alert → Toast sweep** | Replaced 6 `alert()` calls with sonner toasts across JournalClient, settings, subscriptions, TeamAdmin. Invite URL now copies to clipboard before toast. |
@@ -112,6 +114,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
+| PP-014 | 🟢 Ready | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch instead of `trpc.billing.getSubscription`. ~0.5 day. |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
 ---
@@ -122,7 +125,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| — | — | All A11Y stories shipped; new work tracked in §1. |
+| A11Y-010 | 🟢 Ready | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
 
 ---
 
@@ -164,7 +167,11 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
-### Lower
+### Ready
+- **UX-12** — 🟢 Ready — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
+- **UX-13** — 🟢 Ready — AIPanel loading + error state: `useMutation` in `components/ai/AIPanel.tsx` has no loading indicator or error feedback. Add spinner + error toast. ~0.5 day.
+
+### Deferred
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs).
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
