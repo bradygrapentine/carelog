@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 12 | §1 ON-49/50/51/52/57/58 · TD-03/TD-11 · §3 PP-009 · §5 ON-56/59/60 |
+| 🟢 Ready | 10 | §1 ON-49/50/51/57/58 · TD-03/TD-11 · §3 PP-009 · §5 ON-59/60 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -60,7 +60,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ON-49 | 🟢 Ready | — | — | **Shift completion → handoff note prompt** | When a shift transitions to `completed`, show inline prompt (web ShiftList + mobile schedule) for an optional handoff note. Creates a `care_event` with `entry_type='handoff'`. The `handoff` enum value already exists in the DB. |
 | ON-50 | 🟢 Ready | — | — | **Weekly digest: medications adherence section** | Add a missed-dose summary to the Sunday Inngest digest. Query `care_events` for `event_type='medication'` last week, surface missed vs given count. `weeklyDigest.ts` already has journal + mood + shifts but no meds section. |
 | ON-51 | 🟢 Ready | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
-| ON-52 | 🟢 Ready | — | — | **Care history depth counter on dashboard** | Show "X care events over Y months" on the dashboard (moat-reinforcement per PRODUCT_STRATEGY.md). Pure frontend — query `care_events` count + earliest date for the org. |
+| ON-52 | ✅ Shipped · PR #101 | — | — | **Care history depth counter on dashboard** | Shows care event count + months of history per team; parallel Supabase queries + `formatCareStats` pure helper + 6 unit tests. |
 | ON-53 | ✅ Shipped · PR #100 | — | — | **CareZone alternative landing page** | `/carezone-alternative` hero, CareZone comparison table, medication import preview tool; MarketingNav linked ("CareZone users"). |
 | ON-57 | 🟢 Ready | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
 | ON-58 | 🟢 Ready | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
@@ -141,7 +141,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case.
 
 ### ON-56 — Data stewardship commitment page · ~0.5 day
-**Status:** 🟢 Ready
+**Status:** ✅ Shipped · PR #102
 **Why:** PRODUCT_STRATEGY.md says "publish before first paying users." Builds trust with a population burned by CareZone's shutdown. Commitment: 12 months notice before shutdown, full data export always available, data never sold, no ads ever.
 **Work:** New marketing page at `/data-commitment` (or `/trust`). Link from footer + signup flow. Plain language, no legalese. ~0.5 day.
 **AC:** Page live at stable URL; linked from site footer and onboarding.
@@ -226,6 +226,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **PP-007** Android FCM push token registration + notifications tRPC router (PR #99)
 ✅ **PP-009** Android visual QA script — `scripts/android-visual-qa.sh` (11 routes, HTML diff report; run when emulator available)
 ✅ **PP-010** Android document-share intent — 17 unit tests covering `Platform.OS=android` Alert.alert picker path (2026-04-17)
+
+### 2026-04-17 onboarding + product (PRs #101–#102)
+✅ **ON-52** Care history depth counter on dashboard — "X care events over Y months" + `formatCareStats` helper + 6 unit tests (PR #101)
+✅ **ON-56** Data stewardship commitment page `/trust` — 4 commitments + hero + footer link + responsive layout (PR #102)
 
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)

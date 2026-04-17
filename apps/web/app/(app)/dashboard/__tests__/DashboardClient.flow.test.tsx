@@ -41,9 +41,24 @@ const mockRecipientsChain = (data: unknown) => ({
   limit: vi.fn().mockResolvedValue({ data }),
 });
 
+const mockCareEventsCountChain = () => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockResolvedValue({ count: 5 }),
+});
+
+const mockCareEventsEarliestChain = (createdAt: string | null) => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi
+    .fn()
+    .mockResolvedValue({ data: createdAt ? [{ created_at: createdAt }] : [] }),
+});
+
 function setupTeams(
   teams: Array<{ orgId: string; orgName: string; recipientId: string }>,
 ) {
+  let careEventsCallCount = 0;
   mockFrom.mockImplementation((table: string) => {
     if (table === "memberships") {
       return mockMembershipsChain(
@@ -54,6 +69,12 @@ function setupTeams(
         })),
       );
     }
+    if (table === "care_events") {
+      careEventsCallCount++;
+      return careEventsCallCount === 1
+        ? mockCareEventsCountChain()
+        : mockCareEventsEarliestChain("2025-01-01T00:00:00Z");
+    }
     // care_recipients — return first matching recipient
     const team = teams[0];
     return mockRecipientsChain(team ? [{ id: team.recipientId }] : []);
@@ -63,7 +84,9 @@ function setupTeams(
 function setupNoTeams() {
   mockFrom.mockImplementation((table: string) => {
     if (table === "memberships") return mockMembershipsChain([]);
-    return mockRecipientsChain([]);
+    if (table === "care_events") return mockCareEventsCountChain();
+    if (table === "care_recipients") return mockRecipientsChain([]);
+    return mockCareEventsEarliestChain(null);
   });
 }
 
