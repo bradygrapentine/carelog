@@ -17,7 +17,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 1 | §1 TD-02, TD-03 |
-| ⚡ In progress | 2 | §1 PP-006 · §3 PP-011 |
+| ⚡ In progress | 1 | §1 PP-006 |
 | 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
@@ -98,7 +98,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
 | PP-010 | P2 | Android: document-share intent verification | 🔴 PP-006 |
-| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | 🔵 In review · Branch: feat/pp011-offline-journal-queue |
+| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
