@@ -153,7 +153,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **AC:** Sentry receives an exception when any Inngest function throws. Oncall can see last-run timestamps for digest + refill + burnout + gap-detector.
 
 ### ON-60 — Referrer resource page `/for-referrers` · ~1 day
-**Status:** 🟢 Ready
+**Status:** 🚢 Shipped
 **Why:** PRODUCT_STRATEGY.md identifies social workers, hospital discharge planners, elder law attorneys, and geriatric care managers as the highest-leverage GTM channel — one referrer who sends 2 families/month is worth more than 1,000 social media followers. There is currently no page targeting this audience.
 **Work:** New marketing page at `/for-referrers`. Explains: what Carelog does, how to refer a family (share link), what families get. Includes a downloadable 1-page reference card (PDF). No commission language (conflicts with social worker ethics). ~1 day.
 **AC:** Page live; includes share link + downloadable PDF; linked from main nav footer.

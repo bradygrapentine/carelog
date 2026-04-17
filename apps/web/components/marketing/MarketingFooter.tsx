@@ -14,6 +14,7 @@ export function MarketingFooter() {
             {[
               { label: "Privacy", href: "/privacy" },
               { label: "Terms", href: "/terms" },
+              { label: "For referrers", href: "/for-referrers" },
               { label: "Contact", href: "/contact" },
             ].map(({ label, href }) => (
               <li key={href}>
