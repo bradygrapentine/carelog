@@ -1,0 +1,96 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "../lib/supabase";
+import { authenticatedFetch } from "../lib/authenticatedFetch";
+
+type OrgInfo = {
+  id: string;
+  name: string;
+};
+type Member = {
+  id: string;
+  role: string;
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+};
+type JournalEvent = {
+  id: string;
+  event_type: string;
+  entry_kind: string;
+  occurred_at: string;
+  flagged: boolean;
+  payload?: { text?: string; mood?: string };
+};
+
+type UseJournalDataReturn = {
+  org: OrgInfo | null;
+  events: JournalEvent[];
+  setEvents: React.Dispatch<React.SetStateAction<JournalEvent[]>>;
+  members: Member[];
+  currentUserRole: string;
+  loading: boolean;
+  loadEvents: () => Promise<void>;
+};
+
+export function useJournalData(
+  recipientId: string,
+  user: User,
+): UseJournalDataReturn {
+  const [org, setOrg] = useState<OrgInfo | null>(null);
+  const [events, setEvents] = useState<JournalEvent[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("supporter");
+  const [loading, setLoading] = useState(true);
+
+  async function loadEvents() {
+    const res = await authenticatedFetch(
+      "/api/journal?recipientId=" + recipientId,
+    );
+    const data = await res.json();
+    if (data.events) setEvents(data.events);
+  }
+
+  async function loadMembers(orgId: string, userId: string) {
+    const res = await authenticatedFetch("/api/members?orgId=" + orgId);
+    const data = await res.json();
+    if (data.members) {
+      setMembers(data.members);
+      const me = data.members.find((m: Member) => m.user_id === userId);
+      if (me) setCurrentUserRole(me.role);
+    }
+  }
+
+  useEffect(() => {
+    async function loadData() {
+      const supabase = createClient();
+      const { data: recipient } = await supabase
+        .from("care_recipients")
+        .select("org_id, organizations(id, name)")
+        .eq("id", recipientId)
+        .single();
+      if (recipient) {
+        const orgData = (recipient as unknown as { organizations: OrgInfo })
+          .organizations;
+        setOrg(orgData);
+        await loadMembers(orgData.id, user.id);
+      }
+      await loadEvents();
+      setLoading(false);
+    }
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipientId, user.id]);
+
+  return {
+    org,
+    events,
+    setEvents,
+    members,
+    currentUserRole,
+    loading,
+    loadEvents,
+  };
+}
