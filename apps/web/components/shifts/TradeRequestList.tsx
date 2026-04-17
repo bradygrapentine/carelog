@@ -67,7 +67,7 @@ export function TradeRequestList({
 
   return (
     <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] dark:bg-gray-700 border-b border-[var(--color-border)] dark:border-gray-600">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Trade Requests</CardTitle>
           {!showForm && (
@@ -75,7 +75,7 @@ export function TradeRequestList({
               variant="ghost"
               size="sm"
               onClick={() => setShowForm(true)}
-              className="h-7 px-2 text-xs text-[var(--color-primary)] hover:bg-[var(--color-primary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="h-7 px-2 text-xs text-[var(--color-primary)] dark:text-gray-300 hover:bg-[var(--color-primary-subtle)] dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-700"
             >
               <Plus className="h-3 w-3 mr-1" aria-hidden="true" />
               Request Trade
@@ -97,14 +97,17 @@ export function TradeRequestList({
 
         {/* Loading */}
         {isLoading && (
-          <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
+          <p
+            className="text-sm text-[var(--color-muted)] dark:text-gray-400"
+            aria-live="polite"
+          >
             Loading trade requests…
           </p>
         )}
 
         {/* List */}
         {!isLoading && trades.length === 0 && !showForm && (
-          <p className="text-sm text-[var(--color-muted)]">
+          <p className="text-sm text-[var(--color-muted)] dark:text-gray-400">
             No trade requests for this shift.
           </p>
         )}
