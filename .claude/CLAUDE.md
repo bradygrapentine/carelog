@@ -64,6 +64,9 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - **ShiftForm / ShiftList** live in `apps/web/app/(app)/journal/[recipientId]/`, not a standalone `/shifts/` route.
 - **Bash paths with `(app)` or `[recipientId]`** need quoting in zsh: `"apps/web/app/(app)/..."` — unquoted triggers glob expansion failures.
 - **Pre-commit hook** runs `cd apps/web && npx vitest run --reporter=dot 2>&1 | tail -5` — only the last 5 lines of test output are visible; run the command manually to see the full error if it fails.
+- **Main-commit hook timing**: The PreToolUse hook checks `git branch --show-current` *before* the Bash command runs. Never chain `git checkout -b <branch> && git commit` in one Bash call — the hook sees `main` and blocks. Always split into two separate Bash calls.
+- **Parallel subagent BACKLOG.md conflicts**: When rebasing branches from parallel subagents, BACKLOG.md always conflicts. Resolution: `git checkout --theirs BACKLOG.md && git add BACKLOG.md && GIT_EDITOR=true git rebase --continue`. Main's BACKLOG.md is always more current than the branch's status-flip.
+- **Story ID collisions**: Before assigning a new A11Y/TD/UX ID, grep §7 shipped log — IDs may already be taken there. Use `grep "A11Y-0[0-9][0-9]\|TD-[0-9]" BACKLOG.md` to find the highest used ID.
 
 ## Code Style
 
