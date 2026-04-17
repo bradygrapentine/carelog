@@ -319,6 +319,8 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/ship-story` | Single-story end-to-end: read BACKLOG row → branch → tests-first implement → push → PR → mark In review. |
 | `/schema-dump` | Dump schema of named Postgres tables (columns, indexes, RLS policies) **before** writing any migration or seed SQL. Prevents the ON CONFLICT / renamed-column iteration thrash. |
 | `/tdd-ship` | Strict red-green-refactor: agent writes failing tests first, iterates ≤5 times to green, then refactors. Escalates if stuck instead of hacking around. |
+| `/dispatch` | Ad-hoc parallel fan-out of 2–6 tasks (not backlog-driven). Sets up worktrees, symlinks node_modules, writes scope contracts, picks model. |
+| `/routing-report` | Weekly analysis of `.claude/routing-metrics.jsonl` — model usage + block events + `routing.yaml` tuning suggestions. |
 
 ## Agents
 
@@ -341,6 +343,8 @@ Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
 | supabaseAdmin guard | PreToolUse Edit/Write | Warns when editing files outside `server/` or `app/api/` that contain `supabaseAdmin` |
 | PR security review reminder | PreToolUse Bash | Prints hint to run `/review` before `gh pr create` |
 | main-branch commit block | PreToolUse Bash | **Hard-blocks** `git commit` on `main` unless `CLAUDE_ALLOW_MAIN_COMMIT=1` is set. Prevents subagents committing to main by accident. |
+| route-model | PreToolUse Agent | Logs Agent dispatches to `.claude/routing-metrics.jsonl`; **blocks** Haiku with >6000-char prompts and Opus dispatched for mechanical work. Override: `CLAUDE_ALLOW_MODEL_MISMATCH=1`. |
+| related-test | PostToolUse Edit/Write | After editing an `apps/web/*.{ts,tsx}` source file, runs the related `__tests__/<file>.test.tsx` (30s timeout). Silent on green, surfaces failures immediately. |
 
 ## MCP & Plugin Configuration
 
