@@ -15,6 +15,7 @@ import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 import { SkeletonRow } from "../../../components/Skeleton";
+import { scaledFont } from "../../../lib/typography";
 
 // Supabase join returns medications as an array; we use the first element
 type ScheduledMed = {
@@ -93,7 +94,7 @@ export default function MedicationsScreen() {
         },
         offlineBanner: { backgroundColor: colors.secondarySubtle },
         pendingBanner: { backgroundColor: colors.primarySubtle },
-        syncText: { fontSize: 12, color: colors.textSecondary },
+        syncText: { fontSize: scaledFont(12), color: colors.textSecondary },
         loader: { marginTop: 48 },
         row: {
           flexDirection: "row",
@@ -103,8 +104,12 @@ export default function MedicationsScreen() {
           borderBottomColor: colors.surfaceSubtle,
         },
         info: { flex: 1 },
-        medName: { fontSize: 16, fontWeight: "600" },
-        medDose: { fontSize: 13, color: colors.muted, marginTop: 2 },
+        medName: { fontSize: scaledFont(16), fontWeight: "600" },
+        medDose: {
+          fontSize: scaledFont(13),
+          color: colors.muted,
+          marginTop: 2,
+        },
         btn: {
           backgroundColor: colors.primary,
           paddingHorizontal: 14,
@@ -116,7 +121,11 @@ export default function MedicationsScreen() {
           borderWidth: 1,
           borderColor: colors.successLight,
         },
-        btnText: { color: colors.white, fontWeight: "600", fontSize: 13 },
+        btnText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: scaledFont(13),
+        },
         givenText: { color: colors.successStrong },
         empty: { color: colors.mutedLight, textAlign: "center", marginTop: 48 },
       }),
@@ -198,7 +207,8 @@ export default function MedicationsScreen() {
             }}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                No medications scheduled today. Your coordinator can add medications from the web app.
+                No medications scheduled today. Your coordinator can add
+                medications from the web app.
               </Text>
             }
           />
