@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { resend } from '../../server/resend.server'
@@ -120,6 +121,7 @@ export const weeklyDigest = inngest.createFunction(
   { id: 'weekly-digest' },
   { cron: 'TZ=UTC 0 8 * * 1' }, // Every Monday at 8am UTC
   async ({ step, logger }) => {
+    try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -253,5 +255,11 @@ export const weeklyDigest = inngest.createFunction(
         })
       )
     )
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: 'weekly-digest' },
+      })
+      throw err
+    }
   }
 )

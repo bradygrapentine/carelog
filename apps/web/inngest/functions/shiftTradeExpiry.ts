@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
 import { expireStaleRequests } from "../../server/repositories/shiftTradeRequestsRepository";
@@ -33,10 +34,17 @@ export const shiftTradeExpiry = inngest.createFunction(
   { id: "shift-trade-expiry" },
   { cron: "*/15 * * * *" }, // Every 15 minutes
   async ({ step, logger }) => {
-    return step.run("expire-stale-trades", async () => {
-      const result = await handleExpiry();
-      logger.info(`Expired ${result.expired} stale trade requests`);
-      return result;
-    });
+    try {
+      return await step.run("expire-stale-trades", async () => {
+        const result = await handleExpiry();
+        logger.info(`Expired ${result.expired} stale trade requests`);
+        return result;
+      });
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: "shift-trade-expiry" },
+      });
+      throw err;
+    }
   },
 );

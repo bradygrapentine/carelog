@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { sendPushToOrgCoordinators } from '../pushNotification'
@@ -53,6 +54,7 @@ export const gapDetector = inngest.createFunction(
   { id: 'gap-detector' },
   { cron: 'TZ=UTC 0 6 * * *' }, // Daily at 6am UTC
   async ({ step, logger }) => {
+    try {
     const today = new Date()
 
     // Step 1: find all recurring coverage windows
@@ -154,5 +156,11 @@ export const gapDetector = inngest.createFunction(
     )
 
     return { gaps: totalGaps }
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: 'gap-detector' },
+      })
+      throw err
+    }
   }
 )
