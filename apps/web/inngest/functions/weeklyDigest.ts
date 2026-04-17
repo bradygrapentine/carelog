@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { resend } from '../../server/resend.server'
@@ -145,7 +144,15 @@ export const weeklyDigest = inngest.createFunction(
     })
 
     logger.info('Orgs with activity this week: ' + activeOrgs.length)
-    if (activeOrgs.length === 0) return { sent: 0 }
+    if (activeOrgs.length === 0) {
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'weekly-digest',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'ok',
+        error_message: null,
+      })
+      return { sent: 0 }
+    }
 
     // Step 2: send digest for each org (parallel, independently retryable)
     await Promise.all(
@@ -255,9 +262,21 @@ export const weeklyDigest = inngest.createFunction(
         })
       )
     )
+
+    await supabaseAdmin.from('cron_runs').upsert({
+      function_id: 'weekly-digest',
+      last_ran_at: new Date().toISOString(),
+      last_status: 'ok',
+      error_message: null,
+    })
+
+    return { sent: activeOrgs.length }
     } catch (err) {
-      Sentry.captureException(err, {
-        tags: { inngest_function: 'weekly-digest' },
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'weekly-digest',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'error',
+        error_message: err instanceof Error ? err.message : String(err),
       })
       throw err
     }

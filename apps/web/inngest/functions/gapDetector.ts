@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { sendPushToOrgCoordinators } from '../pushNotification'
@@ -70,7 +69,15 @@ export const gapDetector = inngest.createFunction(
     })
 
     logger.info('Recurring windows for today: ' + allWindows.length)
-    if (allWindows.length === 0) return { gaps: 0 }
+    if (allWindows.length === 0) {
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'gap-detector',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'ok',
+        error_message: null,
+      })
+      return { gaps: 0 }
+    }
 
     // Group windows by org+recipient to batch shift queries
     const orgRecipientPairs = new Map<string, { orgId: string; recipientId: string }>()
@@ -155,10 +162,20 @@ export const gapDetector = inngest.createFunction(
       )
     )
 
+    await supabaseAdmin.from('cron_runs').upsert({
+      function_id: 'gap-detector',
+      last_ran_at: new Date().toISOString(),
+      last_status: 'ok',
+      error_message: null,
+    })
+
     return { gaps: totalGaps }
     } catch (err) {
-      Sentry.captureException(err, {
-        tags: { inngest_function: 'gap-detector' },
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'gap-detector',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'error',
+        error_message: err instanceof Error ? err.message : String(err),
       })
       throw err
     }
