@@ -283,7 +283,9 @@ export function JournalClient({ recipientId, user }: Props) {
       const url = window.location.origin + "/brief/" + data.share_token;
       setBriefUrl(url);
     } else {
-      alert("Error generating care brief: " + (data.error ?? "Unknown error"));
+      toast.error(
+        "Error generating care brief: " + (data.error ?? "Unknown error"),
+      );
     }
     setGeneratingBrief(false);
   }
@@ -297,12 +299,11 @@ export function JournalClient({ recipientId, user }: Props) {
     });
     const data = await res.json();
     if (data.inviteUrl) {
-      alert(
-        "Invite link — copy and send to " + email + ":\n\n" + data.inviteUrl,
-      );
+      await navigator.clipboard.writeText(data.inviteUrl);
+      toast.success("Invite link copied to clipboard");
       setShowInvite(false);
     } else {
-      alert("Error: " + (data.error ?? "Something went wrong"));
+      toast.error("Error: " + (data.error ?? "Something went wrong"));
     }
   }
 
