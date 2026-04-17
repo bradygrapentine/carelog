@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { inngest } from "../client";
 import { sendPushToOrgCoordinators } from "../pushNotification";
@@ -30,8 +31,15 @@ export const journalFlagAlert = inngest.createFunction(
   { id: "journal-flag-alert" },
   { event: "journal/flagged" },
   async ({ event }) => {
-    const data = journalFlaggedEventSchema.parse(event.data);
-    await handleFlagAlert(data);
-    return { sent: true };
+    try {
+      const data = journalFlaggedEventSchema.parse(event.data);
+      await handleFlagAlert(data);
+      return { sent: true };
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: "journal-flag-alert" },
+      });
+      throw err;
+    }
   },
 );

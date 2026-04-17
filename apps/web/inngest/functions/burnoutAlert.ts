@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { sendPushToOrgCoordinators } from '../pushNotification'
@@ -53,6 +54,7 @@ export const burnoutAlert = inngest.createFunction(
   { id: 'burnout-alert' },
   { cron: 'TZ=UTC 0 8 * * 1' }, // Weekly Monday 8am UTC (after weekly digest)
   async ({ step, logger }) => {
+    try {
     const today = new Date()
 
     // Compute ISO week stamp for this run (used for idempotency key in alert payload)
@@ -153,5 +155,11 @@ export const burnoutAlert = inngest.createFunction(
     )
 
     return { alerts: totalAlerts }
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: 'burnout-alert' },
+      })
+      throw err
+    }
   }
 )

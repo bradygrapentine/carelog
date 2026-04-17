@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 
@@ -21,6 +22,7 @@ export const refillAlert = inngest.createFunction(
   { id: 'refill-alert' },
   { cron: 'TZ=UTC 0 7 * * *' }, // Daily at 7am UTC (1 hour after gap detector)
   async ({ step, logger }) => {
+    try {
     const today = new Date()
     const todayStr = today.toISOString().slice(0, 10)
 
@@ -86,5 +88,11 @@ export const refillAlert = inngest.createFunction(
     )
 
     return { alerts: totalAlerts }
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { inngest_function: 'refill-alert' },
+      })
+      throw err
+    }
   }
 )
