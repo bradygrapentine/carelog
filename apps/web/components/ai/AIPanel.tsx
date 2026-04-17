@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAIContext, type Suggestion } from "@/hooks/useAIContext";
 import { AIChatThread } from "./AIChatThread";
@@ -35,6 +37,9 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
         ...prev,
         { role: "assistant", content: data.response, action: data.action },
       ]);
+    },
+    onError: () => {
+      toast.error("Something went wrong. Please try again.");
     },
   });
 
@@ -196,9 +201,13 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
           onClick={() => sendPrompt(input)}
           disabled={queryMutation.isPending || !input.trim()}
           aria-label="Send message"
-          className="bg-[var(--color-primary)] text-white rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-primary)]/90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+          className="bg-[var(--color-primary)] text-white rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-primary)]/90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 flex items-center justify-center"
         >
-          →
+          {queryMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            "→"
+          )}
         </button>
       </div>
     </div>
