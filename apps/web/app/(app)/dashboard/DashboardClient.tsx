@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type CareTeam = {
@@ -22,6 +22,75 @@ export function formatCareStats(count: number, months: number): string {
   return `${eventLabel} · ${months} months`;
 }
 
+/** Derive a URL-safe org slug: first 8 chars of name lowercased, falling back to org id. */
+function deriveOrgSlug(org: { id: string; name: string }): string {
+  const namePart = org.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 8);
+  return namePart.length >= 3 ? namePart : org.id;
+}
+
+type ReferralCardProps = {
+  org: { id: string; name: string };
+  userId: string;
+};
+
+function ReferralCard({ org, userId }: ReferralCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    const slug = deriveOrgSlug(org);
+    const url = `${window.location.origin}/signup?ref=${slug}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback for environments where clipboard API is unavailable
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+
+    // Fire server-side PostHog event — UUID only, no PII
+    void fetch("/api/referral/track", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ orgId: org.id, userId }),
+    });
+
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [org, userId]);
+
+  return (
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+        <CardTitle className="text-sm">Refer a family</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4 pb-4 px-4">
+        <p className="text-sm text-muted-foreground mb-4">
+          Know another family who could use coordination support? Share Carelog
+          with them.
+        </p>
+        <button
+          type="button"
+          onClick={handleCopy}
+          aria-label="Copy referral link to clipboard"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[40px]"
+        >
+          {copied ? "Copied!" : "Copy referral link"}
+        </button>
+      </CardContent>
+    </Card>
+  );
+}
+
 type Props = {
   user: User;
 };
@@ -30,6 +99,10 @@ export function DashboardClient({ user }: Props) {
   const router = useRouter();
   const [teams, setTeams] = useState<CareTeam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [firstOrg, setFirstOrg] = useState<{ id: string; name: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     const supabase = createClient();
@@ -83,26 +156,34 @@ export function DashboardClient({ user }: Props) {
       }
 
       // Only fetch accepted (active) memberships — pending invites have accepted_at = null.
+      // Also fetch role to determine if user is a coordinator for any org.
       const { data: memberships } = await supabase
         .from("memberships")
-        .select("org_id, recipient_id, organizations(id, name)")
+        .select("org_id, recipient_id, role, organizations(id, name)")
         .eq("user_id", user.id)
         .not("accepted_at", "is", null);
 
       type Membership = {
         org_id: string;
         recipient_id: string;
+        role: string;
         organizations: { id: string; name: string } | null;
       };
 
       if (memberships) {
         const seen = new Set<string>();
         const result: CareTeam[] = [];
+        let coordinatorOrg: { id: string; name: string } | null = null;
 
         for (const m of memberships as unknown as Membership[]) {
           const org = m.organizations;
           if (!org || seen.has(org.id)) continue;
           seen.add(org.id);
+
+          // Track first coordinator org for referral card
+          if (m.role === "coordinator" && coordinatorOrg === null) {
+            coordinatorOrg = org;
+          }
 
           // Each org can have multiple recipients (agency model), but for
           // family use we only need the first one to navigate to the journal.
@@ -129,10 +210,7 @@ export function DashboardClient({ user }: Props) {
 
             const eventCount = countResult.count ?? 0;
             let months = 0;
-            if (
-              eventCount > 0 &&
-              earliestResult.data?.[0]?.created_at
-            ) {
+            if (eventCount > 0 && earliestResult.data?.[0]?.created_at) {
               const daysDiff =
                 (Date.now() -
                   new Date(earliestResult.data[0].created_at).getTime()) /
@@ -149,6 +227,10 @@ export function DashboardClient({ user }: Props) {
           }
         }
         setTeams(result);
+        if (coordinatorOrg !== null) {
+          setIsCoordinator(true);
+          setFirstOrg(coordinatorOrg);
+        }
       }
 
       setLoading(false);
@@ -243,6 +325,9 @@ export function DashboardClient({ user }: Props) {
             >
               Add another care team
             </a>
+            {isCoordinator && firstOrg !== null && (
+              <ReferralCard org={firstOrg} userId={user.id} />
+            )}
           </div>
         )}
       </div>

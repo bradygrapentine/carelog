@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 9 | §1 ON-49/50/51/57 · TD-03/TD-11 · §3 PP-009 · §5 ON-59/60 |
-| 🔎 In review | 0 | — |
+| 🟢 Ready | 6 | §1 ON-49/50/51 · TD-03 · §3 PP-009 · §5 ON-59/60 |
+| 🔎 In review | 2 | ON-52 PR #101 · ON-58 PR #104 |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
@@ -60,10 +60,10 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ON-49 | 🟢 Ready | — | — | **Shift completion → handoff note prompt** | When a shift transitions to `completed`, show inline prompt (web ShiftList + mobile schedule) for an optional handoff note. Creates a `care_event` with `entry_type='handoff'`. The `handoff` enum value already exists in the DB. |
 | ON-50 | 🟢 Ready | — | — | **Weekly digest: medications adherence section** | Add a missed-dose summary to the Sunday Inngest digest. Query `care_events` for `event_type='medication'` last week, surface missed vs given count. `weeklyDigest.ts` already has journal + mood + shifts but no meds section. |
 | ON-51 | 🟢 Ready | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
-| ON-52 | ✅ Shipped · PR #101 | — | — | **Care history depth counter on dashboard** | Shows care event count + months of history per team; parallel Supabase queries + `formatCareStats` pure helper + 6 unit tests. |
+| ON-52 | 🔎 In review · PR #101 | — | — | **Care history depth counter on dashboard** | Shows care event count + months of history per team; parallel Supabase queries + `formatCareStats` pure helper + 6 unit tests. |
 | ON-53 | ✅ Shipped · PR #100 | — | — | **CareZone alternative landing page** | `/carezone-alternative` hero, CareZone comparison table, medication import preview tool; MarketingNav linked ("CareZone users"). |
-| ON-57 | 🟢 Ready | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
-| ON-58 | ✅ Shipped · PR #103 | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
+| ON-57 | ✅ Shipped · PR #TBD | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
+| ON-58 | 🔎 In review · PR #104 | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -71,7 +71,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
-| TD-11 | 🟢 Ready | **data-testid sweep for medication components** | Originally ON-47 from TODO_AUDIT.md — never landed in BACKLOG.md. Add `data-testid` attrs to `MedicationChecklist`, `medication-name-input`, `medication-dosage-input`, `add-medication-btn`, `dose-given-indicator`. Unlocks reliable E2E selectors in `e2e/medications.spec.ts` (6 TODO stubs). ~0.5 day. |
+| TD-11 | ✅ Shipped · 2026-04-17 | **data-testid sweep for medication components** | All data-testids already existed in MedicationPanel.tsx + MedicationChecklist.tsx; e2e spec already uses them. No code changes needed. |
 | TD-06 | ✅ Shipped · PR #98 | **Add `dark:` variants to ON-44/ON-45 components** | dark: sweep across Comment + TradeRequest components; contrast patch (avatar/badge gray-900+gray-50, fixed hover) committed directly to main. |
 | TD-07 | ✅ Shipped · PR #94 | **Alert → Toast sweep** | Replaced 6 `alert()` calls with sonner toasts across JournalClient, settings, subscriptions, TeamAdmin. Invite URL now copies to clipboard before toast. |
 | TD-08 | ✅ Shipped · PR #95 | **Supabase types regen + `as any` cleanup** | Regenerated `database.types.ts`; removed 10 `as any` casts from `careEventCommentsRepository.ts`. |
