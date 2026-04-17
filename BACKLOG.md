@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 13 | §1 ON-49/50/51/52/53/57/58 · TD-03/TD-11 · §3 PP-009 · §5 ON-56/59/60 |
-| 🔎 In review | 0 | — |
+| 🟢 Ready | 12 | §1 ON-49/50/51/52/57/58 · TD-03/TD-11 · §3 PP-009 · §5 ON-56/59/60 |
+| 🔎 In review | 1 | §1 ON-53 · Branch: feat/on53-carezone-landing · PR #TBD |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
@@ -61,7 +61,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ON-50 | 🟢 Ready | — | — | **Weekly digest: medications adherence section** | Add a missed-dose summary to the Sunday Inngest digest. Query `care_events` for `event_type='medication'` last week, surface missed vs given count. `weeklyDigest.ts` already has journal + mood + shifts but no meds section. |
 | ON-51 | 🟢 Ready | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
 | ON-52 | 🟢 Ready | — | — | **Care history depth counter on dashboard** | Show "X care events over Y months" on the dashboard (moat-reinforcement per PRODUCT_STRATEGY.md). Pure frontend — query `care_events` count + earliest date for the org. |
-| ON-53 | 🟢 Ready | — | — | **CareZone alternative landing page** | Dedicated marketing page at `/carezone-alternative` + a basic medication list import (CSV/plain-text from CareZone export). Positions Carelog as the successor for 3.5M abandoned CareZone users. ~1.5 days. |
+| ON-53 | 🔎 In review | feat/on53-carezone-landing | PR #TBD | **CareZone alternative landing page** | Dedicated marketing page at `/carezone-alternative` + a basic medication list import (CSV/plain-text from CareZone export). Positions Carelog as the successor for 3.5M abandoned CareZone users. ~1.5 days. |
 | ON-57 | 🟢 Ready | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
 | ON-58 | 🟢 Ready | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
 
