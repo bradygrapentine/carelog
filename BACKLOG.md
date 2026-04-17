@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 TD-03 · §3 PP-009 |
+| 🟢 Ready | 8 | §1 ON-49, ON-50, ON-51, ON-52, ON-53, TD-03 · §3 PP-009, PP-010 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 · §3 PP-013 |
-| 🧑 Needs human | 3 | §8 A2 · C3 · PP-008 |
+| 🧊 Deferred | 6 | §5 ON-55 · §6 ON-56, UX-08, UX-09, UX-11 · §3 PP-013 |
+| 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -57,7 +57,11 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Owner | Branch / PR | Story | Notes |
 |---|---|---|---|---|---|
-| — | — | — | — | *(all active items shipped or moved to §3–§6)* | — |
+| ON-49 | 🟢 Ready | — | — | **Shift completion → handoff note prompt** | When a shift transitions to `completed`, show inline prompt (web ShiftList + mobile schedule) for an optional handoff note. Creates a `care_event` with `entry_type='handoff'`. The `handoff` enum value already exists in the DB. |
+| ON-50 | 🟢 Ready | — | — | **Weekly digest: medications adherence section** | Add a missed-dose summary to the Sunday Inngest digest. Query `care_events` for `event_type='medication'` last week, surface missed vs given count. `weeklyDigest.ts` already has journal + mood + shifts but no meds section. |
+| ON-51 | 🟢 Ready | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
+| ON-52 | 🟢 Ready | — | — | **Care history depth counter on dashboard** | Show "X care events over Y months" on the dashboard (moat-reinforcement per PRODUCT_STRATEGY.md). Pure frontend — query `care_events` count + earliest date for the org. |
+| ON-53 | 🟢 Ready | — | — | **CareZone alternative landing page** | Dedicated marketing page at `/carezone-alternative` + a basic medication list import (CSV/plain-text from CareZone export). Positions Carelog as the successor for 3.5M abandoned CareZone users. ~1.5 days. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -121,13 +125,26 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 ## 5. Large features (multi-day, not overnight-eligible)
 
-_All previously listed large features shipped. New large features will appear here when planned._
+### ON-54 — Free tier definition + soft gates · ~1 day
+**Status:** 🧑 Needs product decision before coding
+**Why:** PRODUCT_STRATEGY.md lists "free tier: limited (TBD)." BillingBanner soft-gate pattern is already wired. Needs a product decision on the limits (e.g. max 30 events/month, no history export, no document vault, 1 care recipient) before enforcement code can be written.
+**Work once limits are decided:** BillingBanner gates on event creation, history export, and vault upload. No paywall — upgrade prompt only.
+**Blocked by:** 🧑 Brady decides free-tier limits.
+
+### ON-55 — Visit recorder · ~3 days
+**Status:** 🧊 Deferred (Phase 7)
+**Why:** Audio note at a doctor visit → Whisper transcription → Claude structured extraction → `care_event` tagged to the appointment. Roadmap explicitly labels this Phase 7 / future.
+**Work:** Mobile: `expo-av` recording + upload to Supabase Storage. Inngest job: Whisper → structured parse → care_event insert with `entry_type='visit_note'`. Web: playback + structured fields editable.
+**Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case.
 
 ---
 
 ## 6. Deferred UI polish (UX-*) — intentionally parked
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
+
+### Medium
+- **ON-56** — **Data stewardship commitment page** — Publish the "If this platform ever shuts down…" commitment (12 months notice, full export, no data sale, no ads) as a standalone marketing page before first paying users. Builds trust with a population burned by CareZone. ~0.5 day.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
@@ -140,6 +157,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Phase 1 — Cleanup (2026-04-07)
 ✅ P1-01 Display names · P1-02 Invite redirect · P1-03 Entry detail route
+✅ **Journal reactions** — `journal_reactions` table + `careEvents.react` tRPC + `JournalTimeline` emoji row (❤️ 👍 💪 🙏) + `/api/journal/[eventId]/reactions` route. Implemented in Phase 1 work, not previously tracked in backlog.
 
 ### Phase 2 — Scheduler (2026-04-07)
 ✅ P2-01 Shift tRPC + schema · P2-02 Shift creation UI · P2-03 Shift list / caregiver view · P2-04 Coverage window UI · P2-05 Gap detector (Inngest) · P2-06 Recurring shifts · P2-07 Weekly digest shift section
