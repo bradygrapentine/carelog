@@ -125,7 +125,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-011 | 🔎 In review | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
+| A11Y-011 | 🔎 In review · PR #119 | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
 
 ---
 
