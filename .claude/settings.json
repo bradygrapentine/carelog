@@ -33,6 +33,15 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/route-model-log.sh"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -45,7 +54,7 @@
           },
           {
             "type": "command",
-            "command": "CMD=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\" 2>/dev/null); if echo \"$CMD\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit'; then branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ]; then printf '{\"systemMessage\": \"[warn] About to commit directly to main. Is this intentional? Create a feature branch if not.\"}'; fi; fi; exit 0"
+            "command": "CMD=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\" 2>/dev/null); if echo \"$CMD\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit'; then branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ] && [ -z \"$CLAUDE_ALLOW_MAIN_COMMIT\" ]; then echo '[blocked] Direct commit to main is blocked. Create a feature branch, or re-run with CLAUDE_ALLOW_MAIN_COMMIT=1 for an intentional backlog-sync / docs-only commit.' >&2; exit 2; fi; fi; exit 0"
           }
         ]
       },
