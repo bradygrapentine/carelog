@@ -41,3 +41,7 @@ yarn-error.*
 
 # generated native folders — both ios/ and android/ are committed to git (PP-006)
 # do NOT add ios/ or android/ to this file
+
+# Firebase credentials — download from Firebase console, never commit
+google-services.json
+GoogleService-Info.plist

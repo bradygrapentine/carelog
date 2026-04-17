@@ -16,6 +16,7 @@ import { eolPlanRouter } from "../routers/eolPlan";
 import { userRouter } from "../routers/user";
 import { messagesRouter } from "../routers/messages";
 import { shiftTradeRequestsRouter } from "../routers/shiftTradeRequests";
+import { notificationsRouter } from "../routers/notifications";
 
 export const appRouter = router({
   ai: aiRouter,
@@ -35,6 +36,7 @@ export const appRouter = router({
   eolPlan: eolPlanRouter,
   messages: messagesRouter,
   shiftTradeRequests: shiftTradeRequestsRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 3 | §1 TD-03 · §3 PP-007 · PP-009 · PP-010 |
+| 🟢 Ready | 2 | §1 TD-03 · §3 PP-009 · PP-010 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -99,7 +99,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ✅ Shipped · PR #93 |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ✅ Shipped · PR #85 |
 | PP-006 | P1 | Android prebuild + boot verification | ✅ Shipped · PR #90 |
-| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🟢 Ready (PP-006 shipped) |
+| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | ✅ Shipped · PR #TBD — code complete; needs `google-services.json` from Firebase for live FCM verification |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human — `assetlinks.json` on live domain + EAS SHA-256 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready (PP-006 shipped) |
 | PP-010 | P2 | Android: document-share intent verification | 🟢 Ready (PP-006 shipped) |

@@ -20,6 +20,7 @@ import { initPostHog, identifyUser, resetUser } from "../utils/posthog";
 import { supabase } from "../utils/supabase";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { isOnboardingComplete } from "../lib/onboarding";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initSentry();
@@ -29,12 +30,9 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
 });
 
-function RootLayoutInner({
-  onSplashReady,
-}: {
-  onSplashReady: () => void;
-}) {
+function RootLayoutInner({ onSplashReady }: { onSplashReady: () => void }) {
   useWatchMessages();
+  usePushNotifications();
   const router = useRouter();
   const { scheme } = useAppTheme();
   const notifListenerRef = useRef<Notifications.Subscription | null>(null);
