@@ -130,7 +130,7 @@ Create fresh accounts for each session to avoid stale state. Use `+tag` email al
 ### 4d. Team panel shows members
 
 > **KNOWN GAP — do not use as a release blocker.**
-> The `/api/members` endpoint resolves display names, but the UI wiring is incomplete (tracked in BUILD_STATUS.md, Phase 1 remaining). Until that item is checked off, member names may render as `"Team member"` or a raw UUID instead of a real name. This step should still be run to confirm members appear in the panel, but a name-display failure is an **expected, known deficiency** — not a regression.
+> The `/api/members` endpoint resolves display names, but historical UI wiring sometimes renders `"Team member"` or a raw UUID instead of the real name. If this reproduces, treat it as a regression and open a new `TD-*` row in `BACKLOG.md`.
 
 1. Sign in as coordinator → Team panel
 2. **Expect:** accepted members appear in the panel with role badges

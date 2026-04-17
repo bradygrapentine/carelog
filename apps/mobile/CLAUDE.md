@@ -1,7 +1,7 @@
 # Mobile App — Expo SDK 55 (canary)
 
 ## Overview
-Expo managed workflow. Plans: `docs/superpowers/plans/2026-04-10-mobile-wave*.md`
+Expo managed workflow. Active mobile work and status lives in `BACKLOG.md` §1 and §3 (Platform Parity).
 
 ## Screenshot Workflow
 - Install Puppeteer and Chrome Cache

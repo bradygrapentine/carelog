@@ -4,7 +4,7 @@
 
 Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-17** (session 03:12).
 
-Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
+Single source of truth for all planned work. §7 is the shipped log; git history is the archive for everything else. There is no separate `BUILD_STATUS.md` / `TECH_DEBT.md` / plans directory.
 
 Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
 
@@ -47,7 +47,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 - `PP-*` — platform parity (web/iOS/Android)
 - `A11Y-*` — accessibility tooling
 - `UX-*` — deferred UI redesign polish
-- `TD-*` — tech debt (newly opened; historical items live in `docs/project-info/technology/TECH_DEBT.md`)
+- `TD-*` — tech debt
 - `P2-*`..`P5-*` — phase backlogs (all shipped, retained as a log in §7)
 - `B*`/`D*`/`A*`/`C*` — before-launch Claude tasks (shipped where no 🧑 gate)
 
@@ -70,7 +70,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
-| TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-03 | 🟢 Ready | **Sentry source maps upload** | Source maps pending `SENTRY_AUTH_TOKEN`. Needs 🧑 env var set in Vercel. |
 | TD-12 | 🟢 Ready | **Fix missing Dialog + Label UI components** | `components/ui/__tests__/Dialog.test.tsx` and `Label.test.tsx` reference components that don't exist. Create minimal shadcn-wrapped versions or remove the orphaned test files. ~0.5 day. |
 | TD-13 | 🔎 In review · PR #NNN | **CommentThread mutation error handling** | `add`, `edit`, `remove` mutations in `components/care-events/CommentThread.tsx` have no `onError` callbacks — errors silently swallow. Add sonner toast on each. ~0.5 day. |
 | TD-11 | ✅ Shipped · 2026-04-17 | **data-testid sweep for medication components** | All data-testids already existed in MedicationPanel.tsx + MedicationChecklist.tsx; e2e spec already uses them. No code changes needed. |
@@ -280,7 +280,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-39** Eliminate `any` types — `ExportDocument`, `careEvents` router, `export/route` fully typed (PR #47)
 ✅ **ON-47** `data-testid` attrs on `MedicationPanel` + `MedicationChecklist`; E2E TODOs resolved (PR #48)
 ✅ **ON-34** PostHog funnel events parity audit — `docs/project-info/technology/ANALYTICS_EVENTS.md` (PR #43)
-✅ **ON-36** TODO/FIXME audit — `docs/project-info/technology/TODO_AUDIT.md`; 6 deleted, 2 converted to ON-47/ON-48 (PR #43)
+✅ **ON-36** TODO/FIXME audit — 6 deleted, 2 converted to ON-47/ON-48 (PR #43)
 ✅ **A11Y-003** Mobile `eslint-plugin-react-native-a11y` at `recommended` severity (PR #33)
 ✅ **ON-26** Mobile empty-state copy pass — Carelog voice with CTA on all screens (PR #32)
 ✅ **ON-28** Mobile loading skeletons on journal, medications, documents, team index (PR #32)
@@ -323,8 +323,7 @@ Claude work that's **gated on the above** (cannot start until the human complete
 - [ ] Typecheck + lint + test suites green (`pnpm typecheck && pnpm lint && pnpm test`)
 - [ ] For mobile UI: spot-check via `/mobile-ui` skill (screenshot at least one state)
 - [ ] For web UI: axe hook green (post A11Y-001), respects tokens, keyboard-traversable
-- [ ] TECH_DEBT.md updated if a known issue is resolved
-- [ ] BUILD_STATUS.md checkbox ticked if relevant
+- [ ] BACKLOG.md row flipped to ✅ Shipped in §7 (in the same commit as the work)
 
 ---
 

@@ -183,7 +183,7 @@ const parsed = JSON.parse(authCookie.value)
 const userEmail = parsed?.user?.email
 ```
 
-This is not a permanent fix — it's a local dev workaround. See TECH_DEBT.md.
+This is a local dev workaround. File a `TD-*` row in `BACKLOG.md` if this recurs.
 
 ---
 

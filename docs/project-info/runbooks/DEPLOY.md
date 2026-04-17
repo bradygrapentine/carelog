@@ -335,7 +335,7 @@ Work through this checklist after all services are connected:
 
 ## Pre-Launch Checklist (remaining before real users)
 
-These items from `TECH_DEBT.md` and `BUILD_STATUS.md` must be complete:
+These items (tracked in `BACKLOG.md` §1–§5) must be complete:
 
 - [ ] Stripe billing wired — org must have active subscription to use the app
 - [x] Server-side auth migration — `(app)/layout.tsx` + all protected pages use `createServerSupabase()`
