@@ -17,7 +17,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 1 | §1 TD-02, TD-03 |
-| 🔎 In review | 5 | §1 ON-44 (PR #73) · ON-45 (PR #74) · PP-006 (PR #91) · PP-002 (PR #92) · §5 ON-46 |
+| ⚡ In progress | 1 | §1 PP-006 |
+| 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
 | 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 + PP-013 |
@@ -59,13 +60,13 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|---|---|
 | ON-44 | 🔎 In review | — | `feat/on44-care-event-comments` · PR #73 | **Comment threads on care events** | care_event_comments table + RLS + pgTAP + tRPC sub-router + web CommentThread/CommentItem/CommentComposer + mobile CommentSection + E2E spec. |
 | ON-45 | 🔎 In review | — | `feat/on45-shift-trade-requests` · PR #74 | **Shift trade requests** | shift_trade_requests table + RLS + pgTAP + tRPC router + Inngest cron + web TradeRequestCard/Form/List + mobile TradeRequestSheet + E2E spec. |
-| PP-006 | 🔎 In review · 🔴 blocks PP-007/008/009/010 | — | `feat/pp006-android-prebuild` · PR #91 | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
+| PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-02 | 🔎 In review | **Dynamic Type + screen-reader audit (mobile)** | `feat/td-02-dynamic-type` · PR #87. Surfaced in BUILD_STATUS Wave 4. Physical device required. |
+| TD-02 | 🟢 Ready | **Dynamic Type + screen-reader audit (mobile)** | Surfaced in BUILD_STATUS Wave 4. Physical device required. Supersedes the BUILD_STATUS checkbox — track here. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
 
 ---
@@ -90,8 +91,8 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 
 | ID | Priority | Story | Status |
 |---|---|---|---|
-| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | 🔎 In review · PR #92 |
-| PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | 🔎 In review · PR #93 |
+| PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ⏳ |
+| PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ⚡ In progress · Branch: `feat/pp003-mobile-subscription-view` |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ⏳ |
 | PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🔴 PP-006 |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
@@ -170,8 +171,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### 2026-04-16 tech debt follow-ups
 ✅ **TD-06** Dark variants on CommentThread, CommentItem, CommentComposer, TradeRequestCard, TradeRequestForm, TradeRequestList (commit 012bbb8)
-✅ **TD-07** Alert → Toast sweep — replace `window.alert()` with Sonner in careEvents, medicationsPanel, journalEntryDetail, careTeamPanel (commit 5e79739)
-✅ **TD-08** Regenerate Supabase TS types after care_event_comments migration; removes `as any` casts in careEventCommentsRepository (commit b05960c)
 
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)

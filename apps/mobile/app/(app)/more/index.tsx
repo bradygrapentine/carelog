@@ -12,6 +12,7 @@ const ITEMS = [
   { title: "Care Brief", route: "/care-brief" as const, icon: "📋" },
   { title: "Benefits", route: "/benefits" as const, icon: "🏥" },
   { title: "End-of-Life", route: "/eol-planner" as const, icon: "📝" },
+  { title: "Subscription", route: "/subscription" as const, icon: "💳" },
 ];
 
 // ts-prune-ignore-next // Expo Router page component
