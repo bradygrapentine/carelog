@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16**.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16** (session reconciliation).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,11 +16,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 1 | §1 TD-03 |
-| 🔎 In review | 2 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
-| 🔴 Blocked | 4 | §3 PP-007..010 (unblocked — PP-006 shipped) |
+| 🟢 Ready | 2 | §1 TD-03, TD-06 |
+| 🔎 In review | 0 | — |
+| 🔴 Blocked | 3 | §3 PP-007 · PP-008 (🧑) · PP-009 · PP-010 |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
+| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -56,10 +56,6 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 ## 1. Active / next-up
 
 | ID | Status | Owner | Branch / PR | Story | Notes |
-|---|---|---|---|---|---|
-| ON-44 | 🔎 In review | — | `feat/on44-care-event-comments` · PR #73 | **Comment threads on care events** | care_event_comments table + RLS + pgTAP + tRPC sub-router + web CommentThread/CommentItem/CommentComposer + mobile CommentSection + E2E spec. |
-| ON-45 | 🔎 In review | — | `feat/on45-shift-trade-requests` · PR #74 | **Shift trade requests** | shift_trade_requests table + RLS + pgTAP + tRPC router + Inngest cron + web TradeRequestCard/Form/List + mobile TradeRequestSheet + E2E spec. |
-| PP-006 | ⚡ In progress · 🔴 blocks PP-007/008/009/010 | — | — | **Android prebuild + boot verification** | `apps/mobile/android/` has never been generated. Run `(cd apps/mobile && npx expo prebuild -p android --clean)`, decide commit-vs-gitignore (align with `ios/`), verify `pnpm --filter mobile android` boots on an emulator. AC: debug APK builds on CI. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -99,12 +95,13 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 |---|---|---|---|
 | PP-002 | P2 | Mobile: onboarding wizard (first-run flow) | ✅ Shipped · PR #92 |
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ✅ Shipped · PR #93 |
-| PP-005 | P2 | Web: push notifications (browser Push API) | ⏳ |
-| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🔴 PP-006 |
-| PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
-| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
-| PP-010 | P2 | Android: document-share intent verification | 🔴 PP-006 |
-| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ⏳ |
+| PP-005 | P2 | Web: push notifications (browser Push API) | ✅ Shipped · PR #85 |
+| PP-006 | P1 | Android prebuild + boot verification | ✅ Shipped · PR #90 |
+| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🟢 Ready |
+| PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human |
+| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready |
+| PP-010 | P2 | Android: document-share intent verification | 🟢 Ready |
+| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
@@ -116,27 +113,19 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| 🔎 A11Y-008 | P2 | Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow | **PR:** #78 |
+| — | — | All A11Y stories shipped; new work tracked in §1. |
 
 ---
 
 ## 5. Large features (multi-day, not overnight-eligible)
 
-### ON-44 — Comment threads on care events · ~1.5 days
-Table `care_event_comments` (author, body, edited_at, deleted_at). RLS mirrors `care_events`. tRPC `careEvents.comments.list/add`. Web: collapsible block beneath each event with count badge. Mobile: tap entry → event detail → comments + composer. Realtime subscription keyed by `care_event_id`. Soft delete only. pgTAP: author-only edit/delete, cross-org cannot read.
-
-### ON-46 — Medication tagging + tag filters + document links · ~2.5 days
-**Status:** 🔎 In review · **Branch:** `feat/on46-medication-tagging` · **Plan:** `docs/superpowers/plans/2026-04-16-on46-medication-tagging.md`
-Junction tables `care_event_medications` and `document_medications` with `confidence ('manual' | 'auto')`. Auto-tag on journal-insert via server-side text-match against org's active meds + common aliases. Auto-tag documents via OCR `extracted_text`. tRPC `medications.listWithStats`, `medications.get` (with linked docs + recent events), tag/untag mutations. Journal + Vault chip-filter bars. Medication detail gains "Linked documents" + "Recent mentions". Server-side only — no PHI emailed out. Auto-tag ≥80% precision on a 10-item synthetic sample. **Blocked by:** ON-10 document FTS / OCR pipeline ✅.
+_All previously listed large features shipped. New large features will appear here when planned._
 
 ---
 
 ## 6. Deferred UI polish (UX-*) — intentionally parked
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
-
-### Medium
-- **UX-03** — **Status:** ⚡ In progress · Branch: `feat/ux-03-micro-interactions` — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
@@ -177,6 +166,24 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Security / RLS follow-ups (2026-04-16..20)
 ✅ superuser plan · harden outer_circle_requests RLS · memberships delete policy · documents FTS · last-coordinator guard
+
+### 2026-04-16 mobile + web sprint (PRs #75, #85, #87–#97)
+✅ **ON-44** Comment threads on care events — `care_event_comments` + RLS + tRPC + web CommentThread/CommentItem/CommentComposer + mobile CommentSection (PR #73)
+✅ **ON-45** Shift trade requests — `shift_trade_requests` + RLS + tRPC router + Inngest cron + web/mobile UI (PR #74)
+✅ **ON-46** Medication tagging + chip-filter bars + detail panels — junction tables + auto-tag + tRPC (PR #75)
+✅ **A11Y-008** Extend `mobile-ui` skill with VoiceOver/TalkBack enable/disable + narrate workflow (PR #78)
+✅ **PP-005** Web push notifications (browser Push API) (PR #85)
+✅ **PP-002** Mobile onboarding wizard — welcome, care-recipient, invite-team screens (PR #92)
+✅ **PP-003** Mobile subscription read-only view + "manage on web" CTA (PR #93)
+✅ **PP-006** Android prebuild + boot verification — `apps/mobile/android/` committed + CI build job (PR #90)
+✅ **TD-02** Dynamic Type + screen-reader audit — `scaledFont()` + `accessibilityLabel` sweep (PR #87)
+✅ **ON-15** Mobile a11y audit (code complete; physical device VoiceOver deferred to human) — folded into TD-02
+✅ **PP-011** Offline journal write-queue — IndexedDB + auto-sync on reconnect (PR #88)
+✅ **UX-03** Micro-interactions — card hover lift, mood press, sidebar active, sonner toasts (PR #89)
+✅ **TD-07** Alert → Toast sweep — 6 `alert()` calls replaced with sonner across 4 files (PR #94)
+✅ **TD-08** Supabase types regen + `as any` cleanup — 10 casts removed (PR #95)
+✅ **TD-09** ShiftList edit mode — `shifts.update` tRPC + inline edit panel (PR #96)
+✅ **TD-10** JournalClient refactor — 3 custom hooks + JournalLayout; 624 → 107 lines (PR #97)
 
 ### 2026-04-16 backlog sync (PRs #53–#74)
 ✅ **A11Y-005** vitest-axe assertions on Card, Button, Input, Label, Dialog (PR #59)
