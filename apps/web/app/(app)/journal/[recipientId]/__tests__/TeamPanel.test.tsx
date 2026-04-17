@@ -139,7 +139,7 @@ describe("TeamPanel — invite form", () => {
     expect(screen.getByRole("button", { name: "Send invite" })).toBeDisabled();
   });
 
-  it("calls onInvite with email and role on submit", async () => {
+  it("calls onInvite with email, role, and null aideRecipientId on submit", async () => {
     const onInvite = vi.fn().mockResolvedValue(undefined);
     render(
       <TeamPanel
@@ -152,7 +152,7 @@ describe("TeamPanel — invite form", () => {
     fireEvent.submit(
       screen.getByRole("button", { name: "Send invite" }).closest("form")!,
     );
-    expect(onInvite).toHaveBeenCalledWith("new@example.com", "caregiver");
+    expect(onInvite).toHaveBeenCalledWith("new@example.com", "caregiver", null);
   });
 
   it('shows "Sending..." while the invite is in flight', async () => {
@@ -192,5 +192,90 @@ describe("TeamPanel — invite form", () => {
       screen.getByRole("button", { name: "Send invite" }).closest("form")!,
     );
     await waitFor(() => expect(input).toHaveValue(""));
+  });
+});
+
+const RECIPIENTS = [
+  { id: "r1", display_name: "Grandma Rose" },
+  { id: "r2", display_name: "Grandpa Joe" },
+];
+
+describe("TeamPanel — aide recipient picker", () => {
+  it("does not show recipient picker when role is caregiver", () => {
+    render(
+      <TeamPanel
+        {...makeProps({
+          canInvite: true,
+          showInvite: true,
+          recipients: RECIPIENTS,
+        })}
+      />,
+    );
+    expect(
+      screen.queryByLabelText("Assign to recipient"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows recipient picker when role is aide and recipients provided", () => {
+    render(
+      <TeamPanel
+        {...makeProps({
+          canInvite: true,
+          showInvite: true,
+          recipients: RECIPIENTS,
+        })}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Role"), {
+      target: { value: "aide" },
+    });
+    expect(screen.getByLabelText("Assign to recipient")).toBeInTheDocument();
+    expect(screen.getByText("Grandma Rose")).toBeInTheDocument();
+    expect(screen.getByText("Grandpa Joe")).toBeInTheDocument();
+  });
+
+  it("does not show recipient picker when role is aide but recipients is empty", () => {
+    render(
+      <TeamPanel
+        {...makeProps({
+          canInvite: true,
+          showInvite: true,
+          recipients: [],
+        })}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Role"), {
+      target: { value: "aide" },
+    });
+    expect(
+      screen.queryByLabelText("Assign to recipient"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("calls onInvite with aideRecipientId when role is aide and recipient selected", async () => {
+    const onInvite = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TeamPanel
+        {...makeProps({
+          canInvite: true,
+          showInvite: true,
+          recipients: RECIPIENTS,
+          onInvite,
+        })}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Role"), {
+      target: { value: "aide" },
+    });
+    fireEvent.change(screen.getByLabelText("Assign to recipient"), {
+      target: { value: "r1" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Email address"), {
+      target: { value: "aide@example.com" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Send invite" }).closest("form")!,
+    );
+    expect(onInvite).toHaveBeenCalledWith("aide@example.com", "aide", "r1");
   });
 });

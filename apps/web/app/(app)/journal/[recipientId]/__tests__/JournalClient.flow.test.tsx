@@ -123,13 +123,15 @@ const MOCK_USER = { id: "user-1", email: "caregiver@example.com" };
 const MOCK_ORG = { id: "org-1", name: "Smith Family" };
 
 function setupAuth() {
-  // supabase.from('care_recipients').select(...).eq(...).single()
+  // supabase.from('care_recipients').select(...).eq(...).single() — org lookup
+  // supabase.from('care_recipients').select(...).eq(...).order(...) — recipients list
   const selectChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({
       data: { org_id: MOCK_ORG.id, organizations: MOCK_ORG },
     }),
+    order: vi.fn().mockResolvedValue({ data: [] }),
   };
   mockFrom.mockReturnValue(selectChain);
 }
@@ -171,6 +173,7 @@ describe("JournalClient", () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnValue(new Promise(() => {})),
+      order: vi.fn().mockReturnValue(new Promise(() => {})),
     });
     render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);
     // Loading state renders skeleton placeholders instead of content

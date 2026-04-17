@@ -18,11 +18,17 @@ type Member = {
   email: string | null;
 };
 
+type Recipient = {
+  id: string;
+  display_name: string | null;
+};
+
 type Props = {
   readonly members: Member[];
+  readonly recipients?: Recipient[];
   readonly currentUserId: string;
   readonly canInvite: boolean;
-  readonly onInvite: (email: string, role: string) => Promise<void>;
+  readonly onInvite: (email: string, role: string, aideRecipientId?: string | null) => Promise<void>;
   readonly showInvite: boolean;
   readonly onToggleInvite: () => void;
   readonly orgId?: string;
@@ -55,6 +61,7 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
 
 export function TeamPanel({
   members,
+  recipients = [],
   currentUserId,
   canInvite,
   onInvite,
@@ -65,6 +72,7 @@ export function TeamPanel({
 }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("caregiver");
+  const [aideRecipientId, setAideRecipientId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -95,9 +103,10 @@ export function TeamPanel({
     e.preventDefault();
     if (!email.trim()) return;
     setSending(true);
-    await onInvite(email.trim(), role);
+    await onInvite(email.trim(), role, role === "aide" ? aideRecipientId : null);
     setEmail("");
     setRole("caregiver");
+    setAideRecipientId(null);
     setSending(false);
   }
 
@@ -187,6 +196,35 @@ export function TeamPanel({
                   </p>
                 )}
               </div>
+
+              {role === "aide" && recipients.length > 0 && (
+                <div>
+                  <label
+                    htmlFor="team-invite-aide-recipient"
+                    className="block text-xs text-muted-foreground mb-1"
+                  >
+                    Assign to recipient
+                  </label>
+                  <select
+                    id="team-invite-aide-recipient"
+                    value={aideRecipientId ?? ""}
+                    onChange={(e) =>
+                      setAideRecipientId(e.target.value || null)
+                    }
+                    className="w-full px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 bg-card text-foreground"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select a recipient
+                    </option>
+                    {recipients.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.display_name ?? "Care recipient"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <Separator className="my-3" />

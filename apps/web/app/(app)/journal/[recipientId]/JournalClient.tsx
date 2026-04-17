@@ -40,6 +40,7 @@ export function JournalClient({ recipientId, user }: Props) {
     events,
     setEvents,
     members,
+    recipients,
     currentUserRole,
     loading,
     loadEvents,
@@ -88,6 +89,7 @@ export function JournalClient({ recipientId, user }: Props) {
         org={org}
         events={events}
         members={members}
+        recipients={recipients}
         currentUserRole={currentUserRole}
         posting={actions.posting}
         showInvite={actions.showInvite}

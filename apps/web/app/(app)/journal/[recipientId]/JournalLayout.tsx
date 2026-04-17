@@ -44,12 +44,18 @@ type Member = {
   email: string | null;
 };
 
+type Recipient = {
+  id: string;
+  display_name: string | null;
+};
+
 export type LayoutProps = {
   recipientId: string;
   user: User;
   org: OrgInfo | null;
   events: JournalEvent[];
   members: Member[];
+  recipients?: Recipient[];
   currentUserRole: string;
   posting: boolean;
   showInvite: boolean;
@@ -60,7 +66,7 @@ export type LayoutProps = {
   onPost: (text: string, mood: string) => Promise<void>;
   onFlag: (eventId: string, flagged: boolean) => Promise<void>;
   onGenerateBrief: () => Promise<void>;
-  onInvite: (email: string, role: string) => Promise<void>;
+  onInvite: (email: string, role: string, aideRecipientId?: string | null) => Promise<void>;
   onToggleInvite: () => void;
   onFlushQueue?: () => void;
 };
@@ -80,6 +86,7 @@ export function JournalLayout({
   org,
   events,
   members,
+  recipients,
   currentUserRole,
   posting,
   showInvite,
@@ -180,6 +187,7 @@ export function JournalLayout({
             <>
               <TeamPanel
                 members={members}
+                recipients={recipients}
                 currentUserId={user.id}
                 canInvite={currentUserRole === "coordinator"}
                 onInvite={onInvite}
