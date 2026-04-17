@@ -44,6 +44,7 @@ export function ShiftList({
   orgId,
   recipientId,
   members,
+  currentUserId: _currentUserId,
   currentUserRole,
 }: Props) {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
@@ -94,11 +95,17 @@ export function ShiftList({
         isOpen={!!selectedShift}
         onClose={() => setSelectedShift(null)}
         isCoordinator={isCoordinator}
+        orgId={orgId}
+        recipientId={recipientId}
         onEdit={(shift) => {
           setEditingShift(shift);
           setSelectedShift(null);
         }}
         onCancel={handleCancel}
+        onCompleted={() => {
+          utils.shifts.list.invalidate();
+          setSelectedShift(null);
+        }}
       />
 
       {editingShift && (

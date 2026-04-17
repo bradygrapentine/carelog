@@ -25,6 +25,11 @@ vi.mock("@/lib/trpc", () => ({
     shifts: {
       list: { useQuery: mockUseQuery },
       cancel: { useMutation: mockUseMutation },
+      complete: { useMutation: mockUseMutation },
+    },
+    careEvents: {
+      insert: { useMutation: mockUseMutation },
+      timeline: { invalidate: mockInvalidate },
     },
     useUtils: mockUseUtils,
   },
@@ -66,7 +71,10 @@ vi.mock("@/components/shifts/ShiftPopover", () => ({
     isOpen: boolean;
     onClose: () => void;
     isCoordinator: boolean;
+    orgId: string;
+    recipientId: string;
     onCancel: (id: string) => void;
+    onCompleted?: () => void;
   }) => {
     if (!isOpen || !shift) return null;
     return (
@@ -142,6 +150,7 @@ beforeEach(() => {
   mockUseMutation.mockReturnValue({ mutate: mockMutate, isPending: false });
   mockUseUtils.mockReturnValue({
     shifts: { list: { invalidate: mockInvalidate } },
+    careEvents: { timeline: { invalidate: mockInvalidate } },
   });
 });
 
