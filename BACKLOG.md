@@ -17,11 +17,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | Lifecycle | Count | Where |
 |---|---|---|
 | 🟢 Ready | 1 | §1 TD-02, TD-03 |
-| ⚡ In progress | 3 | §1 PP-006 · §5 UX-03 · §3 PP-011 |
+| ⚡ In progress | 2 | §1 PP-006 · §3 PP-011 |
 | 🔎 In review | 3 | §1 ON-44 (PR #73) · ON-45 (PR #74) · §5 ON-46 |
 | 🔴 Blocked | 4 | §3 PP-007..010 (blocked by PP-006) |
 | 🌙 Overnight queue | 1 | §2 ON-15 |
-| 🧊 Deferred | 5 | §6 UX-03, UX-08, UX-09, UX-11 + PP-013 |
+| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 + PP-013 |
 | 🧑 Needs human | 3 | §8 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -129,9 +129,6 @@ Junction tables `care_event_medications` and `document_medications` with `confid
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
-### Medium
-- **UX-03** — **Status:** ⚡ In progress · Branch: `feat/ux-03-micro-interactions` — Micro-interactions (card hover lift, mood press, sidebar active, toasts). Tailwind `transition` + Radix animation primitives.
-
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs).
@@ -185,6 +182,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-48** Neutral design tokens + brief page hex sweep (PR #58)
 ✅ **TD-05** Regenerate Supabase TS types after messaging migration; removes `as any` in messagesRepository
 ✅ **UX-01** Loading skeletons across dashboard/journal/team/messages panels (PR #54)
+✅ **UX-03** Micro-interactions — sidebar active indicator, mood chip press scale, card hover lift, toast slide-in via sonner (PR #88)
 ✅ **UX-02** Illustrated empty states — journal, meds, team, vault (PR #70)
 ✅ **UX-04** Full dark mode via CSS custom properties + ThemeToggle + anti-FOUC script (PR #71)
 ✅ **UX-05** Mobile journal bottom-sheet + horizontal mood row (PR #60)
