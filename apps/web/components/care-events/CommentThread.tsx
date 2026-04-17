@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase";
 import { CommentItem } from "./CommentItem";
@@ -19,9 +20,11 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
     );
   const add = trpc.careEvents.comments.add.useMutation({
     onSuccess: () => refetch(),
+    onError: () => toast.error("Could not add comment — please try again"),
   });
   const edit = trpc.careEvents.comments.edit.useMutation({
     onSuccess: () => refetch(),
+    onError: () => toast.error("Could not edit comment — please try again"),
   });
   const remove = trpc.careEvents.comments.remove.useMutation({
     onMutate: async ({ commentId }) => {
@@ -31,6 +34,7 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
       );
     },
     onSettled: () => refetch(),
+    onError: () => toast.error("Could not delete comment — please try again"),
   });
 
   useEffect(() => {
