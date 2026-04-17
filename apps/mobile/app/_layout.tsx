@@ -19,6 +19,7 @@ import { initSentry, Sentry } from "../utils/sentry";
 import { initPostHog, identifyUser, resetUser } from "../utils/posthog";
 import { supabase } from "../utils/supabase";
 import { useAppTheme } from "../hooks/useAppTheme";
+import { isOnboardingComplete } from "../lib/onboarding";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initSentry();
@@ -28,22 +29,43 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
 });
 
-function RootLayoutInner() {
+function RootLayoutInner({
+  onSplashReady,
+}: {
+  onSplashReady: () => void;
+}) {
   useWatchMessages();
   const router = useRouter();
   const { scheme } = useAppTheme();
   const notifListenerRef = useRef<Notifications.Subscription | null>(null);
+  // Guard: only run the onboarding check once per mount, not on every token refresh.
+  const onboardingCheckedRef = useRef(false);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user?.id) {
         identifyUser(session.user.id);
+        // Check if the user needs onboarding (client-side AsyncStorage flag).
+        // schema flag (is_onboarded column) is tracked as a separate TD-*.
+        if (!onboardingCheckedRef.current) {
+          onboardingCheckedRef.current = true;
+          isOnboardingComplete().then((complete) => {
+            if (!complete) {
+              router.replace("/(auth)/onboarding/welcome");
+            }
+            // Hide splash only after the onboarding decision resolves,
+            // so the splash covers the transition on first launch.
+            onSplashReady();
+          });
+        }
       } else if (event === "SIGNED_OUT") {
         resetUser();
+        // Unauthenticated — safe to hide splash immediately.
+        onSplashReady();
       }
     });
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [onSplashReady]);
 
   useEffect(() => {
     notifListenerRef.current =
@@ -77,20 +99,24 @@ function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  // Ensure hideAsync fires at most once regardless of which path triggers it.
+  const splashHiddenRef = useRef(false);
 
-  useEffect(() => {
-    if (fontsLoaded) {
+  const hideSplash = useRef(() => {
+    if (!splashHiddenRef.current) {
+      splashHiddenRef.current = true;
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded]);
+  }).current;
 
+  // Fonts not yet loaded — keep splash visible.
   if (!fontsLoaded) return null;
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
-          <RootLayoutInner />
+          <RootLayoutInner onSplashReady={hideSplash} />
         </AppProvider>
       </QueryClientProvider>
     </trpc.Provider>
