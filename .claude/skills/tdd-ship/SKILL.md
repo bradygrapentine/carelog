@@ -35,7 +35,7 @@ Must not be on `main`. Hook will block commits there anyway.
 
 ### Stage 1 — RED (failing tests)
 
-1. Read the BACKLOG row + any referenced spec in `docs/superpowers/specs/`.
+1. Read the BACKLOG row (and any inline design notes in the row — there is no separate `specs/` directory; git history has shipped specs).
 2. Find the nearest existing test file to copy style (test setup, mock patterns, Tailwind/tRPC mocks).
 3. Write a comprehensive failing test file covering every AC bullet. Use `describe` per AC.
 4. **Run tests — they MUST fail for the right reason** (missing impl, not syntax error).
@@ -53,7 +53,7 @@ Loop, max 5 iterations:
 
 After each iteration, tsc-check: `cd apps/web && npx tsc --noEmit 2>&1 | grep "error TS" | grep <files-touched>`.
 
-**Budget gate:** if 5 iterations pass without green, STOP. Write `docs/superpowers/plans/<story-id>-blocker.md` with:
+**Budget gate:** if 5 iterations pass without green, STOP. Write a short blocker doc (e.g. `reviews/<story-id>-blocker.md`) with:
 - What the failing test expects.
 - What 3-5 approaches were tried.
 - Current working theory for why it's stuck.

@@ -107,13 +107,9 @@ Step-by-step production deployment guide. Follow in order — Supabase → Verce
 
 Read before starting any feature work.
 
-### 13. `docs/project-info/product/BUILD_STATUS.md`
+### 13. `BACKLOG.md` (repo root)
 
-What's done, what's in progress, what's remaining before launch. Organized by phase (Phase 1–5 + mobile waves). Check here before picking up a task — it may already be done or blocked.
-
-### 14. `docs/project-info/technology/TECH_DEBT.md`
-
-Known issues with file locations and fix descriptions. Check here if something feels wrong — it may be a documented workaround.
+The single source of truth for all planned, in-progress, and shipped work. §0 has the status board; §1–§6 list active items; §7 is the shipped log. Check here before picking up any task — it may already be shipped, in review, or blocked.
 
 ---
 
@@ -164,7 +160,7 @@ apps/
     server/         tRPC routers, Supabase server client, Resend
     lib/            Shared utilities (rateLimit, trpc client)
     inngest/        Background job functions + client
-  mobile/           Expo SDK 55 — in progress (Wave 1–3 plans in docs/superpowers/plans/)
+  mobile/           Expo SDK 55 — in progress (see BACKLOG.md §3 Platform Parity)
     app/            Expo Router screens (file-based, mirrors Next.js App Router)
     components/     Shared React Native components
     constants/      Design tokens (tokens.ts — mirrors web globals.css)
@@ -230,13 +226,9 @@ Care events logged while offline are queued in SecureStore and flushed when conn
 - `*.entitlements` — capability declarations
 - `CarelogWatch/` — hand-maintained Xcode target (Apple Watch)
 
-### Mobile plans
+### Mobile work
 
-| Wave | Plan file | Status |
-|------|----------|--------|
-| Wave 1 — Foundation (nav, auth, tRPC, screens, offline) | `docs/superpowers/plans/2026-04-10-mobile-wave1-foundation.md` | planned |
-| Wave 2 — Push notifications (APNs + FCM, Inngest wiring) | `docs/superpowers/plans/2026-04-10-mobile-wave2-notifications.md` | planned |
-| Wave 3 — Apple Watch complications (WidgetKit, CarelogWatch) | `docs/superpowers/plans/2026-04-10-mobile-wave3-watch.md` | planned |
+Active mobile tasks are tracked in `BACKLOG.md` §1 (active) and §3 (Platform Parity). Shipped mobile work is in §7 under the phase / sprint it landed in.
 
 ---
 

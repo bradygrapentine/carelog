@@ -22,3 +22,6 @@ apps/web/sonar-report.xml
 # Claude memory search index
 .memsearch/
 .claude/routing-metrics.jsonl
+
+# Expo prebuild output — never commit
+apps/mobile/ios/

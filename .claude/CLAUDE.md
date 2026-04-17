@@ -13,7 +13,7 @@ Rules — non-negotiable:
 2. **Update `BACKLOG.md` in the same commit as the work.** Status transitions (pick up → in review → shipped → blocked) are part of the change, not a follow-up. See `BACKLOG.md` §10 for the transition table.
 3. **Never track planned work anywhere else.** Not in PR descriptions, not in memory, not in ad-hoc markdown. New work = new row with `Status: 🟢 Ready` and the right prefix (`TD-*`, `A11Y-*`, `ON-*`, `PP-*`, `UX-*`).
 4. **Run `/backlog-sync`** at session start, at session end (via `/session-end`), and on a daily cron (`/schedule`). It reconciles BACKLOG.md against git/PRs and rewrites the §0 counts. Never hand-edit §0.
-5. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs**. Do not add new items there — open a `TD-*` row in BACKLOG.md instead.
+5. BACKLOG.md §7 is the **shipped log**. There is no separate BUILD_STATUS or TECH_DEBT — everything lives in BACKLOG.md.
 
 If you catch yourself about to start work without a backlog row, stop and create the row first.
 
@@ -231,8 +231,6 @@ Run Claude non-interactively for automated QA:
 - `docs/project-info/technology/CODE_STANDARDS.md` — hard-won coding rules, conventions, testing patterns, git format
 - `docs/project-info/product/UX_DECISIONS.md` — language and tone rules
 - `.claude/rules/ui-standards.md` — hard UI rules (tokens, WCAG AA, responsive, panel/form patterns). Load before any work under `apps/web/app/` or `apps/web/components/`.
-- `docs/project-info/technology/TECH_DEBT.md` — known issues before production
-- `docs/project-info/product/BUILD_STATUS.md` — what's done / in progress / next
 - `docs/project-info/technology/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
 - `docs/project-info/runbooks/HARNESS_USAGE.md` — how the Claude Code harness actually runs here; debugging silent hook failures
 - `docs/project-info/runbooks/TOKEN_DISCIPLINE.md` — Ollama dispatch patterns, handoff plan format

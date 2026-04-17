@@ -56,9 +56,8 @@ carelog/
 │   ├── auth.spec.ts
 │   └── journal.spec.ts
 ├── CLAUDE.md                           ← start here
+├── BACKLOG.md                          ← active/shipped work
 ├── ARCHITECTURE.md                     ← this file
-├── BUILD_STATUS.md
-├── TECH_DEBT.md
 └── CODE_STANDARDS.md
 ```
 
