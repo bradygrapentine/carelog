@@ -10,7 +10,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 type CareTeam = {
   org: { id: string; name: string };
   recipientId: string;
+  eventCount: number;
+  months: number;
 };
+
+export function formatCareStats(count: number, months: number): string {
+  if (count === 0) return "";
+  const eventLabel = count === 1 ? "1 event" : `${count} events`;
+  if (months === 0) return `${eventLabel} · just started`;
+  if (months === 1) return `${eventLabel} · 1 month`;
+  return `${eventLabel} · ${months} months`;
+}
 
 type Props = {
   user: User;
@@ -103,7 +113,39 @@ export function DashboardClient({ user }: Props) {
             .limit(1);
 
           if (recipients?.[0]) {
-            result.push({ org, recipientId: recipients[0].id });
+            // Parallel queries: count of events and earliest event date
+            const [countResult, earliestResult] = await Promise.all([
+              supabase
+                .from("care_events")
+                .select("*", { count: "exact", head: true })
+                .eq("org_id", org.id),
+              supabase
+                .from("care_events")
+                .select("created_at")
+                .eq("org_id", org.id)
+                .order("created_at", { ascending: true })
+                .limit(1),
+            ]);
+
+            const eventCount = countResult.count ?? 0;
+            let months = 0;
+            if (
+              eventCount > 0 &&
+              earliestResult.data?.[0]?.created_at
+            ) {
+              const daysDiff =
+                (Date.now() -
+                  new Date(earliestResult.data[0].created_at).getTime()) /
+                86400000;
+              months = Math.round(daysDiff / 30.44);
+            }
+
+            result.push({
+              org,
+              recipientId: recipients[0].id,
+              eventCount,
+              months,
+            });
           }
         }
         setTeams(result);
@@ -172,6 +214,11 @@ export function DashboardClient({ user }: Props) {
                       <p className="text-sm text-muted-foreground mt-0.5">
                         View care journal
                       </p>
+                      {team.eventCount > 0 && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {formatCareStats(team.eventCount, team.months)}
+                        </p>
+                      )}
                     </div>
                     <svg
                       className="w-5 h-5 text-muted-foreground"
