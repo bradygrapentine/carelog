@@ -25,11 +25,17 @@ type JournalEvent = {
   payload?: { text?: string; mood?: string };
 };
 
+type Recipient = {
+  id: string;
+  display_name: string | null;
+};
+
 type UseJournalDataReturn = {
   org: OrgInfo | null;
   events: JournalEvent[];
   setEvents: React.Dispatch<React.SetStateAction<JournalEvent[]>>;
   members: Member[];
+  recipients: Recipient[];
   currentUserRole: string;
   loading: boolean;
   loadEvents: () => Promise<void>;
@@ -42,6 +48,7 @@ export function useJournalData(
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [events, setEvents] = useState<JournalEvent[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>("supporter");
   const [loading, setLoading] = useState(true);
 
@@ -63,6 +70,16 @@ export function useJournalData(
     }
   }
 
+  async function loadRecipients(orgId: string) {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("care_recipients")
+      .select("id, display_name")
+      .eq("org_id", orgId)
+      .order("display_name", { ascending: true });
+    if (data) setRecipients(data);
+  }
+
   useEffect(() => {
     async function loadData() {
       const supabase = createClient();
@@ -75,7 +92,10 @@ export function useJournalData(
         const orgData = (recipient as unknown as { organizations: OrgInfo })
           .organizations;
         setOrg(orgData);
-        await loadMembers(orgData.id, user.id);
+        await Promise.all([
+          loadMembers(orgData.id, user.id),
+          loadRecipients(orgData.id),
+        ]);
       }
       await loadEvents();
       setLoading(false);
@@ -89,6 +109,7 @@ export function useJournalData(
     events,
     setEvents,
     members,
+    recipients,
     currentUserRole,
     loading,
     loadEvents,
