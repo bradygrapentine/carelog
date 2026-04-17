@@ -5,6 +5,7 @@ import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ShiftCalendar, type Shift } from "@/components/shifts/ShiftCalendar";
 import { ShiftPopover } from "@/components/shifts/ShiftPopover";
+import { ShiftForm } from "./ShiftForm";
 
 type Member = {
   id: string;
@@ -39,8 +40,14 @@ function getRangeForDate(centerDate: Date): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
-export function ShiftList({ orgId, recipientId, currentUserRole }: Props) {
+export function ShiftList({
+  orgId,
+  recipientId,
+  members,
+  currentUserRole,
+}: Props) {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [calendarDate, setCalendarDate] = useState(new Date());
   const { from, to } = getRangeForDate(calendarDate);
 
@@ -87,11 +94,31 @@ export function ShiftList({ orgId, recipientId, currentUserRole }: Props) {
         isOpen={!!selectedShift}
         onClose={() => setSelectedShift(null)}
         isCoordinator={isCoordinator}
-        onEdit={() => {
-          /* TODO: open ShiftForm in edit mode */
+        onEdit={(shift) => {
+          setEditingShift(shift);
+          setSelectedShift(null);
         }}
         onCancel={handleCancel}
       />
+
+      {editingShift && (
+        <div className="mt-4">
+          <ShiftForm
+            members={members}
+            recipientId={recipientId}
+            orgId={orgId}
+            shiftId={editingShift.id}
+            initialValues={{
+              date: editingShift.start_at.slice(0, 10),
+              startTime: editingShift.start_at.slice(11, 16),
+              endTime: editingShift.end_at.slice(11, 16),
+              assigneeId: editingShift.assignee_user_id ?? "",
+              notes: "",
+            }}
+            onSuccess={() => setEditingShift(null)}
+          />
+        </div>
+      )}
     </>
   );
 }

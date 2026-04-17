@@ -29,6 +29,15 @@ type Props = {
   recipientId: string;
   orgId: string;
   onSuccess: () => void;
+  // Edit mode — both must be present together
+  shiftId?: string;
+  initialValues?: {
+    date: string; // YYYY-MM-DD
+    startTime: string; // HH:MM
+    endTime: string; // HH:MM
+    assigneeId: string;
+    notes: string;
+  };
 };
 
 function addHoursToUtcIso(date: string, time: string, hours: number): string {
@@ -36,25 +45,39 @@ function addHoursToUtcIso(date: string, time: string, hours: number): string {
   return new Date(startMs + hours * 3_600_000).toISOString();
 }
 
-export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [startTime, setStartTime] = useState("");
-  const [duration, setDuration] = useState("1");
-  const [endTime, setEndTime] = useState("");
-  const [assigneeId, setAssigneeId] = useState("");
-  const [notes, setNotes] = useState("");
+export function ShiftForm({
+  members,
+  recipientId,
+  orgId,
+  onSuccess,
+  shiftId,
+  initialValues,
+}: Props) {
+  const isEditMode = !!shiftId;
+  const [expanded, setExpanded] = useState(isEditMode); // edit mode starts expanded
+  const [date, setDate] = useState(
+    () => initialValues?.date ?? new Date().toISOString().slice(0, 10),
+  );
+  const [startTime, setStartTime] = useState(initialValues?.startTime ?? "");
+  const [duration, setDuration] = useState("1"); // create mode default; edit mode uses isCustom override
+  const [endTime, setEndTime] = useState(initialValues?.endTime ?? "");
+  const [assigneeId, setAssigneeId] = useState(initialValues?.assigneeId ?? "");
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [recurring, setRecurring] = useState(false);
   const [weeks, setWeeks] = useState("4");
   const [error, setError] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   const createMutation = trpc.shifts.create.useMutation();
+  const updateMutation = trpc.shifts.update.useMutation();
 
   // Supporters cannot be shift assignees
   const assignableMembers = members.filter((m) => m.role !== "supporter");
-  const isCustom = duration === "0";
-  const canSubmit = !!assigneeId && !!startTime && !createMutation.isPending;
+  const isCustom = isEditMode || duration === "0";
+  const isPending = isEditMode
+    ? updateMutation.isPending
+    : createMutation.isPending;
+  const canSubmit = !!assigneeId && !!startTime && !isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,31 +94,42 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
     // Force UTC by appending Z suffix — tests assert UTC timestamps
     const startAt = new Date(d + "T" + st + ":00Z").toISOString();
     const endAt =
-      dur === "0"
+      dur === "0" || isEditMode
         ? new Date(d + "T" + et + ":00Z").toISOString()
         : addHoursToUtcIso(d, st, parseInt(dur, 10));
 
     setError(null);
     try {
-      await createMutation.mutateAsync({
-        org_id: orgId,
-        recipient_id: recipientId,
-        assignee_user_id: aId,
-        start_at: startAt,
-        end_at: endAt,
-        notes: n,
-        recurrence: rec ? { freq: "weekly", weeks: w } : undefined,
-      });
+      if (isEditMode && shiftId) {
+        await updateMutation.mutateAsync({
+          id: shiftId,
+          org_id: orgId,
+          assignee_user_id: aId,
+          start_at: startAt,
+          end_at: endAt,
+          notes: n,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          org_id: orgId,
+          recipient_id: recipientId,
+          assignee_user_id: aId,
+          start_at: startAt,
+          end_at: endAt,
+          notes: n,
+          recurrence: rec ? { freq: "weekly", weeks: w } : undefined,
+        });
+        setExpanded(false);
+        setDate(new Date().toISOString().slice(0, 10));
+        setStartTime("");
+        setDuration("1");
+        setEndTime("");
+        setAssigneeId("");
+        setNotes("");
+        setRecurring(false);
+        setWeeks("4");
+      }
       utils.shifts.list.invalidate();
-      setExpanded(false);
-      setDate(new Date().toISOString().slice(0, 10));
-      setStartTime("");
-      setDuration("1");
-      setEndTime("");
-      setAssigneeId("");
-      setNotes("");
-      setRecurring(false);
-      setWeeks("4");
       onSuccess();
     } catch (err: unknown) {
       const code = (err as { data?: { code?: string } })?.data?.code;
@@ -252,34 +286,41 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
 
       <Separator />
 
-      <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={recurring}
-            onChange={(e) => setRecurring(e.target.checked)}
-            className="rounded border-border"
-          />
-          <span className="text-sm text-foreground/80">Repeat weekly for</span>
-        </label>
-        {recurring && (
-          <select
-            value={weeks}
-            onChange={(e) => setWeeks(e.target.value)}
-            className="text-sm border border-border rounded-xl px-2 py-1 focus:outline-none bg-card text-foreground"
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-              <option key={n} value={String(n)}>
-                {n} {n === 1 ? "week" : "weeks"}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-      {recurring && (
-        <p className="text-xs text-muted-foreground -mt-1">
-          Creates one shift per week at the same day and time.
-        </p>
+      {/* Recurrence — hidden in edit mode */}
+      {!isEditMode && (
+        <>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={recurring}
+                onChange={(e) => setRecurring(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm text-foreground/80">
+                Repeat weekly for
+              </span>
+            </label>
+            {recurring && (
+              <select
+                value={weeks}
+                onChange={(e) => setWeeks(e.target.value)}
+                className="text-sm border border-border rounded-xl px-2 py-1 focus:outline-none bg-card text-foreground"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                  <option key={n} value={String(n)}>
+                    {n} {n === 1 ? "week" : "weeks"}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          {recurring && (
+            <p className="text-xs text-muted-foreground -mt-1">
+              Creates one shift per week at the same day and time.
+            </p>
+          )}
+        </>
       )}
 
       {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
@@ -294,17 +335,22 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           onClick={() => {
             setExpanded(false);
             setError(null);
+            onSuccess(); // collapse inline edit panel in parent
           }}
           className="text-muted-foreground"
         >
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit}>
-          {createMutation.isPending
-            ? "Scheduling..."
-            : recurring
-              ? "Schedule " + weeks + " shifts"
-              : "Schedule shift"}
+          {isPending
+            ? isEditMode
+              ? "Saving..."
+              : "Scheduling..."
+            : isEditMode
+              ? "Save changes"
+              : recurring
+                ? "Schedule " + weeks + " shifts"
+                : "Schedule shift"}
         </Button>
       </div>
     </form>
@@ -315,9 +361,11 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
   return (
     <Card className="gap-2">
       <CardHeader className="-mt-4 px-4 py-3 flex flex-row items-center justify-between space-y-0 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Schedule a shift</CardTitle>
-        {/* Mobile toggle */}
-        {!expanded && (
+        <CardTitle className="text-sm">
+          {isEditMode ? "Edit shift" : "Schedule a shift"}
+        </CardTitle>
+        {/* Mobile toggle — hidden in edit mode (always expanded) */}
+        {!isEditMode && !expanded && (
           <button
             type="button"
             onClick={() => setExpanded(true)}
@@ -326,7 +374,7 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
             + New shift
           </button>
         )}
-        {expanded && (
+        {!isEditMode && expanded && (
           <button
             type="button"
             onClick={() => {
@@ -341,8 +389,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
       </CardHeader>
 
       <CardContent className="pt-4">
-        {/* Toggle button: mobile only, hidden when expanded or on lg+ */}
-        {!expanded && (
+        {/* Toggle button: mobile only, hidden in edit mode / when expanded */}
+        {!isEditMode && !expanded && (
           <button
             type="button"
             onClick={() => setExpanded(true)}
@@ -352,8 +400,8 @@ export function ShiftForm({ members, recipientId, orgId, onSuccess }: Props) {
           </button>
         )}
 
-        {/* Form: on mobile shown when expanded; on desktop always shown */}
-        <div className={expanded ? "block" : "hidden"}>
+        {/* Form: edit mode always visible; create mode shown when expanded */}
+        <div className={isEditMode || expanded ? "block" : "hidden"}>
           {shiftForm}
         </div>
       </CardContent>
