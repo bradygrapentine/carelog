@@ -16,11 +16,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 8 | §1 ON-49, ON-50, ON-51, ON-52, ON-53, TD-03 · §3 PP-009, PP-010 |
+| 🟢 Ready | 13 | §1 ON-49/50/51/52/53/57/58 · TD-03/TD-11 · §3 PP-009 · §5 ON-56/59/60 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 6 | §5 ON-55 · §6 ON-56, UX-08, UX-09, UX-11 · §3 PP-013 |
+| 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -62,6 +62,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ON-51 | 🟢 Ready | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
 | ON-52 | 🟢 Ready | — | — | **Care history depth counter on dashboard** | Show "X care events over Y months" on the dashboard (moat-reinforcement per PRODUCT_STRATEGY.md). Pure frontend — query `care_events` count + earliest date for the org. |
 | ON-53 | 🟢 Ready | — | — | **CareZone alternative landing page** | Dedicated marketing page at `/carezone-alternative` + a basic medication list import (CSV/plain-text from CareZone export). Positions Carelog as the successor for 3.5M abandoned CareZone users. ~1.5 days. |
+| ON-57 | 🟢 Ready | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
+| ON-58 | 🟢 Ready | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -69,6 +71,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-11 | 🟢 Ready | **data-testid sweep for medication components** | Originally ON-47 from TODO_AUDIT.md — never landed in BACKLOG.md. Add `data-testid` attrs to `MedicationChecklist`, `medication-name-input`, `medication-dosage-input`, `add-medication-btn`, `dose-given-indicator`. Unlocks reliable E2E selectors in `e2e/medications.spec.ts` (6 TODO stubs). ~0.5 day. |
 | TD-06 | ✅ Shipped · PR #98 | **Add `dark:` variants to ON-44/ON-45 components** | dark: sweep across Comment + TradeRequest components; contrast patch (avatar/badge gray-900+gray-50, fixed hover) committed directly to main. |
 | TD-07 | ✅ Shipped · PR #94 | **Alert → Toast sweep** | Replaced 6 `alert()` calls with sonner toasts across JournalClient, settings, subscriptions, TeamAdmin. Invite URL now copies to clipboard before toast. |
 | TD-08 | ✅ Shipped · PR #95 | **Supabase types regen + `as any` cleanup** | Regenerated `database.types.ts`; removed 10 `as any` casts from `careEventCommentsRepository.ts`. |
@@ -137,14 +140,29 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **Work:** Mobile: `expo-av` recording + upload to Supabase Storage. Inngest job: Whisper → structured parse → care_event insert with `entry_type='visit_note'`. Web: playback + structured fields editable.
 **Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case.
 
+### ON-56 — Data stewardship commitment page · ~0.5 day
+**Status:** 🟢 Ready
+**Why:** PRODUCT_STRATEGY.md says "publish before first paying users." Builds trust with a population burned by CareZone's shutdown. Commitment: 12 months notice before shutdown, full data export always available, data never sold, no ads ever.
+**Work:** New marketing page at `/data-commitment` (or `/trust`). Link from footer + signup flow. Plain language, no legalese. ~0.5 day.
+**AC:** Page live at stable URL; linked from site footer and onboarding.
+
+### ON-59 — Inngest cron health monitoring · ~1 day
+**Status:** 🟢 Ready
+**Why:** Weekly digest, refill alerts, burnout check-ins, and gap detector run as Inngest functions. If they fail silently, families miss digest emails and medication refill warnings — core retention and safety features. No monitoring exists today.
+**Work:** Wrap each Inngest `serve()` handler catch block with `Sentry.captureException`. Add an Inngest event-stream webhook that fires to a `/api/inngest/monitor` route and logs failures to Sentry. Optionally add a `/api/health/crons` endpoint that returns last-run timestamp for each cron.
+**AC:** Sentry receives an exception when any Inngest function throws. Oncall can see last-run timestamps for digest + refill + burnout + gap-detector.
+
+### ON-60 — Referrer resource page `/for-referrers` · ~1 day
+**Status:** 🟢 Ready
+**Why:** PRODUCT_STRATEGY.md identifies social workers, hospital discharge planners, elder law attorneys, and geriatric care managers as the highest-leverage GTM channel — one referrer who sends 2 families/month is worth more than 1,000 social media followers. There is currently no page targeting this audience.
+**Work:** New marketing page at `/for-referrers`. Explains: what Carelog does, how to refer a family (share link), what families get. Includes a downloadable 1-page reference card (PDF). No commission language (conflicts with social worker ethics). ~1 day.
+**AC:** Page live; includes share link + downloadable PDF; linked from main nav footer.
+
 ---
 
 ## 6. Deferred UI polish (UX-*) — intentionally parked
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
-
-### Medium
-- **ON-56** — **Data stewardship commitment page** — Publish the "If this platform ever shuts down…" commitment (12 months notice, full export, no data sale, no ads) as a standalone marketing page before first paying users. Builds trust with a population burned by CareZone. ~0.5 day.
 
 ### Lower
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
