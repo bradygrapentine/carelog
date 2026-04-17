@@ -98,7 +98,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🔴 PP-006 + 🧑 |
 | PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🔴 PP-006 |
 | PP-010 | P2 | Android: document-share intent verification | 🔴 PP-006 |
-| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ⚡ In progress · Branch: `feat/pp011-offline-journal-queue` |
+| PP-011 | P2 | Offline behavior spec + write-queue for journal entries | 🔵 In review · Branch: feat/pp011-offline-journal-queue |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 

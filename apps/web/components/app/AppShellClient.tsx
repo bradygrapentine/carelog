@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase";
+import { clearAll as clearOfflineQueue } from "@/lib/offline-queue";
 import { AppTabBar } from "./AppTabBar";
 
 type Props = {
@@ -9,11 +10,16 @@ type Props = {
 };
 
 export function AppShellClient({ userInitials, children }: Props) {
-  function handleSignOut() {
+  async function handleSignOut() {
     const supabase = createClient();
-    supabase.auth.signOut().then(() => {
+    try {
+      await clearOfflineQueue();
+      await supabase.auth.signOut();
+    } catch {
+      // best-effort logout even if cleanup fails
+    } finally {
       window.location.href = "/signin";
-    });
+    }
   }
 
   return (
