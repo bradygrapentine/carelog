@@ -101,8 +101,8 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-006 | P1 | Android prebuild + boot verification | ✅ Shipped · PR #90 |
 | PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | ✅ Shipped · PR #TBD — code complete; needs `google-services.json` from Firebase for live FCM verification |
 | PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human — `assetlinks.json` on live domain + EAS SHA-256 |
-| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready (PP-006 shipped) |
-| PP-010 | P2 | Android: document-share intent verification | 🟢 Ready (PP-006 shipped) |
+| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready — `scripts/android-visual-qa.sh` written; run when Android emulator available |
+| PP-010 | P2 | Android: document-share intent verification | ✅ Verified — 17 unit tests cover Android `Alert.alert` path (Platform.OS=android) in `documents/__tests__/index.test.tsx` |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |

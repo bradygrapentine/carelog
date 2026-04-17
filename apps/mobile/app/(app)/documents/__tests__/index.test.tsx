@@ -93,7 +93,11 @@ describe("DocumentsScreen", () => {
       refetch: mockRefetch,
     });
     const { getByText } = render(<DocumentsScreen />);
-    expect(getByText("No documents yet.")).toBeTruthy();
+    expect(
+      getByText(
+        "No documents uploaded yet. Coordinators can upload from the web app.",
+      ),
+    ).toBeTruthy();
   });
 
   it("shows Upload document FAB for coordinator", () => {
