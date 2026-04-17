@@ -51,10 +51,19 @@ Pattern: if a command requires typing into a prompt, it belongs to the user, not
 supabase start          # Must run first
 pnpm web                # localhost:3000
 npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
-pnpm test               # Vitest unit tests
+pnpm test               # Vitest unit tests (monorepo root — 173 tests)
+cd apps/web && npx vitest run  # full web test suite (961 tests, used by pre-commit hook)
+cd apps/web && npx tsc --noEmit  # web typecheck (no pnpm script; pnpm --filter web typecheck does not exist)
 supabase test db        # RLS pgTAP tests — see supabase/CLAUDE.md
 pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 ```
+
+## Known Gotchas
+
+- **Supabase type gen**: Always `npx supabase gen types typescript --local 2>/dev/null > apps/web/lib/database.types.ts` — omitting `2>/dev/null` prepends Docker startup logs to the file, producing invalid TypeScript.
+- **ShiftForm / ShiftList** live in `apps/web/app/(app)/journal/[recipientId]/`, not a standalone `/shifts/` route.
+- **Bash paths with `(app)` or `[recipientId]`** need quoting in zsh: `"apps/web/app/(app)/..."` — unquoted triggers glob expansion failures.
+- **Pre-commit hook** runs `cd apps/web && npx vitest run --reporter=dot 2>&1 | tail -5` — only the last 5 lines of test output are visible; run the command manually to see the full error if it fails.
 
 ## Code Style
 

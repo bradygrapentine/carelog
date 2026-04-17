@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16** (session reconciliation).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-16** (post-tech-debt sprint).
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,12 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 2 | §1 TD-03, TD-06 |
+| 🟢 Ready | 5 | §1 TD-03 · TD-06 · §3 PP-007 · PP-009 · PP-010 |
 | 🔎 In review | 0 | — |
-| 🔴 Blocked | 3 | §3 PP-007 · PP-008 (🧑) · PP-009 · PP-010 |
+| 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 + PP-013 |
-| 🧑 Needs human | 3 | §8 |
+| 🧊 Deferred | 4 | §6 UX-08, UX-09, UX-11 · §3 PP-013 |
+| 🧑 Needs human | 3 | §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -56,6 +56,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 ## 1. Active / next-up
 
 | ID | Status | Owner | Branch / PR | Story | Notes |
+|---|---|---|---|---|---|
+| — | — | — | — | *(all active items shipped or moved to §3–§6)* | — |
 
 ### New tech-debt (TD-*) — opened 2026-04-14
 
@@ -97,10 +99,10 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-003 | P2 | Mobile: read-only subscription view + "manage on web" CTA | ✅ Shipped · PR #93 |
 | PP-005 | P2 | Web: push notifications (browser Push API) | ✅ Shipped · PR #85 |
 | PP-006 | P1 | Android prebuild + boot verification | ✅ Shipped · PR #90 |
-| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🟢 Ready |
-| PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human |
-| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready |
-| PP-010 | P2 | Android: document-share intent verification | 🟢 Ready |
+| PP-007 | P1 | Android: push notification verification (FCM token + deep-link tap) | 🟢 Ready (PP-006 shipped) |
+| PP-008 | P1 | Android: app-links verification (`assetlinks.json`, autoVerify) | 🧑 Needs human — `assetlinks.json` on live domain + EAS SHA-256 |
+| PP-009 | P2 | Android: visual QA pass (screenshot every screen vs iOS) | 🟢 Ready (PP-006 shipped) |
+| PP-010 | P2 | Android: document-share intent verification | 🟢 Ready (PP-006 shipped) |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
