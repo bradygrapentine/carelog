@@ -1,6 +1,7 @@
 #!/bin/bash
-# Overnight autonomous backlog fleet
-# Usage: ./scripts/overnight-fleet.sh [max-stories]
+# Overnight autonomous backlog fleet with adversarial review gate
+# Usage: ./scripts/overnight-fleet.sh [max-stories]              # arm for cron
+#        ./scripts/overnight-fleet.sh --dry-run [max-stories]    # ceiling at 3 stories, no cron arming
 # Output: reviews/overnight-YYYY-MM-DD.md
 #
 # What it does:
@@ -8,19 +9,25 @@
 #   2. Invokes Claude Code headless against /backlog-dispatch with a
 #      max-story cap (default 6) and an explicit instruction to dispatch
 #      only Sonnet workers (no Haiku — prior sessions hit context limits).
-#   3. Captures the consolidated report and writes a morning summary:
-#      what was attempted, what merged, what failed, and the follow-up
-#      backlog IDs that were filed for each failure.
-#   4. Exits non-zero if fewer than 1 PR opened (signal the cron failed).
+#   3. For each PR opened, runs adversarial review gates (read-only):
+#        - /review  — PHI/RLS/auth security pass
+#        - /test-gaps — missing-coverage analysis
+#      Findings are appended to the morning report. Gates do NOT auto-fail
+#      the run — human reviews the findings before merging.
+#   4. Writes a morning summary: attempted, opened, blocked, review findings.
+#   5. Exits non-zero if fewer than 1 PR opened (signal the cron failed).
 #
 # Safety:
-#   - Does nothing if another instance of this script is already running
-#     (flock on .git/overnight.lock).
+#   - Does nothing if another instance is running (flock on .git/overnight.lock).
 #   - Refuses to start if the working tree is dirty — clean main only.
-#   - Passes CLAUDE_ALLOW_MAIN_COMMIT=0 so the main-branch-block hook
-#     still applies to subagents.
+#   - NEVER auto-merges. Human reviews the adversarial findings.
+#   - The PreToolUse main-commit hook still applies to every subagent.
 #
-# Cron:
+# Dry run: --dry-run caps --max-stories at 3, skips the cron-readiness check,
+#   and writes to reviews/overnight-dryrun-YYYY-MM-DD.md. Use to validate before
+#   arming the cron.
+#
+# Cron (after ≥2 clean dry runs):
 #   0 2 * * * cd /Users/bradygrapentine/projects/carelog && ./scripts/overnight-fleet.sh 6 >> reviews/overnight.log 2>&1
 
 set -euo pipefail
@@ -28,10 +35,24 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$DIR"
 
+DRY_RUN=0
+if [ "${1:-}" = "--dry-run" ]; then
+  DRY_RUN=1
+  shift
+fi
+
 MAX_STORIES="${1:-6}"
+if [ "$DRY_RUN" = "1" ] && [ "$MAX_STORIES" -gt 3 ]; then
+  MAX_STORIES=3
+fi
+
 DATE=$(date +%Y-%m-%d)
 OUTDIR="$DIR/reviews"
-OUTFILE="$OUTDIR/overnight-$DATE.md"
+if [ "$DRY_RUN" = "1" ]; then
+  OUTFILE="$OUTDIR/overnight-dryrun-$DATE.md"
+else
+  OUTFILE="$OUTDIR/overnight-$DATE.md"
+fi
 LOCK="$DIR/.git/overnight.lock"
 
 mkdir -p "$OUTDIR"
@@ -85,10 +106,20 @@ echo "" >> "$OUTFILE"
 # ── Post-run reconciliation ────────────────────────────────
 echo "### PRs opened in this run" >> "$OUTFILE"
 echo "" >> "$OUTFILE"
-gh pr list --state open --author "@me" --limit 20 \
+
+# Capture PR numbers we'll review below
+prs_from_run=$(gh pr list --state open --author "@me" --limit 20 \
   --json number,title,headRefName,createdAt \
-  --jq '.[] | select(.createdAt > (now - 10 * 60 * 60 | todate)) | "- [#\(.number)](https://github.com/bradygrapentine/carelog/pull/\(.number)) \(.title) — `\(.headRefName)`"' \
-  >> "$OUTFILE" 2>/dev/null || echo "(gh pr list unavailable)" >> "$OUTFILE"
+  --jq '.[] | select(.createdAt > (now - 10 * 60 * 60 | todate)) | .number' 2>/dev/null || true)
+
+if [ -n "$prs_from_run" ]; then
+  for pr_num in $prs_from_run; do
+    pr_info=$(gh pr view "$pr_num" --json number,title,headRefName --jq '"- [#\(.number)](https://github.com/bradygrapentine/carelog/pull/\(.number)) \(.title) — `\(.headRefName)`"' 2>/dev/null || echo "- #$pr_num")
+    echo "$pr_info" >> "$OUTFILE"
+  done
+else
+  echo "(no PRs opened in this run window)" >> "$OUTFILE"
+fi
 echo "" >> "$OUTFILE"
 
 echo "### Blocked rows added this run" >> "$OUTFILE"
@@ -96,11 +127,40 @@ echo "" >> "$OUTFILE"
 git diff HEAD~3..HEAD BACKLOG.md 2>/dev/null | grep "^+.*🔴 Blocked" | head -10 >> "$OUTFILE" || true
 echo "" >> "$OUTFILE"
 
+# ── Adversarial review gate (READ-ONLY — never auto-merges) ─
+if [ -n "$prs_from_run" ]; then
+  echo "### Adversarial review findings" >> "$OUTFILE"
+  echo "" >> "$OUTFILE"
+  echo "Read-only passes per PR. These do NOT block merge — human reviews." >> "$OUTFILE"
+  echo "" >> "$OUTFILE"
+
+  for pr_num in $prs_from_run; do
+    head_ref=$(gh pr view "$pr_num" --json headRefName --jq '.headRefName' 2>/dev/null || echo "")
+    [ -z "$head_ref" ] && continue
+
+    echo "#### PR #$pr_num (\`$head_ref\`)" >> "$OUTFILE"
+    echo '```' >> "$OUTFILE"
+    set +e
+    claude -p "Run /review on PR #$pr_num (branch: $head_ref). Diff against origin/main. Severity-ranked findings only — Critical / Medium / Low / None. Include file:line. Do NOT edit any files." \
+      --allowedTools "Read,Glob,Grep,Bash" \
+      --output-format text >> "$OUTFILE" 2>&1
+    claude -p "Run /test-gaps analysis on the diff in PR #$pr_num (branch: $head_ref). List untested paths with file:line — be terse. Do NOT edit any files." \
+      --allowedTools "Read,Glob,Grep,Bash" \
+      --output-format text >> "$OUTFILE" 2>&1
+    set -e
+    echo '```' >> "$OUTFILE"
+    echo "" >> "$OUTFILE"
+  done
+fi
+
 # ── Count outcomes ─────────────────────────────────────────
 prs_count=$(gh pr list --state open --author "@me" --limit 20 \
   --json createdAt --jq '[.[] | select(.createdAt > (now - 10 * 60 * 60 | todate))] | length' 2>/dev/null || echo "0")
 
 echo "[overnight-fleet] run complete — $prs_count PRs opened — report: $OUTFILE"
+if [ "$DRY_RUN" = "1" ]; then
+  echo "[overnight-fleet] DRY-RUN mode — cron not armed. Review the report, run again if you want one more dry pass before arming."
+fi
 
 if [ "$prs_count" -lt 1 ] || [ $dispatch_exit -ne 0 ]; then
   echo "[overnight-fleet] FAIL — exit $dispatch_exit, PRs $prs_count"

@@ -103,6 +103,10 @@
           {
             "type": "command",
             "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if 'apps/mobile' in fp and fp.endswith(('.ts','.tsx')) else 1)\" 2>/dev/null && cd /Users/bradygrapentine/Documents/projects/carelog/apps/mobile && npx tsc --noEmit 2>&1 | head -10 || true"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/related-test.sh"
           }
         ]
       },
