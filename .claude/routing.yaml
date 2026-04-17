@@ -1,0 +1,65 @@
+# Capability-based model routing manifest
+#
+# Reference for which model to pass to the Agent tool's `model` parameter
+# based on task archetype. The `route-model-log.sh` PreToolUse hook reads
+# this file to log routing decisions to .claude/routing-metrics.jsonl
+# and warn on likely mismatches.
+#
+# Order of precedence: the archetype with the first matching trigger wins.
+
+archetypes:
+  - id: architecture-or-security
+    model: opus
+    triggers:
+      - "keywords: RLS, PHI, auth, security, threat model, migration design"
+      - "files: supabase/*, *.sql in migrations, sentry.*.ts, server-side only"
+    description: >
+      Architectural decisions, security reviews, RLS/PHI invariants, anything
+      that needs full project context. Opus (this session) stays as orchestrator.
+
+  - id: multi-file-implementation
+    model: sonnet
+    triggers:
+      - "files_touched >= 3"
+      - "keywords: implement, refactor, ship, wire up, end-to-end"
+      - "prompt_size >= 2000 tokens"
+    description: >
+      Multi-file implementation with judgment calls. Default for any feature work
+      that touches more than 2 files or includes integration concerns.
+
+  - id: single-file-known-pattern
+    model: haiku
+    triggers:
+      - "files_touched == 1"
+      - "keywords: add, stub, scaffold, types, schema, test boilerplate"
+      - "prompt_size < 1500 tokens"
+    description: >
+      Single-file changes following an existing pattern: add a Zod schema,
+      a new type export, a test to match a nearby pattern. Never use Haiku
+      if the work could span multiple files — prefer Sonnet to avoid context
+      overflow.
+
+  - id: review-lint-audit
+    model: haiku
+    triggers:
+      - "keywords: review, audit, lint, check, find"
+      - "read-only (no Edit/Write tools granted)"
+    description: >
+      Read-only review passes. Haiku is fine because output is bounded.
+
+  - id: mechanical-fanout
+    model: "ollama (local or cloud)"
+    triggers:
+      - "keyword: parallel"
+      - "tasks >= 3 independent mechanical subtasks"
+      - "correctness cheap to verify after"
+    description: >
+      Bulk parallel mechanical work — grep enumeration, boilerplate stubs,
+      batch test fixes. Dispatch via /ollama, not the Agent tool.
+
+# Hard rules (override any archetype match):
+hard_rules:
+  - "NEVER use Haiku for code changes that could touch multiple files — it has hit context limits on worktree-wide tasks repeatedly."
+  - "NEVER use Opus for mechanical/boilerplate work — it burns context for no gain."
+  - "ALWAYS pass the full FILES ALLOWED / BRANCH / DO NOT / PHI RULE scope contract (from CLAUDE.md) when dispatching any subagent that will edit files."
+  - "ALWAYS verify worktree has node_modules symlinked before dispatch — the pre-commit hook will fail otherwise even on correct code."

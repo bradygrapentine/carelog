@@ -132,7 +132,12 @@ Subagents that go out of scope (add unrelated features, leak PHI, commit to wron
    - Never use Haiku for code changes touching multiple files
 
 2. **Pre-flight before every dispatch** (inline checklist in each dispatch skill):
-   - Each worktree has `node_modules` installed — run `pnpm install` if missing
+   - Each worktree has `node_modules` — either run `pnpm install`, or **faster**: symlink from main repo:
+     ```sh
+     ln -s /Users/bradygrapentine/projects/carelog/node_modules .worktrees/<name>/node_modules
+     ln -s /Users/bradygrapentine/projects/carelog/apps/web/node_modules .worktrees/<name>/apps/web/node_modules
+     ```
+     Without this, the pre-commit hook `cd apps/web && npx vitest run` fails inside the worktree even when the code is correct. Symlink reuses the main repo's Playwright browsers and pnpm store — `pnpm install` in a worktree duplicates them unnecessarily.
    - Each subagent's target branch ≠ `main` (verify with `git branch --show-current`)
    - Docker running if Supabase/migration work is involved
    - No interactive-login CLIs in scope (eas login, supabase login, etc.)
@@ -311,6 +316,9 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
 | `/backlog-sync` | Reconcile BACKLOG.md against git log + open PRs; rewrite §0 status board; flag stale/unblocked rows. Run at session start, end, and daily. |
 | `/backlog-dispatch` | Dispatch parallel subagents against all `🟢 Ready` BACKLOG.md items — each gets a worktree, feature branch, tests-first implementation, and PR. For overnight batch execution. |
+| `/ship-story` | Single-story end-to-end: read BACKLOG row → branch → tests-first implement → push → PR → mark In review. |
+| `/schema-dump` | Dump schema of named Postgres tables (columns, indexes, RLS policies) **before** writing any migration or seed SQL. Prevents the ON CONFLICT / renamed-column iteration thrash. |
+| `/tdd-ship` | Strict red-green-refactor: agent writes failing tests first, iterates ≤5 times to green, then refactors. Escalates if stuck instead of hacking around. |
 
 ## Agents
 
@@ -332,6 +340,14 @@ Auto-runs on every Edit/Write (configured in `.claude/settings.json`):
 | Lock file guard | PreToolUse Edit/Write | Blocks edits to `pnpm-lock.yaml` and `package-lock.json` |
 | supabaseAdmin guard | PreToolUse Edit/Write | Warns when editing files outside `server/` or `app/api/` that contain `supabaseAdmin` |
 | PR security review reminder | PreToolUse Bash | Prints hint to run `/review` before `gh pr create` |
+| main-branch commit block | PreToolUse Bash | **Hard-blocks** `git commit` on `main` unless `CLAUDE_ALLOW_MAIN_COMMIT=1` is set. Prevents subagents committing to main by accident. |
+
+## MCP & Plugin Configuration
+
+- MCP servers belong in `.mcp.json` at the repo root (or `~/.claude/mcp.json` for global), **not** in `settings.json` (which is for hooks/permissions only).
+- User-level MCP config lives at `~/.claude/mcp.json`; project-scoped at `.mcp.json`. Claude Code merges both.
+- To add a server: `claude mcp add <name> -- <command>` — don't hand-edit unless necessary.
+- Verify presence: `claude mcp list`.
 
 ## Plugin Priority
 
