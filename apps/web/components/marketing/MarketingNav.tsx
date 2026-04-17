@@ -8,8 +8,15 @@ export function MarketingNav() {
         aria-label="Main navigation"
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2" aria-label="CareSync home">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary)]" aria-hidden="true" />
+        <Link
+          href="/"
+          className="flex items-center gap-2"
+          aria-label="CareSync home"
+        >
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary)]"
+            aria-hidden="true"
+          />
           <span className="text-base font-bold tracking-tight text-[var(--color-ink)]">
             CareSync
           </span>
@@ -20,6 +27,7 @@ export function MarketingNav() {
           {[
             { label: "Features", href: "/#features" },
             { label: "Pricing", href: "/pricing" },
+            { label: "CareZone users", href: "/carezone-alternative" },
             { label: "About", href: "/about" },
             { label: "Contact", href: "/contact" },
           ].map(({ label, href }) => (
