@@ -35,7 +35,7 @@ const STATUS_BADGE: Record<TradeStatus, { label: string; className: string }> =
     open: {
       label: "Open",
       className:
-        "bg-[var(--color-primary-subtle)] dark:bg-gray-700 text-[var(--color-primary)] dark:text-gray-300 border border-[var(--color-border)] dark:border-gray-600",
+        "bg-[var(--color-primary-subtle)] dark:bg-gray-900 text-[var(--color-primary)] dark:text-gray-50 border border-[var(--color-border)] dark:border-gray-600",
     },
     accepted: {
       label: "Accepted",
