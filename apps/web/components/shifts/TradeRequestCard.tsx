@@ -35,7 +35,7 @@ const STATUS_BADGE: Record<TradeStatus, { label: string; className: string }> =
     open: {
       label: "Open",
       className:
-        "bg-[var(--color-primary-subtle)] text-[var(--color-primary)] border border-[var(--color-border)]",
+        "bg-[var(--color-primary-subtle)] dark:bg-gray-700 text-[var(--color-primary)] dark:text-gray-300 border border-[var(--color-border)] dark:border-gray-600",
     },
     accepted: {
       label: "Accepted",
@@ -80,7 +80,7 @@ export function TradeRequestCard({
     isCoordinator && trade.status === "open" && !isRequester;
 
   return (
-    <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 space-y-3">
+    <article className="rounded-lg border border-[var(--color-border)] dark:border-gray-700 bg-[var(--color-surface)] dark:bg-gray-800 p-4 space-y-3">
       {/* Header row */}
       <div className="flex items-center justify-between gap-2">
         <span
@@ -102,7 +102,7 @@ export function TradeRequestCard({
         </span>
         <time
           dateTime={trade.created_at}
-          className="text-xs text-[var(--color-muted)]"
+          className="text-xs text-[var(--color-muted)] dark:text-gray-400"
         >
           {new Date(trade.created_at).toLocaleDateString()}
         </time>
@@ -111,18 +111,18 @@ export function TradeRequestCard({
       {/* Meta */}
       <dl className="text-sm space-y-1">
         <div className="flex gap-2">
-          <dt className="text-[var(--color-text-secondary)] min-w-[6rem]">
+          <dt className="text-[var(--color-text-secondary)] dark:text-gray-400 min-w-[6rem]">
             Requested by:
           </dt>
-          <dd className="text-[var(--color-ink)] font-mono text-xs">
+          <dd className="text-[var(--color-ink)] dark:text-gray-100 font-mono text-xs">
             {isRequester ? "you" : truncateId(trade.requested_by)}
           </dd>
         </div>
         <div className="flex gap-2">
-          <dt className="text-[var(--color-text-secondary)] min-w-[6rem]">
+          <dt className="text-[var(--color-text-secondary)] dark:text-gray-400 min-w-[6rem]">
             Target:
           </dt>
-          <dd className="text-[var(--color-ink)] font-mono text-xs">
+          <dd className="text-[var(--color-ink)] dark:text-gray-100 font-mono text-xs">
             {trade.target_user_id === null
               ? "Open trade"
               : trade.target_user_id === currentUserId
@@ -134,7 +134,7 @@ export function TradeRequestCard({
 
       {/* Optional message */}
       {trade.message && (
-        <blockquote className="border-l-2 border-[var(--color-border)] pl-3 text-sm text-[var(--color-text-secondary)] italic">
+        <blockquote className="border-l-2 border-[var(--color-border)] dark:border-gray-600 pl-3 text-sm text-[var(--color-text-secondary)] dark:text-gray-400 italic">
           {trade.message}
         </blockquote>
       )}
@@ -146,7 +146,7 @@ export function TradeRequestCard({
             variant="outline"
             size="sm"
             onClick={() => onRespond(trade.id, "decline")}
-            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Cancel request
           </Button>
@@ -159,7 +159,7 @@ export function TradeRequestCard({
           <Button
             size="sm"
             onClick={() => onRespond(trade.id, "accept")}
-            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             <CheckCircle className="h-4 w-4 mr-1" aria-hidden="true" />
             Accept
@@ -168,7 +168,7 @@ export function TradeRequestCard({
             variant="outline"
             size="sm"
             onClick={() => onRespond(trade.id, "decline")}
-            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             <XCircle className="h-4 w-4 mr-1" aria-hidden="true" />
             Decline
@@ -178,7 +178,7 @@ export function TradeRequestCard({
 
       {/* Coordinator: force override */}
       {showForceOverride && onForceOverride && (
-        <div className="border-t border-[var(--color-border)] pt-3 mt-1">
+        <div className="border-t border-[var(--color-border)] dark:border-gray-700 pt-3 mt-1">
           <p className="flex items-center gap-1 text-xs text-[var(--color-warning)] font-medium mb-2">
             <AlertTriangle className="h-3 w-3" aria-hidden="true" />
             Coordinator override
@@ -188,7 +188,7 @@ export function TradeRequestCard({
               size="sm"
               variant="outline"
               onClick={() => onForceOverride(trade.id, "accept")}
-              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Force accept
             </Button>
@@ -196,7 +196,7 @@ export function TradeRequestCard({
               size="sm"
               variant="outline"
               onClick={() => onForceOverride(trade.id, "decline")}
-              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Force decline
             </Button>
@@ -204,7 +204,7 @@ export function TradeRequestCard({
               size="sm"
               variant="outline"
               onClick={() => onForceOverride(trade.id, "cancel")}
-              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Cancel
             </Button>

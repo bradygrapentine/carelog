@@ -62,13 +62,13 @@ export function CommentItem({
     <div className="flex gap-3 py-2">
       <div
         aria-hidden="true"
-        className="w-8 h-8 shrink-0 rounded-full bg-[var(--color-primary-subtle)] text-[var(--color-primary)] flex items-center justify-center text-sm font-medium"
+        className="w-8 h-8 shrink-0 rounded-full bg-[var(--color-primary-subtle)] dark:bg-gray-700 text-[var(--color-primary)] dark:text-gray-300 flex items-center justify-center text-sm font-medium"
       >
         {comment.authorName.slice(0, 1).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap text-xs text-[var(--color-muted)]">
-          <span className="font-medium text-[var(--color-ink)]">
+        <div className="flex items-center gap-2 flex-wrap text-xs text-[var(--color-muted)] dark:text-gray-400">
+          <span className="font-medium text-[var(--color-ink)] dark:text-gray-50">
             {comment.authorName}
           </span>
           <time dateTime={comment.createdAt}>
@@ -82,7 +82,7 @@ export function CommentItem({
             </span>
           )}
         </div>
-        <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap break-words mt-0.5">
+        <p className="text-sm text-[var(--color-text-primary)] dark:text-gray-100 whitespace-pre-wrap break-words mt-0.5">
           {comment.body}
         </p>
       </div>
@@ -92,7 +92,7 @@ export function CommentItem({
             type="button"
             aria-label="Edit comment"
             onClick={() => setEditing(true)}
-            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             <Pencil size={14} aria-hidden="true" />
           </button>
@@ -102,7 +102,7 @@ export function CommentItem({
             onClick={() => {
               if (confirm("Delete this comment?")) onDelete(comment.id);
             }}
-            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             <Trash2 size={14} aria-hidden="true" />
           </button>

@@ -47,8 +47,8 @@ export function CommentComposer({ onSubmit, disabled }: Props) {
         <span
           className={`text-xs ${
             overLimit
-              ? "text-[var(--color-danger)]"
-              : "text-[var(--color-muted)]"
+              ? "text-[var(--color-danger)] dark:text-red-400"
+              : "text-[var(--color-muted)] dark:text-gray-400"
           }`}
         >
           {showCounter ? `${body.length}/4000` : ""}

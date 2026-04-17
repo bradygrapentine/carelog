@@ -37,10 +37,10 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
       <div className="space-y-1">
         <label
           htmlFor="trade-message"
-          className="text-sm font-medium text-[var(--color-ink)]"
+          className="text-sm font-medium text-[var(--color-ink)] dark:text-gray-50"
         >
           Message{" "}
-          <span className="text-[var(--color-muted)] font-normal">
+          <span className="text-[var(--color-muted)] dark:text-gray-400 font-normal">
             (optional)
           </span>
         </label>
@@ -55,10 +55,13 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
           placeholder="Add a note for the other caregiver…"
           rows={3}
           disabled={disabled}
-          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         />
         {message.length > MESSAGE_WARN_THRESHOLD && (
-          <p className="text-xs text-[var(--color-muted)]" aria-live="polite">
+          <p
+            className="text-xs text-[var(--color-muted)] dark:text-gray-400"
+            aria-live="polite"
+          >
             {MAX_MESSAGE - message.length} characters remaining
           </p>
         )}
@@ -72,11 +75,11 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
           checked={isOpenTrade}
           onChange={(e) => setIsOpenTrade(e.target.checked)}
           disabled={disabled}
-          className="h-4 w-4 rounded border-[var(--color-border)] accent-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="h-4 w-4 rounded border-[var(--color-border)] dark:border-gray-600 accent-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         />
         <label
           htmlFor="open-trade"
-          className="cursor-pointer text-sm font-medium text-[var(--color-ink)]"
+          className="cursor-pointer text-sm font-medium text-[var(--color-ink)] dark:text-gray-50"
         >
           Post as open trade
         </label>
@@ -87,7 +90,7 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
         <div className="space-y-1">
           <label
             htmlFor="target-user-id"
-            className="text-sm font-medium text-[var(--color-ink)]"
+            className="text-sm font-medium text-[var(--color-ink)] dark:text-gray-50"
           >
             Target user ID
           </label>
@@ -98,7 +101,7 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
             onChange={(e) => setTargetUserId(e.target.value)}
             placeholder="Target user ID"
             disabled={disabled}
-            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           />
         </div>
       )}
@@ -109,7 +112,7 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
           type="submit"
           size="sm"
           disabled={disabled}
-          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           Request Trade
         </Button>
@@ -119,7 +122,7 @@ export function TradeRequestForm({ onSubmit, onCancel, disabled }: Props) {
           size="sm"
           onClick={onCancel}
           disabled={disabled}
-          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           Cancel
         </Button>
