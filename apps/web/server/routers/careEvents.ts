@@ -11,6 +11,7 @@ import {
 import { autoTagCareEvent } from "../repositories/medicationTaggingRepository";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import type { EventType, EntryKind } from "@carelog/types";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const eventTypeEnum = z.enum([
   "journal",
@@ -70,6 +71,12 @@ export const careEventsRouter = router({
         });
       }
 
+      // Check org event count before insert to detect the first care event
+      const { count: priorCount } = await supabaseAdmin
+        .from("care_events")
+        .select("id", { count: "exact", head: true })
+        .eq("org_id", input.orgId);
+
       if (input.idempotencyKey) {
         const event = await insertEventIdempotent(ctx.supabase, {
           orgId: input.orgId,
@@ -84,6 +91,19 @@ export const careEventsRouter = router({
         });
         if (event) {
           void autoTagCareEvent(event.id, input.orgId, input.recipientId);
+          if ((priorCount ?? 1) === 0) {
+            const posthog = getPostHogClient();
+            posthog.capture({
+              distinctId: ctx.user.id,
+              event: "first_care_event_created",
+              properties: { org_id: input.orgId, event_type: input.eventType },
+            });
+            posthog.capture({
+              distinctId: ctx.user.id,
+              event: "onboarding_step_completed",
+              properties: { step: "first_care_event", org_id: input.orgId },
+            });
+          }
         }
         return event;
       }
@@ -99,6 +119,19 @@ export const careEventsRouter = router({
         flagged: input.flagged,
       });
       void autoTagCareEvent(event.id, input.orgId, input.recipientId);
+      if ((priorCount ?? 1) === 0) {
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: ctx.user.id,
+          event: "first_care_event_created",
+          properties: { org_id: input.orgId, event_type: input.eventType },
+        });
+        posthog.capture({
+          distinctId: ctx.user.id,
+          event: "onboarding_step_completed",
+          properties: { step: "first_care_event", org_id: input.orgId },
+        });
+      }
       return event;
     }),
 

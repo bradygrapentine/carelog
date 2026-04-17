@@ -6,6 +6,7 @@ import {
   getMemberships,
   createMembershipAndInvite,
 } from "../repositories/membershipsRepository";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export const membershipsRouter = router({
   list: protectedProcedure
@@ -51,6 +52,28 @@ export const membershipsRouter = router({
         role: input.role,
         email: input.email,
       });
+
+      void (async () => {
+        try {
+          const { count: teamSize } = await supabaseAdmin
+            .from("memberships")
+            .select("id", { count: "exact", head: true })
+            .eq("org_id", input.orgId)
+            .not("accepted_at", "is", null);
+          const posthog = getPostHogClient();
+          posthog.capture({
+            distinctId: ctx.user.id,
+            event: "team_member_invited",
+            properties: {
+              org_id: input.orgId,
+              role: input.role,
+              team_size: (teamSize ?? 0) + 1,
+            },
+          });
+        } catch {
+          // analytics are non-critical — swallow errors silently
+        }
+      })();
 
       const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/invite/${token}`;
       return { membershipId, inviteUrl };
