@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageCircle } from "lucide-react";
 import { AIActionCard } from "./AIActionCard";
 
 type Message = {
@@ -25,7 +26,19 @@ export function AIChatThread({
   actionPending,
   actionError,
 }: Props) {
-  if (messages.length === 0) return null;
+  if (messages.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+        <MessageCircle
+          className="w-10 h-10 text-[var(--color-muted)]"
+          aria-hidden="true"
+        />
+        <p className="text-sm text-[var(--color-muted)]">
+          Ask me anything about your care recipient&apos;s care
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 py-2">

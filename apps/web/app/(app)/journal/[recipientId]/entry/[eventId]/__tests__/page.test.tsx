@@ -86,6 +86,42 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("EntryDetailClient", () => {
+  it("shows not-found state when API returns no events array", async () => {
+    // Simulate API returning a response with no `events` key — event stays null
+    mockAuthenticatedFetch.mockImplementation((url: string) => {
+      if (url.includes("/api/journal")) {
+        return Promise.resolve({ json: () => Promise.resolve({}) }); // no events key
+      }
+      if (url.includes("/api/members")) {
+        return Promise.resolve({
+          json: () =>
+            Promise.resolve({ members: [{ user_id: USER_ID, role: "coordinator" }] }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ counts: {}, myReaction: null }),
+      }),
+    );
+    await act(async () => {
+      render(
+        <EntryDetailClient
+          recipientId={RECIPIENT_ID}
+          eventId={EVENT_ID}
+          userId={USER_ID}
+        />,
+      );
+    });
+    await act(async () => {});
+    expect(screen.getByText(/entry not found/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /back to journal/i }),
+    ).toBeInTheDocument();
+  });
+
   it("redirects to /journal/{recipientId} when event is not in list", async () => {
     mockApis({ events: [] });
     await act(async () => {

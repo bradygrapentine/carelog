@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FileX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../../../lib/authenticatedFetch";
@@ -161,7 +162,29 @@ export default function EntryDetailClient({
     );
   }
 
-  if (!event) return null;
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[var(--color-surface)] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <FileX
+          className="w-12 h-12 text-[var(--color-muted)]"
+          aria-hidden="true"
+        />
+        <h1 className="text-lg font-semibold text-[var(--color-ink)]">
+          Entry not found
+        </h1>
+        <p className="text-sm text-[var(--color-muted)] max-w-xs">
+          This journal entry could not be loaded. It may have been deleted or
+          you may not have access.
+        </p>
+        <a
+          href={"/journal/" + recipientId}
+          className="text-sm font-medium text-[var(--color-primary)] underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"
+        >
+          Back to journal
+        </a>
+      </div>
+    );
+  }
 
   const payload = event.payload ?? {};
   const moodClass =

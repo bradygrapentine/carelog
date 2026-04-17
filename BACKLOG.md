@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 7 | TD-03 · TD-12 · TD-13 · PP-009 · PP-014 · UX-12 · UX-13 |
-| 🔎 In review | 1 | A11Y-011 |
+| 🟢 Ready | 7 | TD-03 · TD-12 · TD-13 · A11Y-011 · PP-009 · PP-014 · UX-13 |
+| 🔎 In review | 1 | UX-12 |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
@@ -125,7 +125,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-011 | 🔎 In review · PR #119 | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
+| A11Y-011 | 🟢 Ready | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
 
 ---
 
@@ -168,7 +168,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Ready
-- **UX-12** — 🟢 Ready — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
+- **UX-12** — 🔎 In review · PR #TBD — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
 - **UX-13** — 🟢 Ready — AIPanel loading + error state: `useMutation` in `components/ai/AIPanel.tsx` has no loading indicator or error feedback. Add spinner + error toast. ~0.5 day.
 
 ### Deferred
