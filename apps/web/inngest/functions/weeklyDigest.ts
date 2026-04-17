@@ -18,11 +18,12 @@ type Shift = {
 }
 
 export function digestHtml(opts: {
-  orgName:     string
-  entries:     Entry[]
-  recipientId: string
-  appUrl:      string
-  shifts:      Shift[]
+  orgName:      string
+  entries:      Entry[]
+  recipientId:  string
+  appUrl:       string
+  shifts:       Shift[]
+  medDoseCount: number
 }): string {
   const { orgName, entries, recipientId, appUrl } = opts
   const journalUrl = appUrl + '/journal/' + recipientId
@@ -79,6 +80,15 @@ export function digestHtml(opts: {
       flaggedHtml +
       previewHtml +
       moreHtml +
+      (opts.medDoseCount > 0
+        ? (
+          '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f5f5f5;">' +
+            '<p style="font-size:13px;color:#555;margin:0;">' +
+              '\ud83d\udc8a ' + opts.medDoseCount + ' medication dose' + (opts.medDoseCount === 1 ? '' : 's') + ' recorded this week' +
+            '</p>' +
+          '</div>'
+        )
+        : '') +
       (opts.shifts.length > 0
         ? (
           '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #f5f5f5;">' +
@@ -161,6 +171,14 @@ export const weeklyDigest = inngest.createFunction(
           if (entriesError) throw new Error('Entries query failed: ' + entriesError.message)
           if (!entries || entries.length === 0) return
 
+          // Medication dose count for the past week
+          const { count: medDoseCount } = await supabaseAdmin
+            .from('care_events')
+            .select('id', { count: 'exact', head: true })
+            .eq('org_id', orgId)
+            .eq('event_type', 'medication')
+            .gte('occurred_at', since)
+
           // Active members
           const { data: memberships, error: membershipsError } = await supabaseAdmin
             .from('memberships')
@@ -221,7 +239,7 @@ export const weeklyDigest = inngest.createFunction(
             return
           }
 
-          const html = digestHtml({ orgName: org.name, entries: entries as Entry[], recipientId, appUrl, shifts: digestShifts })
+          const html = digestHtml({ orgName: org.name, entries: entries as Entry[], recipientId, appUrl, shifts: digestShifts, medDoseCount: medDoseCount ?? 0 })
           const subject = org.name + ' \u2014 ' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + ' this week'
 
           await resend.emails.send({

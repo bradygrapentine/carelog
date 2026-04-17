@@ -31,6 +31,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).toContain(ORG_NAME);
   });
@@ -42,6 +43,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).toContain(`/journal/${RECIPIENT_ID}`);
   });
@@ -58,6 +60,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).toContain("2");
     expect(html).toContain("flagged for doctor review");
@@ -70,6 +73,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).not.toContain("flagged for doctor review");
   });
@@ -82,6 +86,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     // Should contain truncated text (140 chars) + ellipsis, not the full 200
     expect(html).toContain("x".repeat(140) + "\u2026");
@@ -98,6 +103,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).toContain("+ 2 more entries");
   });
@@ -117,6 +123,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts,
+      medDoseCount: 0,
     });
     expect(html).toContain("Alice");
     expect(html).toContain("helping this week");
@@ -129,6 +136,7 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).not.toContain("helping this week");
   });
@@ -145,8 +153,46 @@ describe("digestHtml", () => {
       recipientId: RECIPIENT_ID,
       appUrl: APP_URL,
       shifts: [],
+      medDoseCount: 0,
     });
     expect(html).toContain("good");
     expect(html).toContain("anxious");
+  });
+
+  it("omits medication section when medDoseCount is 0", () => {
+    const html = digestHtml({
+      orgName: ORG_NAME,
+      entries: [makeEntry()],
+      recipientId: RECIPIENT_ID,
+      appUrl: APP_URL,
+      shifts: [],
+      medDoseCount: 0,
+    });
+    expect(html).not.toContain("medication dose");
+  });
+
+  it("shows singular 'medication dose' when medDoseCount is 1", () => {
+    const html = digestHtml({
+      orgName: ORG_NAME,
+      entries: [makeEntry()],
+      recipientId: RECIPIENT_ID,
+      appUrl: APP_URL,
+      shifts: [],
+      medDoseCount: 1,
+    });
+    expect(html).toContain("1 medication dose recorded this week");
+    expect(html).not.toContain("medication doses");
+  });
+
+  it("shows plural 'medication doses' when medDoseCount is 5", () => {
+    const html = digestHtml({
+      orgName: ORG_NAME,
+      entries: [makeEntry()],
+      recipientId: RECIPIENT_ID,
+      appUrl: APP_URL,
+      shifts: [],
+      medDoseCount: 5,
+    });
+    expect(html).toContain("5 medication doses recorded this week");
   });
 });
