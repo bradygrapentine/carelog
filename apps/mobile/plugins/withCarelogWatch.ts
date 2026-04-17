@@ -17,8 +17,15 @@ const APP_GROUP_SUFFIX = ".watch";
  *
  * Source files are copied from apps/mobile/watchos/CarelogWatch/ into
  * ios/CarelogWatch/ during expo prebuild.
+ *
+ * Android: this plugin is a no-op on Android (watchOS is iOS-only).
  */
 const withCarelogWatch: ConfigPlugin = (config) => {
+  // Guard: watchOS is iOS-only — skip all mods when building for Android
+  if (!config.ios) {
+    return config;
+  }
+
   // Step 1: Add App Group entitlement to main iOS target
   config = withEntitlementsPlist(config, (mod) => {
     const existing =
