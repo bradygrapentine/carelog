@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-17** (session 03:12).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-17**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 7 | TD-03 · TD-12 · TD-13 · A11Y-011 · PP-009 · PP-014 · UX-13 |
-| 🔎 In review | 1 | UX-12 |
+| 🟢 Ready | 3 | TD-03 · PP-009 · PP-014 |
+| 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
@@ -71,8 +71,8 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
 | TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
-| TD-12 | 🟢 Ready | **Fix missing Dialog + Label UI components** | `components/ui/__tests__/Dialog.test.tsx` and `Label.test.tsx` reference components that don't exist. Create minimal shadcn-wrapped versions or remove the orphaned test files. ~0.5 day. |
-| TD-13 | 🟢 Ready | **CommentThread mutation error handling** | `add`, `edit`, `remove` mutations in `components/care-events/CommentThread.tsx` have no `onError` callbacks — errors silently swallow. Add sonner toast on each. ~0.5 day. |
+| TD-12 | ✅ Shipped · PR #118 | **Fix missing Dialog + Label UI components** | Created `dialog.tsx` + `label.tsx` wrapping @base-ui/react; unskipped test files. |
+| TD-13 | ✅ Shipped · PR #116 | **CommentThread mutation error handling** | Added `onError: () => toast.error(...)` to add/edit/remove mutations; 3 new tests. |
 | TD-11 | ✅ Shipped · 2026-04-17 | **data-testid sweep for medication components** | All data-testids already existed in MedicationPanel.tsx + MedicationChecklist.tsx; e2e spec already uses them. No code changes needed. |
 | TD-06 | ✅ Shipped · PR #98 | **Add `dark:` variants to ON-44/ON-45 components** | dark: sweep across Comment + TradeRequest components; contrast patch (avatar/badge gray-900+gray-50, fixed hover) committed directly to main. |
 | TD-07 | ✅ Shipped · PR #94 | **Alert → Toast sweep** | Replaced 6 `alert()` calls with sonner toasts across JournalClient, settings, subscriptions, TeamAdmin. Invite URL now copies to clipboard before toast. |
@@ -125,7 +125,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 | ID | Priority | Story |
 |---|---|---|
-| A11Y-011 | 🟢 Ready | **Web button aria-label sweep** | SidebarNav, AppTabBar, TagFilter, MedicationChipBar all have icon buttons missing `aria-label`. ~0.5 day. |
+| A11Y-011 | ✅ Shipped · PR #119 | **Web button aria-label sweep** | All 4 targets already WCAG 2.2 AA compliant — no code changes needed. |
 
 ---
 
@@ -167,9 +167,9 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
-### Ready
-- **UX-12** — 🔎 In review · PR #120 — Empty states: `AIChatThread` returns `null` with no messages; `EntryDetailClient` returns `null` on missing event. Add proper empty state UI to both. ~0.5 day.
-- **UX-13** — 🟢 Ready — AIPanel loading + error state: `useMutation` in `components/ai/AIPanel.tsx` has no loading indicator or error feedback. Add spinner + error toast. ~0.5 day.
+### Shipped
+- **UX-12** — ✅ Shipped · PR #120 — Empty states for AIChatThread + EntryDetailClient; MessageCircle + FileX icons, token-based styling.
+- **UX-13** — ✅ Shipped · PR #117 — AIPanel: submit button disabled + Loader2 spinner while pending; onError shows sonner toast.
 
 ### Deferred
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
@@ -179,6 +179,13 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-04-17 codebase survey batch (PRs #116–#120)
+✅ **TD-13** CommentThread onError toasts — add/edit/remove mutations now surface errors via sonner (PR #116)
+✅ **UX-13** AIPanel loading + error state — Loader2 spinner + onError toast (PR #117)
+✅ **TD-12** Dialog + Label UI components — created shadcn/base-ui wrappers; unskipped tests (PR #118)
+✅ **A11Y-011** Web aria-label sweep — all 4 targets already WCAG 2.2 AA compliant (PR #119)
+✅ **UX-12** Empty states — AIChatThread + EntryDetailClient now show helpful empty/error UI (PR #120)
 
 ### Phase 1 — Cleanup (2026-04-07)
 ✅ P1-01 Display names · P1-02 Invite redirect · P1-03 Entry detail route
