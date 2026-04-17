@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 
@@ -39,7 +38,15 @@ export const refillAlert = inngest.createFunction(
     })
 
     logger.info('Low supply medications found: ' + allMedications.length)
-    if (allMedications.length === 0) return { alerts: 0 }
+    if (allMedications.length === 0) {
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'refill-alert',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'ok',
+        error_message: null,
+      })
+      return { alerts: 0 }
+    }
 
     let totalAlerts = 0
 
@@ -87,10 +94,20 @@ export const refillAlert = inngest.createFunction(
       )
     )
 
+    await supabaseAdmin.from('cron_runs').upsert({
+      function_id: 'refill-alert',
+      last_ran_at: new Date().toISOString(),
+      last_status: 'ok',
+      error_message: null,
+    })
+
     return { alerts: totalAlerts }
     } catch (err) {
-      Sentry.captureException(err, {
-        tags: { inngest_function: 'refill-alert' },
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'refill-alert',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'error',
+        error_message: err instanceof Error ? err.message : String(err),
       })
       throw err
     }

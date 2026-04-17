@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs'
 import { inngest } from '../client'
 import { supabaseAdmin } from '../../server/supabaseAdmin.server'
 import { sendPushToOrgCoordinators } from '../pushNotification'
@@ -89,7 +88,15 @@ export const burnoutAlert = inngest.createFunction(
     const atRiskUserIds = detectBurnoutRisk(recentCheckins)
     logger.info('Caregivers at burnout risk: ' + atRiskUserIds.length)
 
-    if (atRiskUserIds.length === 0) return { alerts: 0 }
+    if (atRiskUserIds.length === 0) {
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'burnout-alert',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'ok',
+        error_message: null,
+      })
+      return { alerts: 0 }
+    }
 
     // Build a map of user_id → org_id for alert creation
     const userOrgMap = new Map<string, string>()
@@ -154,10 +161,20 @@ export const burnoutAlert = inngest.createFunction(
       )
     )
 
+    await supabaseAdmin.from('cron_runs').upsert({
+      function_id: 'burnout-alert',
+      last_ran_at: new Date().toISOString(),
+      last_status: 'ok',
+      error_message: null,
+    })
+
     return { alerts: totalAlerts }
     } catch (err) {
-      Sentry.captureException(err, {
-        tags: { inngest_function: 'burnout-alert' },
+      await supabaseAdmin.from('cron_runs').upsert({
+        function_id: 'burnout-alert',
+        last_ran_at: new Date().toISOString(),
+        last_status: 'error',
+        error_message: err instanceof Error ? err.message : String(err),
       })
       throw err
     }

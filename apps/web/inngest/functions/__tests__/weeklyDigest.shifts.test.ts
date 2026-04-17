@@ -3,10 +3,11 @@ import { describe, it, expect } from 'vitest'
 import { digestHtml } from '../weeklyDigest'
 
 const BASE_OPTS = {
-  orgName:     'Test Family',
-  entries:     [{ id: '1', occurred_at: new Date().toISOString(), flagged: false, payload: { text: 'Test', mood: 'good' } }],
-  recipientId: 'rec-001',
-  appUrl:      'http://localhost:3000',
+  orgName:      'Test Family',
+  entries:      [{ id: '1', occurred_at: new Date().toISOString(), flagged: false, payload: { text: 'Test', mood: 'good' } }],
+  recipientId:  'rec-001',
+  appUrl:       'http://localhost:3000',
+  medDoseCount: 0,
 }
 
 describe('digestHtml — shifts section', () => {
