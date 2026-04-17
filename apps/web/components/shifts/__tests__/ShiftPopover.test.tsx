@@ -6,9 +6,9 @@ import type { Shift } from "../ShiftCalendar";
 
 // ─── tRPC mock ────────────────────────────────────────────────────────────────
 
-const { mockUpdateMutate, mockInsertMutate, mockInvalidate } = vi.hoisted(
+const { mockCompleteMutate, mockInsertMutate, mockInvalidate } = vi.hoisted(
   () => ({
-    mockUpdateMutate: vi.fn(),
+    mockCompleteMutate: vi.fn(),
     mockInsertMutate: vi.fn(),
     mockInvalidate: vi.fn(),
   }),
@@ -17,7 +17,7 @@ const { mockUpdateMutate, mockInsertMutate, mockInvalidate } = vi.hoisted(
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     shifts: {
-      update: { useMutation: vi.fn() },
+      complete: { useMutation: vi.fn() },
       list: { invalidate: mockInvalidate },
     },
     careEvents: {
@@ -69,8 +69,8 @@ function renderPopover(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(trpc.shifts.update.useMutation).mockReturnValue({
-    mutate: mockUpdateMutate,
+  vi.mocked(trpc.shifts.complete.useMutation).mockReturnValue({
+    mutate: mockCompleteMutate,
     isPending: false,
   } as never);
   vi.mocked(trpc.careEvents.insert.useMutation).mockReturnValue({
@@ -130,7 +130,7 @@ describe("ShiftPopover — handoff note flow", () => {
 
   it("shows handoff textarea after clicking Complete shift (onSuccess fires)", () => {
     // Capture onSuccess from useMutation config and call it synchronously
-    vi.mocked(trpc.shifts.update.useMutation).mockImplementation(
+    vi.mocked(trpc.shifts.complete.useMutation).mockImplementation(
       (config) =>
         ({
           mutate: vi.fn(() => {
@@ -153,7 +153,7 @@ describe("ShiftPopover — handoff note flow", () => {
   });
 
   it("Submit note calls careEvents.insert with correct handoff payload", () => {
-    vi.mocked(trpc.shifts.update.useMutation).mockImplementation(
+    vi.mocked(trpc.shifts.complete.useMutation).mockImplementation(
       (config) =>
         ({
           mutate: vi.fn(() => {
@@ -185,7 +185,7 @@ describe("ShiftPopover — handoff note flow", () => {
   });
 
   it("Skip closes without creating a care_event", () => {
-    vi.mocked(trpc.shifts.update.useMutation).mockImplementation(
+    vi.mocked(trpc.shifts.complete.useMutation).mockImplementation(
       (config) =>
         ({
           mutate: vi.fn(() => {

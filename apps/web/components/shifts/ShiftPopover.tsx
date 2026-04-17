@@ -34,7 +34,7 @@ export function ShiftPopover({
 
   const utils = trpc.useUtils();
 
-  const completeMutation = trpc.shifts.update.useMutation({
+  const completeMutation = trpc.shifts.complete.useMutation({
     onSuccess: () => {
       utils.shifts.list.invalidate();
       setShowHandoff(true);
@@ -70,7 +70,6 @@ export function ShiftPopover({
     completeMutation.mutate({
       id: shift.id,
       org_id: orgId,
-      status: "completed",
     });
   }
 

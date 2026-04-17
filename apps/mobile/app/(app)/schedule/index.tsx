@@ -4,9 +4,11 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
   Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { trpc } from "../../../utils/trpc";
 import { writeWatchData } from "../../../utils/watchBridge";
@@ -23,6 +25,7 @@ type Shift = {
   start_at: string;
   end_at: string;
   assignee_user_id: string;
+  status: string;
   notes: string | null;
 };
 
@@ -37,10 +40,12 @@ function formatShiftTime(iso: string) {
 }
 
 export default function ScheduleScreen() {
-  const { orgId, recipientId } = useApp();
+  const { orgId, recipientId, currentRole } = useApp();
   const { colors, spacing } = useAppTheme();
   const [tradeSheetVisible, setTradeSheetVisible] = useState(false);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
+  const [completeShiftId, setCompleteShiftId] = useState<string | null>(null);
+  const [handoffNote, setHandoffNote] = useState("");
 
   // shiftListInput requires 'from'/'to' — NOT 'since'/'until'
   const from = new Date().toISOString();
@@ -51,7 +56,12 @@ export default function ScheduleScreen() {
     { enabled: !!orgId && !!recipientId, staleTime: 5 * 60 * 1000 },
   );
 
+  const utils = trpc.useUtils();
   const createTradeMutation = trpc.shiftTradeRequests.create.useMutation();
+  const completeMutation = trpc.shifts.complete.useMutation({
+    onSuccess: () => utils.shifts.list.invalidate(),
+  });
+  const insertEventMutation = trpc.careEvents.insert.useMutation();
 
   // Feed next shift to watch complications after data loads
   useEffect(() => {
@@ -69,6 +79,11 @@ export default function ScheduleScreen() {
   }, [shifts]);
 
   const list = (shifts as unknown as Shift[]) ?? [];
+
+  const canComplete =
+    currentRole === "coordinator" ||
+    currentRole === "caregiver" ||
+    currentRole === "aide";
 
   const styles = useMemo(
     () =>
@@ -114,6 +129,18 @@ export default function ScheduleScreen() {
           fontWeight: "500",
           color: colors.primary,
         },
+        completeButton: {
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: 6,
+          backgroundColor: colors.primary,
+          marginLeft: spacing.sm,
+        },
+        completeButtonText: {
+          fontSize: scaledFont(12),
+          fontWeight: "500",
+          color: colors.white,
+        },
         modalOverlay: {
           flex: 1,
           backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -123,6 +150,64 @@ export default function ScheduleScreen() {
           backgroundColor: colors.surface,
           borderTopLeftRadius: 12,
           borderTopRightRadius: 12,
+        },
+        handoffModalContent: {
+          backgroundColor: colors.surface,
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+          padding: spacing.lg,
+          gap: spacing.md,
+        },
+        handoffTitle: {
+          fontSize: scaledFont(16),
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: spacing.sm,
+        },
+        handoffSubtitle: {
+          fontSize: scaledFont(13),
+          color: colors.textSecondary,
+          marginBottom: spacing.sm,
+        },
+        handoffInput: {
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          borderRadius: 8,
+          padding: spacing.md,
+          fontSize: scaledFont(14),
+          minHeight: 80,
+          textAlignVertical: "top",
+          color: colors.textPrimary,
+        },
+        handoffActions: {
+          flexDirection: "row",
+          gap: spacing.md,
+          marginTop: spacing.sm,
+        },
+        handoffPrimaryBtn: {
+          flex: 1,
+          backgroundColor: colors.primary,
+          paddingVertical: spacing.md,
+          borderRadius: 8,
+          alignItems: "center",
+        },
+        handoffPrimaryText: {
+          color: colors.white,
+          fontWeight: "600",
+          fontSize: scaledFont(14),
+        },
+        handoffSecondaryBtn: {
+          flex: 1,
+          borderWidth: 1,
+          borderColor: colors.borderNeutral,
+          paddingVertical: spacing.md,
+          borderRadius: 8,
+          alignItems: "center",
+        },
+        handoffSecondaryText: {
+          color: colors.textSecondary,
+          fontWeight: "500",
+          fontSize: scaledFont(14),
         },
       }),
     [colors, spacing],
@@ -141,6 +226,46 @@ export default function ScheduleScreen() {
         onSuccess: () => {
           setTradeSheetVisible(false);
           setSelectedShiftId(null);
+        },
+      },
+    );
+  };
+
+  const handleOpenComplete = (shiftId: string) => {
+    setCompleteShiftId(shiftId);
+    setHandoffNote("");
+  };
+
+  const handleCompleteShift = () => {
+    if (!completeShiftId || !orgId || !recipientId) return;
+    completeMutation.mutate(
+      { id: completeShiftId, org_id: orgId },
+      {
+        onSuccess: () => {
+          if (handoffNote.trim()) {
+            insertEventMutation.mutate({
+              orgId,
+              recipientId,
+              eventType: "handoff",
+              entryKind: "human",
+              payload: { text: handoffNote.trim() },
+            });
+          }
+          setCompleteShiftId(null);
+          setHandoffNote("");
+        },
+      },
+    );
+  };
+
+  const handleSkipHandoff = () => {
+    if (!completeShiftId || !orgId) return;
+    completeMutation.mutate(
+      { id: completeShiftId, org_id: orgId },
+      {
+        onSuccess: () => {
+          setCompleteShiftId(null);
+          setHandoffNote("");
         },
       },
     );
@@ -184,6 +309,18 @@ export default function ScheduleScreen() {
                   >
                     <Text style={styles.tradeButtonText}>+ Trade</Text>
                   </TouchableOpacity>
+                  {canComplete &&
+                    item.status !== "completed" &&
+                    item.status !== "cancelled" && (
+                      <TouchableOpacity
+                        style={styles.completeButton}
+                        onPress={() => handleOpenComplete(item.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Complete shift on ${formatShiftTime(item.start_at)}`}
+                      >
+                        <Text style={styles.completeButtonText}>Complete</Text>
+                      </TouchableOpacity>
+                    )}
                 </View>
               );
             }}
@@ -213,6 +350,67 @@ export default function ScheduleScreen() {
             />
           </View>
         </View>
+      </Modal>
+
+      {/* Handoff note modal — shown after tapping Complete on a shift */}
+      <Modal
+        visible={!!completeShiftId}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCompleteShiftId(null)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={styles.handoffModalContent}>
+            <Text style={styles.handoffTitle}>Complete shift</Text>
+            <Text style={styles.handoffSubtitle}>
+              Add an optional handoff note for the next caregiver.
+            </Text>
+            <TextInput
+              style={styles.handoffInput}
+              placeholder="Add a handoff note for the next caregiver…"
+              value={handoffNote}
+              onChangeText={setHandoffNote}
+              multiline
+              maxLength={1000}
+              accessibilityLabel="Handoff note"
+            />
+            <View style={styles.handoffActions}>
+              <TouchableOpacity
+                style={styles.handoffSecondaryBtn}
+                onPress={() => setCompleteShiftId(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
+              >
+                <Text style={styles.handoffSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.handoffSecondaryBtn}
+                onPress={handleSkipHandoff}
+                disabled={completeMutation.isPending}
+                accessibilityRole="button"
+                accessibilityLabel="Skip handoff note and complete shift"
+              >
+                <Text style={styles.handoffSecondaryText}>
+                  {completeMutation.isPending ? "Saving…" : "Skip"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.handoffPrimaryBtn}
+                onPress={handleCompleteShift}
+                disabled={completeMutation.isPending}
+                accessibilityRole="button"
+                accessibilityLabel="Save handoff note and complete shift"
+              >
+                <Text style={styles.handoffPrimaryText}>
+                  {completeMutation.isPending ? "Saving…" : "Complete shift"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
