@@ -1,29 +1,39 @@
 # Carelog — Third-Party Setup Runbook
 
-All external accounts and services needed to run Carelog in production. Follow in order — each service may depend on the one before it.
+All external accounts and services needed to run Carelog in production.
+Only actions that **require a human** (browser login, dashboard click-through, console signup) belong here — automated steps live in `DEPLOY.md`.
 
-For the full step-by-step deployment guide (migrations, env vars, Vercel wiring), see `DEPLOY.md`.
+For the full deployment sequence (migrations, env vars, Vercel wiring) see `DEPLOY.md`.
+For GitHub Actions billing, secrets, repo settings, and CI health see `CI_HEALTH.md`.
 
 ---
 
-## Account Checklist
+## Table of Contents
 
-| Service  | Purpose                 | Free tier OK?                 | Required for launch |
-| -------- | ----------------------- | ----------------------------- | ------------------- |
-| Supabase | Database, auth, storage | No — Pro required (HIPAA BAA) | Yes                 |
-| Vercel   | Hosting, edge functions | Yes                           | Yes                 |
-| Inngest  | Background jobs, cron   | Yes                           | Yes                 |
-| Resend   | Transactional email     | Yes (3,000/mo)                | Yes                 |
-| Upstash  | Redis rate limiting     | Yes (10,000 req/day)          | Yes                 |
-| Stripe   | Billing — $14/mo plan   | No — live mode for launch     | Pre-launch          |
-| Sentry   | Error tracking          | Yes                           | Yes                 |
-| PostHog  | Product analytics       | Yes (1M events/mo)            | Yes                 |
+- [§1 Supabase](#1-supabase) — database, auth, HIPAA BAA
+- [§2 Vercel](#2-vercel) — hosting, env vars, custom domain, SENTRY_AUTH_TOKEN
+- [§3 Inngest](#3-inngest) — background jobs + cron
+- [§4 Resend](#4-resend) — transactional email + domain verification
+- [§5 Upstash Redis](#5-upstash-redis) — rate limiting
+- [§6 Stripe](#6-stripe) — billing (live mode required)
+- [§7 Sentry](#7-sentry) — error tracking + source maps
+- [§8 PostHog](#8-posthog) — product analytics (PHI-safe)
+- [§9 VAPID keys](#9-vapid-keys-web-push) — web push notifications
+- [§10 Mobile: Firebase/FCM](#10-mobile-firebasefcm) — Android push
+- [§11 Mobile: APNs](#11-mobile-apns-ios-push) — iOS push
+- [§12 Mobile: deep-link verification files](#12-mobile-deep-link-verification-files) — AASA + assetlinks.json
+- [§13 GitHub: billing, secrets, repo settings](#13-github-billing-secrets-repo-settings) — CI prerequisites (also see `CI_HEALTH.md`)
+- [§14 Local dev: Playwright browser cache](#14-local-dev-playwright-browser-cache) — pre-commit hook prerequisite
+- [§15 Final launch checklist](#15-final-launch-checklist)
+- [§16 Account checklist at a glance](#16-account-checklist)
+- [§17 Final launch dependencies (BACKLOG gates)](#17-final-launch-dependencies-backlog-gates)
 
 ---
 
 ## 1. Supabase
 
-**Why:** Postgres database + auth + realtime. HIPAA BAA requires Pro plan.
+**What:** Postgres database + row-level security + auth + realtime.
+**Why critical:** HIPAA BAA requires Pro plan. All PHI lives here. Without cloud keys, CI job `A2` cannot run.
 
 ### Create account and project
 
@@ -35,12 +45,12 @@ For the full step-by-step deployment guide (migrations, env vars, Vercel wiring)
 ### Apply migrations
 
 ```bash
-supabase login
+supabase login          # interactive — must run in terminal, Claude cannot run this
 supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-Verify: Table Editor in dashboard should show all 16 tables.
+**How to verify:** Table Editor in dashboard should show all 16 tables.
 
 ### Configure auth
 
@@ -49,6 +59,8 @@ Verify: Table Editor in dashboard should show all 16 tables.
 3. Redirect URL: `https://care-log.org/auth/callback`
 4. Authentication → Email → OTP expiry: `600` seconds
 5. Confirm email: **enabled**
+
+**How to verify:** Send a test OTP — it arrives and expires in 10 minutes.
 
 ### Env vars
 
@@ -64,11 +76,14 @@ SUPABASE_SERVICE_ROLE_KEY   ← never prefix with NEXT_PUBLIC_
 
 Sign the BAA in Supabase dashboard before any real user data enters the system. Requires Pro plan.
 
+**How to verify:** Dashboard → Settings → Billing → BAA status shows "Signed".
+
 ---
 
 ## 2. Vercel
 
-**Why:** Hosts the Next.js app. Supabase integration auto-wires env vars.
+**What:** Hosts the Next.js app + edge functions.
+**Why critical:** Without it, no production app.
 
 ### Create account and project
 
@@ -85,7 +100,46 @@ Sign the BAA in Supabase dashboard before any real user data enters the system. 
 
 ### Add remaining env vars
 
-See `DEPLOY.md` Step 2c for the full list. Add after creating each downstream service (Inngest, Resend, etc.).
+Add each env var below after creating the corresponding downstream service.
+Path: Vercel → Project → Settings → Environment Variables
+
+```
+NEXT_PUBLIC_SUPABASE_URL           ← from Supabase (or auto-set by integration)
+NEXT_PUBLIC_SUPABASE_ANON_KEY      ← from Supabase
+SUPABASE_SERVICE_ROLE_KEY          ← from Supabase
+NEXT_PUBLIC_APP_URL=https://care-log.org
+NEXT_PUBLIC_POSTHOG_KEY            ← from PostHog
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ← from Stripe (live mode)
+INNGEST_EVENT_KEY                  ← from Inngest
+INNGEST_SIGNING_KEY                ← from Inngest
+RESEND_API_KEY                     ← from Resend
+RESEND_FROM_EMAIL=digest@care-log.org
+UPSTASH_REDIS_REST_URL             ← from Upstash
+UPSTASH_REDIS_REST_TOKEN           ← from Upstash
+STRIPE_SECRET_KEY                  ← from Stripe (live mode)
+STRIPE_WEBHOOK_SECRET              ← from Stripe webhook dashboard
+STRIPE_PRICE_MONTHLY               ← Stripe Price ID for $14/mo
+STRIPE_PRICE_ANNUAL                ← Stripe Price ID for $120/yr
+SENTRY_DSN                         ← from Sentry
+SENTRY_AUTH_TOKEN                  ← from Sentry auth tokens (build-time only — Production env only)
+ANTHROPIC_API_KEY                  ← for AI brief generation (runtime)
+NEXT_PUBLIC_VAPID_PUBLIC_KEY       ← generated locally (§9 below)
+VAPID_PRIVATE_KEY                  ← generated locally (§9 below)
+VAPID_EMAIL=admin@caresync.app
+```
+
+**How to verify:** `vercel env pull` locally and confirm all vars appear in `.env.local`.
+
+### SENTRY_AUTH_TOKEN in Vercel (unblocks TD-03)
+
+**What:** Sentry build-time token for uploading source maps so stack traces are human-readable.
+**Why critical:** Without it, Sentry shows minified/obfuscated stack traces — real production errors are nearly impossible to debug.
+**Where:**
+- Sentry: Settings → Auth Tokens → Create Token → scopes: `project:releases`, `org:read`
+- Vercel: Project → Settings → Environment Variables → add `SENTRY_AUTH_TOKEN` → set Environment to "Production" only
+
+**How to verify:** After the next Vercel build, open Sentry → Releases — the release should list source maps as attached. Stack traces in new errors will show original file/line numbers.
 
 ### Custom domain
 
@@ -94,11 +148,14 @@ See `DEPLOY.md` Step 2c for the full list. Add after creating each downstream se
 3. Update DNS at registrar with Vercel's CNAME/A records
 4. Return to Supabase → Authentication → URL Configuration → update Site URL to `https://care-log.org`
 
+**How to verify:** `curl -I https://care-log.org` returns 200 with Vercel headers.
+
 ---
 
 ## 3. Inngest
 
-**Why:** Background job orchestration — weekly digest, gap detector, refill alerts, OCR pipeline.
+**What:** Background job orchestration — weekly digest, gap detector, refill alerts, OCR pipeline.
+**Why critical:** Without Inngest, all scheduled jobs silently never fire. Families miss digest emails and medication refill warnings.
 
 ### Create account and app
 
@@ -122,13 +179,14 @@ INNGEST_SIGNING_KEY
 1. Apps → Sync New App → URL: `https://care-log.org/api/inngest` → Sync
 2. Verify these functions appear: `weekly-digest`, `gap-detector`, `refill-alert`, `ocr-prescription`
 
+**How to verify:** Inngest dashboard → Functions — all four functions listed with status "Active".
+
 ---
 
 ## 4. Resend
 
-**Why:** Transactional email — OTP delivery handled by Supabase, but invite emails and weekly digest go through Resend.
-
-**Critical:** `onboarding@resend.dev` cannot be used for third-party apps. A verified domain is required before invites and digests will send.
+**What:** Transactional email — invite emails and weekly digest.
+**Why critical:** `onboarding@resend.dev` cannot be used for third-party apps. A verified domain is required before invites and digests will send. Unblocks BACKLOG item C3.
 
 ### Create account and API key
 
@@ -152,11 +210,14 @@ RESEND_FROM_EMAIL=digest@care-log.org
 
 Sign in at the production URL. Invite email should arrive within 10 seconds.
 
+**How to verify:** Resend dashboard → Emails shows delivered (not bounced or spam-filtered).
+
 ---
 
 ## 5. Upstash Redis
 
-**Why:** Rate limiting for OTP requests. No-ops silently in local dev when env vars are absent.
+**What:** Rate limiting for OTP requests.
+**Why critical:** Without it, the OTP endpoint is open to abuse. The app no-ops silently in local dev when env vars are absent — this is intentional, but production must have real rate limiting.
 
 ### Create account and database
 
@@ -174,20 +235,16 @@ UPSTASH_REDIS_REST_URL    ← starts with https://
 UPSTASH_REDIS_REST_TOKEN  ← long base64 string
 ```
 
-### Smoke test
-
-Make 6 rapid OTP requests. The 6th should return 429.
+**How to verify:** Make 6 rapid OTP requests. The 6th should return HTTP 429.
 
 ---
 
 ## 6. Stripe
 
-> **FUTURE WORK — DO NOT CONFIGURE YET**
-> The webhook route `/api/stripe/webhook` does not exist. The billing UI is not built. The schema columns (`stripe_id`, `plan`) are in place but no code handles Stripe events. Configuring a webhook endpoint now will result in silent 404s on every subscription event. Return to this section only after the billing feature is implemented and the webhook route is wired.
+> **Wire before launch** — webhook route + billing UI are fully implemented.
+> `apps/web/app/api/stripe/webhook/route.ts`, checkout/portal/verify routes, and `apps/web/app/(app)/subscriptions/page.tsx` are all shipped. What remains is account-side configuration in live mode.
 
-**Why:** Billing — $14/mo or $120/yr family plan. Must be in live mode before launch.
-
-**Status:** Billing UI not yet built. Keys are in place; the `organizations.stripe_id` and `organizations.plan` columns exist in the schema. Wire billing before any paying customers.
+**What:** Billing — $14/mo or $120/yr family plan. Must be in live mode before any paying customers.
 
 ### Create account
 
@@ -197,16 +254,15 @@ Make 6 rapid OTP requests. The 6th should return 429.
 
 1. Products → Add Product → **Carelog Family Plan**
 2. Add two prices:
-   - Monthly: $14.00/month → copy Price ID
-   - Annual: $120.00/year → copy Price ID
-3. Store both Price IDs for when billing UI is wired
+   - Monthly: $14.00/month → copy Price ID → `STRIPE_PRICE_MONTHLY`
+   - Annual: $120.00/year → copy Price ID → `STRIPE_PRICE_ANNUAL`
 
 ### Set up webhook
 
 1. Developers → Webhooks → Add Endpoint
 2. URL: `https://care-log.org/api/stripe/webhook`
 3. Events: `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
-4. Copy Signing Secret
+4. Copy Signing Secret → `STRIPE_WEBHOOK_SECRET`
 
 ### Env vars
 
@@ -214,94 +270,57 @@ Make 6 rapid OTP requests. The 6th should return 429.
 STRIPE_SECRET_KEY                    ← live secret key
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY   ← live publishable key
+STRIPE_PRICE_MONTHLY
+STRIPE_PRICE_ANNUAL
 ```
+
+**How to verify:** Stripe CLI → `stripe listen --forward-to localhost:3000/api/stripe/webhook` — trigger a test event and confirm 200 response logged in terminal.
 
 ---
 
 ## 7. Sentry
 
-> **FUTURE WORK — DO NOT CONFIGURE YET**
-> `@sentry/nextjs` is not installed in the codebase. There is no `sentry.client.config.ts`, `sentry.server.config.ts`, or Sentry instrumentation in `next.config.ts`. Creating a Sentry project now will produce a DSN that is never used. Return to this section only after `@sentry/nextjs` is added and the SDK is wired into the app.
+> **SDK is wired.** `sentry.{client,server,edge}.config.ts` and `@sentry/nextjs` are installed and configured with `sendDefaultPii: false`. What remains is account-side configuration (live DSN in Vercel + `SENTRY_AUTH_TOKEN` for source maps — see §2 above).
 
-**Why:** Error tracking. Must never capture PHI — Sentry only sees UUIDs, never real names.
+**What:** Error tracking. Must never capture PHI — Sentry only sees UUIDs, never real names.
 
 ### Create account and project
 
 1. [sentry.io](https://sentry.io) → sign up → New Project → Next.js
 2. Name: `carelog-web`
-3. Copy DSN
+3. Copy DSN → `SENTRY_DSN`
 
-### Source maps (build-time upload)
+### Source maps auth token
 
 1. Settings → Auth Tokens → Create Token
 2. Scopes: `project:releases`, `org:read`
-
-### Install SDK
-
-```bash
-pnpm add @sentry/nextjs
-npx @sentry/wizard@latest -i nextjs
-```
-
-This creates `sentry.client.config.ts`, `sentry.server.config.ts`, and updates `next.config.ts`.
-
-### Env vars
-
-```
-SENTRY_DSN
-SENTRY_AUTH_TOKEN    ← build-time only, not runtime
-```
+3. Copy → `SENTRY_AUTH_TOKEN` → add to Vercel (Production env only — see §2)
 
 ### Privacy rule
 
-Never add `user.name` or `user.email` to Sentry context. The identity vault tokenization ensures only UUIDs reach Sentry automatically.
+Never add `user.name` or `user.email` to Sentry context. The identity vault tokenization ensures only UUIDs reach Sentry automatically. `sendDefaultPii: false` is already set in config.
+
+**How to verify:** Trigger a test error in production; Sentry receives it with a human-readable stack trace (source maps working) and no PII in the user field.
 
 ---
 
 ## 8. PostHog
 
-> **FUTURE WORK — DO NOT CONFIGURE YET**
-> `posthog-js` is not installed. There is no `PHProvider` component and no PostHog initialization in the app. Setting `NEXT_PUBLIC_POSTHOG_KEY` now will have no effect. Return to this section only after `posthog-js` is added and the provider is wired into the app layout.
+> **SDK is wired.** `posthog-js` is installed, `PHProvider` and `instrumentation-client.ts` are live. What remains is account-side key + privacy settings.
 
-**Why:** Product analytics. Must never receive real names — identify users by Supabase UUID only.
+**What:** Product analytics. Must never receive real names — identify users by Supabase UUID only.
 
 ### Create account and project
 
 1. [posthog.com](https://posthog.com) → sign up → New Project
 2. Name: `carelog`
-3. Copy Project API Key
+3. Copy Project API Key → `NEXT_PUBLIC_POSTHOG_KEY`
 
-### Install SDK
+### Privacy settings
 
-```bash
-pnpm add posthog-js
-```
-
-Add a provider to `apps/web/components/providers/PHProvider.tsx`:
-
-```tsx
-"use client";
-import posthog from "posthog-js";
-import { PostHogProvider } from "posthog-js/react";
-import { useEffect } from "react";
-
-export function PHProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: "identified_only",
-      capture_pageview: false,
-    });
-  }, []);
-  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
-}
-```
-
-Identify users by UUID only:
-
-```ts
-posthog.identify(user.id); // UUID only — no name, no email
-```
+In PostHog project settings:
+- Disable "Record user data" (IPs, user agent storage)
+- Ensure person profiles are set to "identified_only" (matches app config)
 
 ### Env vars
 
@@ -310,41 +329,48 @@ NEXT_PUBLIC_POSTHOG_KEY
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
----
+**PHI rule:** Only `posthog.identify(user.id)` (UUID) — never email, name, or phone. This is enforced in code; the PostHog privacy setting is a defense-in-depth.
 
-## Final Launch Checklist
-
-- [ ] Supabase HIPAA BAA signed
-- [ ] All 16 tables migrated to Supabase cloud
-- [ ] Vercel deploy green, all env vars set
-- [ ] Custom domain resolving + SSL active
-- [ ] Resend domain verified, test email delivered
-- [ ] Inngest synced, all functions visible, weekly digest test run passes
-- [ ] Upstash rate limiter active (6th OTP → 429)
-- [ ] Auth flow: OTP → dashboard working end-to-end
-- [ ] Invite flow: invite sent → accepted → member appears in team
+**How to verify:** PostHog → Live Events — sign in to the app, confirm events appear with UUID (not email) as the person identifier.
 
 ---
 
-## Already shipped in code
+## 9. VAPID keys (web push)
 
-As of 2026-04-14 these three services are fully wired (verify by grepping the codebase before re-doing setup work):
+**What:** VAPID key pair for browser Push API (web push notifications). PP-005 is shipped; this is the account-side setup.
+**Why critical:** Without these, push subscription calls fail at runtime. Keys must be generated once per environment and never rotated without re-subscribing all users.
 
-- ✅ Stripe webhook route at `apps/web/app/api/stripe/webhook/route.ts`, checkout / portal / verify routes shipped, `apps/web/lib/stripe.ts` client, `apps/web/app/(app)/subscriptions/page.tsx` UI
-- ✅ Sentry: `sendDefaultPii: false` across `sentry.{client,server,edge}.config.ts`, env-var DSN
-- ✅ PostHog: `apps/web/lib/posthog-server.ts`, client tracking via `instrumentation-client.ts`, UUID-only identify
+### Generate (one-time, local)
 
-What remains is **account-side** configuration (live-mode keys in Vercel, webhook endpoint registered with Stripe dashboard, PostHog privacy toggles). Covered in the per-service sections above.
+```bash
+npx web-push generate-vapid-keys
+```
+
+Output:
+
+```
+Public Key:  BK...
+Private Key: 4...
+```
+
+### Set in Vercel
+
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY   ← Public Key from above
+VAPID_PRIVATE_KEY              ← Private Key from above
+VAPID_EMAIL=admin@caresync.app ← update to a real monitored address
+```
+
+**How to verify:** Open the production app → browser console → no VAPID errors when the push subscription is established. Network tab shows a successful subscription POST.
 
 ---
 
-## Mobile-specific setup
+## 10. Mobile: Firebase/FCM
 
-The mobile app (`apps/mobile/`) needs three additional pieces of third-party configuration. These are **optional for web-only launch** but required before shipping iOS/Android builds.
+**What:** Android push notification delivery via Firebase Cloud Messaging.
+**Why critical:** Android devices cannot receive push without FCM credentials. Unblocks PP-007 live verification.
 
-### Firebase / FCM (Android push only)
-
-iOS uses APNs; Android needs FCM.
+### Steps
 
 1. [console.firebase.google.com](https://console.firebase.google.com) → **Add project** → name `carelog`, disable Analytics
 2. Add an **Android** app: package name `com.carelog.app` (must match `apps/mobile/app.json` → `android.package`)
@@ -353,11 +379,33 @@ iOS uses APNs; Android needs FCM.
 5. `eas secret:create --scope project --name FCM_SERVER_KEY --value "<server-key>"`
 6. Verify `eas.json` sets `"googleServicesFile": "./google-services.json"` under `build.production.android`
 
-### Deep-link verification files (required for PP-008)
+**How to verify:** After EAS build, send a test notification from Firebase console → device receives it.
 
-Must be served from the marketing domain (`https://care-log.org` or your chosen domain) at `/.well-known/`.
+---
 
-**iOS AASA** → `apps/web/public/.well-known/apple-app-site-association` (no `.json` extension):
+## 11. Mobile: APNs (iOS push)
+
+**What:** Apple Push Notification service key for iOS push delivery.
+**Why critical:** iOS push silently fails without a valid `.p8` key registered with EAS.
+
+### Steps
+
+1. [developer.apple.com](https://developer.apple.com) → **Certificates, Identifiers & Profiles** → App ID `com.carelog.app` → enable **Push Notifications**
+2. EAS dashboard → project → **Credentials** → **iOS** → **Add** → **Apple Push Notification Key (.p8)**
+3. Alternative interactive flow: `eas credentials` in terminal (Claude cannot run this — must be run by human)
+
+**How to verify:** Send a test push from the Expo dashboard or EAS; iOS device receives it.
+
+---
+
+## 12. Mobile: deep-link verification files
+
+**What:** Apple App Site Association (AASA) and Android Asset Links files served from the production domain.
+**Why critical:** Android App Links (PP-008) silently fall back to browser if `assetlinks.json` is wrong or missing. iOS universal links also require AASA. Unblocks PP-008.
+
+### iOS AASA → `apps/web/public/.well-known/apple-app-site-association`
+
+No `.json` extension. Get **Team ID** from [developer.apple.com](https://developer.apple.com) → Account → Membership.
 
 ```json
 {
@@ -368,9 +416,9 @@ Must be served from the marketing domain (`https://care-log.org` or your chosen 
 }
 ```
 
-Get **Team ID** from [developer.apple.com](https://developer.apple.com) → Account → Membership.
+### Android asset links → `apps/web/public/.well-known/assetlinks.json`
 
-**Android asset links** → `apps/web/public/.well-known/assetlinks.json`:
+Get SHA-256 fingerprint after first EAS Android build: `eas credentials --platform android`.
 
 ```json
 [{
@@ -383,24 +431,143 @@ Get **Team ID** from [developer.apple.com](https://developer.apple.com) → Acco
 }]
 ```
 
-Get fingerprint after first EAS Android build: `eas credentials --platform android`.
-
-Verify post-deploy:
+**How to verify:**
 
 ```bash
 curl https://care-log.org/.well-known/apple-app-site-association
 curl https://care-log.org/.well-known/assetlinks.json
 ```
 
-### APNs (iOS push)
-
-1. [developer.apple.com](https://developer.apple.com) → **Certificates, Identifiers & Profiles** → App ID `com.carelog.app` with **Push Notifications** enabled
-2. EAS dashboard → project → **Credentials** → **iOS** → **Add** → **Apple Push Notification Key (.p8)**
-3. Alternative: `eas credentials` in terminal
+Both should return JSON, not an HTML error page. Google also provides a [Statement List Tester](https://developers.google.com/digital-asset-links/tools/generator).
 
 ---
 
-## Final launch dependencies
+## 13. GitHub: billing, secrets, repo settings
+
+> For full troubleshooting (symptom strings, step-by-step fixes), see `CI_HEALTH.md`. This section is the quick-reference version.
+
+### 13a. GitHub Actions billing
+
+**What:** GitHub bills for Actions minutes on private repos. A failed payment or hit spending limit hard-blocks every CI job.
+
+**Symptom you'll see in Actions:**
+```
+This job was not started because recent account payments have failed
+or your spending limit needs to be increased.
+```
+
+**Where to check:**
+- Payment method: https://github.com/settings/billing/payment_information
+- Spending limit: https://github.com/settings/billing/spending_limit
+
+**How to fix:** Update payment method or increase spending limit. All queued jobs resume automatically once billing is healthy.
+
+**How to verify:** Push a trivial commit; all CI jobs start within 30 seconds.
+
+### 13b. ANTHROPIC_API_KEY GitHub secret
+
+**What:** API key for the AI security review CI job (`.github/workflows/ci.yml` — the `ai-review` job). Every PR triggers this job via `scripts/ci-ai-review.mjs`.
+
+**Why critical:** If missing or revoked, the `ai-review` CI job fails on every PR, preventing the auto-security-review that catches PHI leakage and RLS bypasses.
+
+**Where to set:** GitHub → repository → Settings → Secrets and variables → Actions → New repository secret
+- Name: `ANTHROPIC_API_KEY`
+- Value: starts with `sk-ant-api03-...`
+
+**How to verify:** Open a PR → CI → `AI security review` job completes and posts a review comment on the PR.
+
+### 13c. Allow auto-merge
+
+**What:** Repository setting that lets `gh pr merge --auto --squash` queue a merge to fire when CI goes green.
+
+**Why critical:** When off (current state), agent-opened PRs cannot be auto-merged. Every PR requires manual merge after CI passes, creating a manual bottleneck for overnight/unattended work.
+
+**Where to enable:** GitHub → repository → Settings → General → Pull Requests → check "Allow auto-merge"
+
+**How to verify:** Run `gh pr merge --auto --squash <PR-number>` — should succeed with no error.
+
+### 13d. Branch protection on `main`
+
+**Current state:** `main` allows `gh pr merge --admin` without required reviews or status checks. This is permissive — convenient for fast iteration but risky for production.
+
+**Recommended posture (pre-launch):** Keep as-is for velocity. Add required status checks (typecheck + web-tests) once CI is reliably green (after TD-14 is shipped).
+
+**Recommended posture (post-launch):**
+- Required status checks: `typecheck`, `web-tests`, `rls-tests`
+- Require at least 1 approval for PRs from external contributors
+- Do NOT require approval for Brady's own PRs (keeps solo-dev velocity)
+- Allow admin override for emergencies: `gh pr merge --admin <number>`
+
+**Where to configure:** GitHub → repository → Settings → Branches → Branch protection rules → Edit rule for `main`
+
+---
+
+## 14. Local dev: Playwright browser cache
+
+**What:** Chromium binary used by Vitest browser tests (the pre-commit hook runs these).
+**Why critical:** New dev machines / fresh clones hit a hard error if Chromium is missing:
+```
+Error: browserType.launch: Executable doesn't exist at
+/Users/<you>/Library/Caches/ms-playwright/chromium-*/chrome-mac/Chromium.app/...
+```
+
+The pre-commit hook runs `cd apps/web && npx vitest run` — if Chromium is missing, **every commit fails** even when code is correct.
+
+### Install (one-time per machine)
+
+```bash
+cd apps/web && npx playwright install chromium
+```
+
+CI installs Chromium automatically via `.github/workflows/ci.yml` step `Install Chromium for browser tests`. Local machines do not.
+
+**How to verify:**
+
+```bash
+cd apps/web && npx playwright install chromium --dry-run
+```
+
+Should print the installed path, not "Executable doesn't exist".
+
+---
+
+## 15. Final launch checklist
+
+- [ ] Supabase HIPAA BAA signed
+- [ ] All 16 tables migrated to Supabase cloud
+- [ ] Vercel deploy green, all env vars set (see §2 full list)
+- [ ] Custom domain resolving + SSL active
+- [ ] Resend domain verified, test email delivered
+- [ ] Inngest synced, all functions visible, weekly digest test run passes
+- [ ] Upstash rate limiter active (6th OTP → 429)
+- [ ] Stripe live-mode keys set, webhook endpoint registered
+- [ ] Sentry DSN live, source maps uploading (`SENTRY_AUTH_TOKEN` in Vercel)
+- [ ] PostHog key live, privacy settings confirmed (UUID-only identity)
+- [ ] VAPID keys generated and set in Vercel
+- [ ] Auth flow: OTP → dashboard working end-to-end
+- [ ] Invite flow: invite sent → accepted → member appears in team
+- [ ] GitHub Actions billing healthy (see §13a)
+- [ ] `ANTHROPIC_API_KEY` GitHub secret set (see §13b)
+- [ ] Allow auto-merge enabled if overnight agents will be used (see §13c)
+
+---
+
+## 16. Account checklist
+
+| Service  | Purpose                 | Free tier OK?                 | Required for launch |
+| -------- | ----------------------- | ----------------------------- | ------------------- |
+| Supabase | Database, auth, storage | No — Pro required (HIPAA BAA) | Yes                 |
+| Vercel   | Hosting, edge functions | Yes                           | Yes                 |
+| Inngest  | Background jobs, cron   | Yes                           | Yes                 |
+| Resend   | Transactional email     | Yes (3,000/mo)                | Yes                 |
+| Upstash  | Redis rate limiting     | Yes (10,000 req/day)          | Yes                 |
+| Stripe   | Billing — $14/mo plan   | No — live mode for launch     | Pre-launch          |
+| Sentry   | Error tracking          | Yes                           | Yes                 |
+| PostHog  | Product analytics       | Yes (1M events/mo)            | Yes                 |
+
+---
+
+## 17. Final launch dependencies (BACKLOG gates)
 
 Items that **block** Claude-executable stories in `BACKLOG.md`:
 
@@ -409,5 +576,8 @@ Items that **block** Claude-executable stories in `BACKLOG.md`:
 | Supabase cloud keys | `A2` — `supabase link` + `db push` + bucket create + `supabase test db` against cloud |
 | Resend verified domain | `C3` — update weekly digest FROM address to `notifications@<verified-domain>` |
 | `assetlinks.json` served + EAS build SHA-256 | `PP-008` — Android app-links verification |
-| `google-services.json` in EAS | `PP-007` — Android push notification verification (after `PP-006` prebuild) |
+| `google-services.json` in EAS | `PP-007` — Android push notification verification |
 | APNs `.p8` key in EAS | iOS production push builds |
+| `SENTRY_AUTH_TOKEN` in Vercel | `TD-03` — source maps upload on each production build |
+| `ANTHROPIC_API_KEY` GitHub secret | AI security review CI job on every PR |
+| GitHub Actions billing healthy | Every CI job (see `CI_HEALTH.md`) |
