@@ -113,7 +113,7 @@ describe("MessageComposer", () => {
   it("clears input after successful send via onSuccess callback", () => {
     let capturedOnSuccess: (() => void) | undefined;
     vi.mocked(trpc.messages.sendMessage.useMutation).mockImplementation(
-      (opts?: { onSuccess?: () => void }) => {
+      ((opts?: { onSuccess?: () => void }) => {
         capturedOnSuccess = opts?.onSuccess;
         return {
           mutate: mockMutate,
@@ -121,7 +121,7 @@ describe("MessageComposer", () => {
         } as unknown as ReturnType<
           typeof trpc.messages.sendMessage.useMutation
         >;
-      },
+      }) as unknown as typeof trpc.messages.sendMessage.useMutation,
     );
 
     render(<MessageComposer threadId="thread-uuid-1" />);

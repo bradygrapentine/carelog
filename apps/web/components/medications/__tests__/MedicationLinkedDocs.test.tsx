@@ -23,7 +23,7 @@ beforeEach(() => {
 
 describe("MedicationLinkedDocs", () => {
   it("shows 'No documents linked' when empty", () => {
-    render(<MedicationLinkedDocs medicationId="med-1" />);
+    render(<MedicationLinkedDocs medicationId="med-1" orgId="org-1" />);
     expect(screen.getByText("No documents linked")).toBeInTheDocument();
   });
 
@@ -42,7 +42,7 @@ describe("MedicationLinkedDocs", () => {
       },
       isLoading: false,
     });
-    render(<MedicationLinkedDocs medicationId="med-1" />);
+    render(<MedicationLinkedDocs medicationId="med-1" orgId="org-1" />);
     expect(screen.getByText("Insurance Card")).toBeInTheDocument();
   });
 });

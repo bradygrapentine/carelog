@@ -39,9 +39,9 @@ const WINDOW_ID = "48dc6d19-6712-4b26-8797-b4e544e01b87";
 
 const authedCaller = appRouter.createCaller({
   user: { id: USER_ID, email: "user@example.com" } as Context["user"],
-  supabase: { from: vi.fn() } as Context["supabase"],
+  supabase: { from: vi.fn() } as unknown as Context["supabase"],
   req: undefined,
-});
+} as Context);
 
 function makeCoordinatorChain() {
   const chain: ReturnType<typeof makeChainBase> & {
@@ -84,7 +84,7 @@ describe("coverageWindows.list — logic", () => {
       user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
-    });
+    } as Context);
     const chain = {
       select: () => chain,
       eq: () => chain,
@@ -129,7 +129,7 @@ describe("coverageWindows.list — logic", () => {
       user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
-    });
+    } as Context);
     const chain = {
       select: () => chain,
       eq: () => chain,
@@ -162,7 +162,7 @@ describe("coverageWindows.list — logic", () => {
       user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
-    });
+    } as Context);
     const chain = {
       select: () => chain,
       eq: () => chain,
