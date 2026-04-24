@@ -30,7 +30,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.carelog.app",
       "associatedDomains": [
-        "applinks:yourcarelog.com"
+        "applinks:care-log.org"
       ]
     },
     "android": {
@@ -46,7 +46,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "yourcarelog.com",
+              "host": "care-log.org",
               "pathPrefix": "/invite"
             }
           ],
