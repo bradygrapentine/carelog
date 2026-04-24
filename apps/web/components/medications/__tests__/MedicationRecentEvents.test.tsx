@@ -23,7 +23,7 @@ beforeEach(() => {
 
 describe("MedicationRecentEvents", () => {
   it("shows 'No recent entries' when empty", () => {
-    render(<MedicationRecentEvents medicationId="med-1" />);
+    render(<MedicationRecentEvents medicationId="med-1" orgId="org-1" />);
     expect(screen.getByText("No recent entries")).toBeInTheDocument();
   });
 
@@ -41,7 +41,7 @@ describe("MedicationRecentEvents", () => {
       },
       isLoading: false,
     });
-    render(<MedicationRecentEvents medicationId="med-1" />);
+    render(<MedicationRecentEvents medicationId="med-1" orgId="org-1" />);
     expect(
       screen.getByText("Gave Lisinopril with breakfast"),
     ).toBeInTheDocument();

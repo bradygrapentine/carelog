@@ -46,7 +46,7 @@ const authedCaller = appRouter.createCaller({
   user: { id: USER_ID, email: "user@example.com" } as Context["user"],
   supabase: { from: vi.fn() } as unknown as Context["supabase"],
   req: undefined,
-});
+} as Context);
 
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();

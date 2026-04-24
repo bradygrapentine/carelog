@@ -69,7 +69,7 @@ export function SidebarNav({ showLabels = false, onNavigate }: Props) {
 
           return (
             <Tooltip key={dest}>
-              <TooltipTrigger asChild>{buttonEl}</TooltipTrigger>
+              <TooltipTrigger>{buttonEl}</TooltipTrigger>
               <TooltipContent side="right">{label}</TooltipContent>
             </Tooltip>
           );

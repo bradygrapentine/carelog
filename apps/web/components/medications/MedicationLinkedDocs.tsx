@@ -5,14 +5,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FileText } from "lucide-react";
 
-type Props = { medicationId: string };
+type LinkedDoc = { id: string; display_name: string; doc_type: string; created_at: string };
 
-export function MedicationLinkedDocs({ medicationId }: Props) {
+type Props = { medicationId: string; orgId: string };
+
+export function MedicationLinkedDocs({ medicationId, orgId }: Props) {
   const { data, isLoading } = trpc.medications.get.useQuery({
     medication_id: medicationId,
+    org_id: orgId,
   });
 
-  const docs = data?.linkedDocuments ?? [];
+  const docs = (data?.linkedDocuments ?? []) as LinkedDoc[];
 
   if (isLoading)
     return <p className="text-sm text-[var(--color-muted)] px-1">Loading…</p>;

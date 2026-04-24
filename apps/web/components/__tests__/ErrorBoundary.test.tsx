@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { ErrorBoundary } from "../ErrorBoundary";
@@ -10,7 +11,7 @@ beforeAll(() => {
   console.error = vi.fn();
 });
 
-function ThrowingChild() {
+function ThrowingChild(): React.ReactNode {
   throw new Error("test error");
 }
 

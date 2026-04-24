@@ -371,8 +371,8 @@ export function MedicationPanel({
                   </div>
                   {expandedMedId === medId && (
                     <div className="mt-2 space-y-2">
-                      <MedicationLinkedDocs medicationId={medId} />
-                      <MedicationRecentEvents medicationId={medId} />
+                      <MedicationLinkedDocs medicationId={medId} orgId={orgId} />
+                      <MedicationRecentEvents medicationId={medId} orgId={orgId} />
                     </div>
                   )}
                 </div>

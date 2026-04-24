@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "type-check": "tsc --noEmit",
     "lint": "eslint && node ../../scripts/a11y-contrast.mjs",
     "lint:contrast": "node ../../scripts/a11y-contrast.mjs",
     "lighthouse:a11y": "node ../../scripts/lighthouse-a11y.mjs"
