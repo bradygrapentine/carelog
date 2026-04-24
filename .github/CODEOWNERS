@@ -1,0 +1,20 @@
+# CODEOWNERS — installed by ~/.claude/skills/harden-project
+# The installer replaces bradygrapentine with your GitHub username via sed.
+# GitHub docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: every file is owned by the repo owner.
+*       @bradygrapentine
+
+# --- Scoped overrides (uncomment and adjust as needed) ---
+
+# GitHub Actions and repo config — owner reviews all workflow changes.
+# .github/   @bradygrapentine
+
+# Documentation — owner or a dedicated docs team.
+# docs/      @bradygrapentine
+
+# Infrastructure / deployment configs.
+# infra/     @bradygrapentine
+
+# Client-facing packages — owner + optional second reviewer.
+# packages/  @bradygrapentine

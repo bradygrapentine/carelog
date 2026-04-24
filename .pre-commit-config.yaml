@@ -1,0 +1,34 @@
+# Installed by ~/.claude/skills/harden-project. Run `pre-commit install` after copy.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: detect-private-key
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [javascript, jsx, ts, tsx, json, markdown, yaml, css, html]
+
+  - repo: local
+    hooks:
+      - id: eslint-fix
+        name: ESLint (fix staged)
+        language: node
+        entry: npx eslint --fix
+        types_or: [javascript, jsx, ts, tsx]
+        pass_filenames: true
+        # Exits non-zero if ESLint reports unfixable errors after --fix pass.
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        args: ["protect", "--staged", "--verbose"]
