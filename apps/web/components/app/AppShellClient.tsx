@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase";
 import { clearAll as clearOfflineQueue } from "@/lib/offline-queue";
 import { AppTabBar } from "./AppTabBar";
 import { CommandPalette } from "@/components/CommandPalette";
+import { QuickLogFab } from "@/components/QuickLogFab";
 
 type Props = {
   userInitials: string;
@@ -30,6 +31,7 @@ export function AppShellClient({ userInitials, children }: Props) {
         {children}
       </main>
       <CommandPalette onSignOut={handleSignOut} />
+      <QuickLogFab />
     </div>
   );
 }
