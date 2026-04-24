@@ -286,6 +286,7 @@ export function CommandPalette({ onSignOut }: Props) {
 
   return (
     // Backdrop
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop dismissal; Esc keyboard handler at handleKeyDown covers keyboard close. See ShiftPopover for the same pattern; TD-* should migrate both to the Dialog primitive.
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-black/40 backdrop-blur-sm"
       onClick={close}
@@ -355,6 +356,7 @@ export function CommandPalette({ onSignOut }: Props) {
                   const idx = flatIndex++;
                   const isSelected = idx === selectedIndex;
                   return (
+                    // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- list item with role="option"; keyboard navigation (↑↓/Enter) is handled at the parent dialog level via handleKeyDown, matching the WAI-ARIA combobox pattern.
                     <li
                       key={cmd.id}
                       id={`cmdk-item-${cmd.id}`}

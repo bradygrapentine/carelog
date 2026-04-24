@@ -24,11 +24,11 @@ function emit(level: LogLevel, message: string, ...args: unknown[]): void {
     } else if (args.length > 0) {
       entry["data"] = args.length === 1 ? args[0] : args;
     }
-    // eslint-disable-next-line no-console
+     
     console[level](JSON.stringify(entry));
   } else {
     // Dev: readable multi-arg output identical to raw console calls.
-    // eslint-disable-next-line no-console
+     
     console[level](message, ...args);
   }
 }

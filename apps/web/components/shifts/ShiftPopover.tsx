@@ -117,6 +117,7 @@ export function ShiftPopover({
   };
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- backdrop dismissal; Esc keyboard handler at line 59 covers keyboard close. TD-* should migrate to Dialog primitive.
     <div
       role="dialog"
       aria-modal="true"
@@ -124,6 +125,7 @@ export function ShiftPopover({
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/20 ${isOpen ? "" : "hidden"}`}
       onClick={onClose}
     >
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- pure stop-propagation guard so backdrop click doesn't fire when interacting inside the modal; no semantic interactive surface here. */}
       <div
         className="bg-white rounded-xl shadow-xl border border-[var(--color-border)] p-5 w-72 space-y-3"
         onClick={(e: React.MouseEvent) => e.stopPropagation()}

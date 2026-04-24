@@ -36,18 +36,15 @@ import {
 } from "@/server/repositories/organizationsRepository";
 import { createIdentity } from "@/server/repositories/identityRepository";
 import { appRouter } from "@/server/trpc/router";
+import type { Context } from "@/server/trpc";
 
 const ORG_ID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
 const USER_ID = "28dc6d19-6712-4b26-8797-b4e544e01b85";
 const RECIPIENT_ID = "38dc6d19-6712-4b26-8797-b4e544e01b86";
 
 const authedCaller = appRouter.createCaller({
-  user: { id: USER_ID, email: "user@example.com" } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["user"],
-  supabase: { from: vi.fn() } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["supabase"],
+  user: { id: USER_ID, email: "user@example.com" } as Context["user"],
+  supabase: { from: vi.fn() } as unknown as Context["supabase"],
   req: undefined,
 });
 
@@ -199,12 +196,10 @@ describe("organizations.create — logic", () => {
       const chain = {
         insert: () => chain,
         select: () => chain,
-        single: vi
-          .fn()
-          .mockResolvedValue({
-            data: null,
-            error: { message: "insert failed" },
-          }),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: "insert failed" },
+        }),
       };
       return chain as unknown as ReturnType<typeof supabaseAdmin.from>;
     });
@@ -235,11 +230,9 @@ describe("organizations.create — logic", () => {
         return chain as unknown as ReturnType<typeof supabaseAdmin.from>;
       }
       const chain = {
-        insert: vi
-          .fn()
-          .mockResolvedValue({
-            error: { message: "membership insert failed" },
-          }),
+        insert: vi.fn().mockResolvedValue({
+          error: { message: "membership insert failed" },
+        }),
       };
       return chain as unknown as ReturnType<typeof supabaseAdmin.from>;
     });

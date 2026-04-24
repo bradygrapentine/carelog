@@ -310,7 +310,10 @@ export async function listEventsForMedication(
     );
 }
 
-export async function listDocumentsForMedication(medicationId: string): Promise<
+export async function listDocumentsForMedication(
+  medicationId: string,
+  limit: number = 200,
+): Promise<
   Array<{
     id: string;
     display_name: string;
@@ -322,7 +325,8 @@ export async function listDocumentsForMedication(medicationId: string): Promise<
     .from("document_medications")
     .select("documents(id, display_name, doc_type, created_at)")
     .eq("medication_id", medicationId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) throw new Error(error.message);
 
