@@ -6,6 +6,7 @@ import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Printer } from "lucide-react";
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -256,9 +257,21 @@ export function DashboardClient({ user }: Props) {
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
       <div className="max-w-4xl mx-auto py-12 px-4">
-        <h1 className="text-2xl font-semibold text-foreground mb-2">
-          Your care teams
-        </h1>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h1 className="text-2xl font-semibold text-foreground">
+            Your care teams
+          </h1>
+          <button
+            type="button"
+            onClick={() => router.push("/visit-summary")}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[40px] shrink-0"
+            aria-label="Generate visit summary"
+          >
+            <Printer className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Generate visit summary</span>
+            <span className="sm:hidden">Visit summary</span>
+          </button>
+        </div>
         <p className="text-foreground/80 mb-8">
           Coordinate care, track medications, and support your team.
         </p>
