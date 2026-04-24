@@ -28,9 +28,37 @@ const mockShifts = [
 
 jest.mock("../../../../utils/trpc", () => ({
   trpc: {
+    useUtils: jest.fn(() => ({
+      shifts: { list: { invalidate: jest.fn() } },
+    })),
     shifts: {
       list: {
         useQuery: jest.fn(() => ({ data: mockShifts, isLoading: false })),
+      },
+      complete: {
+        useMutation: jest.fn(() => ({
+          mutate: jest.fn(),
+          mutateAsync: jest.fn(),
+          isPending: false,
+        })),
+      },
+    },
+    shiftTradeRequests: {
+      create: {
+        useMutation: jest.fn(() => ({
+          mutate: jest.fn(),
+          mutateAsync: jest.fn(),
+          isPending: false,
+        })),
+      },
+    },
+    careEvents: {
+      insert: {
+        useMutation: jest.fn(() => ({
+          mutate: jest.fn(),
+          mutateAsync: jest.fn(),
+          isPending: false,
+        })),
       },
     },
   },
@@ -59,6 +87,6 @@ describe("ScheduleScreen", () => {
       isLoading: false,
     });
     const { getByText } = render(<ScheduleScreen />);
-    expect(getByText("No shifts scheduled for the next 7 days.")).toBeTruthy();
+    expect(getByText("No shifts coming up. Ask your coordinator to add coverage.")).toBeTruthy();
   });
 });
