@@ -99,7 +99,7 @@ const GLOBAL_SUGGESTIONS: Suggestion[] = [
 ];
 
 export function useAIContext() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   let pageKey = "other";
   if (pathname.includes("/dashboard")) pageKey = "dashboard";
