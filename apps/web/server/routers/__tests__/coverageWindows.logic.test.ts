@@ -30,6 +30,7 @@ vi.mock("@/server/repositories/identityRepository", () => ({
 
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { appRouter } from "@/server/trpc/router";
+import type { Context } from "@/server/trpc";
 
 const ORG_ID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
 const USER_ID = "28dc6d19-6712-4b26-8797-b4e544e01b85";
@@ -37,12 +38,8 @@ const RECIPIENT_ID = "38dc6d19-6712-4b26-8797-b4e544e01b86";
 const WINDOW_ID = "48dc6d19-6712-4b26-8797-b4e544e01b87";
 
 const authedCaller = appRouter.createCaller({
-  user: { id: USER_ID, email: "user@example.com" } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["user"],
-  supabase: { from: vi.fn() } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["supabase"],
+  user: { id: USER_ID, email: "user@example.com" } as Context["user"],
+  supabase: { from: vi.fn() } as Context["supabase"],
   req: undefined,
 });
 
@@ -82,13 +79,9 @@ beforeEach(() => {
 
 describe("coverageWindows.list — logic", () => {
   it("returns empty array when no windows exist", async () => {
-    const ctxSupabase = { from: vi.fn() } as Parameters<
-      typeof appRouter.createCaller
-    >[0]["supabase"];
+    const ctxSupabase = { from: vi.fn() } as unknown as Context["supabase"];
     const caller = appRouter.createCaller({
-      user: { id: USER_ID, email: "user@example.com" } as Parameters<
-        typeof appRouter.createCaller
-      >[0]["user"],
+      user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
     });
@@ -131,13 +124,9 @@ describe("coverageWindows.list — logic", () => {
         day_of_week: 3,
       },
     ];
-    const ctxSupabase = { from: vi.fn() } as Parameters<
-      typeof appRouter.createCaller
-    >[0]["supabase"];
+    const ctxSupabase = { from: vi.fn() } as unknown as Context["supabase"];
     const caller = appRouter.createCaller({
-      user: { id: USER_ID, email: "user@example.com" } as Parameters<
-        typeof appRouter.createCaller
-      >[0]["user"],
+      user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
     });
@@ -168,13 +157,9 @@ describe("coverageWindows.list — logic", () => {
   });
 
   it("throws INTERNAL_SERVER_ERROR on supabase error", async () => {
-    const ctxSupabase = { from: vi.fn() } as Parameters<
-      typeof appRouter.createCaller
-    >[0]["supabase"];
+    const ctxSupabase = { from: vi.fn() } as unknown as Context["supabase"];
     const caller = appRouter.createCaller({
-      user: { id: USER_ID, email: "user@example.com" } as Parameters<
-        typeof appRouter.createCaller
-      >[0]["user"],
+      user: { id: USER_ID, email: "user@example.com" } as Context["user"],
       supabase: ctxSupabase,
       req: undefined,
     });

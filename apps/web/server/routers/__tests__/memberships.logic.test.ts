@@ -34,6 +34,7 @@ import {
   createMembershipAndInvite,
 } from "@/server/repositories/membershipsRepository";
 import { appRouter } from "@/server/trpc/router";
+import type { Context } from "@/server/trpc";
 
 const ORG_ID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
 const USER_ID = "28dc6d19-6712-4b26-8797-b4e544e01b85";
@@ -43,12 +44,8 @@ const MEMBERSHIP_ID = "48dc6d19-6712-4b26-8797-b4e544e01b87";
 const VALID_TOKEN = "a".repeat(64);
 
 const authedCaller = appRouter.createCaller({
-  user: { id: USER_ID, email: "user@example.com" } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["user"],
-  supabase: { from: vi.fn() } as Parameters<
-    typeof appRouter.createCaller
-  >[0]["supabase"],
+  user: { id: USER_ID, email: "user@example.com" } as Context["user"],
+  supabase: { from: vi.fn() } as unknown as Context["supabase"],
   req: undefined,
 });
 

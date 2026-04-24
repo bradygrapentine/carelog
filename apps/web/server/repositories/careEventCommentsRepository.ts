@@ -122,7 +122,9 @@ export async function getFanoutTargets(
 
   const priorCommenterIds = Array.from(
     new Set(
-      (prior ?? []).map((r: CareEventCommentRow) => r.author_id as string),
+      (prior ?? []).map(
+        (r: Pick<CareEventCommentRow, "author_id">) => r.author_id as string,
+      ),
     ),
   );
   return {
