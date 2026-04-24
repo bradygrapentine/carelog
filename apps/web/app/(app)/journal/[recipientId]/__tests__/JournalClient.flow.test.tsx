@@ -115,6 +115,10 @@ vi.mock("../ExportButton", () => ({
   ExportButton: () => <div data-testid="export-button" />,
 }));
 
+vi.mock("@/components/HandoffSummary", () => ({
+  HandoffSummary: () => <div data-testid="handoff-summary" />,
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
