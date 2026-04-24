@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase";
 import { clearAll as clearOfflineQueue } from "@/lib/offline-queue";
 import { AppTabBar } from "./AppTabBar";
+import { CommandPalette } from "@/components/CommandPalette";
 
 type Props = {
   userInitials: string;
@@ -28,6 +29,7 @@ export function AppShellClient({ userInitials, children }: Props) {
       <main role="main" className="flex-1">
         {children}
       </main>
+      <CommandPalette onSignOut={handleSignOut} />
     </div>
   );
 }
