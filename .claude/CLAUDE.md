@@ -230,6 +230,12 @@ Run Claude non-interactively for automated QA:
 
 ## Reference Docs (load on demand)
 
+- **`SETUP.md`** at repo root — entry point for fresh-machine setup; one-stop checklist + first-run walkthrough + links to all sub-runbooks
+- `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` — per-service human setup (Supabase, Vercel, Stripe, Sentry, PostHog, Inngest, Resend, Firebase, etc.)
+- `docs/project-info/runbooks/CI_HEALTH.md` — GitHub Actions billing, secrets, repo settings (auto-merge, branch protection); Symptoms→Fixes table
+- `docs/project-info/runbooks/ENV_VARS.md` — every env var: name, service, required/optional, where to set per environment (local, Vercel, EAS, GitHub Secrets)
+- `docs/project-info/runbooks/MOBILE_SETUP.md` — Expo / EAS / APNs / Firebase / deep-link human setup; TestFlight + Play Store internal testing
+- `docs/project-info/runbooks/DEPLOYMENT.md` — production deploy runbook (web + DB migrations + mobile EAS submit) + rollback paths + post-deploy verification
 - `docs/project-info/technology/ARCHITECTURE.md` — data model, system design, design rationale
 - `docs/project-info/technology/CODE_STANDARDS.md` — hard-won coding rules, conventions, testing patterns, git format
 - `docs/project-info/product/UX_DECISIONS.md` — language and tone rules

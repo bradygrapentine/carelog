@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import {
   computeAdherence,
   parseDailyFrequency,
@@ -9,6 +9,18 @@ import {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const NOW = new Date("2026-04-23T12:00:00Z").getTime();
+
+// computeAdherence reads `Date.now()` to anchor the rolling window. Without
+// fake timers the test fails as soon as wall-clock advances past NOW (events
+// at the 27-day boundary fall outside the 28-day window). Pin clock to NOW
+// so the test is deterministic regardless of when it runs.
+beforeAll(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(NOW));
+});
+afterAll(() => {
+  vi.useRealTimers();
+});
 
 /** Build a dose event that falls within a 28-day window ending at NOW. */
 function makeDoseEvent(
@@ -86,7 +98,9 @@ describe("computeAdherence", () => {
     const events: DoseEvent[] = Array.from({ length: 52 }, (_, i) =>
       makeDoseEvent("med-2", i % 27 === 0 ? i % 27 : i % 27, {
         id: `evt-med-2-${i}`,
-        occurred_at: new Date(NOW - ((i % 27) + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        occurred_at: new Date(
+          NOW - ((i % 27) + 1) * 24 * 60 * 60 * 1000,
+        ).toISOString(),
         payload: { medication_id: "med-2" },
       }),
     );
@@ -128,7 +142,11 @@ describe("computeAdherence", () => {
   it("only matching medication_id is counted", () => {
     const wrongMedEvent = makeDoseEvent("med-OTHER", 1);
     const correctMedEvent = makeDoseEvent("med-1", 2);
-    const result = computeAdherence(med, [wrongMedEvent, correctMedEvent], WINDOW);
+    const result = computeAdherence(
+      med,
+      [wrongMedEvent, correctMedEvent],
+      WINDOW,
+    );
     expect(result.actual).toBe(1); // only correctMedEvent counted
   });
 
