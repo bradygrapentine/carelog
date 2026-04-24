@@ -61,7 +61,7 @@ carelog/
 └── CODE_STANDARDS.md
 ```
 
-## Database schema — 16 tables
+## Database schema — 37 tables (as of 2026-04 — count grows with new migrations)
 
 ### Core tenancy
 - **organizations** — tenancy anchor, every other object has org_id
