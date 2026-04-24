@@ -21,6 +21,7 @@ import { BenefitsNavigator } from "./BenefitsNavigator";
 import { DocumentVault } from "./DocumentVault";
 import { EolPlanner } from "./EolPlanner";
 import { SidebarContext } from "../../../../components/sidebar/SidebarContext";
+import { PatternsStrip } from "../../../../components/journal/PatternsStrip";
 
 type OrgInfo = {
   id: string;
@@ -129,6 +130,7 @@ export function JournalLayout({
         <main className="flex-1 max-w-2xl lg:max-w-6xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
           {activeDestination === "journal" && (
             <>
+              <PatternsStrip recipientId={recipientId} />
               {isOnline && pendingQueueDepth > 0 && (
                 <div
                   role="status"
