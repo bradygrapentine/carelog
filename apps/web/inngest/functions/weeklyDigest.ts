@@ -94,9 +94,9 @@ export function digestHtml(opts: {
           '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #f5f5f5;">' +
             '<p style="font-size:14px;font-weight:600;color:#111;margin:0 0 12px;">Here\'s who\'s helping this week</p>' +
             opts.shifts.map(function(s) {
-              var day = new Date(s.start_at).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
-              var startTime = new Date(s.start_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-              var endTime   = new Date(s.end_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+              const day = new Date(s.start_at).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
+              const startTime = new Date(s.start_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+              const endTime   = new Date(s.end_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
               return (
                 '<div style="padding:6px 0;border-bottom:1px solid #f9f9f9;">' +
                   '<p style="font-size:13px;color:#333;margin:0;">' + s.assignee_name + '</p>' +

@@ -26,7 +26,7 @@ export const documentsRouter = router({
     if (!membership) throw new TRPCError({ code: "FORBIDDEN" });
 
     // Base query — always filter by org + recipient
-    let query = supabaseAdmin
+    const query = supabaseAdmin
       .from("documents")
       .select(
         "id, display_name, doc_type, file_size, uploaded_by, created_at, extracted_text",

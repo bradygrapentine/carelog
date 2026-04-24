@@ -34,7 +34,7 @@ const tokens = {
   'text-secondary': '#4b5563', // --color-text-secondary
   muted:          '#6b7280',   // --color-muted
   primary:        '#7c3aed',   // --color-primary (Violet 600)
-  danger:         '#ef4444',   // --color-danger
+  danger:         '#c41a1a',   // --color-danger (TD-14: was '#ef4444' — drift from globals.css; the actual token has been #c41a1a since A11Y-005, which already meets WCAG AA at 7.40:1 on white)
   success:        '#10b981',   // --color-success
   warning:        '#f59e0b',   // --color-warning / --color-secondary
   surface:        '#faf5ff',   // --color-surface (page bg)

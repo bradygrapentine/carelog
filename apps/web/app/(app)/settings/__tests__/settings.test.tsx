@@ -113,7 +113,7 @@ describe("SettingsPage - Browser Push Notifications", () => {
   it("shows error when Notification API not available", async () => {
     // Temporarily hide Notification API
     const originalNotification = global.Notification;
-    // @ts-ignore
+    // @ts-expect-error — deliberately deleting a global to test the no-Notification-API path
     delete global.Notification;
 
     render(<SettingsPage />);
