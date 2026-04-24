@@ -16,11 +16,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 3 | TD-03 · PP-009 · PP-014 |
+| 🟢 Ready | 11 | TD-03 · PP-009 · PP-014 · UX-14..21 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
+| 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -80,9 +80,20 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-09 | ✅ Shipped · PR #96 | **ShiftList edit mode** | Added `shifts.update` tRPC mutation + ShiftForm edit-mode props + inline edit panel in ShiftList with `editingShift` state. |
 | TD-10 | ✅ Shipped · PR #97 | **JournalClient refactor** | Extracted `useJournalData`, `useOfflineQueue`, `useJournalActions` hooks + `JournalLayout` component. JournalClient.tsx: 624 → 107 lines. |
 
----
+### Design enhancement spec (UX-14..21) — opened 2026-04-23
 
-## 2. Overnight queue 🌙
+Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-14 | 🟢 Ready | **Command palette (⌘K)** | Modal triggered by ⌘K (Cmd+K mac, Ctrl+K elsewhere) from any logged-in screen. Sections: **Jump to** (routes), **Log** (med/mood/meal/BP/note/visit), **People** (ping member), **Admin** (settings, invite). Fuzzy search (simple `includes()` is fine for v1). Esc closes, ↑↓ navigates, Enter submits. New: `apps/web/components/CommandPalette.tsx` + test; hotkey listener mounted in `AppShell` (or top-level layout). ~1 day. |
+| UX-15 | 🟢 Ready | **Quick-log FAB** | Floating action button bottom-right of main content (not sidebar). Click expands to options: Meds, Mood, BP, Note, Meal, Hydration. Each opens an existing form in a sheet/modal where one already exists (mood, med, note); stub the rest with "Coming soon" disabled state — do NOT invent new schemas. Reachable in ≤2 taps. New: `apps/web/components/QuickLogFab.tsx` + test. Mount in `AppShell` so it's available on every app route. ~1 day. |
+| UX-16 | 🟢 Ready | **Fraunces + Geist type system** | Adopt Fraunces (variable, opsz 9-144, weights 300-700) for headlines and Geist (400/500/600) for body/UI; Geist Mono 11px uppercase + 0.04em letter-spacing for labels/timestamps/eyebrows. Add `--font-display`, `--font-body`, `--font-mono` tokens; load via `next/font/google`. Italic em emphasis pattern: `<em>` inside headlines = italic, weight 300, color `var(--color-primary)`. Update `apps/web/app/globals.css` and `apps/web/app/layout.tsx`. Foundation for UX-17 + UX-21. Validate dark mode + existing components do not regress. ~1 day. |
+| UX-17 | 🟢 Ready | **Editorial dashboard refactor: BriefHero + MedCard + MoodCard** | Two-col layout (1.6fr/1fr). BriefHero card: blurred primary-subtle blob, mono pill eyebrow ("Today's brief · auto-generated 7:02a"), Fraunces 26 paragraph, status pills row. MedCard: check-style rows, strikethrough+60% opacity when taken, "Log" soft button when not. MoodCard: 13-bar sparkline (today in `--color-primary`, rest in `--color-primary-subtle`), Fraunces 28 mood label. Re-uses existing dashboard data; presentation-only refactor. Depends on UX-16. ~2 days. |
+| UX-18 | 🟢 Ready | **Patterns strip in Journal** | Horizontal-scroll row of pastel cards above journal feed surfacing AI insights ("Eleanor more anxious on Tuesdays", "Sleep drops 90m after PT", "Mood highest when Priya visits"). v1 ships scaffold + 3 hardcoded mock patterns + tap-to-detail (links to filtered journal view). Real aggregation deferred to UX-24. New: `apps/web/components/journal/PatternsStrip.tsx` + test. Mount in `JournalLayout`. ~1 day. |
+| UX-19 | 🟢 Ready | **Shift Handoff: "What did I miss?" view** | Triggered by TopBar button when caregiver returns after >8h absence (compute from `last_seen` on profile). Modal/route with Fraunces "While you were away." headline + sections: Meds logged, Moments (notable journal entries), Appointments (done + upcoming), Concerns (symptom logs / red flags), Thanks (who covered). Plain-language summary, not a list dump — composer pulls from `care_events` last 8-72h. New: `apps/web/components/HandoffSummary.tsx` + summary builder + tests. ~1.5 days. |
+| UX-20 | 🟢 Ready | **Print-friendly visit summary** | One-page A4/Letter PDF generated from last 4 weeks: patient info, meds (with adherence %), vitals trends (sparklines), recent symptoms, journal highlights, optional "questions for doctor" text field. Action: Dashboard top-right "Generate visit summary" button. Re-uses P4-03 PDF export pattern. New: `app/visit-summary/[token]/page.tsx` + `/api/visit-summary/[token]/route.ts`. Stored in document vault on generation. ~1.5 days. |
+| UX-21 | 🟢 Ready | **Daily Brief: full-page editorial view** | Magazine-style article (`max-w-[720px]`) with Fraunces 48 headline ("A good morning for Eleanor"), mono dateline, 5-8 AI-generated paragraphs referencing care entries inline, doctor-friendly bullet section at bottom, "Email family" + "Print for visit" actions. Re-uses existing brief generation pipeline. Refactor of `apps/web/app/brief/[token]/page.tsx`. Depends on UX-16. ~1 day. |
 
 Picked up automatically by the nightly agent. Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
 
@@ -175,6 +186,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs).
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
+- **UX-22** — Configurability surface from 2026-04-23 design spec: theme switcher (sage/slate/rose), density picker (compact/comfortable/airy), radius picker (sharp/soft/pillowy), grain overlay, 5 hero variants, 3 dashboard layouts. Cut deliberately to preserve a single opinionated "editorial, calm, dignified" look. Revisit only if A/B data shows real demand.
+- **UX-23** — Crisis/SOS mode. Subtle red SOS button → emergency contacts (911, primary doctor, family) + current meds + allergies + DNR/advance directive + one-tap "notify care circle." Parked separately from UX-14..21 batch — needs scoping with legal, accuracy guarantees on meds list, contact failover, and audit-log behavior before any code lands.
+- **UX-24** — Real pattern aggregation for Journal Patterns strip. Replaces UX-18 hardcoded mocks with actual SQL/AI aggregation over `care_events` (mood-by-day-of-week, sleep-vs-event correlation, mood-vs-visitor correlation). Schedule after UX-18 ships and we have real production usage to validate the patterns are useful.
 
 ---
 
