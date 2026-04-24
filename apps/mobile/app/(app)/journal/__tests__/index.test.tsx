@@ -7,6 +7,22 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+// BottomSheet uses Animated + PanResponder which don't behave well in jest.
+// Replace with a simple pass-through that renders children when visible.
+jest.mock("../../../../components/journal/BottomSheet", () => ({
+  BottomSheet: ({
+    visible,
+    children,
+  }: {
+    visible: boolean;
+    children: React.ReactNode;
+  }) => {
+    const React = require("react");
+    const { View } = require("react-native");
+    return visible ? React.createElement(View, null, children) : null;
+  },
+}));
+
 jest.mock("../../../../context/AppContext", () => ({
   useApp: () => ({ orgId: "org-1", recipientId: "r-1" }),
 }));

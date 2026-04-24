@@ -71,7 +71,7 @@ describe("ExpensesScreen", () => {
       refetch: jest.fn(),
     });
     const { getByText } = render(<ExpensesScreen />);
-    expect(getByText("No expenses logged yet.")).toBeTruthy();
+    expect(getByText("No expenses yet. Tap + to log a shared expense.")).toBeTruthy();
   });
 
   it("shows Add expense button for coordinator", () => {
