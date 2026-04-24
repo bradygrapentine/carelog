@@ -41,7 +41,8 @@
   "pnpm": {
     "overrides": {
       "vitest": "4.1.4",
-      "@vitest/utils": "4.1.4"
+      "@vitest/utils": "4.1.4",
+      "@xmldom/xmldom": "0.9.10"
     }
   },
   "dependencies": {
