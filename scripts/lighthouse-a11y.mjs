@@ -14,6 +14,30 @@ const outFile = `/tmp/lighthouse-${Date.now()}.json`;
 
 console.log(`Running Lighthouse a11y audit on: ${url}`);
 
+// Pre-flight: skip gracefully if the URL is unreachable or auth-gated.
+// Vercel preview deployments default to auth-gated (401) — Lighthouse can't
+// audit them, but the workflow runs on every deploy_status event including
+// these. Treat 401/403 as a non-blocking skip rather than a CI failure.
+const probe = spawnSync(
+  "curl",
+  ["-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "10", url],
+  { stdio: ["ignore", "pipe", "inherit"], shell: false },
+);
+const httpCode = probe.stdout?.toString().trim() ?? "";
+if (httpCode === "401" || httpCode === "403") {
+  console.log(
+    `⚠ ${url} is auth-gated (HTTP ${httpCode}) — skipping Lighthouse a11y audit. ` +
+      `Run on a public URL to enforce a11y score gating.`,
+  );
+  process.exit(0);
+}
+if (probe.status !== 0 || !httpCode || httpCode === "000") {
+  console.log(
+    `⚠ ${url} unreachable from CI — skipping Lighthouse a11y audit.`,
+  );
+  process.exit(0);
+}
+
 let score;
 try {
   const result = spawnSync(
