@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-24** (manual reconciliation).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-24**.
 
 Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -16,11 +16,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 6 | TD-03 · PP-009 · PP-014 · UX-21 · ON-61 · TD-17 |
-| 🔎 In review | 1 | UX-17 (#138) |
+| 🟢 Ready | 5 | TD-03 · TD-14 · PP-009 · PP-014 · UX-21 |
+| ⚡ In progress | 1 | UX-17 (feat/ux-17-editorial-dashboard · Brady) |
+| 🔎 In review | 8 | UX-14 (#125) · UX-15 (#126) · UX-16 (#128) · UX-18 (#127) · UX-19 (#129) · UX-20 (#130) · TD-15 (#131) · TD-16 |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 12 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 · §5 ON-62/63 · §2 TD-18/19 |
+| 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -82,10 +83,6 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-14 | ✅ Shipped · PR #132 | **Restore green CI: clear 491 lint errors** | Downgraded `no-explicit-any`, `no-unescaped-entities`, `react-hooks/set-state-in-effect` to warn; hand-fixed 6 remaining errors (`@ts-ignore` → `@ts-expect-error`, targeted a11y disables in `ShiftPopover.tsx`). Contrast script token-drift bug (`#ef4444` vs `#c41a1a`) fixed in same PR. 1010 tests green. |
 | TD-15 | ✅ Shipped · PR #131 | **Fix CI infra: lockfile drift + workflow script-name bugs** | (a) `apps/mobile/package.json` had `expo-web-browser` declared without lockfile regen → every CI job failed at `pnpm install --frozen-lockfile`. Fixed by `pnpm install`. (b) `.github/workflows/ci.yml` Typecheck job ran `pnpm typecheck` (typo, root script is `type-check`). (c) Web-tests job ran `pnpm test:coverage` from `apps/web/` (script lives at root). Both fixed by matching the local pre-commit hook pattern (`npx vitest run` from apps/web). |
 | TD-16 | ✅ Shipped · PR #132 + #134 | **Clear web typecheck errors + wire CI to catch them** | PR #132 cut `apps/web` tsc errors 147→43 (Next.js 15 Promise params, Supabase types, vitest-globals.d.ts). PR #134 drove remaining 43→0 across 27 files; updated CI workflow to run `cd apps/web && npx tsc --noEmit` instead of silently skipping (root script only covers root). 1111 tests green. |
-| TD-17 | 🟢 Ready | **Mobile test failures: 7 files red, 11 tests** | `npx jest --no-coverage --ci` from `apps/mobile/` reports failures in `__tests__/font-scale.test.ts`, `__tests__/usePushNotifications.test.ts`, and 5 screen-level `__tests__/index.test.tsx` files (schedule/medications/expenses/journal/outer-circle). Root cause for `font-scale` is rounding-precision drift after `ea59d279 fix(mobile): round scaledFont output to integer pixels`; the screen tests likely share an unmocked nav/store dependency. **First step:** read each failure individually and group by root cause before fixing. Estimated 1–2 hrs once root cause is clear. CI doesn't currently run mobile tests against PRs — fixing these AND wiring `mobile-tests` job to run on PRs would close the gap permanently. |
-| TD-18 | 🧊 Deferred | **Mobile a11y test infrastructure (29 skipped tests)** | 29 `it.skip(...)` calls across 15 mobile screen a11y test files. Pattern: each skipped test asserts label/role using `@testing-library/react-native`. Skipped because the testing-library setup needs Expo-specific stubs that aren't wired. **Work:** `vi.mock('expo-router')`, `vi.mock('expo-image')`, `@testing-library/react-native` config in `jest.setup.ts`. Probably 0.5–1 day once the mock surface is mapped. Deferred until TD-17 (mobile tests run at all) is green. |
-| TD-19 | 🧊 Deferred | **e2e auth fixture for offline-journal spec** | `e2e/offline-journal.spec.ts:7` has `TODO: requires auth fixtures — skeleton for structure`. The spec is a placeholder. Need a Playwright fixture that signs in a test user without OTP (Supabase `signInWithPassword` against a seeded user). Once available, this spec + future offline-mode specs can land. ~0.5 day. |
-| TD-20 | ✅ Shipped | **Restore 4 quarantined pgTAP tests** | All 4 restored to `supabase/tests/` and passing. `ai_conversations_rls` + `education_tip_cache_rls` rewritten to `INSERT INTO auth.users` pattern; `medication_tagging_rls` + `shift_trade_requests_rls` UUIDs fixed to valid hex. `_quarantined-tests/` dir deleted. All 26 pgTAP tests green. |
 
 ### Design enhancement spec (UX-14..21) — opened 2026-04-23
 
@@ -96,7 +93,7 @@ Source: external design prototype (CareSync Prototype.html) handed off as enhanc
 | UX-14 | ✅ Shipped · PR #125 | **Command palette (⌘K)** | Modal triggered by ⌘K (Cmd+K mac, Ctrl+K elsewhere) from any logged-in screen. Sections: **Jump to** (routes), **Log** (med/mood/meal/BP/note/visit), **People** (ping member), **Admin** (settings, invite). Fuzzy search (simple `includes()` is fine for v1). Esc closes, ↑↓ navigates, Enter submits. New: `apps/web/components/CommandPalette.tsx` + test; hotkey listener mounted in `AppShellClient`. **People section omitted** (no `team.list` route or member-profile page found — revisit when those exist). 18 tests added. |
 | UX-15 | ✅ Shipped · PR #126 | **Quick-log FAB** | Floating action button bottom-right of main content (not sidebar). Click expands to options: Meds, Mood, BP, Note, Meal, Hydration. Wired actions navigate to existing journal panels (`/journal/[recipientId]?panel=...`); meal + hydration shipped as **disabled "Coming soon"** (no schema yet — do not invent). Mounted in `AppShellClient` (every `(app)` route). 17 tests added. **Will conflict with UX-14 (#125) on `AppShellClient.tsx` — trivial additive resolve at second-merge.** |
 | UX-16 | ✅ Shipped · PR #128 | **Fraunces + Geist type system** | Plumbing-only: added Fraunces + Geist Mono via `next/font/google`; exposed `--font-display`/`--font-body`/`--font-mono` in `@theme inline`; added 3 utility classes (`.headline-display`, `.headline-display em`, `.eyebrow-mono`) in `@layer components`. Italic em pattern is **scoped** to `.headline-display em` — no global `em` rule, existing literal `<em>` usage unchanged. `--font-sans` still resolves to Geist (no body-text regression). 6-assertion smoke test in `lib/__tests__/typography-tokens.test.ts`. **No existing component refactored** — UX-17 + UX-21 adopt the tokens. |
-| UX-17 | 🔎 In review · PR #138 | **Editorial dashboard refactor: BriefHero + MedCard + MoodCard** | Two-col layout (1.6fr/1fr). BriefHero card: blurred primary-subtle blob, mono pill eyebrow ("Today's brief · auto-generated 7:02a"), Fraunces 26 paragraph, status pills row. MedCard: check-style rows, strikethrough+60% opacity when taken, "Log" soft button when not. MoodCard: 13-bar sparkline (today in `--color-primary`, rest in `--color-primary-subtle`), Fraunces 28 mood label. Re-uses existing dashboard data; presentation-only refactor. Depends on UX-16. ~2 days. |
+| UX-17 | ⚡ In progress · Brady · `feat/ux-17-editorial-dashboard` | **Editorial dashboard refactor: BriefHero + MedCard + MoodCard** | Two-col layout (1.6fr/1fr). BriefHero card: blurred primary-subtle blob, mono pill eyebrow ("Today's brief · auto-generated 7:02a"), Fraunces 26 paragraph, status pills row. MedCard: check-style rows, strikethrough+60% opacity when taken, "Log" soft button when not. MoodCard: 13-bar sparkline (today in `--color-primary`, rest in `--color-primary-subtle`), Fraunces 28 mood label. Re-uses existing dashboard data; presentation-only refactor. Depends on UX-16. ~2 days. |
 | UX-18 | ✅ Shipped · PR #127 | **Patterns strip in Journal** | Horizontal-scroll row of pastel cards above journal feed surfacing AI insights ("Eleanor more anxious on Tuesdays", "Sleep drops 90m after PT", "Mood highest when Priya visits"). v1 ships scaffold + 3 hardcoded mock patterns + tap-to-detail (`?filter=mood` query param). Real aggregation deferred to UX-24. New: `apps/web/components/journal/PatternsStrip.tsx` + test. Mounted at top of `JournalLayout` journal-destination block. 15 tests added. |
 | UX-19 | ✅ Shipped · PR #129 | **Shift Handoff: "What did I miss?" view** | TopBar "What did I miss?" button (mounted in `JournalLayout` — no standalone TopBar exists) opens modal with 5 sections: Meds, Moments, Appointments, Concerns, Thanks. 24h/48h/72h period selector. Pure summary builder in `lib/handoffSummary.ts` with 18 tests; component with 12 tests. Uses existing `careEvents.timeline` tRPC query, client-side window filter. v1 manual trigger; auto-detect on `last_seen` deferred. Schema dump found: `entry_type` enum = journal/medication/shift/appointment/symptom/task/expense/handoff. **Will conflict with UX-18 (#127) on `JournalLayout.tsx` — trivial additive resolve.** |
 | UX-20 | ✅ Shipped · PR #130 | **Print-friendly visit summary** | Dashboard "Generate visit summary" button → authenticated `/visit-summary` route (no token; caregiver prints, doesn't share). 6-section printable layout: patient info (PHI from `identity_vault` per P4-03 pattern), meds + adherence %, vitals SVG sparklines, symptoms, journal highlights, blank questions textarea. Uses `window.print()` — no `@react-pdf/renderer` needed. `lib/medAdherence.ts` pure helper with 14 tests; component with 18 tests. **Will conflict with UX-19 button placement if we add a Visit Summary button to TopBar later — but currently mounted on Dashboard, so no overlap with #129.** |
@@ -179,26 +176,6 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **Work:** New marketing page at `/for-referrers`. Explains: what Carelog does, how to refer a family (share link), what families get. Includes a downloadable 1-page reference card (PDF). No commission language (conflicts with social worker ethics). ~1 day.
 **AC:** Page live; includes share link + downloadable PDF; linked from main nav footer.
 
-### ON-61 — Coverage request board · ~2 days
-**Status:** 🟢 Ready
-**Why:** ROADMAP Phase 2: when a caregiver can't make a shift, they post a coverage request and other team members claim it. Today the team has shift-trade-requests (ON-45 shipped) — one-to-one swap proposals — but no public board where unassigned shifts surface for any team member to pick up. Coordinator-driven gap detection without visibility into who's interested.
-**Work:** New table `shift_coverage_requests` (shift_id, requester_id, status enum: open/claimed/cancelled, claim_id, created_at). RLS: members of the same org can read; aides read only their own recipient's. New `/team/coverage` panel listing open requests with one-tap claim. Shift `coverage_requested` event triggers an Inngest fan-out notification to other members. Mobile: list view + claim action. ~2 days.
-**AC:** Member can post coverage request from a shift; another member sees it on `/team/coverage` and claims it; the original shift `assigned_to` updates; both parties get a confirmation notification.
-**Blocked by:** nothing — pure additive feature. Schema + UI + Inngest job.
-
-### ON-62 — Prescription label OCR · ~3 days
-**Status:** 🧊 Deferred
-**Why:** ROADMAP Phase 3: mobile camera → OCR pipeline → pre-filled medication form. Today, adding a medication is manual entry; users with multi-drug regimens have to type out each label, which is error-prone for dosages and instructions. Already-shipped `documents` schema can store the photo; the OCR step is the gap.
-**Work:** Mobile: `expo-camera` + image upload to Supabase Storage. Inngest job: pull image, run through Vision API (Google Cloud Vision or AWS Textract — pick one), pass extracted text through Claude API for structured field extraction (drug name, strength, instructions, prescriber, NDC). Web: review-and-confirm panel before insert into `medications`. New: `apps/web/inngest/functions/ocrPrescription.ts`, `apps/web/app/api/ocr/upload/route.ts` (already scaffolded — see existing `app/api/ocr/`).
-**Blocked by:** Vision provider decision (Google vs AWS — needs cost analysis at expected volume); Claude API cost guard (prescription parsing isn't free; need rate limiting per org).
-**Notes:** Discovery in audit found an existing `app/api/ocr/` skeleton — investigate whether prior work makes this 2 days instead of 3.
-
-### ON-63 — Deterministic overnight briefings inbox · ~2 days
-**Status:** 🧊 Deferred
-**Why:** Overnight `claude -p "/overnight"` was disabled 2026-04-24 (cost). Replacement concept: a deterministic shell-script orchestrator runs scanners + drift probes + stale-PR sweep nightly, writes findings to `.claude/briefings/inbox/` as YAML-frontmatter markdown files. CLAUDE.md instructs each session-start to read the inbox, surface critical/medium findings in one paragraph, and move triaged files to `.claude/briefings/triaged/`. Pattern: filesystem-as-pubsub broker; producers and consumers fully decoupled. Same shape can carry Sentry digests, dependency alerts, etc.
-**Work:** `scripts/overnight/run.sh` orchestrator + 6–8 probes (scanners, dep drift, CI health, test-count drift, stale PRs, unused exports, TODO inventory, lifecycle self-check). `scripts/overnight/lifecycle.sh` for inbox → triaged → archive transitions. New launchd plist replacing `com.bradygrapentine.overnight-carelog.plist`. CLAUDE.md hook instructing session-start behavior. Bash test suite to lock the orchestrator's contract.
-**Blocked by:** nothing technical. Deferred because pre-launch product work is higher priority. Revisit when daily friction from "what changed overnight" is felt.
-
 ---
 
 ## 6. Deferred UI polish (UX-*) — intentionally parked
@@ -220,9 +197,6 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
-
-### 2026-04-25 TD-20 quarantined pgTAP tests restored
-✅ **TD-20** Restore 4 quarantined RLS pgTAP tests — rewrote fixtures to `INSERT INTO auth.users` pattern + fixed invalid UUIDs; all 26 tests green; `_quarantined-tests/` dir removed.
 
 ### 2026-04-23..24 UX-14..21 design-spec batch + CI rescue (PRs #124–#135)
 ✅ **UX-14** Command palette (⌘K) — modal with Jump / Log / Admin sections, fuzzy search, keyboard nav (PR #125)
