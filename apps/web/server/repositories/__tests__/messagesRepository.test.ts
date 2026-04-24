@@ -234,7 +234,7 @@ describe("findOrCreateDm", () => {
       count: null,
       status: 200,
       statusText: "OK",
-    });
+    } as unknown as Awaited<ReturnType<typeof supabaseAdmin.rpc>>);
 
     const result = await findOrCreateDm("user-a", "user-b", "org-1");
     expect(result).toBe("existing-thread-id");
@@ -248,7 +248,7 @@ describe("findOrCreateDm", () => {
       count: null,
       status: 200,
       statusText: "OK",
-    });
+    } as unknown as Awaited<ReturnType<typeof supabaseAdmin.rpc>>);
 
     const newThread = { id: "new-thread-id" };
     const insertChain = {
@@ -286,7 +286,7 @@ describe("findOrCreateDm", () => {
       count: null,
       status: 200,
       statusText: "OK",
-    });
+    } as unknown as Awaited<ReturnType<typeof supabaseAdmin.rpc>>);
 
     const insertChain = {
       insert: vi.fn().mockReturnThis(),

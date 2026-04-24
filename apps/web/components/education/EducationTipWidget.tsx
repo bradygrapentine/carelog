@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 
 type Props = {
@@ -42,13 +42,12 @@ export function EducationTipWidget({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            asChild
-            size="sm"
-            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          <Link
+            href={`/education/${guideSlug}`}
+            className={buttonVariants({ size: "sm", className: "bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2" })}
           >
-            <Link href={`/education/${guideSlug}`}>Read guide</Link>
-          </Button>
+            Read guide
+          </Link>
           <Button
             size="sm"
             variant="ghost"

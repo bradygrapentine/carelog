@@ -25,18 +25,17 @@ export async function listComments(
 
   if (error) throw error;
 
-  return (data ?? []).map(
-    (
-      row: CareEventCommentRow & { profiles: { display_name: string } | null },
-    ) => ({
-      id: row.id,
-      authorId: row.author_id,
-      authorName: row.profiles?.display_name ?? "Unknown",
-      body: row.body,
-      editedAt: row.edited_at ?? null,
-      createdAt: row.created_at,
-    }),
-  );
+  type CommentWithProfile = CareEventCommentRow & {
+    profiles: { display_name: string } | null;
+  };
+  return ((data ?? []) as unknown as CommentWithProfile[]).map((row) => ({
+    id: row.id,
+    authorId: row.author_id,
+    authorName: row.profiles?.display_name ?? "Unknown",
+    body: row.body,
+    editedAt: row.edited_at ?? null,
+    createdAt: row.created_at,
+  }));
 }
 
 /** Insert a comment. RLS enforces author = auth.uid(). */

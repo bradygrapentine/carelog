@@ -105,8 +105,6 @@ export function ShiftForm({
           id: shiftId,
           org_id: orgId,
           assignee_user_id: aId,
-          start_at: startAt,
-          end_at: endAt,
           notes: n,
         });
       } else {

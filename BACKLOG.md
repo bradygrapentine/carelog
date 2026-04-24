@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 5 | TD-03 · PP-009 · PP-014 · UX-17 · UX-21 |
-| 🔎 In review | 0 | — |
+| 🟢 Ready | 6 | TD-03 · TD-14 · PP-009 · PP-014 · UX-17 · UX-21 |
+| 🔎 In review | 8 | UX-14 (#125) · UX-15 (#126) · UX-16 (#128) · UX-18 (#127) · UX-19 (#129) · UX-20 (#130) · TD-15 (#131) · TD-16 |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |

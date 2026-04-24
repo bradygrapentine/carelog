@@ -14,7 +14,7 @@ type Props = {
   orgId: string;
   recipientId: string;
   currentUserRole: string;
-  medications?: Array<{ id: string; drug_name: string }>;
+  medications?: Array<{ id: string; drug_name: string; brand_name: string | null }>;
 };
 
 type DocRow = {

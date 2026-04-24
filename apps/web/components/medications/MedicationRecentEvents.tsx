@@ -5,14 +5,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ClipboardList } from "lucide-react";
 
-type Props = { medicationId: string };
+type RecentEvent = { id: string; occurred_at: string; event_type: string; payload: Record<string, unknown> };
 
-export function MedicationRecentEvents({ medicationId }: Props) {
+type Props = { medicationId: string; orgId: string };
+
+export function MedicationRecentEvents({ medicationId, orgId }: Props) {
   const { data, isLoading } = trpc.medications.get.useQuery({
     medication_id: medicationId,
+    org_id: orgId,
   });
 
-  const events = data?.recentEvents ?? [];
+  const events = (data?.recentEvents ?? []) as RecentEvent[];
 
   if (isLoading)
     return <p className="text-sm text-[var(--color-muted)] px-1">Loading…</p>;
@@ -36,7 +39,7 @@ export function MedicationRecentEvents({ medicationId }: Props) {
                 key={evt.id}
                 className="text-sm text-[var(--color-ink)] line-clamp-2"
               >
-                {evt.payload?.text ?? "—"}
+                {(evt.payload?.text as string | null | undefined) ?? "—"}
               </li>
             ))}
           </ul>

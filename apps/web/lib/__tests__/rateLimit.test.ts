@@ -46,7 +46,7 @@ describe("rateLimit fail-closed behavior", () => {
   });
 
   it("no-ops in dev when Upstash env vars are missing", async () => {
-    process.env.NODE_ENV = "development";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "development";
     delete process.env.VERCEL_ENV;
     const req = makeRequest({ "x-real-ip": "1.2.3.4" });
     const res = await rateLimit(req, "test/endpoint");
@@ -54,7 +54,7 @@ describe("rateLimit fail-closed behavior", () => {
   });
 
   it("returns 503 in production when Upstash env vars are missing (fail-closed)", async () => {
-    process.env.NODE_ENV = "production";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
     const req = makeRequest({ "x-real-ip": "1.2.3.4" });
     const res = await rateLimit(req, "test/endpoint");
     expect(res).not.toBeNull();
@@ -62,7 +62,7 @@ describe("rateLimit fail-closed behavior", () => {
   });
 
   it("returns 503 when VERCEL_ENV=production and creds missing", async () => {
-    process.env.NODE_ENV = "development";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "development";
     process.env.VERCEL_ENV = "production";
     const req = makeRequest({ "x-real-ip": "1.2.3.4" });
     const res = await rateLimit(req, "test/endpoint");
