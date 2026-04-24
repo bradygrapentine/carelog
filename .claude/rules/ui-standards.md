@@ -9,6 +9,28 @@ These rules apply to every change under `apps/web/app/` and `apps/web/components
 - **Icons**: `lucide-react`. Avoid emoji in production surfaces except where an emoji IS the content (mood tags, reactions).
 - **Fonts**: `--font-sans` from `globals.css`. Do not import ad-hoc `@next/font` in components.
 
+## Typography (UX-16)
+
+Three font tokens are exposed via `@theme inline` in `globals.css`, loaded once via `next/font/google` in `app/layout.tsx`:
+
+| Token | Family | Use for |
+|---|---|---|
+| `var(--font-body)` (alias of `--font-sans`) | Geist 400/500/600 | Default body, UI, controls |
+| `var(--font-display)` | Fraunces (variable, opsz 9-144) | Editorial headlines on BriefHero, Daily Brief, marketing |
+| `var(--font-mono)` | Geist Mono | Eyebrows, timestamps, data labels |
+
+Three utility classes are exposed in `globals.css` (`@layer components`) for the editorial pattern:
+
+- `.headline-display` — Fraunces 400, `letter-spacing: -0.025em`, tight leading. Use for hero/section headlines on editorial surfaces.
+- `.headline-display em` — descendant rule. `<em>` inside a `.headline-display` becomes italic + weight 300 + primary color (the "load-bearing italic emphasis" from the design spec). Outside `.headline-display`, `<em>` keeps default browser italic — no global override.
+- `.eyebrow-mono` — 11px uppercase Geist Mono, `letter-spacing: 0.04em`, muted color. Use for "TODAY'S BRIEF · auto-generated 7:02a" style mono labels above headlines.
+
+Rules:
+
+- **Apply selectively to editorial surfaces** (BriefHero, Daily Brief route, marketing pages). Do NOT mass-refactor existing app UI to Fraunces — incremental adoption only.
+- Default body text stays on `--font-sans` / `--font-body`. Don't change that without a UX-* row.
+- Never style a bare `<em>` globally. The italic-emphasis rule is intentionally scoped to `.headline-display em` so existing literal `<em>` usage across the codebase keeps default browser styling.
+
 ## Design tokens — always consume, never invent
 
 Defined in `apps/web/app/globals.css` under `@theme inline`. Reference via CSS variables:
