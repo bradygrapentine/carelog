@@ -16,11 +16,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 3 | TD-03 · PP-009 · PP-014 |
-| 🔎 In review | 0 | — |
+| 🟢 Ready | 6 | TD-03 · TD-14 · PP-009 · PP-014 · UX-17 · UX-21 |
+| 🔎 In review | 7 | UX-14 (#125) · UX-15 (#126) · UX-16 (#128) · UX-18 (#127) · UX-19 (#129) · UX-20 (#130) · TD-15 (#131) |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
-| 🧊 Deferred | 5 | §5 ON-55 · §6 UX-08/09/11 · §3 PP-013 |
+| 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -79,10 +79,23 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-08 | ✅ Shipped · PR #95 | **Supabase types regen + `as any` cleanup** | Regenerated `database.types.ts`; removed 10 `as any` casts from `careEventCommentsRepository.ts`. |
 | TD-09 | ✅ Shipped · PR #96 | **ShiftList edit mode** | Added `shifts.update` tRPC mutation + ShiftForm edit-mode props + inline edit panel in ShiftList with `editingShift` state. |
 | TD-10 | ✅ Shipped · PR #97 | **JournalClient refactor** | Extracted `useJournalData`, `useOfflineQueue`, `useJournalActions` hooks + `JournalLayout` component. JournalClient.tsx: 624 → 107 lines. |
+| TD-14 | 🟢 Ready | **Restore green CI: clear 491 lint errors** | 471 are `@typescript-eslint/no-explicit-any` (pre-existing tech debt, accumulated across the codebase). Remaining 20 = `no-unused-vars`, `react/no-unescaped-entities`, `react-hooks/set-state-in-effect`/`exhaustive-deps`, `jsx-a11y/click-events-have-key-events`/`no-static-element-interactions`, `ban-ts-comment`. CLAUDE.md already prohibits `any` without explicit approval, so the lint rule is enforcing existing policy. Strategy options: (1) bulk auto-fix what `eslint --fix` can handle, then PR-by-PR cleanup of the rest by directory; (2) downgrade `no-explicit-any` to warning until cleaned up. Multi-day effort either way. **Why this matters now:** CI has been red on main since 2026-04-17, masking real regressions and forcing every recent merge to rely on local-test signal. |
+| TD-15 | 🔎 In review · PR #131 | **Fix CI infra: lockfile drift + workflow script-name bugs** | (a) `apps/mobile/package.json` had `expo-web-browser` declared without lockfile regen → every CI job failed at `pnpm install --frozen-lockfile`. Fixed by `pnpm install`. (b) `.github/workflows/ci.yml` Typecheck job ran `pnpm typecheck` (typo, root script is `type-check`) → `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL`. (c) Web-tests job ran `pnpm test:coverage` from `apps/web/` (script lives at root) → same error. Both fixed by matching the local pre-commit hook pattern (`npx vitest run` from apps/web). Coverage upload removed; coverage was never actually being generated. |
 
----
+### Design enhancement spec (UX-14..21) — opened 2026-04-23
 
-## 2. Overnight queue 🌙
+Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-14 | 🔎 In review · PR #125 | **Command palette (⌘K)** | Modal triggered by ⌘K (Cmd+K mac, Ctrl+K elsewhere) from any logged-in screen. Sections: **Jump to** (routes), **Log** (med/mood/meal/BP/note/visit), **People** (ping member), **Admin** (settings, invite). Fuzzy search (simple `includes()` is fine for v1). Esc closes, ↑↓ navigates, Enter submits. New: `apps/web/components/CommandPalette.tsx` + test; hotkey listener mounted in `AppShellClient`. **People section omitted** (no `team.list` route or member-profile page found — revisit when those exist). 18 tests added. |
+| UX-15 | 🔎 In review · PR #126 | **Quick-log FAB** | Floating action button bottom-right of main content (not sidebar). Click expands to options: Meds, Mood, BP, Note, Meal, Hydration. Wired actions navigate to existing journal panels (`/journal/[recipientId]?panel=...`); meal + hydration shipped as **disabled "Coming soon"** (no schema yet — do not invent). Mounted in `AppShellClient` (every `(app)` route). 17 tests added. **Will conflict with UX-14 (#125) on `AppShellClient.tsx` — trivial additive resolve at second-merge.** |
+| UX-16 | 🔎 In review · PR #128 | **Fraunces + Geist type system** | Plumbing-only: added Fraunces + Geist Mono via `next/font/google`; exposed `--font-display`/`--font-body`/`--font-mono` in `@theme inline`; added 3 utility classes (`.headline-display`, `.headline-display em`, `.eyebrow-mono`) in `@layer components`. Italic em pattern is **scoped** to `.headline-display em` — no global `em` rule, existing literal `<em>` usage unchanged. `--font-sans` still resolves to Geist (no body-text regression). 6-assertion smoke test in `lib/__tests__/typography-tokens.test.ts`. **No existing component refactored** — UX-17 + UX-21 adopt the tokens. |
+| UX-17 | 🟢 Ready | **Editorial dashboard refactor: BriefHero + MedCard + MoodCard** | Two-col layout (1.6fr/1fr). BriefHero card: blurred primary-subtle blob, mono pill eyebrow ("Today's brief · auto-generated 7:02a"), Fraunces 26 paragraph, status pills row. MedCard: check-style rows, strikethrough+60% opacity when taken, "Log" soft button when not. MoodCard: 13-bar sparkline (today in `--color-primary`, rest in `--color-primary-subtle`), Fraunces 28 mood label. Re-uses existing dashboard data; presentation-only refactor. Depends on UX-16. ~2 days. |
+| UX-18 | 🔎 In review · PR #127 | **Patterns strip in Journal** | Horizontal-scroll row of pastel cards above journal feed surfacing AI insights ("Eleanor more anxious on Tuesdays", "Sleep drops 90m after PT", "Mood highest when Priya visits"). v1 ships scaffold + 3 hardcoded mock patterns + tap-to-detail (`?filter=mood` query param). Real aggregation deferred to UX-24. New: `apps/web/components/journal/PatternsStrip.tsx` + test. Mounted at top of `JournalLayout` journal-destination block. 15 tests added. |
+| UX-19 | 🔎 In review · PR #129 | **Shift Handoff: "What did I miss?" view** | TopBar "What did I miss?" button (mounted in `JournalLayout` — no standalone TopBar exists) opens modal with 5 sections: Meds, Moments, Appointments, Concerns, Thanks. 24h/48h/72h period selector. Pure summary builder in `lib/handoffSummary.ts` with 18 tests; component with 12 tests. Uses existing `careEvents.timeline` tRPC query, client-side window filter. v1 manual trigger; auto-detect on `last_seen` deferred. Schema dump found: `entry_type` enum = journal/medication/shift/appointment/symptom/task/expense/handoff. **Will conflict with UX-18 (#127) on `JournalLayout.tsx` — trivial additive resolve.** |
+| UX-20 | 🔎 In review · PR #130 | **Print-friendly visit summary** | Dashboard "Generate visit summary" button → authenticated `/visit-summary` route (no token; caregiver prints, doesn't share). 6-section printable layout: patient info (PHI from `identity_vault` per P4-03 pattern), meds + adherence %, vitals SVG sparklines, symptoms, journal highlights, blank questions textarea. Uses `window.print()` — no `@react-pdf/renderer` needed. `lib/medAdherence.ts` pure helper with 14 tests; component with 18 tests. **Will conflict with UX-19 button placement if we add a Visit Summary button to TopBar later — but currently mounted on Dashboard, so no overlap with #129.** |
+| UX-21 | 🟢 Ready | **Daily Brief: full-page editorial view** | Magazine-style article (`max-w-[720px]`) with Fraunces 48 headline ("A good morning for Eleanor"), mono dateline, 5-8 AI-generated paragraphs referencing care entries inline, doctor-friendly bullet section at bottom, "Email family" + "Print for visit" actions. Re-uses existing brief generation pipeline. Refactor of `apps/web/app/brief/[token]/page.tsx`. Depends on UX-16. ~1 day. |
 
 Picked up automatically by the nightly agent. Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
 
@@ -175,6 +188,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 - **UX-08** — Storybook component library (post-launch, when component count warrants).
 - **UX-09** — Visual regression testing (Percy/Chromatic or Playwright screenshot diffs).
 - **UX-11** — Onboarding flow redesign — low traffic, functional as-is.
+- **UX-22** — Configurability surface from 2026-04-23 design spec: theme switcher (sage/slate/rose), density picker (compact/comfortable/airy), radius picker (sharp/soft/pillowy), grain overlay, 5 hero variants, 3 dashboard layouts. Cut deliberately to preserve a single opinionated "editorial, calm, dignified" look. Revisit only if A/B data shows real demand.
+- **UX-23** — Crisis/SOS mode. Subtle red SOS button → emergency contacts (911, primary doctor, family) + current meds + allergies + DNR/advance directive + one-tap "notify care circle." Parked separately from UX-14..21 batch — needs scoping with legal, accuracy guarantees on meds list, contact failover, and audit-log behavior before any code lands.
+- **UX-24** — Real pattern aggregation for Journal Patterns strip. Replaces UX-18 hardcoded mocks with actual SQL/AI aggregation over `care_events` (mood-by-day-of-week, sleep-vs-event correlation, mood-vs-visitor correlation). Schedule after UX-18 ships and we have real production usage to validate the patterns are useful.
 
 ---
 
