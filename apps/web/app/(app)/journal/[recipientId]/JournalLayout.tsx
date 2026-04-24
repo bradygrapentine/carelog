@@ -1,8 +1,10 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { HandoffSummary } from "@/components/HandoffSummary";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { JournalTimeline } from "./JournalTimeline";
 import { TeamPanel } from "./TeamPanel";
@@ -103,6 +105,7 @@ export function JournalLayout({
   onFlushQueue,
 }: LayoutProps) {
   const { activeDestination } = useContext(SidebarContext);
+  const [handoffOpen, setHandoffOpen] = useState(false);
   const sectionLabel = DESTINATION_LABELS[activeDestination] ?? "Journal";
 
   return (
@@ -121,10 +124,27 @@ export function JournalLayout({
               {sectionLabel}
             </span>
           </div>
-          <span className="text-xs text-[var(--color-muted)]">
-            {user.email}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setHandoffOpen(true)}
+              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
+              aria-label="What did I miss? — open handoff summary"
+            >
+              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">What did I miss?</span>
+            </button>
+            <span className="text-xs text-[var(--color-muted)] hidden sm:inline">
+              {user.email}
+            </span>
+          </div>
         </header>
+
+        <HandoffSummary
+          open={handoffOpen}
+          onClose={() => setHandoffOpen(false)}
+          recipientId={recipientId}
+        />
 
         {/* Panel content */}
         <main className="flex-1 max-w-2xl lg:max-w-6xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
