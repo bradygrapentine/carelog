@@ -479,19 +479,7 @@ or your spending limit needs to be increased.
 
 **How to verify:** Push a trivial commit; all CI jobs start within 30 seconds.
 
-### 13b. ANTHROPIC_API_KEY GitHub secret
-
-**What:** API key for the AI security review CI job (`.github/workflows/ci.yml` — the `ai-review` job). Every PR triggers this job via `scripts/ci-ai-review.mjs`.
-
-**Why critical:** If missing or revoked, the `ai-review` CI job fails on every PR, preventing the auto-security-review that catches PHI leakage and RLS bypasses.
-
-**Where to set:** GitHub → repository → Settings → Secrets and variables → Actions → New repository secret
-- Name: `ANTHROPIC_API_KEY`
-- Value: starts with `sk-ant-api03-...`
-
-**How to verify:** Open a PR → CI → `AI security review` job completes and posts a review comment on the PR.
-
-### 13c. Allow auto-merge
+### 13b. Allow auto-merge
 
 **What:** Repository setting that lets `gh pr merge --auto --squash` queue a merge to fire when CI goes green.
 
@@ -501,7 +489,7 @@ or your spending limit needs to be increased.
 
 **How to verify:** Run `gh pr merge --auto --squash <PR-number>` — should succeed with no error.
 
-### 13d. Branch protection on `main`
+### 13c. Branch protection on `main`
 
 **Current state:** `main` allows `gh pr merge --admin` without required reviews or status checks. This is permissive — convenient for fast iteration but risky for production.
 
@@ -562,8 +550,7 @@ Should print the installed path, not "Executable doesn't exist".
 - [ ] Auth flow: OTP → dashboard working end-to-end
 - [ ] Invite flow: invite sent → accepted → member appears in team
 - [ ] GitHub Actions billing healthy (see §13a)
-- [ ] `ANTHROPIC_API_KEY` GitHub secret set (see §13b)
-- [ ] Allow auto-merge enabled if overnight agents will be used (see §13c)
+- [ ] Allow auto-merge enabled if overnight agents will be used (see §13b)
 
 ---
 
@@ -594,5 +581,4 @@ Items that **block** Claude-executable stories in `BACKLOG.md`:
 | `google-services.json` in EAS | `PP-007` — Android push notification verification |
 | APNs `.p8` key in EAS | iOS production push builds |
 | `SENTRY_AUTH_TOKEN` in Vercel | `TD-03` — source maps upload on each production build |
-| `ANTHROPIC_API_KEY` GitHub secret | AI security review CI job on every PR |
 | GitHub Actions billing healthy | Every CI job (see `CI_HEALTH.md`) |
