@@ -317,23 +317,40 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ## 8. Human setup (pre-launch)
 
-Canonical reference: `docs/project-info/runbooks/THIRD_PARTY_SETUP.md`. These tasks require signing into third-party consoles and cannot be automated:
+Canonical references:
+- `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` — all third-party service accounts + env vars
+- `docs/project-info/runbooks/CI_HEALTH.md` — GitHub billing, secrets, repo settings
 
-- **Supabase cloud** — project, keys, connection string
-- **Vercel** — project + all env vars
-- **Sentry** — DSN verification
-- **PostHog** — project + key + privacy settings
-- **Inngest cloud** — keys + register app post-deploy
-- **Resend** — API key + domain verification
-- **Stripe** — account + product + prices + webhook endpoint
-- **Firebase / FCM** — Android push (`google-services.json` → EAS)
-- **Deep-link verification files** — AASA (iOS) + `assetlinks.json` (Android) served from the marketing domain (prerequisite for PP-008)
-- **APNs `.p8` key** — via EAS credentials
+These tasks require signing into third-party consoles and cannot be automated:
+
+**Third-party services (THIRD_PARTY_SETUP.md)**
+- **Supabase cloud** — project, keys, HIPAA BAA (§1)
+- **Vercel** — project + all env vars, `SENTRY_AUTH_TOKEN` (§2)
+- **Inngest cloud** — keys + register app post-deploy (§3)
+- **Resend** — API key + domain verification (§4)
+- **Upstash Redis** — rate-limiting database (§5)
+- **Stripe** — account + product + prices + webhook endpoint in live mode (§6)
+- **Sentry** — DSN + source maps auth token (§7)
+- **PostHog** — project + key + privacy settings (§8)
+- **VAPID keys** — generate once, set in Vercel (§9)
+- **Firebase / FCM** — Android push (`google-services.json` → EAS) (§10)
+- **APNs `.p8` key** — via EAS credentials (§11)
+- **Deep-link verification files** — AASA (iOS) + `assetlinks.json` (Android) (§12)
+
+**GitHub / CI prerequisites (CI_HEALTH.md)**
+- **GitHub Actions billing** — payment method + spending limit; hard-blocks all CI when failed (§1)
+- **`ANTHROPIC_API_KEY` secret** — repo Settings → Secrets → Actions; gates AI security review on every PR (§2)
+- **Allow auto-merge** — repo Settings → General → Pull Requests; required for overnight agent PRs (§3)
+- **Branch protection on `main`** — current posture permissive; tighten post-launch (§4)
+
+**Local dev (THIRD_PARTY_SETUP.md §14)**
+- **Playwright Chromium** — `cd apps/web && npx playwright install chromium` — new machines hit a hard pre-commit failure without this
 
 Claude work that's **gated on the above** (cannot start until the human completes the corresponding step):
 - 🧑 **A2** — `supabase link --project-ref <ref>` + `db push` + bucket create + `supabase test db` against cloud *(needs Supabase cloud keys)*
 - 🧑 **C3** — update weekly digest FROM address to `notifications@<verified-domain>` *(needs Resend verified domain)*
 - 🧑 **PP-008** — Android app-links verification *(needs `assetlinks.json` on a live domain + EAS build SHA-256)*
+- 🧑 **TD-03** — Sentry source maps *(needs `SENTRY_AUTH_TOKEN` in Vercel)*
 
 ---
 
