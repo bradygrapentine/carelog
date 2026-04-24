@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 6 | TD-03 · PP-009 · PP-014 · UX-21 · ON-61 · TD-17 |
+| 🟢 Ready | 7 | TD-03 · PP-009 · PP-014 · UX-21 · ON-61 · TD-17 · TD-20 |
 | 🔎 In review | 1 | UX-17 (#138) |
 | 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
@@ -85,6 +85,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-17 | 🟢 Ready | **Mobile test failures: 7 files red, 11 tests** | `npx jest --no-coverage --ci` from `apps/mobile/` reports failures in `__tests__/font-scale.test.ts`, `__tests__/usePushNotifications.test.ts`, and 5 screen-level `__tests__/index.test.tsx` files (schedule/medications/expenses/journal/outer-circle). Root cause for `font-scale` is rounding-precision drift after `ea59d279 fix(mobile): round scaledFont output to integer pixels`; the screen tests likely share an unmocked nav/store dependency. **First step:** read each failure individually and group by root cause before fixing. Estimated 1–2 hrs once root cause is clear. CI doesn't currently run mobile tests against PRs — fixing these AND wiring `mobile-tests` job to run on PRs would close the gap permanently. |
 | TD-18 | 🧊 Deferred | **Mobile a11y test infrastructure (29 skipped tests)** | 29 `it.skip(...)` calls across 15 mobile screen a11y test files. Pattern: each skipped test asserts label/role using `@testing-library/react-native`. Skipped because the testing-library setup needs Expo-specific stubs that aren't wired. **Work:** `vi.mock('expo-router')`, `vi.mock('expo-image')`, `@testing-library/react-native` config in `jest.setup.ts`. Probably 0.5–1 day once the mock surface is mapped. Deferred until TD-17 (mobile tests run at all) is green. |
 | TD-19 | 🧊 Deferred | **e2e auth fixture for offline-journal spec** | `e2e/offline-journal.spec.ts:7` has `TODO: requires auth fixtures — skeleton for structure`. The spec is a placeholder. Need a Playwright fixture that signs in a test user without OTP (Supabase `signInWithPassword` against a seeded user). Once available, this spec + future offline-mode specs can land. ~0.5 day. |
+| TD-20 | 🟢 Ready | **Restore 4 quarantined pgTAP tests** | `supabase/_quarantined-tests/` holds 4 RLS test files that fail on a fresh `supabase db reset` for unrelated reasons: `ai_conversations_rls` + `education_tip_cache_rls` use a non-existent `tests.create_supabase_user(...)` helper, and `medication_tagging_rls` + `shift_trade_requests_rls` use invalid (non-hex) UUID literals (`'org46000a-…'`, `'shift001-…'` etc.) that postgres rejects. Each needs its fixtures rewritten to the standard `INSERT INTO auth.users (...)` pattern + valid UUIDs. See `supabase/_quarantined-tests/README.md` for per-file detail. ~0.5 day per file, 1.5 days total. |
 
 ### Design enhancement spec (UX-14..21) — opened 2026-04-23
 
