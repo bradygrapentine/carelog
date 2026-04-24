@@ -317,9 +317,15 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ## 8. Human setup (pre-launch)
 
+**Entry point:** `SETUP.md` at the repo root — complete setup guide for a fresh machine or fresh GitHub account, with a copy-paste master checklist.
+
 Canonical references:
-- `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` — all third-party service accounts + env vars
+- `SETUP.md` — THE starting point; links to all deep-dive docs below
+- `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` — all third-party service accounts + env vars (17 sections)
+- `docs/project-info/runbooks/ENV_VARS.md` — flat reference of every env var (name, service, required/optional, where to set)
 - `docs/project-info/runbooks/CI_HEALTH.md` — GitHub billing, secrets, repo settings
+- `docs/project-info/runbooks/MOBILE_SETUP.md` — Expo / EAS / APNs / Firebase / deep links
+- `docs/project-info/runbooks/DEPLOYMENT.md` — production deploy runbook + rollback
 
 These tasks require signing into third-party consoles and cannot be automated:
 
