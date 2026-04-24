@@ -32,7 +32,7 @@ type LoadedData = {
 export default function VisitSummaryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const questions = searchParams.get("questions") ?? "";
+  const questions = searchParams?.get("questions") ?? "";
 
   const [data, setData] = useState<LoadedData | null>(null);
   const [loading, setLoading] = useState(true);
