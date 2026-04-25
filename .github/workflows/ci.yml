@@ -14,7 +14,62 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# dorny/paths-filter needs read access to the PR's file list.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  # ─── Path detection — TD-35 fix ─────────────────────────────────────────────
+  # WHY dorny/paths-filter instead of inline contains(toJSON(...))?
+  #
+  # TD-30 (PR #164) used:
+  #   contains(toJSON(github.event.pull_request.changed_files), 'apps/web')
+  #
+  # This is broken in two ways:
+  #   1. `github.event.pull_request.changed_files` is an INTEGER (the count of
+  #      changed files), not a list of paths. toJSON of an integer is "42", not
+  #      a JSON array of filenames — contains() always returns false.
+  #   2. `github.event.commits[0].modified` only exists on push events, not on
+  #      pull_request events. On PRs it resolves to null/missing.
+  #
+  # Result: every path-gated job silently SKIPPED on every PR. CI Summary
+  # treats SKIPPED as pass, so deps bumps merged without running test suites.
+  # TD-29 (#165) surfaced this: pnpm-lock.yaml was changed but Web/Mobile/
+  # RLS/E2E all skipped. Fix: use dorny/paths-filter@v3 which calls the
+  # GitHub Files API to get actual changed-file paths. (TD-35)
+
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      supabase: ${{ steps.filter.outputs.supabase }}
+      deps: ${{ steps.filter.outputs.deps }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            mobile:
+              - 'apps/mobile/**'
+            supabase:
+              - 'supabase/**'
+            deps:
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'apps/*/package.json'
+              - 'apps/mobile/package-lock.json'
+              - '.github/workflows/**'
+            e2e:
+              - 'e2e/**'
+
   # ─── Fast checks — run in parallel ──────────────────────────────────────────
 
   typecheck:
@@ -51,16 +106,13 @@ jobs:
 
   web-tests:
     name: Web — unit tests
+    needs: changes
     runs-on: ubuntu-latest
-    # Skip when no web/package/lockfile changes (yaml/markdown-only diffs skip this)
+    # Always run in merge queue; on PRs/push run when web/package/lockfile changes
     if: |
       github.event_name == 'merge_group' ||
-      contains(toJSON(github.event.pull_request.changed_files), 'apps/web') ||
-      contains(toJSON(github.event.commits[0].modified), 'apps/web') ||
-      contains(toJSON(github.event.commits[0].modified), 'packages') ||
-      contains(toJSON(github.event.commits[0].modified), 'pnpm-lock.yaml') ||
-      contains(toJSON(github.event.commits[0].modified), 'package.json') ||
-      contains(toJSON(github.event.commits[0].modified), '.github/workflows/ci.yml')
+      needs.changes.outputs.web == 'true' ||
+      needs.changes.outputs.deps == 'true'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -80,15 +132,13 @@ jobs:
 
   mobile-tests:
     name: Mobile — unit tests
+    needs: changes
     runs-on: ubuntu-latest
-    # Skip when no mobile/lockfile changes
+    # Always run in merge queue; on PRs/push run when mobile/lockfile changes
     if: |
       github.event_name == 'merge_group' ||
-      contains(toJSON(github.event.pull_request.changed_files), 'apps/mobile') ||
-      contains(toJSON(github.event.commits[0].modified), 'apps/mobile') ||
-      contains(toJSON(github.event.commits[0].modified), 'pnpm-lock.yaml') ||
-      contains(toJSON(github.event.commits[0].modified), 'package.json') ||
-      contains(toJSON(github.event.commits[0].modified), '.github/workflows/ci.yml')
+      needs.changes.outputs.mobile == 'true' ||
+      needs.changes.outputs.deps == 'true'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -105,14 +155,13 @@ jobs:
 
   mobile-android-build:
     name: Mobile — Android debug build
+    needs: changes
     runs-on: ubuntu-latest
     # Only run on PRs that touch mobile code (android/ is committed, so this validates it builds)
     if: |
       github.event_name == 'pull_request' && (
-        contains(toJSON(github.event.pull_request.changed_files), 'apps/mobile') ||
-        contains(toJSON(github.event.pull_request.changed_files), 'pnpm-lock.yaml') ||
-        contains(toJSON(github.event.pull_request.changed_files), 'package.json') ||
-        contains(toJSON(github.event.pull_request.changed_files), '.github/workflows/ci.yml')
+        needs.changes.outputs.mobile == 'true' ||
+        needs.changes.outputs.deps == 'true'
       )
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -156,12 +205,12 @@ jobs:
 
   rls-tests:
     name: RLS pgTAP tests
+    needs: changes
     runs-on: ubuntu-latest
-    # Skip when no supabase changes
+    # Always run in merge queue; on PRs/push run when supabase changes
     if: |
       github.event_name == 'merge_group' ||
-      contains(toJSON(github.event.pull_request.changed_files), 'supabase') ||
-      contains(toJSON(github.event.commits[0].modified), 'supabase')
+      needs.changes.outputs.supabase == 'true'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: supabase/setup-cli@v1
@@ -176,16 +225,16 @@ jobs:
 
   e2e:
     name: E2E (Playwright)
+    needs: changes
     runs-on: ubuntu-latest
-    # Run on push to main OR PRs/merge_queue that touch web/e2e code
+    # Run on push to main OR PRs/merge_queue that touch web/e2e/lockfile
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       github.event_name == 'merge_group' ||
       (github.event_name == 'pull_request' && (
-        contains(toJSON(github.event.pull_request.changed_files), 'apps/web') ||
-        contains(toJSON(github.event.pull_request.changed_files), 'e2e') ||
-        contains(toJSON(github.event.pull_request.changed_files), 'pnpm-lock.yaml') ||
-        contains(toJSON(github.event.pull_request.changed_files), '.github/workflows/ci.yml')
+        needs.changes.outputs.web == 'true' ||
+        needs.changes.outputs.e2e == 'true' ||
+        needs.changes.outputs.deps == 'true'
       ))
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -249,6 +298,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
+      - changes
       - typecheck
       - lint
       - web-tests
