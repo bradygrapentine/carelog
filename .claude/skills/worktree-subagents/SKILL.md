@@ -1,170 +1,162 @@
 ---
 name: worktree-subagents
-description: Use when dispatching parallel subagents that need isolated file state — feature branches, simultaneous multi-layer implementation, or parallel test fixes that touch overlapping files
+description: Canonical primitive for parallel-subagent dispatch — owns the pre-flight checklist, worktree-with-symlinks setup, and the scope-contract template. /dispatch references this skill rather than re-stating the boilerplate. Use directly when you want hand-rolled parallel work that doesn't fit /dispatch.
 ---
 
 # Worktree Subagents — Carelog
 
-Use when two or more subagents would otherwise edit the same files, or when you want each agent to commit independently on its own branch without touching the main working tree.
+Canonical primitive for parallel work that needs isolated file state. Owns the three reusable building blocks that `/dispatch` (and its `/backlog-dispatch` alias) consume:
 
-**When to use worktrees vs plain parallel agents:**
+1. **§1 Pre-flight checklist** — git/docker/baseline-test gates
+2. **§2 Worktree setup with symlinks** — the only correct way to spin up a worktree in this repo
+3. **§3 Scope contract template** — exactly what every subagent prompt must include
 
-- Plain parallel agents: independent files, no shared state → no worktree needed
-- Worktree agents: overlapping files, or each agent needs its own branch → use this skill
+**When to use this skill directly** (instead of `/dispatch`):
+- Two parallel implementations on the same feature where each owns a layer (e.g. one agent on `apps/web/api`, another on `supabase/migrations`)
+- One-off coordination where `/dispatch`'s task-list framing doesn't fit
+- You want to invoke just one of the three blocks without the full dispatch ritual
+
+For 2+ independent tasks (ad-hoc list OR `BACKLOG.md` Ready burndown) → use `/dispatch`.
 
 ---
 
-## Pre-flight (required before every dispatch)
+## §1 Pre-flight checklist (required before every dispatch)
 
-Run these checks before creating worktrees or dispatching any subagent. Fix blockers before continuing.
+Run these checks before creating worktrees or dispatching any subagent. Abort if any block.
 
 ```bash
-# 1. Confirm working tree is clean
-git status --short   # should be empty or only untracked files
+# 1. Working tree clean
+git status --short                               # must be empty
+git branch --show-current                        # must be main (or shared parent)
 
-# 2. Each worktree needs node_modules — bootstrap after creation
-#    Run immediately after each `git worktree add`:
-#    cd .worktrees/<name> && pnpm install --frozen-lockfile
+# 2. Baseline tests green on HEAD — never dispatch into a broken baseline
+cd apps/web && npx vitest run --reporter=dot 2>&1 | tail -3 && cd -
+supabase test db 2>&1 | tail -3                  # only if any task touches supabase/
 
-# 3. Docker must be running if any subagent touches Supabase/migrations
+# 3. Docker running if any task touches Supabase / migrations
 docker info > /dev/null 2>&1 && echo "docker ok" || echo "BLOCKER: start Docker first"
 
-# 4. No interactive-login CLIs in scope
-#    If the task requires eas login / supabase login, ask the user to run it first
+# 4. Ollama optional but faster for mechanical tasks
+curl -sf http://localhost:11434/api/tags > /dev/null && echo "ollama ok" || echo "ollama unavailable — subagents will use Claude directly"
 
-# 5. Pass relevant DB table names in subagent prompts
-#    Run: grep -r "create table" supabase/migrations/ | tail -20
-#    Include the table list in each subagent prompt to prevent schema invention
+# 5. No interactive-login CLIs in scope
+#    If a task requires `eas login` / `supabase login` — ask the user to run it first
+
+# 6. Pass relevant DB table names in subagent prompts (prevents schema invention)
+grep -r "create table" supabase/migrations/ | tail -20
+
+# 7. PHI-keyword scan on each task description (any of: posthog, analytics, identify,
+#    capture, email, auth, share_token). Flag matching tasks: their PR diffs require
+#    Opus review before merge — not autonomous merge.
 ```
 
-**Model selection:**
-- Sonnet (`Task` tool) for multi-file or judgment-heavy subagent work
-- Local Ollama (`/ollama`) for single-file, boilerplate, or exploration tasks
-- Haiku only if Ollama is unavailable
-
-**After subagents return — review checklist:**
-- [ ] Read each diff: `git -C .worktrees/<name> diff origin/main`
-- [ ] Check for invented DB tables not in `supabase/migrations/`
-- [ ] Check for out-of-scope file changes
-- [ ] Check analytics calls for PHI (grep for `identify\|capture` and confirm UUID-only)
-- [ ] Each subagent returned a diff summary
+If baseline tests fail, **stop and report**. Do not dispatch into a broken HEAD.
 
 ---
 
-## Step 1 — Create a worktree per agent
+## §2 Worktree setup with symlinks
+
+The `node_modules` symlink step is **non-negotiable**. Without it, the pre-commit `vitest run` hook fails inside the worktree even when the code is correct (documented in `.claude/CLAUDE.md` known-gotchas). `pnpm install --frozen-lockfile` in a worktree wastes ~5 min and duplicates the pnpm store and Playwright browsers.
 
 ```bash
-git worktree add .worktrees/<feature-name> origin/main
+# Per worktree:
+SLUG=<short-name>                                # e.g. ratelimit-api, td-25-supabase-test
+BRANCH=<branch-name>                             # e.g. feat/td-25-supabase-server-test
+
+git worktree add .worktrees/$SLUG origin/main -b $BRANCH
+
+ln -s /Users/bradygrapentine/projects/carelog/node_modules .worktrees/$SLUG/node_modules
+ln -s /Users/bradygrapentine/projects/carelog/apps/web/node_modules .worktrees/$SLUG/apps/web/node_modules
 ```
 
-Naming convention: `<feature>-<layer>` — e.g. `invite-web`, `invite-rls`, `auth-refactor-mobile`
+Naming convention: `<feature>-<layer>` for multi-layer features (`invite-web`, `invite-rls`), or `<id>-<slug>` for backlog items (`td-25-supabase-test`).
 
-```bash
-# Example: two agents implementing an invite hardening feature
-git worktree add .worktrees/invite-web origin/main
-git worktree add .worktrees/invite-rls origin/main
-```
-
-Each worktree gets its own branch automatically named after the directory.
+**Always base on `origin/main`**, not local `main` — avoids picking up uncommitted local changes.
 
 ---
 
-## Step 2 — Dispatch subagents with scoped paths
+## §3 Scope contract template (required in every subagent prompt)
 
-Craft each agent prompt with the worktree path as the working directory and an explicit scope boundary:
+Paste verbatim into each Agent prompt, filling the bracketed fields. Subagents that go out of scope (add unrelated features, leak PHI, commit to `main`, edit `BACKLOG.md` from a feature branch) require reverts and cherry-picks. The contract prevents this.
 
 ```
-Agent 1 prompt:
-  Working directory: /path/to/project/.worktrees/invite-web
-  Task: [specific task]
-  Scope: Only touch apps/web/app/api/invite/
-  Do NOT touch: supabase/, apps/mobile/, packages/
+WORKING DIRECTORY: /Users/bradygrapentine/projects/carelog/.worktrees/<slug>
+BRANCH: <branch>  (verify with `git branch --show-current` before EVERY commit)
 
-Agent 2 prompt:
-  Working directory: /path/to/project/.worktrees/invite-rls
-  Task: [specific task]
-  Scope: Only touch supabase/migrations/ and supabase/tests/
-  Do NOT touch: apps/
+FILES ALLOWED: [exact list of files this subagent may create or modify]
+
+DO NOT:
+  - Add features outside this task
+  - Touch files not listed above
+  - Commit to main (the harness hook hard-blocks this)
+  - Edit BACKLOG.md (status flips happen via /backlog-sync after merge — touching
+    BACKLOG.md from a feature PR creates rebase conflicts against every other open PR)
+  - Pass email or any PHI to analytics
+
+PHI RULE: posthog.identify() and posthog.capture() must use anonymous UUID only —
+          never email, name, phone, or any PII/PHI.
+
+VERIFY (before commit):
+  - Run the relevant tests (`cd apps/web && npx vitest run` for web, `supabase test db`
+    for RLS, etc.) and confirm green
+  - Summarize: what changed, what was intentionally NOT changed
+
+TASK: <the task description, including acceptance criteria>
 ```
 
-Dispatch both agents in a single message so they run in parallel.
+For backlog stories, add a TDD discipline line: **"Follow `/tdd-ship` — write failing tests first, iterate to green, then refactor."** This delegates the red-green-refactor loop and its escalation policy to the canonical TDD skill rather than re-stating it.
 
 ---
 
-## Step 3 — Review and integrate
+## §4 Dispatch in parallel
 
-When both agents return:
+Use a SINGLE message with multiple `Agent` tool calls — Claude Code runs them in parallel. Each Agent gets:
 
-1. Review each agent's diff in its worktree:
+- `subagent_type`: `general-purpose` (or a specialized agent if applicable)
+- `model`: `sonnet` default; `haiku` for known-pattern single-file work; **never `haiku` if the prompt exceeds 6000 chars** (the `route-model` PreToolUse hook hard-blocks this)
+- `run_in_background`: `true` for fan-outs of 3+ so the orchestrator's context isn't tied up
+- `prompt`: the §3 scope contract
 
-   ```bash
-   git -C .worktrees/invite-web diff origin/main
-   git -C .worktrees/invite-rls diff origin/main
+**Hard caps:**
+- Never dispatch 7+ agents at once — friction outweighs the parallelism. Batch into waves.
+- Never dispatch without a §3 scope contract.
+- Never dispatch into a worktree without §2's symlinks.
+
+---
+
+## §5 Review & integrate
+
+When subagents return:
+
+1. Read each diff: `git -C .worktrees/<slug> diff origin/main`
+2. Check for: invented DB tables, out-of-scope file changes, PHI in `identify`/`capture`
+3. If clean and tests green → push branch + open PR + arm auto-merge:
+   ```sh
+   gh pr create --title "..." --body "..."
+   gh pr merge <num> --auto --squash         # standing rule: arm auto-merge by default
    ```
-
-2. Check for conflicts between the two diffs — look for any files both agents touched
-
-3. Merge or cherry-pick into main working tree:
-
-   ```bash
-   # Option A: cherry-pick commits
-   git cherry-pick .worktrees/invite-web/<branch-tip>
-
-   # Option B: merge the branch
-   git merge .worktrees/invite-web/<branch>
-   ```
-
-4. Run the full test suite after integration:
-   ```bash
-   pnpm test && supabase test db
-   ```
+4. If a subagent returned `BLOCKED` → record reason, don't retry silently
+5. If a subagent's diff touches PHI surfaces (flagged in §1 step 7) → **do not auto-merge**; route to Opus for review first
 
 ---
 
-## Step 4 — Cleanup
+## §6 Cleanup
 
-After merging, remove worktrees:
-
-```bash
-git worktree remove .worktrees/invite-web
-git worktree remove .worktrees/invite-rls
-```
-
-Or remove all at once:
+After PRs are open (or merged):
 
 ```bash
-git worktree prune
+git worktree remove .worktrees/<slug>
+git worktree prune                                # removes stale entries
 ```
 
-`.worktrees/` is gitignored — worktrees won't appear in git status on the main branch.
+`.worktrees/` is gitignored — worktrees won't appear in `git status` on the main branch.
 
 ---
 
-## Carelog-Specific Notes
+## Carelog-specific notes
 
-- **Always base on `origin/main`**, not local main — avoids picking up uncommitted local changes
-- **RLS migrations + API routes** are the most common parallel split: one agent on `supabase/`, one on `apps/web/app/api/`
-- **Mobile + web** is another clean split: different codebases, rarely share files
-- **Never share a worktree between agents** — one worktree, one agent
-- **Supabase CLI** (`supabase test db`) must be run from the main project root, not from a worktree — RLS tests always run against the local Supabase instance
-- If an agent needs to run `pnpm test`, it should run from its worktree root (pnpm workspace resolves correctly from subdirs)
-
----
-
-## Example: Parallel Feature Branch
-
-```
-User: "Implement rate-limiting on invite routes and add pgTAP tests for the new RLS policy"
-
-→ Two independent pieces: API code + RLS migration
-→ Create two worktrees, dispatch two agents
-→ Review diffs, integrate, run full suite
-```
-
-```bash
-git worktree add .worktrees/ratelimit-api origin/main
-git worktree add .worktrees/ratelimit-rls origin/main
-```
-
-Agent 1 (in `.worktrees/ratelimit-api`): Add rate limiting to `apps/web/app/api/invite/`
-Agent 2 (in `.worktrees/ratelimit-rls`): Add migration + pgTAP tests in `supabase/`
+- **`supabase test db` runs from main project root**, not from a worktree — RLS tests always run against the local Supabase instance bound to the root.
+- **`pnpm test` runs from the worktree root** — pnpm workspace resolves correctly from subdirs once §2's symlinks are in place.
+- **Mobile + web** is a clean parallel split: different codebases, rarely share files.
+- **RLS migration + API route** is the other common split: one agent on `supabase/`, one on `apps/web/app/api/`.
+- **Never share a worktree between agents** — one worktree, one agent.
