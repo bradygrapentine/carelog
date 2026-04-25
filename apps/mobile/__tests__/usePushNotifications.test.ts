@@ -27,19 +27,31 @@ jest.mock("expo-notifications", () => ({
   AndroidImportance: { DEFAULT: 3 },
 }));
 
-jest.mock("expo-device", () => ({
-  isDevice: true,
-}), { virtual: true });
-
-jest.mock("expo-constants", () => ({
-  __esModule: true,
-  default: {
-    expoConfig: {
-      slug: "carelog",
-      extra: { eas: { projectId: "test-project-id" } },
+// Virtual mock for expo-device. Use mockIsDevice to control the value per test.
+// jest.mock factories are hoisted so we use a getter that reads a module-level var.
+// eslint-disable-next-line no-var
+var mockIsDevice = true;
+jest.mock(
+  "expo-device",
+  () => ({
+    get isDevice() {
+      return mockIsDevice;
     },
-  },
-}));
+  }),
+  { virtual: true },
+);
+
+jest.mock("expo-constants", () => {
+  const cfg = {
+    slug: "carelog",
+    extra: { eas: { projectId: "test-project-id" } },
+  };
+  return {
+    __esModule: true,
+    default: { expoConfig: cfg },
+    expoConfig: cfg,
+  };
+});
 
 jest.mock("react-native", () => ({
   Platform: { OS: "android" },
@@ -81,17 +93,12 @@ describe("usePushNotifications", () => {
     expect(result.current.permissionStatus).toBe("granted");
   });
 
-  // NOTE: this test requires jest.resetModules() + dynamic re-import, which
-  // is unsupported in Jest CJS mode (needs --experimental-vm-modules).
-  // Skipped until the project migrates to ESM jest or jest-expo adds support.
-  it.skip("skips registration on simulator (isDevice = false)", async () => {
-    jest.resetModules();
-    jest.mock("expo-device", () => ({ isDevice: false }), { virtual: true });
+  it("skips registration on simulator (isDevice = false)", async () => {
+    // Set the module-level var read by the expo-device getter mock.
+    // jest.resetModules() cannot be used here — it tears down React internals.
+    mockIsDevice = false;
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { usePushNotifications: useHook } = require("../hooks/usePushNotifications");
-
-    const { result } = renderHook(() => useHook());
+    const { result } = renderHook(() => usePushNotifications());
 
     await act(async () => {
       await new Promise((r) => setTimeout(r, 50));
@@ -100,6 +107,8 @@ describe("usePushNotifications", () => {
     expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
     expect(mockMutateAsync).not.toHaveBeenCalled();
     expect(result.current.token).toBeNull();
+
+    mockIsDevice = true; // restore for subsequent tests
   });
 
   it("handles permission denied gracefully without throwing", async () => {
