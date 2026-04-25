@@ -102,7 +102,7 @@ This delegates the red-green-refactor loop to the canonical TDD skill rather tha
 ### 5. Collect results
 
 As each agent finishes, receive its notification:
-- `DONE` → push branch, open PR, **arm auto-merge** by default (`gh pr merge <num> --auto --squash`) — matches the standing user rule
+- `DONE` → push branch, open PR, **apply `queue` label** (`gh pr edit <num> --add-label queue`) — Mergify owns the queue here; `gh pr merge --auto --squash` races Mergify and is a no-op
 - `DONE_WITH_PHI_TOUCH` (flagged in §2) → push + open PR, **do NOT auto-merge** — route to Opus for review first
 - `DONE_WITH_CONCERNS` → read concerns, decide push-with-note vs. ask user
 - `BLOCKED` → record reason; do NOT silently retry; surface to user
