@@ -20,9 +20,19 @@ type PushMessage = {
   data?: Record<string, unknown>;
 };
 
+type ExpoPushTicket =
+  | { status: "ok"; id?: string }
+  | { status: "error"; message?: string; details?: { error?: string } };
+
 /**
  * Sends one or more push messages to the Expo Push API.
- * Throws if the API returns a non-2xx status.
+ * Throws if the API returns a non-2xx status, or if any returned ticket
+ * has status "error" for a reason other than DeviceNotRegistered.
+ *
+ * DeviceNotRegistered tickets are NOT thrown — instead the corresponding
+ * push token is removed from `push_tokens` so we stop sending to it.
+ * Expo returns 200 with per-ticket errors in the response body; checking
+ * only res.ok (the prior behavior) silently dropped expired tokens.
  */
 export async function sendExpoPush(messages: PushMessage[]): Promise<void> {
   if (messages.length === 0) return;
@@ -39,6 +49,42 @@ export async function sendExpoPush(messages: PushMessage[]): Promise<void> {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Expo Push API ${res.status}: ${text}`);
+  }
+
+  const text = await res.text();
+  let tickets: ExpoPushTicket[] = [];
+  if (text) {
+    try {
+      const parsed = JSON.parse(text) as { data?: ExpoPushTicket[] };
+      tickets = parsed.data ?? [];
+    } catch {
+      // Malformed body from a 2xx is a server-side anomaly — surface it.
+      throw new Error(`Expo Push API returned non-JSON 200 body: ${text}`);
+    }
+  }
+
+  const expiredTokens: string[] = [];
+  const fatalErrors: string[] = [];
+
+  tickets.forEach((ticket, i) => {
+    if (ticket.status !== "error") return;
+    const code = ticket.details?.error;
+    if (code === "DeviceNotRegistered") {
+      const token = messages[i]?.to;
+      if (token) expiredTokens.push(token);
+    } else {
+      fatalErrors.push(
+        `${code ?? "Unknown"}: ${ticket.message ?? "no message"}`,
+      );
+    }
+  });
+
+  if (expiredTokens.length > 0) {
+    await supabaseAdmin.from("push_tokens").delete().in("token", expiredTokens);
+  }
+
+  if (fatalErrors.length > 0) {
+    throw new Error(`Expo Push per-ticket errors: ${fatalErrors.join("; ")}`);
   }
 }
 

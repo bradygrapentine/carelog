@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # GitHub merge queue fires checks against a synthetic merge_group SHA
+  # (the queued PR rebased onto main + sibling queued PRs). Required-check
+  # gating only works if the same workflows fire on this event.
+  merge_group:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -48,6 +52,15 @@ jobs:
   web-tests:
     name: Web — unit tests
     runs-on: ubuntu-latest
+    # Skip when no web/package/lockfile changes (yaml/markdown-only diffs skip this)
+    if: |
+      github.event_name == 'merge_group' ||
+      contains(toJSON(github.event.pull_request.changed_files), 'apps/web') ||
+      contains(toJSON(github.event.commits[0].modified), 'apps/web') ||
+      contains(toJSON(github.event.commits[0].modified), 'packages') ||
+      contains(toJSON(github.event.commits[0].modified), 'pnpm-lock.yaml') ||
+      contains(toJSON(github.event.commits[0].modified), 'package.json') ||
+      contains(toJSON(github.event.commits[0].modified), '.github/workflows/ci.yml')
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -68,6 +81,14 @@ jobs:
   mobile-tests:
     name: Mobile — unit tests
     runs-on: ubuntu-latest
+    # Skip when no mobile/lockfile changes
+    if: |
+      github.event_name == 'merge_group' ||
+      contains(toJSON(github.event.pull_request.changed_files), 'apps/mobile') ||
+      contains(toJSON(github.event.commits[0].modified), 'apps/mobile') ||
+      contains(toJSON(github.event.commits[0].modified), 'pnpm-lock.yaml') ||
+      contains(toJSON(github.event.commits[0].modified), 'package.json') ||
+      contains(toJSON(github.event.commits[0].modified), '.github/workflows/ci.yml')
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -86,7 +107,13 @@ jobs:
     name: Mobile — Android debug build
     runs-on: ubuntu-latest
     # Only run on PRs that touch mobile code (android/ is committed, so this validates it builds)
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' && (
+        contains(toJSON(github.event.pull_request.changed_files), 'apps/mobile') ||
+        contains(toJSON(github.event.pull_request.changed_files), 'pnpm-lock.yaml') ||
+        contains(toJSON(github.event.pull_request.changed_files), 'package.json') ||
+        contains(toJSON(github.event.pull_request.changed_files), '.github/workflows/ci.yml')
+      )
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-java@v4
@@ -130,6 +157,11 @@ jobs:
   rls-tests:
     name: RLS pgTAP tests
     runs-on: ubuntu-latest
+    # Skip when no supabase changes
+    if: |
+      github.event_name == 'merge_group' ||
+      contains(toJSON(github.event.pull_request.changed_files), 'supabase') ||
+      contains(toJSON(github.event.commits[0].modified), 'supabase')
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: supabase/setup-cli@v1
@@ -145,6 +177,16 @@ jobs:
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
+    # Run on push to main OR PRs/merge_queue that touch web/e2e code
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'merge_group' ||
+      (github.event_name == 'pull_request' && (
+        contains(toJSON(github.event.pull_request.changed_files), 'apps/web') ||
+        contains(toJSON(github.event.pull_request.changed_files), 'e2e') ||
+        contains(toJSON(github.event.pull_request.changed_files), 'pnpm-lock.yaml') ||
+        contains(toJSON(github.event.pull_request.changed_files), '.github/workflows/ci.yml')
+      ))
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -187,3 +229,51 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # ─── Meta-job: single required check for branch protection ──────────────────
+  # Replace all 12 individual required checks with just "CI Summary".
+  # Upstream jobs that are skipped (path not touched) count as pass.
+  # Only fails if an upstream job actually FAILED (not skipped).
+
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - typecheck
+      - lint
+      - web-tests
+      - mobile-tests
+      - mobile-android-build
+      - rls-tests
+      - e2e
+    steps:
+      - name: Check all required jobs passed or were skipped
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "Job results: $results"
+
+          failed=0
+          for job in typecheck lint web-tests mobile-tests mobile-android-build rls-tests e2e; do
+            result=$(echo "$results" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          job = '$job'
+          if job in data:
+              print(data[job]['result'])
+          else:
+              print('skipped')
+          ")
+            echo "$job: $result"
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "FAIL: $job returned $result"
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -eq 1 ]; then
+            echo "One or more required jobs failed."
+            exit 1
+          fi
+
+          echo "All required jobs passed or were skipped."
