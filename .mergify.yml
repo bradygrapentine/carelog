@@ -6,12 +6,15 @@
 # per batch on a synthetic merge SHA, and lands them in order — replacing the
 # O(N²) rebase tax with O(N).
 #
-# UX preserved: `gh pr merge --auto --squash <num>` still works. Mergify
-# watches for PRs with GitHub native auto-merge enabled and routes them
-# into the queue automatically (no `automerge` label needed).
+# UX: instead of `gh pr merge --auto --squash <num>`, the new flow is:
+#   gh pr edit <num> --add-label queue
+# Mergify watches for the `queue` label and routes the PR into the queue.
+# (Mergify does not have a first-class condition for GitHub native
+# auto-merge; label-based triggers are the canonical pattern.)
 #
 # Operator step (one-time): install the Mergify GitHub App on this repo
-# at https://github.com/apps/mergify (free for public repos).
+# at https://github.com/apps/mergify (free for public repos), and create
+# a `queue` label on the repo (`gh label create queue --color "0e8a16"`).
 
 queue_rules:
   - name: default
@@ -51,12 +54,14 @@ queue_rules:
     queue_branch_prefix: mq/
 
 pull_request_rules:
-  - name: queue PRs with GitHub auto-merge enabled
-    # Hooks into the existing `gh pr merge --auto --squash` workflow.
-    # When auto-merge is armed on a PR, Mergify takes over and routes
-    # it through the queue instead of GitHub's racing rebase logic.
+  - name: queue PRs labeled "queue"
+    # Trigger: add the `queue` label on a PR (e.g. `gh pr edit <num>
+    # --add-label queue`). Mergify routes it into the default queue.
+    # Replaces the prior `gh pr merge --auto --squash` workflow because
+    # GitHub's native auto-merge races Mergify (auto-merge rebases the
+    # PR head; Mergify queues a synthetic merge SHA).
     conditions:
-      - "auto-merge"
+      - "label=queue"
       - "-draft"
       - "-conflict"
     actions:
