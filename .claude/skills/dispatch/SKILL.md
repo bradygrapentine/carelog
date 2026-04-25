@@ -76,7 +76,7 @@ Use a SINGLE message with multiple `Agent` tool calls — Claude Code runs them 
   FILES ALLOWED: [...from input]
   BRANCH: <branch>
   WORKING DIRECTORY: /.../.worktrees/<slug>
-  DO NOT: features outside this task, PHI in analytics, commit to main
+  DO NOT: features outside this task, PHI in analytics, commit to main, edit BACKLOG.md (status updates happen via /backlog-sync after merge — touching BACKLOG.md from a feature PR creates rebase conflicts against every other open PR)
   PHI RULE: posthog.identify/capture UUID only
   VERIFY: tests before commit, diff summary in response
   TASK: <the task description>
