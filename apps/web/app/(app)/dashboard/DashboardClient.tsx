@@ -7,6 +7,9 @@ import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Printer } from "lucide-react";
+import { BriefHero } from "@/components/dashboard/BriefHero";
+import { MedCard } from "@/components/dashboard/MedCard";
+import { MoodCard } from "@/components/dashboard/MoodCard";
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -256,7 +259,7 @@ export function DashboardClient({ user }: Props) {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
-      <div className="max-w-4xl mx-auto py-12 px-4">
+      <div className="max-w-5xl mx-auto py-12 px-4">
         <div className="flex items-start justify-between gap-4 mb-2">
           <h1 className="text-2xl font-semibold text-foreground">
             Your care teams
@@ -275,6 +278,16 @@ export function DashboardClient({ user }: Props) {
         <p className="text-foreground/80 mb-8">
           Coordinate care, track medications, and support your team.
         </p>
+
+        {teams.length > 0 && (
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
+            <BriefHero />
+            <div className="flex flex-col gap-4">
+              <MedCard />
+              <MoodCard />
+            </div>
+          </div>
+        )}
 
         {teams.length === 0 ? (
           <Card className="p-8 text-center">
