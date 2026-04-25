@@ -95,13 +95,16 @@ Not an error.
 
 **What:** Rules governing who can push to `main` and what checks must pass before a PR merges.
 
-**Current state (as of 2026-04-23):**
-- No required status checks
-- No required reviews
-- `gh pr merge --admin` works without approvals
-- Force-push to `main` is blocked (GitHub default)
+**Current state (as of 2026-04-25):**
+- 12 required status checks: `Lint`, `Typecheck`, `Web — unit tests`, `Mobile — unit tests`, `Mobile — Android debug build`, `E2E (Playwright)`, `RLS pgTAP tests`, `Dependency audit`, `OSV Scanner`, `Secret scan (Gitleaks)`, `Vuln scan (Trivy)`, `audit`
+- `enforce_admins: true` — admins **cannot** bypass with `--admin`
+- `dismiss_stale_reviews: true`, `require_code_owner_reviews: true`, but `required_approving_review_count: 0` (solo-dev)
+- Force-push to `main` is blocked
+- Stale review-required state means: every push invalidates prior approvals (defense against amend-then-merge)
 
-This is intentionally permissive to support fast solo-dev iteration. It is NOT suitable for a team or post-launch production branch.
+The four security checks are emitted by `.github/workflows/security.yml` (PR #143). OSV / Trivy / pnpm-audit currently run **warn-only** (`continue-on-error: true`) so the gate registers but real findings don't block — see TD-21 in the backlog for triage.
+
+`gh pr merge --auto --squash` is the canonical path. Auto-merge IS disabled at the repo level (`enablePullRequestAutoMerge: false`); manual merge after CI passes is required.
 
 ### Where to configure
 
@@ -109,19 +112,14 @@ GitHub → repository → Settings → Branches → Branch protection rules → 
 
 ### Recommended phases
 
-**Phase: pre-launch (current)**
-Keep as-is. Speed matters. CI is still unreliable (TD-14 lint errors).
-
-**Phase: post-TD-14 (once CI is green)**
-Add required status checks:
-- `Typecheck`
-- `Web — unit tests`
-- `RLS pgTAP tests`
-
-Leave reviews optional. Admin override remains available.
+**Phase: pre-launch (current — 2026-04-25)**
+Branch protection is hardened: 12 required checks (incl. 4 security scanners) + `enforce_admins: true`. Solo-dev keeps 0 required reviews so PRs don't stall.
 
 **Phase: post-launch (first paying users)**
-Add required status checks (all 5 non-E2E jobs) + 1 required review for external contributors. Brady's own PRs can still self-approve if needed.
+Add `required_approving_review_count: 1` for external contributors. Brady's own PRs can still merge with 0 reviews via CODEOWNERS solo-author exception (configure when needed).
+
+**Phase: scanner-blocking (post-TD-21 triage)**
+Once outstanding scanner findings (Next.js `<16.2.3` DoS, protobufjs `<7.5.5` RCE, xmldom CVEs) are resolved, flip `continue-on-error: false` on OSV / Trivy / pnpm-audit jobs in `security.yml` so they actually block.
 
 ### Emergency override (bypass protection)
 
