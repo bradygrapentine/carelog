@@ -21,53 +21,64 @@ ON CONFLICT (id) DO NOTHING;
 -- Orgs
 INSERT INTO organizations (id, name, org_type)
 VALUES
-  ('org46000a-4600-0000-0000-000000000001', 'MedTag Org A', 'family'),
-  ('org46000b-4600-0000-0000-000000000002', 'MedTag Org B', 'family')
+  ('a4600000-4600-0000-0000-000000000001', 'MedTag Org A', 'family'),
+  ('b4600000-4600-0000-0000-000000000002', 'MedTag Org B', 'family')
 ON CONFLICT DO NOTHING;
 
 -- Care recipient for org A (required for medications + care_events)
 INSERT INTO identity_vault (org_id, full_name)
-VALUES ('org46000a-4600-0000-0000-000000000001', 'Tag Test Recipient')
+VALUES ('a4600000-4600-0000-0000-000000000001', 'Tag Test Recipient')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO care_recipients (id, org_id, identity_token)
-SELECT 'rec46000a-4600-0000-0000-000000000001', 'org46000a-4600-0000-0000-000000000001', token
-FROM identity_vault WHERE org_id = 'org46000a-4600-0000-0000-000000000001' LIMIT 1
+SELECT 'c4600000-4600-0000-0000-000000000001', 'a4600000-4600-0000-0000-000000000001', token
+FROM identity_vault WHERE org_id = 'a4600000-4600-0000-0000-000000000001' LIMIT 1
 ON CONFLICT DO NOTHING;
 
 -- Memberships: alice (coordinator) + bob (caregiver) in org A; eve in org B
 INSERT INTO memberships (org_id, user_id, role, accepted_at)
 VALUES
-  ('org46000a-4600-0000-0000-000000000001', 'aa460001-4600-0000-0000-000000000001', 'coordinator', now()),
-  ('org46000a-4600-0000-0000-000000000001', 'bb460002-4600-0000-0000-000000000002', 'caregiver',   now()),
-  ('org46000b-4600-0000-0000-000000000002', 'ee460003-4600-0000-0000-000000000003', 'caregiver',   now())
+  ('a4600000-4600-0000-0000-000000000001', 'aa460001-4600-0000-0000-000000000001', 'coordinator', now()),
+  ('a4600000-4600-0000-0000-000000000001', 'bb460002-4600-0000-0000-000000000002', 'caregiver',   now()),
+  ('b4600000-4600-0000-0000-000000000002', 'ee460003-4600-0000-0000-000000000003', 'caregiver',   now())
 ON CONFLICT DO NOTHING;
 
 -- Fixture medication (bypass RLS as postgres)
 INSERT INTO medications (id, org_id, recipient_id, drug_name, dosage, scan_source, active)
 VALUES (
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
-  'rec46000a-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
+  'c4600000-4600-0000-0000-000000000001',
   'Lisinopril', '10mg daily', 'manual', true
 ) ON CONFLICT DO NOTHING;
 
--- Fixture care event (bypass RLS as postgres)
+-- Fixture care events (bypass RLS as postgres)
+-- care event 1: used for fixture care_event_medications row + DELETE tests
+-- care event 2: used for INSERT tests to avoid unique-constraint collision
 INSERT INTO care_events (id, org_id, recipient_id, actor_id, event_type, entry_kind, payload)
 VALUES (
-  'cev46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
-  'rec46000a-4600-0000-0000-000000000001',
+  'e4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
+  'c4600000-4600-0000-0000-000000000001',
   'aa460001-4600-0000-0000-000000000001',
   'journal', 'human', '{"text":"test entry"}'
+) ON CONFLICT DO NOTHING;
+
+INSERT INTO care_events (id, org_id, recipient_id, actor_id, event_type, entry_kind, payload)
+VALUES (
+  'e4600001-4600-0000-0000-000000000002',
+  'a4600000-4600-0000-0000-000000000001',
+  'c4600000-4600-0000-0000-000000000001',
+  'aa460001-4600-0000-0000-000000000001',
+  'journal', 'human', '{"text":"test entry 2"}'
 ) ON CONFLICT DO NOTHING;
 
 -- Fixture document (bypass RLS as postgres)
 INSERT INTO documents (id, org_id, recipient_id, uploaded_by, display_name, doc_type, storage_path)
 VALUES (
-  'doc46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
-  'rec46000a-4600-0000-0000-000000000001',
+  'a4600001-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
+  'c4600000-4600-0000-0000-000000000001',
   'aa460001-4600-0000-0000-000000000001',
   'Test Doc', 'other', 'test/doc.pdf'
 ) ON CONFLICT DO NOTHING;
@@ -75,10 +86,10 @@ VALUES (
 -- Fixture care_event_medications row (tagged_by = bob, for DELETE tests)
 INSERT INTO care_event_medications (id, care_event_id, medication_id, org_id, confidence, tagged_by)
 VALUES (
-  'cem46001a-4600-0000-0000-000000000001',
-  'cev46000a-4600-0000-0000-000000000001',
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
+  'f4600000-4600-0000-0000-000000000001',
+  'e4600000-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
   'manual',
   'bb460002-4600-0000-0000-000000000002'
 ) ON CONFLICT DO NOTHING;
@@ -86,10 +97,10 @@ VALUES (
 -- Fixture document_medications row (for DELETE tests — coordinator only)
 INSERT INTO document_medications (id, document_id, medication_id, org_id, confidence, tagged_by)
 VALUES (
-  'dm460001a-4600-0000-0000-000000000001',
-  'doc46000a-4600-0000-0000-000000000001',
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
+  'b4600001-4600-0000-0000-000000000001',
+  'a4600001-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
   'auto',
   'aa460001-4600-0000-0000-000000000001'
 ) ON CONFLICT DO NOTHING;
@@ -101,7 +112,7 @@ SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM care_event_medications WHERE org_id = 'org46000a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM care_event_medications WHERE org_id = 'a4600000-4600-0000-0000-000000000001'$$,
   ARRAY[1]::int[],
   'org member (caregiver) can SELECT care_event_medications'
 );
@@ -110,20 +121,21 @@ SELECT results_eq(
 SET LOCAL "request.jwt.claims" TO '{"sub":"ee460003-4600-0000-0000-000000000003","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM care_event_medications WHERE org_id = 'org46000a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM care_event_medications WHERE org_id = 'a4600000-4600-0000-0000-000000000001'$$,
   ARRAY[0]::int[],
   'non-member cannot SELECT care_event_medications'
 );
 
 -- 3. Org member (bob) can INSERT a manual tag on care_event_medications
+--    Uses care event 2 to avoid unique-constraint collision with the fixture row
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT lives_ok(
   $$INSERT INTO care_event_medications (care_event_id, medication_id, org_id, confidence, tagged_by)
     VALUES (
-      'cev46000a-4600-0000-0000-000000000001',
-      'med46000a-4600-0000-0000-000000000001',
-      'org46000a-4600-0000-0000-000000000001',
+      'e4600001-4600-0000-0000-000000000002',
+      'd4600000-4600-0000-0000-000000000001',
+      'a4600000-4600-0000-0000-000000000001',
       'manual',
       'bb460002-4600-0000-0000-000000000002'
     )$$,
@@ -136,9 +148,9 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"ee460003-4600-0000-0000-000000000003"
 SELECT throws_ok(
   $$INSERT INTO care_event_medications (care_event_id, medication_id, org_id, confidence, tagged_by)
     VALUES (
-      'cev46000a-4600-0000-0000-000000000001',
-      'med46000a-4600-0000-0000-000000000001',
-      'org46000a-4600-0000-0000-000000000001',
+      'e4600001-4600-0000-0000-000000000002',
+      'd4600000-4600-0000-0000-000000000001',
+      'a4600000-4600-0000-0000-000000000001',
       'manual',
       'ee460003-4600-0000-0000-000000000003'
     )$$,
@@ -150,13 +162,13 @@ SELECT throws_ok(
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT lives_ok(
-  $$DELETE FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$DELETE FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   'tagger (bob) can DELETE their own care_event_medications row'
 );
 
 -- Verify it was actually deleted
 SELECT results_eq(
-  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   ARRAY[0]::int[],
   'tagger DELETE actually removed the row'
 );
@@ -165,10 +177,10 @@ SELECT results_eq(
 SET LOCAL ROLE postgres;
 INSERT INTO care_event_medications (id, care_event_id, medication_id, org_id, confidence, tagged_by)
 VALUES (
-  'cem46001a-4600-0000-0000-000000000001',
-  'cev46000a-4600-0000-0000-000000000001',
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
+  'f4600000-4600-0000-0000-000000000001',
+  'e4600000-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
   'manual',
   'bb460002-4600-0000-0000-000000000002'
 ) ON CONFLICT DO NOTHING;
@@ -178,12 +190,12 @@ SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"aa460001-4600-0000-0000-000000000001","role":"authenticated"}';
 
 SELECT lives_ok(
-  $$DELETE FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$DELETE FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   'coordinator can DELETE care_event_medications row (not their own tag)'
 );
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   ARRAY[0]::int[],
   'coordinator DELETE actually removed the row'
 );
@@ -192,10 +204,10 @@ SELECT results_eq(
 SET LOCAL ROLE postgres;
 INSERT INTO care_event_medications (id, care_event_id, medication_id, org_id, confidence, tagged_by)
 VALUES (
-  'cem46001a-4600-0000-0000-000000000001',
-  'cev46000a-4600-0000-0000-000000000001',
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
+  'f4600000-4600-0000-0000-000000000001',
+  'e4600000-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
   'manual',
   'aa460001-4600-0000-0000-000000000001'
 ) ON CONFLICT DO NOTHING;
@@ -205,12 +217,12 @@ SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT lives_ok(
-  $$DELETE FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$DELETE FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   'non-tagger non-coordinator DELETE does not throw (RLS silently skips)'
 );
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'cem46001a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM care_event_medications WHERE id = 'f4600000-4600-0000-0000-000000000001'$$,
   ARRAY[1]::int[],
   'non-tagger non-coordinator DELETE silently skipped — row still exists'
 );
@@ -221,7 +233,7 @@ SELECT results_eq(
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM document_medications WHERE org_id = 'org46000a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM document_medications WHERE org_id = 'a4600000-4600-0000-0000-000000000001'$$,
   ARRAY[1]::int[],
   'org member (caregiver) can SELECT document_medications'
 );
@@ -230,7 +242,7 @@ SELECT results_eq(
 SET LOCAL "request.jwt.claims" TO '{"sub":"ee460003-4600-0000-0000-000000000003","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM document_medications WHERE org_id = 'org46000a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM document_medications WHERE org_id = 'a4600000-4600-0000-0000-000000000001'$$,
   ARRAY[0]::int[],
   'non-member cannot SELECT document_medications'
 );
@@ -240,7 +252,7 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"aa460001-4600-0000-0000-000000000001"
 
 -- Delete the fixture first so INSERT doesn't hit the UNIQUE constraint
 SET LOCAL ROLE postgres;
-DELETE FROM document_medications WHERE id = 'dm460001a-4600-0000-0000-000000000001';
+DELETE FROM document_medications WHERE id = 'b4600001-4600-0000-0000-000000000001';
 
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"aa460001-4600-0000-0000-000000000001","role":"authenticated"}';
@@ -248,9 +260,9 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"aa460001-4600-0000-0000-000000000001"
 SELECT lives_ok(
   $$INSERT INTO document_medications (document_id, medication_id, org_id, confidence, tagged_by)
     VALUES (
-      'doc46000a-4600-0000-0000-000000000001',
-      'med46000a-4600-0000-0000-000000000001',
-      'org46000a-4600-0000-0000-000000000001',
+      'a4600001-4600-0000-0000-000000000001',
+      'd4600000-4600-0000-0000-000000000001',
+      'a4600000-4600-0000-0000-000000000001',
       'manual',
       'aa460001-4600-0000-0000-000000000001'
     )$$,
@@ -263,9 +275,9 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002"
 SELECT throws_ok(
   $$INSERT INTO document_medications (document_id, medication_id, org_id, confidence, tagged_by)
     VALUES (
-      'doc46000a-4600-0000-0000-000000000001',
-      'med46000a-4600-0000-0000-000000000001',
-      'org46000a-4600-0000-0000-000000000001',
+      'a4600001-4600-0000-0000-000000000001',
+      'd4600000-4600-0000-0000-000000000001',
+      'a4600000-4600-0000-0000-000000000001',
       'manual',
       'bb460002-4600-0000-0000-000000000002'
     )$$,
@@ -278,8 +290,8 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"aa460001-4600-0000-0000-000000000001"
 
 SELECT lives_ok(
   $$DELETE FROM document_medications
-    WHERE document_id = 'doc46000a-4600-0000-0000-000000000001'
-      AND medication_id = 'med46000a-4600-0000-0000-000000000001'$$,
+    WHERE document_id = 'a4600001-4600-0000-0000-000000000001'
+      AND medication_id = 'd4600000-4600-0000-0000-000000000001'$$,
   'coordinator can DELETE document_medications'
 );
 
@@ -287,10 +299,10 @@ SELECT lives_ok(
 SET LOCAL ROLE postgres;
 INSERT INTO document_medications (id, document_id, medication_id, org_id, confidence, tagged_by)
 VALUES (
-  'dm460001a-4600-0000-0000-000000000001',
-  'doc46000a-4600-0000-0000-000000000001',
-  'med46000a-4600-0000-0000-000000000001',
-  'org46000a-4600-0000-0000-000000000001',
+  'b4600001-4600-0000-0000-000000000001',
+  'a4600001-4600-0000-0000-000000000001',
+  'd4600000-4600-0000-0000-000000000001',
+  'a4600000-4600-0000-0000-000000000001',
   'auto',
   'aa460001-4600-0000-0000-000000000001'
 ) ON CONFLICT DO NOTHING;
@@ -300,12 +312,12 @@ SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"bb460002-4600-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT lives_ok(
-  $$DELETE FROM document_medications WHERE id = 'dm460001a-4600-0000-0000-000000000001'$$,
+  $$DELETE FROM document_medications WHERE id = 'b4600001-4600-0000-0000-000000000001'$$,
   'non-coordinator DELETE does not throw (RLS silently skips)'
 );
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM document_medications WHERE id = 'dm460001a-4600-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM document_medications WHERE id = 'b4600001-4600-0000-0000-000000000001'$$,
   ARRAY[1]::int[],
   'non-coordinator DELETE silently skipped — row still exists'
 );

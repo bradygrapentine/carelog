@@ -167,25 +167,7 @@ VERIFY: tests before commit; diff summary in response
 
 ---
 
-## 7. Overnight autonomous fleet
-
-`scripts/overnight-fleet.sh` wraps `/backlog-dispatch` for cron use. Features: flock lockfile, clean-tree guard, main-only guard, Sonnet-only dispatch, per-PR adversarial `/review` + `/test-gaps` gates, morning report.
-
-**Before arming cron, run at least 2 clean dry runs:**
-```sh
-./scripts/overnight-fleet.sh --dry-run 3     # caps at 3 stories, writes reviews/overnight-dryrun-<date>.md
-```
-
-**Cron entry (after dry runs pass):**
-```
-0 2 * * * cd /Users/bradygrapentine/projects/carelog && ./scripts/overnight-fleet.sh 6 >> reviews/overnight.log 2>&1
-```
-
-The script **never auto-merges**. PRs stay open; the adversarial review findings go into the morning report for human triage.
-
----
-
-## 8. MCP servers
+## 7. MCP servers
 
 User-level (`~/.claude/mcp.json` or `claude mcp add`). Active in this project:
 
@@ -202,7 +184,7 @@ MCP server config belongs in `.mcp.json` or `~/.claude/mcp.json`, **not** `setti
 
 ---
 
-## 9. Memory
+## 8. Memory
 
 Lives at `~/.claude/projects/-Users-bradygrapentine-projects-carelog/memory/`. Four types:
 
@@ -217,7 +199,7 @@ Lives at `~/.claude/projects/-Users-bradygrapentine-projects-carelog/memory/`. F
 
 ---
 
-## 10. Debugging checklist
+## 9. Debugging checklist
 
 When something feels off:
 
@@ -233,7 +215,7 @@ When something feels off:
 
 ---
 
-## 11. Common silent failures
+## 10. Common silent failures
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -250,7 +232,7 @@ When something feels off:
 
 ---
 
-## 12. Lessons from production use
+## 11. Lessons from production use
 
 **Subagent scope drift** — a dispatched agent added unrelated features + committed to main. Fix: the scope contract in §6 is non-negotiable; the main-commit hook now enforces the branch rule.
 

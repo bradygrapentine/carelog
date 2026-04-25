@@ -10,10 +10,9 @@ For the third-party service setup (Supabase, Vercel, Stripe, etc.) see `THIRD_PA
 ## Table of Contents
 
 - [§1 GitHub Actions billing](#1-github-actions-billing) — the silent killer
-- [§2 ANTHROPIC_API_KEY secret](#2-anthropic_api_key-github-secret) — AI security review job
-- [§3 Allow auto-merge](#3-allow-auto-merge) — overnight agent prerequisite
-- [§4 Branch protection on main](#4-branch-protection-on-main) — current state + recommendations
-- [§5 Symptoms → fixes quick-ref](#5-symptoms--fixes-quick-reference)
+- [§2 Allow auto-merge](#2-allow-auto-merge) — overnight agent prerequisite
+- [§3 Branch protection on main](#3-branch-protection-on-main) — current state + recommendations
+- [§4 Symptoms → fixes quick-ref](#4-symptoms--fixes-quick-reference)
 
 ---
 
@@ -57,32 +56,7 @@ Push a trivial whitespace commit or re-run any failed job. All CI jobs should st
 
 ---
 
-## 2. ANTHROPIC_API_KEY GitHub secret
-
-**What:** Anthropic API key used by the `ai-review` CI job (`.github/workflows/ci.yml` lines 194–256). On every PR, the job diffs `*.ts`, `*.tsx`, and `*.sql` files and calls `scripts/ci-ai-review.mjs` to run a Claude security review, then posts the result as a PR comment.
-
-**Why critical:** This is the primary automated PHI/RLS/auth review gate. If the secret is missing or the key is revoked, the job fails silently (the step is conditional on `steps.diff.outputs.lines != '0'`), and PRs merge without a security review.
-
-### Where to set
-
-GitHub → repository → Settings → Secrets and variables → Actions → Repository secrets → New repository secret
-
-- **Name:** `ANTHROPIC_API_KEY`
-- **Value:** starts with `sk-ant-api03-...` — get a fresh key from https://console.anthropic.com/settings/keys
-- **Scope:** Repository secret (not environment secret) — the job runs on all PRs, not just specific environments
-
-### How to verify
-
-1. Open any PR (or create a test PR with a `.ts` change)
-2. CI → `AI security review` job → should complete (not skip) and post a comment titled `## AI Security Review` on the PR
-
-### Rate limits
-
-If the key hits rate limits, the `node scripts/ci-ai-review.mjs` call will fail with a 429. The job will show as failed. Fix: use a key with a higher tier, or add retry logic to `scripts/ci-ai-review.mjs`.
-
----
-
-## 3. Allow auto-merge
+## 2. Allow auto-merge
 
 **What:** Repository setting that enables `gh pr merge --auto --squash <number>`. When enabled, a PR queues to merge automatically the moment all required status checks pass and any required reviews are approved.
 
@@ -117,7 +91,7 @@ Not an error.
 
 ---
 
-## 4. Branch protection on `main`
+## 3. Branch protection on `main`
 
 **What:** Rules governing who can push to `main` and what checks must pass before a PR merges.
 
@@ -159,13 +133,12 @@ This requires repo admin access. Use sparingly — bypassed PRs skip the protect
 
 ---
 
-## 5. Symptoms → fixes quick reference
+## 4. Symptoms → fixes quick reference
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Every CI job shows "not started" with billing error | GitHub Actions billing failed or spending limit hit | §1 — update payment / increase spending limit |
-| `ai-review` job fails or is always skipped | `ANTHROPIC_API_KEY` secret missing or revoked | §2 — set/rotate the secret |
-| `gh pr merge --auto` returns `enablePullRequestAutoMerge` error | Auto-merge is disabled | §3 — enable in repo Settings → General |
+| `gh pr merge --auto` returns `enablePullRequestAutoMerge` error | Auto-merge is disabled | §2 — enable in repo Settings → General |
 | All CI jobs red, nothing changed in code | Could be billing (§1) or lock-file drift | Check billing first; if fine, look at the actual job logs for `pnpm install --frozen-lockfile` failures |
 | `rls-tests` job fails locally but not in CI | Local Supabase version mismatch | `supabase update` locally; match the version in `supabase/setup-cli@v1` |
 | Pre-commit hook fails with "Executable doesn't exist" | Playwright Chromium not installed locally | `cd apps/web && npx playwright install chromium` (see `THIRD_PARTY_SETUP.md` §14) |

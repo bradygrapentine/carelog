@@ -29,6 +29,6 @@ create policy "web_push: user deletes own" on public.web_push_subscriptions
 create policy "web_push: service role reads all" on public.web_push_subscriptions
   for select using (auth.role() = 'service_role');
 
--- 3. Add web_push_enabled to notification_preferences
-alter table public.notification_preferences
-  add column if not exists web_push_enabled boolean not null default true;
+-- 3. web_push_enabled column on notification_preferences
+-- Moved to 20260421000001_pp005_web_push_enabled_pref.sql because
+-- notification_preferences isn't created until 20260421000000.

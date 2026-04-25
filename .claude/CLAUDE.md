@@ -219,15 +219,6 @@ curl -sf http://localhost:11434/api/tags > /dev/null && echo "ollama ok" || echo
 
 If local Ollama is unreachable, fall back to `glm-4.7:cloud` (default cloud alternative).
 
-## Headless Scripts
-
-Run Claude non-interactively for automated QA:
-
-| Script | Purpose |
-|--------|---------|
-| `./scripts/security-review.sh` | Adversarial security review → `reviews/YYYY-MM-DD-security-review.md` |
-| `./scripts/build-fix.sh` | Self-correcting build loop (up to 5 fix cycles) |
-
 ## Reference Docs (load on demand)
 
 - `docs/project-info/technology/ARCHITECTURE.md` — data model, system design, design rationale

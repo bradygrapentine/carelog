@@ -1,7 +1,7 @@
 -- supabase/tests/pp005_web_push_rls.test.sql
 -- PP-005: RLS coverage for web_push_subscriptions + notification_preferences.web_push_enabled
 begin;
-select plan(14);
+select plan(13);
 
 -- ─── Fixtures ──────────────────────────────────────────────────────────────
 

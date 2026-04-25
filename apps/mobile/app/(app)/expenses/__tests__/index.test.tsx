@@ -26,7 +26,7 @@ const mockExpenses = [
     amount: 50,
     category: "medication",
     description: "Prescriptions",
-    incurred_at: "2026-04-01T00:00:00Z",
+    incurred_at: "2026-03-15T12:00:00Z",
   },
 ];
 

@@ -1,55 +1,83 @@
 BEGIN;
 SELECT plan(5);
 
-SELECT tests.create_supabase_user('alice@example.com', 'password123');
-SELECT tests.create_supabase_user('bob@example.com', 'password123');
+-- ─── fixtures ────────────────────────────────────────────────────────────────
 
-INSERT INTO organizations (id, name) VALUES ('org-ai-1', 'AI Org');
+SET LOCAL ROLE postgres;
+
+INSERT INTO auth.users (
+  id, aud, role, email, email_confirmed_at,
+  created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_super_admin
+) VALUES
+  ('aa220001-0000-0000-0000-000000000001', 'authenticated', 'authenticated',
+   'alice@ai-rls.com', now(), now(), now(), '{}', '{}', false),
+  ('bb220002-0000-0000-0000-000000000002', 'authenticated', 'authenticated',
+   'bob@ai-rls.com', now(), now(), now(), '{}', '{}', false)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO organizations (id, name, org_type)
+VALUES ('cc220000-0000-0000-0000-000000000001', 'AI Org', 'family')
+ON CONFLICT DO NOTHING;
+
 INSERT INTO memberships (org_id, user_id, role, accepted_at)
-  VALUES ('org-ai-1', (SELECT id FROM auth.users WHERE email = 'alice@example.com'), 'coordinator', now());
+VALUES ('cc220000-0000-0000-0000-000000000001', 'aa220001-0000-0000-0000-000000000001', 'coordinator', now())
+ON CONFLICT DO NOTHING;
 
--- Alice inserts a conversation
-SELECT tests.authenticate_as('alice@example.com');
+-- Insert a conversation for Alice (bypass RLS as postgres)
 INSERT INTO ai_conversations (user_id, org_id, messages)
-  VALUES ((SELECT id FROM auth.users WHERE email = 'alice@example.com'), 'org-ai-1', '{}');
+VALUES (
+  'aa220001-0000-0000-0000-000000000001',
+  'cc220000-0000-0000-0000-000000000001',
+  '{}')
+ON CONFLICT DO NOTHING;
+
+-- ─── tests ───────────────────────────────────────────────────────────────────
 
 -- 1. Alice reads own conversations
+SET LOCAL ROLE authenticated;
+SET LOCAL "request.jwt.claims" TO '{"sub":"aa220001-0000-0000-0000-000000000001","role":"authenticated"}';
+
 SELECT results_eq(
-  $$ SELECT count(*)::int FROM ai_conversations WHERE org_id = 'org-ai-1' $$,
-  $$ VALUES (1) $$,
+  $$SELECT count(*)::int FROM ai_conversations WHERE org_id = 'cc220000-0000-0000-0000-000000000001'$$,
+  ARRAY[1]::int[],
   'alice reads own conversation'
 );
 
 -- 2. Bob cannot read Alice's conversations
-SELECT tests.authenticate_as('bob@example.com');
+SET LOCAL "request.jwt.claims" TO '{"sub":"bb220002-0000-0000-0000-000000000002","role":"authenticated"}';
+
 SELECT is_empty(
-  $$ SELECT * FROM ai_conversations $$,
+  $$SELECT * FROM ai_conversations$$,
   'bob cannot read alice conversations'
 );
 
 -- 3. Anon blocked
-SELECT tests.clear_authentication();
+SET LOCAL ROLE anon;
+SET LOCAL "request.jwt.claims" TO '{"role":"anon"}';
+
 SELECT is_empty(
-  $$ SELECT * FROM ai_conversations $$,
+  $$SELECT * FROM ai_conversations$$,
   'anon blocked from ai_conversations'
 );
 
 -- 4. Bob cannot insert for Alice's org
-SELECT tests.authenticate_as('bob@example.com');
+SET LOCAL ROLE authenticated;
+SET LOCAL "request.jwt.claims" TO '{"sub":"bb220002-0000-0000-0000-000000000002","role":"authenticated"}';
+
 SELECT throws_ok(
-  $$ INSERT INTO ai_conversations (user_id, org_id) VALUES
-     ((SELECT id FROM auth.users WHERE email = 'alice@example.com'), 'org-ai-1') $$,
+  $$INSERT INTO ai_conversations (user_id, org_id, messages)
+    VALUES ('aa220001-0000-0000-0000-000000000001', 'cc220000-0000-0000-0000-000000000001', '{}')$$,
   '42501',
   NULL,
   'bob cannot insert as alice'
 );
 
 -- 5. ai_assistant_enabled defaults to false
-SELECT tests.authenticate_as('alice@example.com');
+SET LOCAL "request.jwt.claims" TO '{"sub":"aa220001-0000-0000-0000-000000000001","role":"authenticated"}';
+
 SELECT results_eq(
-  $$ SELECT ai_assistant_enabled FROM user_profiles
-     WHERE id = (SELECT id FROM auth.users WHERE email = 'alice@example.com') $$,
-  $$ VALUES (false) $$,
+  $$SELECT ai_assistant_enabled FROM user_profiles WHERE id = 'aa220001-0000-0000-0000-000000000001'$$,
+  ARRAY[false]::boolean[],
   'ai_assistant_enabled defaults to false'
 );
 
