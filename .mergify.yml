@@ -6,45 +6,40 @@
 # per batch on a synthetic merge SHA, and lands them in order — replacing the
 # O(N²) rebase tax with O(N).
 #
-# UX preserved: `gh pr merge --auto --squash <num>` still works. Mergify
-# watches for PRs with GitHub native auto-merge enabled and routes them
-# into the queue automatically (no `automerge` label needed).
+# UX: instead of `gh pr merge --auto --squash <num>`, the new flow is:
+#   gh pr edit <num> --add-label queue
+# Mergify watches for the `queue` label and routes the PR into the queue.
+# (Mergify does not have a first-class condition for GitHub native
+# auto-merge; label-based triggers are the canonical pattern.)
 #
 # Operator step (one-time): install the Mergify GitHub App on this repo
-# at https://github.com/apps/mergify (free for public repos).
+# at https://github.com/apps/mergify (free for public repos), and create
+# a `queue` label on the repo (`gh label create queue --color "0e8a16"`).
 
 queue_rules:
   - name: default
-    # Only enter the queue once every required check is green on the PR head.
-    # Names must match GitHub branch-protection required-check names exactly.
+    # Path-filtered jobs (Web/Mobile/RLS pgTAP/E2E per TD-30) report SKIPPED
+    # on PRs that don't touch their files. `check-success=` won't match SKIPPED,
+    # so we use the CI Summary aggregate check that's green when every relevant
+    # downstream job either passed or was correctly skipped.
     queue_conditions:
+      - "check-success=CI Summary"
       - "check-success=Lint"
       - "check-success=Typecheck"
-      - "check-success=Web — unit tests"
-      - "check-success=Mobile — unit tests"
-      - "check-success=Mobile — Android debug build"
-      - "check-success=RLS pgTAP tests"
       - "check-success=Dependency audit"
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
       - "check-success=Vuln scan (Trivy)"
-      - "check-success=audit"
-      # E2E (Playwright) is `skipping` on most PRs by design (only runs on
-      # main pushes per TD-32). Don't gate the queue on it.
     # Same checks must stay green on the synthetic merge SHA before the
     # batch lands. Mergify reruns CI on a temporary branch per batch.
     merge_conditions:
+      - "check-success=CI Summary"
       - "check-success=Lint"
       - "check-success=Typecheck"
-      - "check-success=Web — unit tests"
-      - "check-success=Mobile — unit tests"
-      - "check-success=Mobile — Android debug build"
-      - "check-success=RLS pgTAP tests"
       - "check-success=Dependency audit"
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
       - "check-success=Vuln scan (Trivy)"
-      - "check-success=audit"
     merge_method: squash
     # Batch up to 5 queued PRs into one CI run. With one-person workflow
     # and the existing parallel-dispatch pattern, batching saves a lot
@@ -57,12 +52,14 @@ queue_rules:
     queue_branch_prefix: mq/
 
 pull_request_rules:
-  - name: queue PRs with GitHub auto-merge enabled
-    # Hooks into the existing `gh pr merge --auto --squash` workflow.
-    # When auto-merge is armed on a PR, Mergify takes over and routes
-    # it through the queue instead of GitHub's racing rebase logic.
+  - name: queue PRs labeled "queue"
+    # Trigger: add the `queue` label on a PR (e.g. `gh pr edit <num>
+    # --add-label queue`). Mergify routes it into the default queue.
+    # Replaces the prior `gh pr merge --auto --squash` workflow because
+    # GitHub's native auto-merge races Mergify (auto-merge rebases the
+    # PR head; Mergify queues a synthetic merge SHA).
     conditions:
-      - "auto-merge"
+      - "label=queue"
       - "-draft"
       - "-conflict"
     actions:
