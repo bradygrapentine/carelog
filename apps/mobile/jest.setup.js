@@ -23,6 +23,19 @@ jest.mock("@sentry/react-native", () => ({
   setTag: jest.fn(),
 }));
 
+jest.mock(
+  "expo-device",
+  () => ({
+    isDevice: true,
+    brand: "Apple",
+    manufacturer: "Apple",
+    modelName: "iPhone 14",
+    osName: "iOS",
+    osVersion: "17.0",
+  }),
+  { virtual: true },
+);
+
 jest.mock("expo-haptics", () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
   notificationAsync: jest.fn(() => Promise.resolve()),
