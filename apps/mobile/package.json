@@ -62,6 +62,8 @@
   },
   "private": true,
   "overrides": {
-    "@xmldom/xmldom": "0.9.10"
+    "@xmldom/xmldom": "0.9.10",
+    "postcss": ">=8.5.0",
+    "uuid": "^11.1.0"
   }
 }
