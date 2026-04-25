@@ -15,31 +15,25 @@
 
 queue_rules:
   - name: default
-    # Only enter the queue once every required check is green on the PR head.
-    # Names must match GitHub branch-protection required-check names exactly.
+    # Path-filtered jobs (Web/Mobile/RLS pgTAP/E2E per TD-30) report SKIPPED
+    # on PRs that don't touch their files. `check-success=` won't match SKIPPED,
+    # so we use the CI Summary aggregate check that's green when every relevant
+    # downstream job either passed or was correctly skipped.
     queue_conditions:
+      - "check-success=CI Summary"
       - "check-success=Lint"
       - "check-success=Typecheck"
-      - "check-success=Web — unit tests"
-      - "check-success=Mobile — unit tests"
-      - "check-success=Mobile — Android debug build"
-      - "check-success=RLS pgTAP tests"
       - "check-success=Dependency audit"
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
       - "check-success=Vuln scan (Trivy)"
       - "check-success=audit"
-      # E2E (Playwright) is `skipping` on most PRs by design (only runs on
-      # main pushes per TD-32). Don't gate the queue on it.
     # Same checks must stay green on the synthetic merge SHA before the
     # batch lands. Mergify reruns CI on a temporary branch per batch.
     merge_conditions:
+      - "check-success=CI Summary"
       - "check-success=Lint"
       - "check-success=Typecheck"
-      - "check-success=Web — unit tests"
-      - "check-success=Mobile — unit tests"
-      - "check-success=Mobile — Android debug build"
-      - "check-success=RLS pgTAP tests"
       - "check-success=Dependency audit"
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
