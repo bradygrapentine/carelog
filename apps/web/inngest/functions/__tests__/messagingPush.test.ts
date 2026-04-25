@@ -2,12 +2,9 @@
 /**
  * Tests for messagingPush.ts failure modes.
  *
- * NOTE: sendExpoPush treats DeviceNotRegistered silently — the Expo Push API
- * returns 200 with `{"data": [{"status": "error", "details": {"error": "DeviceNotRegistered"}}]}`
- * but sendExpoPush only checks res.ok (HTTP status), so DeviceNotRegistered tokens
- * are silently dropped without surfacing the error.
- * FLAG: This is a real bug — follow-up story needed to parse Expo response bodies
- * and handle per-token errors (DeviceNotRegistered, InvalidCredentials, etc.).
+ * sendExpoPush parses Expo's per-ticket response body: DeviceNotRegistered
+ * deletes the bad token from push_tokens (silent no-throw — token is dead);
+ * other per-ticket errors throw so Inngest retries the step.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -15,6 +12,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Mock dependencies before imports
 const mockSendExpoPush = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockGetPushTokensForUsers = vi.hoisted(() => vi.fn());
+
+// supabaseAdmin chain mock — used by sendExpoPush to delete expired tokens
+const supabaseDeleteIn = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ error: null }),
+);
+const supabaseDelete = vi.hoisted(() =>
+  vi.fn(() => ({ in: supabaseDeleteIn })),
+);
+const supabaseFrom = vi.hoisted(() =>
+  vi.fn(() => ({ delete: supabaseDelete })),
+);
+
+vi.mock("../../../server/supabaseAdmin.server", () => ({
+  supabaseAdmin: { from: supabaseFrom },
+}));
 
 vi.mock("../../pushNotification", () => ({
   sendExpoPush: mockSendExpoPush,
@@ -126,11 +138,10 @@ describe("sendExpoPush — failure modes (real implementation)", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("BUG (TD-28): DeviceNotRegistered is silently dropped — documents current behaviour", async () => {
-    // Expo Push API returns HTTP 200 for per-device errors like DeviceNotRegistered.
-    // sendExpoPush only checks res.ok (HTTP status), so the per-token error body is never parsed.
-    // Real-world impact: an expired device token silently drops the push notification.
-    // Follow-up story needed: parse Expo response bodies + handle DeviceNotRegistered / InvalidCredentials.
+  it("DeviceNotRegistered: removes expired token from push_tokens and resolves cleanly", async () => {
+    // Expo returns HTTP 200 with per-ticket status="error" and details.error="DeviceNotRegistered"
+    // when a device token is no longer valid. sendExpoPush should delete the token from
+    // push_tokens so we stop sending to it, then resolve (no point retrying — token is dead).
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -146,13 +157,43 @@ describe("sendExpoPush — failure modes (real implementation)", () => {
         }),
     });
 
-    // BUG: Currently resolves without surfacing the DeviceNotRegistered error.
-    // This is the regression guard — the follow-up story changes this to reject.
     await expect(
       realSendExpoPush([
         { to: "ExponentPushToken[expired_token_xxx]", body: "hello" },
       ]),
-    ).resolves.toBeUndefined(); // documents the silent-drop bug
+    ).resolves.toBeUndefined();
+
+    // Verify the bad token was deleted from push_tokens
+    expect(supabaseFrom).toHaveBeenCalledWith("push_tokens");
+    expect(supabaseDelete).toHaveBeenCalled();
+    expect(supabaseDeleteIn).toHaveBeenCalledWith("token", [
+      "ExponentPushToken[expired_token_xxx]",
+    ]);
+  });
+
+  it("non-DNR per-ticket error throws so Inngest can retry", async () => {
+    // Errors other than DeviceNotRegistered (MessageRateExceeded, InvalidCredentials,
+    // MessageTooBig, etc.) are not "delete the token" — they're either transient or
+    // require operator intervention. Surface them so the Inngest function fails the
+    // step and retries on its normal cadence.
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          data: [
+            {
+              status: "error",
+              message: "You are sending messages too frequently",
+              details: { error: "MessageRateExceeded" },
+            },
+          ],
+        }),
+    });
+
+    await expect(
+      realSendExpoPush([{ to: "ExponentPushToken[xxx]", body: "hello" }]),
+    ).rejects.toThrow(/MessageRateExceeded/);
   });
 });
 
@@ -176,10 +217,7 @@ describe("messagingPush — recipient filtering logic", () => {
   });
 
   it("includes members who have never read the thread (null last_read_at)", () => {
-    const members = [
-      makeMember("sender-uuid"),
-      makeMember("never-read", null),
-    ];
+    const members = [makeMember("sender-uuid"), makeMember("never-read", null)];
     const recipients = computeRecipients(
       members,
       "sender-uuid",
@@ -300,7 +338,10 @@ describe("messagingPush — push dispatch via mocked sendExpoPush", () => {
     // with undefined. The production code does not validate before calling step.run.
     // We document what happens: all members pass the sender check since senderId
     // also missing means senderMembership lookup returns undefined → abort.
-    const members: ThreadMember[] = [makeMember("user-a"), makeMember("user-b")];
+    const members: ThreadMember[] = [
+      makeMember("user-a"),
+      makeMember("user-b"),
+    ];
     const senderMembership = members.find((m) => m.user_id === undefined);
     expect(senderMembership).toBeUndefined();
     // Production path: returns { pushed: 0, aborted: true, reason: 'sender_not_member' }
