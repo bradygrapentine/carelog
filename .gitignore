@@ -25,3 +25,6 @@ apps/web/sonar-report.xml
 
 # Expo prebuild output — never commit
 apps/mobile/ios/
+
+# Mobile lockfile — managed by root pnpm; npm install must NOT be run here
+apps/mobile/package-lock.json
