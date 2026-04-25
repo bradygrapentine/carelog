@@ -48,8 +48,10 @@
       "vite": "8.0.10",
       "dompurify": ">=3.3.4",
       "follow-redirects": ">=1.15.13",
-      "hono": ">=4.7.5",
-      "postcss": ">=8.5.0"
+      "hono": ">=4.12.14",
+      "postcss": ">=8.5.10",
+      "@tootallnate/once": ">=3.0.1",
+      "uuid": ">=14.0.0"
     }
   },
   "dependencies": {
