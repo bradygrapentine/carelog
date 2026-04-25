@@ -77,7 +77,7 @@ export default function BriefPage({
 
   useEffect(() => {
     if (!token) return;
-    posthog.capture("daily_brief_viewed", { share_token: token });
+    posthog.capture("daily_brief_viewed");
   }, [token]);
 
   useEffect(() => {
