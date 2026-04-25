@@ -16,7 +16,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 6 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-22 |
+| 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-22 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 1 | PP-014 (no billing router) |
 | 🌙 Overnight queue | 0 | — |
@@ -86,8 +86,31 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-20 | ✅ Shipped · PR #140 | **Restore 4 quarantined RLS pgTAP tests** | `ai_conversations_rls`, `education_tip_cache_rls`, `medication_tagging_rls`, `shift_trade_requests_rls` — replaced non-existent `tests.create_supabase_user()` helper with canonical `INSERT INTO auth.users` + `SET LOCAL ROLE` + JWT pattern; fixed invalid (non-hex) UUID literals; corrected `shifts` table column names; `_quarantined-tests/` dir now empty. |
 | TD-21 | 🟢 Ready | **Triage scanner findings + flip OSV/Trivy/pnpm-audit to blocking** | `.github/workflows/security.yml` runs OSV/Trivy/pnpm-audit warn-only (`continue-on-error: true`) so gates register but findings don't block. Real CVEs to address: Next.js `16.2.1` → `>=16.2.3` (DoS, GHSA-q4gf-8mx6-v5v3); protobufjs `7.5.4` → `>=7.5.5` (CRITICAL RCE, CVE-2026-41242); xmldom (multiple HIGH advisories). After bumps, remove `continue-on-error` lines. ~0.5 day. |
 | TD-22 | 🟢 Ready | **Billing tRPC router (unblocks PP-014)** | Create `apps/web/server/routers/billing.ts` exposing `billing.getSubscription` + register on `appRouter`. Reads from Stripe via existing webhook-fed `subscriptions` table (do not call Stripe API directly from tRPC). Then PP-014 mobile wiring becomes a 1-hr task. ~1.5 days incl. tests + RLS check. |
+| TD-23 | 🟢 Ready | **SHA-pin all workflow action refs + checksum OSV binary** | Surfaced by 2026-04-25 security review. `.github/workflows/security.yml` uses `aquasecurity/trivy-action@master` (floating ref to mainline branch — supply-chain code-exec risk on every CI run), `gitleaks/gitleaks-action@v2` (mutable tag — same), and curls `osv-scanner` binary with no `sha256sum` check. `gitleaks` job has `pull-requests: write` which amplifies impact if the action is compromised. Fix: pin all 4 actions in `security.yml` AND `ci.yml` to immutable commit SHAs; add `sha256sum -c` against a pinned hash for the osv-scanner binary download. ~1 hr. |
 
-### Design enhancement spec (UX-14..21) — opened 2026-04-23
+### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
+
+Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 files. These five close the highest-leverage PHI/auth/payment gaps. ~12 hr total. **Target after this batch ships:** web ≥78%, mobile ≥85%, RLS adds 2 dedicated PHI-table files.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-24 | 🟢 Ready | **`care_events_rls.test.sql`** | `care_events` is the most-frequently-written PHI table (every journal entry) and has NO dedicated RLS test file today (only `care_event_comments` does). A cross-recipient SELECT/INSERT leak would be silent in CI. Test coordinator/aide/outer-circle SELECT and INSERT isolation — especially the cross-recipient leak vector. ~2 hr. |
+| TD-25 | 🟢 Ready | **`supabaseServer` session-refresh unit test** | New file: `apps/web/lib/__tests__/supabaseServer.test.ts`. Cookie-API regressions from Next.js or `@supabase/ssr` upgrades currently have no regression net (route tests mock the client). Simulate expired `access_token` + valid `refresh_token` in cookies, verify a new session is returned (or 401 thrown cleanly). Silent-break vector for ALL SSR routes. ~3 hr. |
+| TD-26 | 🟢 Ready | **`useOfflineWrite` error/retry branch coverage** | Branch coverage is 50% (lines 79-80, 87, 95-96 — the offline retry and error-clear paths). Exactly the code that runs during intermittent connectivity, the most common mobile failure mode. Test: network failure mid-sync (queue not removed), repeated retry on permanent 4xx, queue clear on success. ~2 hr. |
+| TD-27 | 🟢 Ready | **Aide cross-recipient scoping integration test** | New file: `apps/web/server/routers/__tests__/careEventsRouter.scope.test.ts`. RLS covers DB-layer isolation but the tRPC `where` clause is untested for cross-org isolation. Use a real local DB; assert `careEvents.list` called with a `recipient_id` the aide is NOT a member of returns empty (or 403), not data. ~3 hr. |
+| TD-28 | 🟢 Ready | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
+
+### Roadmap features (ON-64..68) — opened 2026-04-25
+
+From `docs/project-info/product/ROADMAP.md` Phases 3–5. Greenlit 2026-04-25 to add to Ready queue. Sequencing rationale per ROADMAP.md §"Feature sequencing rationale".
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| ON-64 | 🟢 Ready | **Care brief generation pipeline (Phase 3)** | The viewer page `/brief/[shareToken]/page.tsx` exists, but the *generator* that builds a snapshot from `identity_vault` + `medications` + `documents` and emits a signed share URL isn't wired. Per ROADMAP.md §Phase 3: de-tokenization happens ONCE at generation time; the stored snapshot has real names; the vault is never accessed at view time. New: `apps/web/app/api/brief/generate/route.ts` + `lib/buildCareBrief.ts` (pure helper) + Supabase row in `care_briefs` table (may need migration). Coordinator dashboard "Generate brief" button. ~2 days incl. RLS test + pgTAP. |
+| ON-65 | 🟢 Ready | **Refill alerts (Phase 3)** | Inngest nightly job: find `medications WHERE supply_days_remaining <= 7`. Send notification to coordinator + assigned caregiver with pharmacy contact pre-populated. Idempotency key: `refill:{medication_id}:{week_stamp}`. New: `apps/web/inngest/functions/medicationRefillAlerts.ts` + test. Schema is ready (`supply_days_remaining` column exists). ~1 day. |
+| ON-66 | 🟢 Ready | **Symptom tracker (Phase 4)** | Log pain (0-10), mood, appetite, mobility, vitals (BP, pulse, temp). Trend view shows status over time. Flagged symptoms surface in doctor export. Schema: extend existing `care_events.event_type` enum with `symptom` + jsonb payload OR create dedicated `symptoms` table (decide in plan; `symptoms.ts` router skeleton already exists per `apps/web/server/routers/`). Web journal panel + mobile screen. ~3 days. |
+| ON-67 | 🟢 Ready | **Burnout tracker (Phase 4) — the differentiator** | ROADMAP.md: *"the differentiator nobody else builds. CareZone didn't. Caring Village doesn't."* Weekly check-in for the CAREGIVER (not recipient): sleep score, stress score, support score. If 2-week trend is bad, surface respite resources. New table `caregiver_wellbeing` (member_id, week_stamp, scores, created_at) + RLS (member sees only own). Inngest weekly reminder. UI: prompt in TopBar Sunday + dedicated `/wellbeing` route. ~3 days. |
+| ON-68 | 🟢 Ready | **Document vault (Phase 5)** | Encrypted storage for HIPAA auth, POA, advance directive, insurance cards, medication list. Documents schema exists (`documents` table + RLS); needs vault-specific UI surface that aggregates by category, plus a "share with new aide" workflow that generates a time-limited signed URL. ~2.5 days. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
 
