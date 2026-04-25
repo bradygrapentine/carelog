@@ -1,0 +1,14 @@
+# actions/labeler config — drives the `needs-phi-review` label.
+# Any PR whose changed files match these globs gets auto-labeled.
+# See .github/workflows/phi-review-gate.yml for the status-check side.
+needs-phi-review:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/posthog*"
+          - "**/analytics*"
+          - "**/*Repository.ts"
+          - "**/*repository.ts"
+          - "**/auth/**"
+          - "apps/web/lib/supabase*"
+          - "supabase/migrations/**"
+          - "supabase/policies/**"

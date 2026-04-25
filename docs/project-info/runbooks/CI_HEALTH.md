@@ -91,6 +91,53 @@ Not an error.
 
 ---
 
+## 2b. PHI review gate (`needs-phi-review` label + `phi-review` status check)
+
+**What:** A GitHub Actions workflow (`.github/workflows/phi-review-gate.yml`, TD-31) that auto-applies the `needs-phi-review` label to any PR whose diff touches PHI-sensitive paths, and emits a commit status named `phi-review` that goes **pending** while the label is present and **success** once a human removes it.
+
+**Why critical:** The `/review` adversarial security skill exists for PHI/RLS/auth changes, but agents can forget to run it. This gate makes the "did anyone review this for PHI leaks?" question impossible to skip — the PR cannot merge while `needs-phi-review` is on it (assuming `phi-review` is wired into branch protection — see post-merge step below).
+
+### Path globs that trigger the label
+
+Configured in `.github/labeler.yml`:
+- `**/posthog*`
+- `**/analytics*`
+- `**/*[Rr]epository.ts`
+- `**/auth/**`
+- `apps/web/lib/supabase*`
+- `supabase/migrations/**`
+- `supabase/policies/**`
+
+### How a developer / agent clears the label
+
+1. Run the `/review` skill against the PR (adversarial scan for PHI leaks, RLS holes, auth bugs).
+2. Post a brief comment on the PR with the findings — or "no findings" if clean.
+3. Remove the label:
+   ```bash
+   gh pr edit <num> --remove-label needs-phi-review
+   ```
+4. The workflow re-fires on `unlabeled` and flips `phi-review` to `success` within ~10s.
+
+### Required-check wiring (post-merge — manual)
+
+The workflow ships first; branch protection update is a separate human step. After TD-31's PR merges, add `phi-review` to the required checks list:
+
+GitHub → Settings → Branches → main → Required status checks → add `phi-review`.
+
+Until that's done, the gate runs but doesn't block merge — it's advisory only.
+
+### How to verify locally before pushing
+
+```bash
+# YAML parses?
+npx --yes js-yaml .github/workflows/phi-review-gate.yml > /dev/null
+npx --yes js-yaml .github/labeler.yml > /dev/null
+```
+
+The gate is real-world-tested by the very PR that adds it: opening it should trigger the label (it touches `.github/workflows/`, which is NOT in the glob list, so actually the seed PR will go green — that's the no-PHI-paths-touched path).
+
+---
+
 ## 3. Branch protection on `main`
 
 **What:** Rules governing who can push to `main` and what checks must pass before a PR merges.
