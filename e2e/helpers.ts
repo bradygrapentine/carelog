@@ -7,30 +7,76 @@ export async function clearMailpit(): Promise<void> {
   } catch {}
 }
 
-export async function getOtpFromMailpit(email: string): Promise<string> {
-  await new Promise((r) => setTimeout(r, 1500));
-  const res = await fetch("http://127.0.0.1:54324/api/v1/messages");
-  const data = await res.json();
-  const messages = data?.messages ?? [];
-  const msg = messages.find((m: any) =>
-    m.To?.some((t: any) => t.Address === email),
+// Poll Mailpit for an OTP email rather than fixed-sleeping. Survives cold-cache
+// CI where the email may take up to 10s to arrive. Returns the 6-digit code.
+export async function getOtpFromMailpit(
+  email: string,
+  options: { timeoutMs?: number; pollIntervalMs?: number } = {},
+): Promise<string> {
+  const timeoutMs = options.timeoutMs ?? 10_000;
+  const pollIntervalMs = options.pollIntervalMs ?? 500;
+  const deadline = Date.now() + timeoutMs;
+  let lastError = "no email yet";
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch("http://127.0.0.1:54324/api/v1/messages");
+      const data = (await res.json()) as { messages?: Array<{
+        Snippet?: string;
+        To?: Array<{ Address?: string }>;
+      }> };
+      const messages = data?.messages ?? [];
+      const msg = messages.find((m) =>
+        m.To?.some((t) => t.Address === email),
+      );
+      if (msg) {
+        // Match common Supabase OTP email phrasings:
+        //   "Your code: 123456"
+        //   "code is 123456"
+        //   "verification code: 123456"
+        // The 6-digit group must be word-boundaried so we don't grab unrelated
+        // 6-digit substrings in URLs / timestamps.
+        const match = msg.Snippet?.match(
+          /(?:code|verification code|otp)[\s:]*?(\d{6})\b/i,
+        );
+        if (match) return match[1];
+        lastError = `email found but no OTP in snippet: ${msg.Snippet?.slice(0, 120)}`;
+      }
+    } catch (err) {
+      lastError = `fetch failed: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    await new Promise((r) => setTimeout(r, pollIntervalMs));
+  }
+  throw new Error(
+    `getOtpFromMailpit timed out after ${timeoutMs}ms for ${email}: ${lastError}`,
   );
-  if (!msg) throw new Error("No email found for " + email);
-  const match = msg.Snippet?.match(/code:\s*(\d{6})/);
-  if (!match) throw new Error("No OTP in: " + msg.Snippet);
-  return match[1];
 }
 
+// SignIn flow: enter email → wait for OTP email → enter code → wait for /dashboard.
+//
+// Selector hardening (TD-39): the signin page has THREE elements containing
+// the substring "Sign in" — heading "Sign in to CareSync", form button "Sign in",
+// and MarketingNav link. `text=Sign in` matched ambiguously and could click the
+// wrong element, leaving the form unsubmitted and waitForURL spinning until
+// timeout. Use explicit role + exact name + form scoping instead.
 export async function signIn(page: Page, email: string): Promise<void> {
+  await clearMailpit();
   await page.goto("/signin");
-  await page.fill('[placeholder="you@example.com"]', email);
-  await page.click("text=Continue with email");
-  await page.waitForSelector("text=Check your email");
+
+  // Email step — exact button name to avoid the "Sending code..." disabled state.
+  await page.getByLabel("Email address").fill(email);
+  await page
+    .getByRole("button", { name: /^Continue with email$/ })
+    .click();
+  await page.getByText("Check your email", { exact: false }).waitFor();
+
+  // OTP step.
   const otp = await getOtpFromMailpit(email);
-  await page.fill('[placeholder="123456"]', otp);
+  await page.getByPlaceholder("123456").fill(otp);
+
   await Promise.all([
-    page.waitForURL(/\/dashboard/, { timeout: 15000 }),
-    page.click("text=Sign in"),
+    page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
+    // Scope the click to a button (not the heading or MarketingNav link).
+    page.getByRole("button", { name: /^Sign in$/ }).click(),
   ]);
 }
 
@@ -99,23 +145,29 @@ export async function acceptInviteAsNewUser(
   await clearMailpit();
   await Promise.all([
     page.waitForURL(/\/signin/, { timeout: 10000 }),
-    page.click("text=Accept invitation"),
+    page
+      .getByRole("button", { name: /^Accept invitation$/ })
+      .click(),
   ]);
 
-  await page.fill('[placeholder="you@example.com"]', inviteeEmail);
-  await page.click("text=Continue with email");
-  await page.waitForSelector("text=Check your email");
+  await page.getByLabel("Email address").fill(inviteeEmail);
+  await page
+    .getByRole("button", { name: /^Continue with email$/ })
+    .click();
+  await page.getByText("Check your email", { exact: false }).waitFor();
   const otp = await getOtpFromMailpit(inviteeEmail);
-  await page.fill('[placeholder="123456"]', otp);
+  await page.getByPlaceholder("123456").fill(otp);
 
   // Redirected back to invite URL by DashboardClient pending invite bridge
   await Promise.all([
-    page.waitForURL(/\/invite\//, { timeout: 15000 }),
-    page.click("text=Sign in"),
+    page.waitForURL(/\/invite\//, { timeout: 30_000 }),
+    page.getByRole("button", { name: /^Sign in$/ }).click(),
   ]);
   await Promise.all([
-    page.waitForURL(/\/dashboard/, { timeout: 15000 }),
-    page.click("text=Accept invitation"),
+    page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
+    page
+      .getByRole("button", { name: /^Accept invitation$/ })
+      .click(),
   ]);
 
   return { page, ctx };
