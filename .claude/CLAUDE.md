@@ -342,16 +342,16 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/plan-with-tests` | Write a test-first handoff plan for a subordinate agent (/ollama or subagent) |
 | `/expo` | Expo/React Native patterns for the mobile app |
 | `/mobile-ui` | Drive iOS Simulator: boot, launch Expo, deep-link routes, screenshot (visual UI investigation) |
-| `/worktree-subagents` | Dispatch parallel subagents with isolated file state |
 | `/ollama` | Dispatch parallel tasks to local Ollama models (Opus/Sonnet stays as orchestrator) |
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
 | `/backlog-sync` | Reconcile BACKLOG.md against git log + open PRs; rewrite §0 status board; flag stale/unblocked rows. Run at session start, end, and daily. |
-| `/backlog-dispatch` | Dispatch parallel subagents against all `🟢 Ready` BACKLOG.md items — each gets a worktree, feature branch, tests-first implementation, and PR. For unattended batch execution. |
-| `/ship-story` | Single-story end-to-end: read BACKLOG row → branch → tests-first implement → push → PR → mark In review. |
+| `/dispatch` | **Canonical parallel-dispatch skill.** Two input modes: ad-hoc task list/table OR `--from-backlog` (reads `BACKLOG.md` §1 Ready rows). Picks the right execution mode (plain implementation vs. `/tdd-ship` discipline) per input. Sets up worktrees with symlinked node_modules, scope contracts, model routing, and arms auto-merge by default. Mirrors `/wave`'s "one skill, picks the right mode" shape. |
+| `/backlog-dispatch` | Thin alias for `/dispatch --from-backlog`. Kept for muscle memory; new work should reach for `/dispatch` directly. |
+| `/ship-story` | Single-story end-to-end (N=1 case of `/dispatch`): read BACKLOG row → branch → tests-first implement → push → PR → mark In review. |
 | `/schema-dump` | Dump schema of named Postgres tables (columns, indexes, RLS policies) **before** writing any migration or seed SQL. Prevents the ON CONFLICT / renamed-column iteration thrash. |
-| `/tdd-ship` | Strict red-green-refactor: agent writes failing tests first, iterates ≤5 times to green, then refactors. Escalates if stuck instead of hacking around. |
-| `/dispatch` | Ad-hoc parallel fan-out of 2–6 tasks (not backlog-driven). Sets up worktrees, symlinks node_modules, writes scope contracts, picks model. |
+| `/tdd-ship` | Strict red-green-refactor: agent writes failing tests first, iterates ≤5 times to green, then refactors. Escalates if stuck instead of hacking around. Invoked per-item by `/dispatch` in backlog mode. |
+| `/worktree-subagents` | Canonical primitive: pre-flight checklist + worktree-with-symlinks setup + scope-contract template. `/dispatch` references this rather than re-stating the boilerplate. Use directly for hand-rolled parallel work that doesn't fit `/dispatch`. |
 | `/routing-report` | Weekly analysis of `.claude/routing-metrics.jsonl` — model usage + block events + `routing.yaml` tuning suggestions. |
 
 ## Agents
