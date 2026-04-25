@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # Required for GitHub merge queue: workflows producing required checks
+  # must fire on the queue's synthetic merge_group SHA, not just on PR head.
+  merge_group:
   schedule:
     - cron: "0 6 * * 1"
 
