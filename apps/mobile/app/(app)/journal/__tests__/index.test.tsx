@@ -7,8 +7,8 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// BottomSheet uses Animated + PanResponder which don't behave well in jest.
-// Replace with a simple pass-through that renders children when visible.
+// Render BottomSheet children directly when visible — avoids Modal/Animated
+// test-renderer limitations (Modal portals + fake-timer animation stalls).
 jest.mock("../../../../components/journal/BottomSheet", () => ({
   BottomSheet: ({
     visible,
@@ -16,11 +16,9 @@ jest.mock("../../../../components/journal/BottomSheet", () => ({
   }: {
     visible: boolean;
     children: React.ReactNode;
-  }) => {
-    const React = require("react");
-    const { View } = require("react-native");
-    return visible ? React.createElement(View, null, children) : null;
-  },
+    onClose: () => void;
+    title?: string;
+  }) => (visible ? children : null),
 }));
 
 jest.mock("../../../../context/AppContext", () => ({
@@ -114,10 +112,8 @@ describe("JournalScreen", () => {
   });
 
   it("shows mood tags in the bottom sheet when FAB is pressed", () => {
-    const { getByLabelText, getByText } = render(<JournalScreen />);
-    // Press FAB to open the sheet
+    const { getByLabelText } = render(<JournalScreen />);
     fireEvent.press(getByLabelText("Add new journal entry"));
-    // Now the mood buttons should be visible
     expect(getByLabelText("Good mood")).toBeTruthy();
     expect(getByLabelText("Okay mood")).toBeTruthy();
     expect(getByLabelText("Difficult mood")).toBeTruthy();
@@ -126,7 +122,7 @@ describe("JournalScreen", () => {
 
   it("submits a journal entry via offline write", async () => {
     const { getByPlaceholderText, getByLabelText } = render(<JournalScreen />);
-    // Open the bottom sheet with FAB
+    // Open the bottom sheet with FAB (BottomSheet is mocked to render inline)
     fireEvent.press(getByLabelText("Add new journal entry"));
     // Type in the textarea
     const input = getByPlaceholderText("What's happening with care today?");
