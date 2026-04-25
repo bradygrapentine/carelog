@@ -146,8 +146,7 @@ export async function POST(request: NextRequest) {
         distinctId: "anonymous",
         event: "$exception",
         properties: {
-          error_message: err.message,
-          error_stack: err.stack,
+          error_kind: err.name || "Error",
           route: "invite",
         },
       });
