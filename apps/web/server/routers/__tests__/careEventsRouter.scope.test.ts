@@ -9,6 +9,13 @@
 // We test what the router actually exports.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
+
+// Integration test — requires a running local Supabase. Skipped by default in
+// CI's `Web — unit tests` job (no Supabase boot). Enable explicitly by setting
+// SUPABASE_INTEGRATION=1 (locally before `supabase test db` / `vitest run`, or
+// in a dedicated CI job that runs `supabase start` first).
+const RUN_INTEGRATION = process.env.SUPABASE_INTEGRATION === "1";
+const describeIntegration = RUN_INTEGRATION ? describe : describe.skip;
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 
@@ -157,6 +164,7 @@ async function userClient(user: SeededUser): Promise<SupabaseClient> {
 }
 
 beforeAll(async () => {
+  if (!RUN_INTEGRATION) return;
   // Sanity: ensure local Supabase is reachable. Fail fast with a useful
   // message rather than dumping a fetch error on each test.
   const probe = await fetch(`${SUPABASE_URL}/auth/v1/health`).catch(
@@ -215,6 +223,7 @@ beforeAll(async () => {
 }, 30_000);
 
 afterAll(async () => {
+  if (!RUN_INTEGRATION) return;
   if (!fixture) return;
   // Cascade cleanup — care_events / memberships / recipients / vault all
   // ON DELETE CASCADE off organizations, so deleting the orgs is enough.
@@ -227,7 +236,7 @@ afterAll(async () => {
 
 // ─── tests ────────────────────────────────────────────────────────────────────
 
-describe("careEvents router — aide cross-recipient scoping (TD-27)", () => {
+describeIntegration("careEvents router — aide cross-recipient scoping (TD-27)", () => {
   it("Case A: aide of recipient A querying timeline for recipient B returns empty", async () => {
     const supabase = await userClient(fixture.aide);
     const caller = appRouter.createCaller({
