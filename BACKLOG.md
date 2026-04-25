@@ -16,9 +16,9 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-22 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
-| 🔎 In review | 0 | — |
-| 🔴 Blocked | 1 | PP-014 (no billing router) |
+| 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 · PP-014 |
+| 🔎 In review | 1 | TD-22 |
+| 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -85,7 +85,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-17 | ✅ Shipped · PR #141 | **Green mobile Jest suite + CI on PRs** | 7 test files red, 11 tests. Root causes: (1) `scaledFont` missing `Math.round()` → float output; (2) `expo-device` not in pnpm store → virtual mock needed; (3) 5 screen tests had stale empty-state text + schedule trpc mock missing `useUtils`/`shiftTradeRequests`/`completeMutation`; (4) `usePushNotifications` simulator test used dynamic `import()` incompatible with Jest CJS transform; (5) Journal BottomSheet uses Modal+Animated which test-renderer can't pierce — mocked inline. CI `mobile-tests` job already runs on `pull_request:` trigger (confirmed, no yml change needed). |
 | TD-20 | ✅ Shipped · PR #140 | **Restore 4 quarantined RLS pgTAP tests** | `ai_conversations_rls`, `education_tip_cache_rls`, `medication_tagging_rls`, `shift_trade_requests_rls` — replaced non-existent `tests.create_supabase_user()` helper with canonical `INSERT INTO auth.users` + `SET LOCAL ROLE` + JWT pattern; fixed invalid (non-hex) UUID literals; corrected `shifts` table column names; `_quarantined-tests/` dir now empty. |
 | TD-21 | 🟢 Ready | **Triage scanner findings + flip OSV/Trivy/pnpm-audit to blocking** | `.github/workflows/security.yml` runs OSV/Trivy/pnpm-audit warn-only (`continue-on-error: true`) so gates register but findings don't block. Real CVEs to address: Next.js `16.2.1` → `>=16.2.3` (DoS, GHSA-q4gf-8mx6-v5v3); protobufjs `7.5.4` → `>=7.5.5` (CRITICAL RCE, CVE-2026-41242); xmldom (multiple HIGH advisories). After bumps, remove `continue-on-error` lines. ~0.5 day. |
-| TD-22 | 🟢 Ready | **Billing tRPC router (unblocks PP-014)** | Create `apps/web/server/routers/billing.ts` exposing `billing.getSubscription` + register on `appRouter`. Reads from Stripe via existing webhook-fed `subscriptions` table (do not call Stripe API directly from tRPC). Then PP-014 mobile wiring becomes a 1-hr task. ~1.5 days incl. tests + RLS check. |
+| TD-22 | ✅ Shipped · PR #147 | **Billing tRPC router (unblocks PP-014)** | `apps/web/server/routers/billing.ts` — `billing.getSubscription` query reads org plan + seat count from `organizations` + `memberships` tables; registered on `appRouter`; 4 tests (happy path, no-membership null, free-plan null, UNAUTHORIZED). No Stripe API call; no new migration. |
 | TD-23 | 🟢 Ready | **SHA-pin all workflow action refs + checksum OSV binary** | Surfaced by 2026-04-25 security review. `.github/workflows/security.yml` uses `aquasecurity/trivy-action@master` (floating ref to mainline branch — supply-chain code-exec risk on every CI run), `gitleaks/gitleaks-action@v2` (mutable tag — same), and curls `osv-scanner` binary with no `sha256sum` check. `gitleaks` job has `pull-requests: write` which amplifies impact if the action is compromised. Fix: pin all 4 actions in `security.yml` AND `ci.yml` to immutable commit SHAs; add `sha256sum -c` against a pinned hash for the osv-scanner binary download. ~1 hr. |
 
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
@@ -155,7 +155,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
-| PP-014 | 🔴 Blocked | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. **Blocked by:** TD-22 (billing tRPC router). Once TD-22 ships, mobile wiring is ~1 hr. |
+| PP-014 | 🟢 Ready | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. Blocking dep (TD-22) cleared — `trpc.billing.getSubscription` now exists. Mobile wiring is ~1 hr. |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
 ---
