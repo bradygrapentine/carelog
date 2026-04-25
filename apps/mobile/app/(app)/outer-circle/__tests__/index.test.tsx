@@ -74,7 +74,7 @@ describe("OuterCircleScreen", () => {
       refetch: jest.fn(),
     });
     const { getByText } = render(<OuterCircleScreen />);
-    expect(getByText("No volunteer requests yet.")).toBeTruthy();
+    expect(getByText("No volunteer requests yet. Coordinators can post requests to get help from friends and community.")).toBeTruthy();
   });
 
   it("shows Add Request button for coordinator", () => {

@@ -50,7 +50,7 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-**How to verify:** Table Editor in dashboard should show all 16 tables.
+**How to verify:** Table Editor in dashboard should show all tables (37 as of 2026-04 — count grows as migrations land; cross-check with `ls supabase/migrations/*.sql | wc -l`).
 
 ### Configure auth
 
@@ -59,6 +59,8 @@ supabase db push
 3. Redirect URL: `https://care-log.org/auth/callback`
 4. Authentication → Email → OTP expiry: `600` seconds
 5. Confirm email: **enabled**
+
+**Phone OTP / Twilio:** Carelog uses **email OTP only** today — no SMS provider needed. If you ever enable phone auth, Supabase requires a Twilio account and `TWILIO_*` env vars. Skip for now.
 
 **How to verify:** Send a test OTP — it arrives and expires in 10 minutes.
 
@@ -100,6 +102,8 @@ Sign the BAA in Supabase dashboard before any real user data enters the system. 
 
 ### Add remaining env vars
 
+> **⚠️ Prerequisite order:** Do **§1 Supabase → §3 Inngest → §4 Resend → §5 Upstash → §6 Stripe → §7 Sentry → §8 PostHog** *before* coming back to populate Vercel env vars. You'll need every key from those services in hand when you paste. The Vercel project itself can be created early (just leave env vars blank); `vercel deploy` will fail until they're filled.
+
 Add each env var below after creating the corresponding downstream service.
 Path: Vercel → Project → Settings → Environment Variables
 
@@ -126,8 +130,10 @@ SENTRY_AUTH_TOKEN                  ← from Sentry auth tokens (build-time only 
 ANTHROPIC_API_KEY                  ← for AI brief generation (runtime)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY       ← generated locally (§9 below)
 VAPID_PRIVATE_KEY                  ← generated locally (§9 below)
-VAPID_EMAIL=admin@caresync.app
+VAPID_EMAIL=admin@care-log.org
 ```
+
+> **Not Vercel env vars:** `FCM_SERVER_KEY` and APNs `.p8` are stored as **EAS secrets**, not Vercel env vars (see §10–11). They never need to land in `.env*` for the web app.
 
 **How to verify:** `vercel env pull` locally and confirm all vars appear in `.env.local`.
 
@@ -145,10 +151,15 @@ VAPID_EMAIL=admin@caresync.app
 
 1. Vercel → Project → Settings → Domains
 2. Add `care-log.org` and `www.care-log.org`
-3. Update DNS at registrar with Vercel's CNAME/A records
-4. Return to Supabase → Authentication → URL Configuration → update Site URL to `https://care-log.org`
+3. Vercel will display a **CNAME** record (for `www.care-log.org`) and an **A** record (for `care-log.org` apex). Copy both.
+4. At your domain registrar (GoDaddy / Namecheap / Cloudflare / etc.) → Domain → DNS settings:
+   - Add or replace the apex `A` record with Vercel's IP
+   - Add or replace the `www` `CNAME` to `cname.vercel-dns.com.`
+   - Remove any conflicting records on the same hostname (registrars often pre-populate parking-page A records)
+5. Wait 5–15 min for propagation. Refresh Vercel's Domains page until both rows show ✅ green.
+6. Return to Supabase → Authentication → URL Configuration → update Site URL to `https://care-log.org`
 
-**How to verify:** `curl -I https://care-log.org` returns 200 with Vercel headers.
+**How to verify:** `curl -I https://care-log.org` returns 200 with `server: Vercel` headers and `x-vercel-id`.
 
 ---
 
@@ -274,7 +285,7 @@ STRIPE_PRICE_MONTHLY
 STRIPE_PRICE_ANNUAL
 ```
 
-**How to verify:** Stripe CLI → `stripe listen --forward-to localhost:3000/api/stripe/webhook` — trigger a test event and confirm 200 response logged in terminal.
+**How to verify (local dev only):** Install the Stripe CLI ([stripe.com/docs/stripe-cli](https://stripe.com/docs/stripe-cli) — `brew install stripe/stripe-cli/stripe` on macOS), then `stripe login`, then `stripe listen --forward-to localhost:3000/api/stripe/webhook` — trigger a test event in another terminal (`stripe trigger checkout.session.completed`) and confirm a 200 response is logged. Production uses the webhook URL configured in Stripe Dashboard → Webhooks → not the CLI.
 
 ---
 
@@ -358,7 +369,7 @@ Private Key: 4...
 ```
 NEXT_PUBLIC_VAPID_PUBLIC_KEY   ← Public Key from above
 VAPID_PRIVATE_KEY              ← Private Key from above
-VAPID_EMAIL=admin@caresync.app ← update to a real monitored address
+VAPID_EMAIL=admin@care-log.org ← change to your monitored email; receives subscription failure reports from push services
 ```
 
 **How to verify:** Open the production app → browser console → no VAPID errors when the push subscription is established. Network tab shows a successful subscription POST.
@@ -375,8 +386,10 @@ VAPID_EMAIL=admin@caresync.app ← update to a real monitored address
 1. [console.firebase.google.com](https://console.firebase.google.com) → **Add project** → name `carelog`, disable Analytics
 2. Add an **Android** app: package name `com.carelog.app` (must match `apps/mobile/app.json` → `android.package`)
 3. Download `google-services.json` → save to `apps/mobile/google-services.json`
-4. Firebase → **Project settings** → **Cloud Messaging** → enable legacy API → copy **Server key**
-5. `eas secret:create --scope project --name FCM_SERVER_KEY --value "<server-key>"`
+   > **Sensitive — handle as a credential.** It's already in `apps/mobile/.gitignore` (verify before committing). Keep a copy in your password manager. Do **not** check it into git.
+4. Firebase → **Project settings** → **Cloud Messaging** → look for **Cloud Messaging API (Legacy)** and copy the **Server key**.
+   > **If "Legacy API" is not visible / shows as disabled:** newer Firebase projects default to **HTTP v1 API only** (FCM Legacy was deprecated June 2024). For HTTP v1: skip the server-key step and follow [Firebase HTTP v1 setup](https://firebase.google.com/docs/cloud-messaging/migrate-v1) — Expo + EAS support both.
+5. `eas secret:create --scope project --name FCM_SERVER_KEY --value "<server-key>"` (legacy) **or** create the v1 service-account secret per the Firebase HTTP v1 docs.
 6. Verify `eas.json` sets `"googleServicesFile": "./google-services.json"` under `build.production.android`
 
 **How to verify:** After EAS build, send a test notification from Firebase console → device receives it.
@@ -393,6 +406,8 @@ VAPID_EMAIL=admin@caresync.app ← update to a real monitored address
 1. [developer.apple.com](https://developer.apple.com) → **Certificates, Identifiers & Profiles** → App ID `com.carelog.app` → enable **Push Notifications**
 2. EAS dashboard → project → **Credentials** → **iOS** → **Add** → **Apple Push Notification Key (.p8)**
 3. Alternative interactive flow: `eas credentials` in terminal (Claude cannot run this — must be run by human)
+
+> **Sensitive — handle as a credential.** The `.p8` file Apple provides is **never** committed to git. EAS stores it server-side once you upload it. Keep a local copy + Key ID + Team ID in your password manager — Apple won't let you re-download the `.p8`, only generate a new one (which would invalidate the old one).
 
 **How to verify:** Send a test push from the Expo dashboard or EAS; iOS device receives it.
 
@@ -464,19 +479,7 @@ or your spending limit needs to be increased.
 
 **How to verify:** Push a trivial commit; all CI jobs start within 30 seconds.
 
-### 13b. ANTHROPIC_API_KEY GitHub secret
-
-**What:** API key for the AI security review CI job (`.github/workflows/ci.yml` — the `ai-review` job). Every PR triggers this job via `scripts/ci-ai-review.mjs`.
-
-**Why critical:** If missing or revoked, the `ai-review` CI job fails on every PR, preventing the auto-security-review that catches PHI leakage and RLS bypasses.
-
-**Where to set:** GitHub → repository → Settings → Secrets and variables → Actions → New repository secret
-- Name: `ANTHROPIC_API_KEY`
-- Value: starts with `sk-ant-api03-...`
-
-**How to verify:** Open a PR → CI → `AI security review` job completes and posts a review comment on the PR.
-
-### 13c. Allow auto-merge
+### 13b. Allow auto-merge
 
 **What:** Repository setting that lets `gh pr merge --auto --squash` queue a merge to fire when CI goes green.
 
@@ -486,7 +489,7 @@ or your spending limit needs to be increased.
 
 **How to verify:** Run `gh pr merge --auto --squash <PR-number>` — should succeed with no error.
 
-### 13d. Branch protection on `main`
+### 13c. Branch protection on `main`
 
 **Current state:** `main` allows `gh pr merge --admin` without required reviews or status checks. This is permissive — convenient for fast iteration but risky for production.
 
@@ -534,7 +537,7 @@ Should print the installed path, not "Executable doesn't exist".
 ## 15. Final launch checklist
 
 - [ ] Supabase HIPAA BAA signed
-- [ ] All 16 tables migrated to Supabase cloud
+- [ ] All tables migrated to Supabase cloud (37 as of 2026-04 — count grows with new migrations; verify `select count(*) from information_schema.tables where table_schema = 'public';` matches local)
 - [ ] Vercel deploy green, all env vars set (see §2 full list)
 - [ ] Custom domain resolving + SSL active
 - [ ] Resend domain verified, test email delivered
@@ -547,8 +550,7 @@ Should print the installed path, not "Executable doesn't exist".
 - [ ] Auth flow: OTP → dashboard working end-to-end
 - [ ] Invite flow: invite sent → accepted → member appears in team
 - [ ] GitHub Actions billing healthy (see §13a)
-- [ ] `ANTHROPIC_API_KEY` GitHub secret set (see §13b)
-- [ ] Allow auto-merge enabled if overnight agents will be used (see §13c)
+- [ ] Allow auto-merge enabled if overnight agents will be used (see §13b)
 
 ---
 
@@ -579,5 +581,4 @@ Items that **block** Claude-executable stories in `BACKLOG.md`:
 | `google-services.json` in EAS | `PP-007` — Android push notification verification |
 | APNs `.p8` key in EAS | iOS production push builds |
 | `SENTRY_AUTH_TOKEN` in Vercel | `TD-03` — source maps upload on each production build |
-| `ANTHROPIC_API_KEY` GitHub secret | AI security review CI job on every PR |
 | GitHub Actions billing healthy | Every CI job (see `CI_HEALTH.md`) |

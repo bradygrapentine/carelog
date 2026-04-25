@@ -88,7 +88,7 @@ describe("MedicationsScreen", () => {
       refetch: jest.fn(),
     });
     const { getByText } = render(<MedicationsScreen />);
-    expect(getByText("No medications scheduled for today.")).toBeTruthy();
+    expect(getByText("No medications scheduled today. Your coordinator can add medications from the web app.")).toBeTruthy();
   });
 
   it("shows Mark given button for unadministered meds", () => {

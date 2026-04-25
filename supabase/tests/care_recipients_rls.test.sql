@@ -58,12 +58,14 @@ SELECT results_eq(
 );
 
 -- 3. Non-coordinator (caregiver) CANNOT INSERT a new recipient
+-- Use a literal token (gen_random_uuid()) instead of `SELECT … FROM identity_vault`
+-- because identity_vault RLS only allows service_role — caregiver gets 0 rows
+-- back, the INSERT inserts 0 rows, and the WITH CHECK clause never fires.
 SET LOCAL "request.jwt.claims" TO '{"sub":"c2000002-0000-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT throws_ok(
   $$INSERT INTO care_recipients (org_id, identity_token)
-    SELECT 'c0100000-0000-0000-0000-000000000001', token
-    FROM identity_vault WHERE org_id = 'c0100000-0000-0000-0000-000000000001' LIMIT 1$$,
+    VALUES ('c0100000-0000-0000-0000-000000000001', gen_random_uuid())$$,
   '42501', NULL,
   'caregiver (non-coordinator) cannot insert a care recipient'
 );
