@@ -30,6 +30,12 @@ export default defineConfig({
           alias: { "@": path.resolve(__dirname, ".") },
         },
         optimizeDeps: {
+          // Pre-bundle every dep used by the browser-project tests. Anything
+          // discovered lazily by Vite mid-run triggers a re-optimize that
+          // shows up as `Vite unexpectedly reloaded a test` and a flaky
+          // dynamic-import failure (almost always on whichever test file
+          // imports the not-yet-pre-bundled dep first). lucide-react was
+          // the historical culprit — every icon is its own entry point.
           include: [
             "react",
             "react-dom",
@@ -39,12 +45,25 @@ export default defineConfig({
             "@base-ui/react/merge-props",
             "@base-ui/react/separator",
             "@base-ui/react/use-render",
+            "lucide-react",
+            "next/link",
+            "next/navigation",
           ],
         },
         test: {
           name: "web",
+          // Browser-mode + a single chromium instance + parallel file-loading
+          // races on Vite's optimizeDeps and on the runner registry, surfacing
+          // as "Vitest failed to find the runner" and dynamic-import failures.
+          // Run browser-project test files serially in the one chromium tab —
+          // each file's tests still run as a unit; only file-to-file is serial.
+          fileParallelism: false,
           browser: {
             enabled: true,
+            // Headless by default — no Chromium windows during local runs
+            // or pre-commit. Override with VITEST_HEADED=1 (or `--browser.headless=false`)
+            // to debug interactively.
+            headless: process.env.VITEST_HEADED !== "1",
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore — pnpm resolves vitest@4.1.2+jsdom alongside 4.1.4+browser-playwright causing type divergence
             provider: playwright(),
