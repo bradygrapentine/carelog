@@ -47,8 +47,6 @@ queue_rules:
     batch_size: 5
     batch_max_wait_time: "5 min"
     # If a batch fails, Mergify bisects to find the bad PR and ejects it.
-    allow_inplace_checks: true
-    # Don't queue a PR that's already merged out of band.
     queue_branch_prefix: mq/
 
 pull_request_rules:
