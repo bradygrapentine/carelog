@@ -3,6 +3,25 @@
 ## Overview
 Expo managed workflow. Active mobile work and status lives in `BACKLOG.md` §1 and §3 (Platform Parity).
 
+## Lockfile management (IMPORTANT)
+
+`apps/mobile` is a pnpm workspace package. Its deps are managed by the **root `pnpm-lock.yaml`** — there is no `apps/mobile/package-lock.json`.
+
+**NEVER run `npm install` inside `apps/mobile/`** — npm does not understand `workspace:*` protocol and will fail trying to resolve `@carelog/schemas`, `@carelog/types`, and `@carelog/utils`.
+
+Always install from the repo root:
+```sh
+pnpm install           # from /path/to/carelog root
+```
+
+To add a new dep:
+```sh
+pnpm --filter @carelog/mobile add <package>
+# or: cd apps/mobile && pnpm add <package>
+```
+
+`npm test` (and other npm scripts) is fine — only `npm install` is forbidden. The `test` script just invokes jest via the already-installed node_modules.
+
 ## Screenshot Workflow
 - Install Puppeteer and Chrome Cache
 
