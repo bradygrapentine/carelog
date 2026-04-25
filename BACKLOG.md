@@ -20,6 +20,9 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | 🔎 In review | 1 | TD-21+23 (#148) |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 1 | PP-014 (no billing router) |
+| 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 · PP-014 |
+| 🔎 In review | 1 | TD-22 |
+| 🔴 Blocked | 0 | — |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -86,9 +89,9 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-17 | ✅ Shipped · PR #141 | **Green mobile Jest suite + CI on PRs** | 7 test files red, 11 tests. Root causes: (1) `scaledFont` missing `Math.round()` → float output; (2) `expo-device` not in pnpm store → virtual mock needed; (3) 5 screen tests had stale empty-state text + schedule trpc mock missing `useUtils`/`shiftTradeRequests`/`completeMutation`; (4) `usePushNotifications` simulator test used dynamic `import()` incompatible with Jest CJS transform; (5) Journal BottomSheet uses Modal+Animated which test-renderer can't pierce — mocked inline. CI `mobile-tests` job already runs on `pull_request:` trigger (confirmed, no yml change needed). |
 | TD-20 | ✅ Shipped · PR #140 | **Restore 4 quarantined RLS pgTAP tests** | `ai_conversations_rls`, `education_tip_cache_rls`, `medication_tagging_rls`, `shift_trade_requests_rls` — replaced non-existent `tests.create_supabase_user()` helper with canonical `INSERT INTO auth.users` + `SET LOCAL ROLE` + JWT pattern; fixed invalid (non-hex) UUID literals; corrected `shifts` table column names; `_quarantined-tests/` dir now empty. |
 | TD-21 | ✅ Shipped (partial) · PR #148 | **CVE bumps shipped; flip-to-blocking deferred to TD-29** | Bumped Next.js → 16.2.3, protobufjs → 8.0.1 (via root pnpm override), @xmldom/xmldom → 0.9.10 (via root pnpm override). Flipping scanners to blocking surfaced ~25 long-tail transitive findings — reverted to warn-only with TD-29 follow-up. The CRITICAL RCE + DoS bumps still landed. |
-| TD-22 | 🟢 Ready | **Billing tRPC router (unblocks PP-014)** | Create `apps/web/server/routers/billing.ts` exposing `billing.getSubscription` + register on `appRouter`. Reads from Stripe via existing webhook-fed `subscriptions` table (do not call Stripe API directly from tRPC). Then PP-014 mobile wiring becomes a 1-hr task. ~1.5 days incl. tests + RLS check. |
 | TD-23 | ✅ Shipped · PR #148 | **SHA-pin all workflow action refs + checksum OSV binary** | Pinned 5 actions across both `security.yml` and `ci.yml` to immutable SHAs (with `# v1.2.3` end-of-line comments): `actions/checkout@v4.2.2`, `actions/setup-node@v4.4.0`, `pnpm/action-setup@v3.0.0`, `gitleaks/gitleaks-action@v2.3.9`, `aquasecurity/trivy-action@v0.30.0`. Added `sha256sum -c` against `c52d68f8...` for the OSV binary download — fails loudly on mismatch. |
 | TD-29 | 🟢 Ready | **Long-tail transitive vuln triage (followup to TD-21)** | Surfaced when TD-21 flipped scanners to blocking on 2026-04-25; reverted to warn-only after PR #148 merged. Three classes: (1) `apps/web/pnpm-lock.yaml` is a separate lockfile not refreshed by root `pnpm install` — needs `cd apps/web && pnpm install` or unification; (2) `apps/mobile/package-lock.json` is npm-format not pnpm — pnpm overrides don't apply, need `apps/mobile/package.json` direct bumps; (3) root has dompurify / follow-redirects / hono / vite / postcss / uuid HIGH advisories not covered by current overrides. After triage, remove `continue-on-error` from OSV/Trivy/pnpm-audit jobs in `security.yml` (look for `# TD-29` comments). ~0.5 day. |
+| TD-22 | ✅ Shipped · PR #147 | **Billing tRPC router (unblocks PP-014)** | `apps/web/server/routers/billing.ts` — `billing.getSubscription` query reads org plan + seat count from `organizations` + `memberships` tables; registered on `appRouter`; 4 tests (happy path, no-membership null, free-plan null, UNAUTHORIZED). No Stripe API call; no new migration. |
 
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
 
@@ -157,7 +160,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
-| PP-014 | 🔴 Blocked | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. **Blocked by:** TD-22 (billing tRPC router). Once TD-22 ships, mobile wiring is ~1 hr. |
+| PP-014 | 🟢 Ready | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. Blocking dep (TD-22) cleared — `trpc.billing.getSubscription` now exists. Mobile wiring is ~1 hr. |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
 ---
