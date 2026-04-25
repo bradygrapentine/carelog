@@ -54,7 +54,7 @@ Exception: `CarelogWatch/` Xcode target files (hand-maintained, outside prebuild
 Screens consume theme via `useAppTheme()` from `hooks/useAppTheme.ts`
 rather than importing `colors` directly. The hook returns the active
 palette based on system color scheme. Screen migration is tracked in
-ON-16 (follow-up to ON-13 — file it in OVERNIGHT_BACKLOG.md if it
+ON-16 (follow-up to ON-13 — file it in BACKLOG.md if it
 doesn't exist yet).
 
 ## Auth

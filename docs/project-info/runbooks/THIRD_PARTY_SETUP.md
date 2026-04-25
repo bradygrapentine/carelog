@@ -483,7 +483,7 @@ or your spending limit needs to be increased.
 
 **What:** Repository setting that lets `gh pr merge --auto --squash` queue a merge to fire when CI goes green.
 
-**Why critical:** When off (current state), agent-opened PRs cannot be auto-merged. Every PR requires manual merge after CI passes, creating a manual bottleneck for overnight/unattended work.
+**Why critical:** When off (current state), agent-opened PRs cannot be auto-merged. Every PR requires manual merge after CI passes, creating a manual bottleneck for unattended work.
 
 **Where to enable:** GitHub → repository → Settings → General → Pull Requests → check "Allow auto-merge"
 
@@ -550,7 +550,7 @@ Should print the installed path, not "Executable doesn't exist".
 - [ ] Auth flow: OTP → dashboard working end-to-end
 - [ ] Invite flow: invite sent → accepted → member appears in team
 - [ ] GitHub Actions billing healthy (see §13a)
-- [ ] Allow auto-merge enabled if overnight agents will be used (see §13b)
+- [ ] Allow auto-merge enabled if unattended agents will be used (see §13b)
 
 ---
 
