@@ -16,7 +16,7 @@ Take one `🟢 Ready` row from `BACKLOG.md` and drive it to PR.
 - Story is small enough for one PR (≤8 files, well-scoped).
 
 **Don't use for:**
-- Batch/overnight work → use `/backlog-dispatch`.
+- Batch/unattended work → use `/backlog-dispatch`.
 - Unscoped or still-brainstorming ideas → use `superpowers:brainstorming` first.
 
 ## Arguments
@@ -43,9 +43,8 @@ Capture the Story, Notes, and Size. If blocked or not Ready, stop and report.
 git checkout -b feat/$(echo $STORY_ID | tr '[:upper:]' '[:lower:]')-<short-slug>
 ```
 
-### 4. Flip status to ⚡ In progress in the SAME first commit
-Edit BACKLOG.md row: `🟢 Ready` → `⚡ In progress`, set `Owner:` and `Branch:`.
-Commit so stalls are visible to other sessions / `/backlog-sync`.
+### 4. (Reserved — no BACKLOG.md edit)
+**Do NOT edit `BACKLOG.md`.** Status updates happen via `/backlog-sync` after merge, on a dedicated branch. Two PRs touching adjacent rows in the same markdown table = guaranteed merge conflicts. Conventional-commit subject (`feat($STORY_ID): …`) is what `/backlog-sync` uses to find the story.
 
 ### 5. Tests first
 Read the relevant nearest existing test to get the test pattern. Write failing tests for the story's AC. Run — confirm they fail. Commit `test: failing <story> tests`.
@@ -58,8 +57,8 @@ Iterate: edit → `cd apps/web && npx vitest run --reporter=dot` → fix. Max 5 
 - `cd apps/web && npx tsc --noEmit` — no new errors in touched files.
 - `git fetch origin main && git rebase origin/main` — resolve conflicts honestly (not `--skip`).
 
-### 8. Update BACKLOG.md
-Flip row to `🔎 In review`, set `PR: #NNN` (fill after push). Commit in the same push.
+### 8. (Reserved — no BACKLOG.md edit)
+Status flip happens automatically after merge via `/backlog-sync`. The conventional-commit subject (`feat($STORY_ID): …`) and the PR's merged-state are enough.
 
 ### 9. Push + PR
 ```sh

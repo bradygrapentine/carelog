@@ -10,7 +10,7 @@ For the third-party service setup (Supabase, Vercel, Stripe, etc.) see `THIRD_PA
 ## Table of Contents
 
 - [§1 GitHub Actions billing](#1-github-actions-billing) — the silent killer
-- [§2 Allow auto-merge](#2-allow-auto-merge) — overnight agent prerequisite
+- [§2 Allow auto-merge](#2-allow-auto-merge) — unattended agent prerequisite
 - [§3 Branch protection on main](#3-branch-protection-on-main) — current state + recommendations
 - [§4 Symptoms → fixes quick-ref](#4-symptoms--fixes-quick-reference)
 
@@ -60,7 +60,7 @@ Push a trivial whitespace commit or re-run any failed job. All CI jobs should st
 
 **What:** Repository setting that enables `gh pr merge --auto --squash <number>`. When enabled, a PR queues to merge automatically the moment all required status checks pass and any required reviews are approved.
 
-**Why critical:** The overnight agent (`/overnight`, `/backlog-dispatch`) opens PRs and queues auto-merge. When this setting is off, every overnight PR requires a manual human merge in the morning — defeating the purpose of unattended overnight runs.
+**Why critical:** Unattended agents (`/backlog-dispatch`) open PRs and queue auto-merge. When this setting is off, every PR requires a manual human merge — defeating the purpose of unattended runs.
 
 **Current state (as of 2026-04-23):** OFF. The agent workaround is to merge manually or use `gh pr merge --admin`.
 

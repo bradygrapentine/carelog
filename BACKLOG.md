@@ -4,7 +4,7 @@
 
 Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-25**.
 
-Replaces: `OVERNIGHT_BACKLOG.md`, `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
+Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
 Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-info/runbooks/THIRD_PARTY_SETUP.md` and are referenced from §8.
 
@@ -23,7 +23,6 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 · PP-014 |
 | 🔎 In review | 1 | TD-22 |
 | 🔴 Blocked | 0 | — |
-| 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
 
@@ -38,16 +37,15 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 | 🟢 | **Ready** — scoped, unblocked, not yet picked up |
 | ⚡ | **In progress** — an agent or human is actively working on it |
 | 🔎 | **In review** — PR open, awaiting review or CI |
-| 🌙 | **Overnight-eligible** — picked up by the nightly agent (2 am CT / 8 am UTC). Must be mechanical, low risk, no shared-state conflicts. |
 | 🧊 | **Deferred** — intentionally parked |
 | ✅ | **Shipped** — moved to §7 |
 | 🔴 | **Blocked** — prerequisite open; note `Blocked by:` inline |
 | 🧑 | **Needs human** — account signup, env var, click-through — see §8 |
 
-Every active row **must** include a `Status:` field (`Ready` / `In progress` / `In review` / `Blocked` / `Shipped`) and, when applicable, `Owner:` (agent name, human, or `nightly`) and `Branch:`/`PR:` once work starts. `/backlog-sync` fills what it can infer.
+Every active row **must** include a `Status:` field (`Ready` / `In progress` / `In review` / `Blocked` / `Shipped`) and, when applicable, `Owner:` (agent name or human) and `Branch:`/`PR:` once work starts. `/backlog-sync` fills what it can infer.
 
 **Story-ID prefixes**
-- `ON-*` — overnight-originated stories (mobile a11y, mechanical sweeps, large features)
+- `ON-*` — general stories (mobile a11y, mechanical sweeps, large features)
 - `PP-*` — platform parity (web/iOS/Android)
 - `A11Y-*` — accessibility tooling
 - `UX-*` — deferred UI redesign polish
@@ -131,11 +129,11 @@ Source: external design prototype (CareSync Prototype.html) handed off as enhanc
 | UX-20 | ✅ Shipped · PR #130 | **Print-friendly visit summary** | Dashboard "Generate visit summary" button → authenticated `/visit-summary` route (no token; caregiver prints, doesn't share). 6-section printable layout: patient info (PHI from `identity_vault` per P4-03 pattern), meds + adherence %, vitals SVG sparklines, symptoms, journal highlights, blank questions textarea. Uses `window.print()` — no `@react-pdf/renderer` needed. `lib/medAdherence.ts` pure helper with 14 tests; component with 18 tests. **Will conflict with UX-19 button placement if we add a Visit Summary button to TopBar later — but currently mounted on Dashboard, so no overlap with #129.** |
 | UX-21 | 🟢 Ready | **Daily Brief: full-page editorial view** | Magazine-style article (`max-w-[720px]`) with Fraunces 48 headline ("A good morning for Eleanor"), mono dateline, 5-8 AI-generated paragraphs referencing care entries inline, doctor-friendly bullet section at bottom, "Email family" + "Print for visit" actions. Re-uses existing brief generation pipeline. Refactor of `apps/web/app/brief/[token]/page.tsx`. Depends on UX-16. ~1 day. |
 
-Picked up automatically by the nightly agent. Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
+Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
 
-All items below are independent (no shared-state conflicts) — the agent may fan out in parallel.
+All items below are independent (no shared-state conflicts) — agents may fan out in parallel.
 
-### 🌙 ON-15 — Mobile: accessibility audit (iOS Dynamic Type + VoiceOver)
+### ON-15 — Mobile: accessibility audit (iOS Dynamic Type + VoiceOver)
 **Status:** ✅ Shipped (code complete; physical device VoiceOver verification deferred to human)
 
 **Why:** Mobile uses fixed `fontSize` throughout; never tested against 200% Dynamic Type or VoiceOver navigation order.
@@ -168,7 +166,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 
 ## 4. Accessibility (A11Y-*)
 
-Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in §1; overnight-eligible in §2. Remaining:
+Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in §1. Remaining:
 
 | ID | Priority | Story |
 |---|---|---|
@@ -176,7 +174,7 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 
 ---
 
-## 5. Large features (multi-day, not overnight-eligible)
+## 5. Large features (multi-day)
 
 ### ON-54 — Free tier definition + soft gates · ~1 day
 **Status:** 🧑 Needs product decision before coding
@@ -388,7 +386,7 @@ These tasks require signing into third-party consoles and cannot be automated:
 **GitHub / CI prerequisites (CI_HEALTH.md)**
 - **GitHub Actions billing** — payment method + spending limit; hard-blocks all CI when failed (§1)
 - **`ANTHROPIC_API_KEY` secret** — repo Settings → Secrets → Actions; gates AI security review on every PR (§2)
-- **Allow auto-merge** — repo Settings → General → Pull Requests; required for overnight agent PRs (§3)
+- **Allow auto-merge** — repo Settings → General → Pull Requests; required for unattended agent PRs (§3)
 - **Branch protection on `main`** — current posture permissive; tighten post-launch (§4)
 
 **Local dev (THIRD_PARTY_SETUP.md §14)**
@@ -434,16 +432,16 @@ Claude work that's **gated on the above** (cannot start until the human complete
 
 - At **session start** when resuming work on this repo
 - At **session end** via `/session-end`
-- On a **daily cron** via `/schedule` so the nightly agent sees fresh state
+- On a **daily cron** via `/schedule` so scheduled agents see fresh state
 - Any time the §0 status board looks stale
 
 Never delete a story silently — either move to §7 (shipped) or mark 🧊 with a reason.
 
 ---
 
-## 11. Overnight-agent contract (what the nightly agent can assume)
+## 11. Agent contract (what any picking agent can assume)
 
-- Before picking up any ON-* row, run `/backlog-sync` and claim the row by flipping its `Status:` to `⚡ In progress` + `Owner: nightly` in the first commit
+- Before picking up any row, run `/backlog-sync` and claim the row by flipping its `Status:` to `⚡ In progress` + `Owner:` in the first commit
 - `pnpm` at the repo root is the entry point; each app has its own workspace scripts
 - `supabase start` must be running for any pgTAP test
 - macOS host; `./scripts/mobile-ui.sh` is available for any mobile visual check (iOS or Android)

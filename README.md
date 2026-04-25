@@ -14,7 +14,7 @@ pnpm web                # localhost:3000
 
 ## Documentation
 
-- [`BACKLOG.md`](./BACKLOG.md) — active + overnight + shipped log
+- [`BACKLOG.md`](./BACKLOG.md) — active + shipped log
 - [`docs/INDEX.md`](./docs/INDEX.md) — doc map
 - [`.claude/CLAUDE.md`](./.claude/CLAUDE.md) — project config / agent rules
 - [`docs/project-info/runbooks/THIRD_PARTY_SETUP.md`](./docs/project-info/runbooks/THIRD_PARTY_SETUP.md) — third-party accounts + env vars

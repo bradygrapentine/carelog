@@ -1,6 +1,6 @@
 ---
 name: backlog-dispatch
-description: Dispatch parallel subagents against all Ready items in BACKLOG.md — each item gets its own worktree, feature branch, tests-first implementation, and PR. Returns a consolidated report. Use for overnight batch execution.
+description: Dispatch parallel subagents against all Ready items in BACKLOG.md — each item gets its own worktree, feature branch, tests-first implementation, and PR. Returns a consolidated report. Use for unattended batch execution.
 user-invocable: true
 ---
 
@@ -60,7 +60,7 @@ You are implementing backlog item [ID]: [Title]
 
 BRANCH: feature/[id-slug]  (verify with `git branch --show-current` before every commit)
 FILES ALLOWED: [list from backlog row, or derive from description]
-DO NOT: add features outside this ticket, touch files not listed, pass email/PHI to analytics
+DO NOT: add features outside this ticket, touch files not listed, pass email/PHI to analytics, edit BACKLOG.md (status flips happen via /backlog-sync after merge — touching BACKLOG.md from a feature PR creates rebase conflicts against every other open PR in the dispatch)
 PHI RULE: posthog.identify() and posthog.capture() must use UUID only
 WORKTREE: git worktree add .worktrees/[id-slug] origin/main && cd .worktrees/[id-slug] && git checkout -b feature/[id-slug]
 
