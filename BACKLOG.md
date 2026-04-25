@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 9 | TD-03 · TD-29 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
-| 🔎 In review | 3 | TD-25 (#158) · TD-28 (#160) · TD-32 (#154) |
+| 🟢 Ready | 9 | TD-03 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
+| 🔎 In review | 1 | TD-35 (#170) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -84,7 +84,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-20 | ✅ Shipped · PR #140 | **Restore 4 quarantined RLS pgTAP tests** | `ai_conversations_rls`, `education_tip_cache_rls`, `medication_tagging_rls`, `shift_trade_requests_rls` — replaced non-existent `tests.create_supabase_user()` helper with canonical `INSERT INTO auth.users` + `SET LOCAL ROLE` + JWT pattern; fixed invalid (non-hex) UUID literals; corrected `shifts` table column names; `_quarantined-tests/` dir now empty. |
 | TD-21 | ✅ Shipped (partial) · PR #148 | **CVE bumps shipped; flip-to-blocking deferred to TD-29** | Bumped Next.js → 16.2.3, protobufjs → 8.0.1 (via root pnpm override), @xmldom/xmldom → 0.9.10 (via root pnpm override). Flipping scanners to blocking surfaced ~25 long-tail transitive findings — reverted to warn-only with TD-29 follow-up. The CRITICAL RCE + DoS bumps still landed. |
 | TD-23 | ✅ Shipped · PR #148 | **SHA-pin all workflow action refs + checksum OSV binary** | Pinned 5 actions across both `security.yml` and `ci.yml` to immutable SHAs (with `# v1.2.3` end-of-line comments): `actions/checkout@v4.2.2`, `actions/setup-node@v4.4.0`, `pnpm/action-setup@v3.0.0`, `gitleaks/gitleaks-action@v2.3.9`, `aquasecurity/trivy-action@v0.30.0`. Added `sha256sum -c` against `c52d68f8...` for the OSV binary download — fails loudly on mismatch. |
-| TD-29 | 🟢 Ready | **Long-tail transitive vuln triage (followup to TD-21)** | Surfaced when TD-21 flipped scanners to blocking on 2026-04-25; reverted to warn-only after PR #148 merged. Three classes: (1) `apps/web/pnpm-lock.yaml` is a separate lockfile not refreshed by root `pnpm install` — needs `cd apps/web && pnpm install` or unification; (2) `apps/mobile/package-lock.json` is npm-format not pnpm — pnpm overrides don't apply, need `apps/mobile/package.json` direct bumps; (3) root has dompurify / follow-redirects / hono / vite / postcss / uuid HIGH advisories not covered by current overrides. After triage, remove `continue-on-error` from OSV/Trivy/pnpm-audit jobs in `security.yml` (look for `# TD-29` comments). ~0.5 day. |
+| TD-29 | ✅ Shipped · PR #165 | **Long-tail transitive vuln triage (followup to TD-21)** | Surfaced when TD-21 flipped scanners to blocking on 2026-04-25; reverted to warn-only after PR #148 merged. Three classes: (1) `apps/web/pnpm-lock.yaml` is a separate lockfile not refreshed by root `pnpm install` — needs `cd apps/web && pnpm install` or unification; (2) `apps/mobile/package-lock.json` is npm-format not pnpm — pnpm overrides don't apply, need `apps/mobile/package.json` direct bumps; (3) root has dompurify / follow-redirects / hono / vite / postcss / uuid HIGH advisories not covered by current overrides. After triage, remove `continue-on-error` from OSV/Trivy/pnpm-audit jobs in `security.yml` (look for `# TD-29` comments). ~0.5 day. |
 | TD-22 | ✅ Shipped · PR #147 | **Billing tRPC router (unblocks PP-014)** | `apps/web/server/routers/billing.ts` — `billing.getSubscription` query reads org plan + seat count from `organizations` + `memberships` tables; registered on `appRouter`; 4 tests (happy path, no-membership null, free-plan null, UNAUTHORIZED). No Stripe API call; no new migration. |
 
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
@@ -94,11 +94,14 @@ Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 fi
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-24 | ✅ Shipped · PR #146 | **`care_events_rls.test.sql`** | `care_events` is the most-frequently-written PHI table (every journal entry) and has NO dedicated RLS test file today (only `care_event_comments` does). A cross-recipient SELECT/INSERT leak would be silent in CI. Test coordinator/aide/outer-circle SELECT and INSERT isolation — especially the cross-recipient leak vector. ~2 hr. |
-| TD-25 | 🔎 In review · PR #158 | **`supabaseServer` session-refresh unit test** | New file: `apps/web/lib/__tests__/supabaseServer.test.ts`. Cookie-API regressions from Next.js or `@supabase/ssr` upgrades currently have no regression net (route tests mock the client). Simulate expired `access_token` + valid `refresh_token` in cookies, verify a new session is returned (or 401 thrown cleanly). Silent-break vector for ALL SSR routes. ~3 hr. |
+| TD-25 | ✅ Shipped · PR #158 | **`supabaseServer` session-refresh unit test** | New file: `apps/web/lib/__tests__/supabaseServer.test.ts`. Cookie-API regressions from Next.js or `@supabase/ssr` upgrades currently have no regression net (route tests mock the client). Simulate expired `access_token` + valid `refresh_token` in cookies, verify a new session is returned (or 401 thrown cleanly). Silent-break vector for ALL SSR routes. ~3 hr. |
 | TD-26 | ✅ Shipped · PR #159 | **`useOfflineWrite` error/retry branch coverage** | Branch coverage is 50% (lines 79-80, 87, 95-96 — the offline retry and error-clear paths). Exactly the code that runs during intermittent connectivity, the most common mobile failure mode. Test: network failure mid-sync (queue not removed), repeated retry on permanent 4xx, queue clear on success. ~2 hr. |
 | TD-27 | ✅ Shipped · PR #153 | **Aide cross-recipient scoping integration test** | New file: `apps/web/server/routers/__tests__/careEventsRouter.scope.test.ts`. RLS covers DB-layer isolation but the tRPC `where` clause is untested for cross-org isolation. Use a real local DB; assert `careEvents.list` called with a `recipient_id` the aide is NOT a member of returns empty (or 403), not data. ~3 hr. |
-| TD-28 | 🔎 In review · PR #160 | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
+| TD-28 | ✅ Shipped · PR #160 | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
 | TD-30 | ✅ Shipped · PR #149 | **Path-filtered required CI checks (cut rebase wait time)** | 12 required checks fire on every PR including `Mobile — Android debug build` (~3 min) and `RLS pgTAP tests` (~2.5 min) even when no mobile/SQL code changed. With 5 stacked PRs the rebase cascade burns ~30 min of CI per merge cycle. Fix: in `.github/workflows/ci.yml`, scope expensive jobs with `paths:` filters; introduce a single fast `ci-summary` meta-job that always runs and reports the required check name regardless of which downstream jobs fired. Move the 12 specific check names off `required_status_checks` and replace with one `ci-summary`. Branch protection unchanged in spirit — every PR still has to pass — but a docs-only PR finishes in ~30s instead of ~5min. ~2 hr (workflow YAML + branch-protection PATCH). |
+| TD-32 | ✅ Shipped · PR #154 | **Run E2E (Playwright) on PR pushes** | E2E was previously only running on push-to-main; PRs got no Playwright coverage. Re-enabled via `pull_request:` trigger; now in CI Summary. |
+| TD-35 | 🔎 In review · PR #170 | **Fix TD-30 path-filter false-skip on lockfile-only PRs** | TD-30's per-job `if:` used `contains(toJSON(github.event.pull_request.changed_files), 'apps/web')` — but `changed_files` is an INTEGER (file count), not a path list, so the predicate was always false and every test job silently SKIPPED on every PR. CI Summary treats SKIPPED as pass, so deps bumps shipped without test verification (e.g. TD-29 #165). Fix: replace with SHA-pinned `dorny/paths-filter@v3` doing real glob-based path matching; new `changes` job exposes `web`/`mobile`/`supabase`/`deps`/`e2e` outputs that downstream jobs gate on via `needs:`. |
+| TD-36 | ✅ Shipped · PR #173 | **Mobile lockfile management — pnpm-monorepo compatibility** | Investigation found apps/mobile already in `pnpm-workspace.yaml` + `pnpm-lock.yaml`; the npm-format `package-lock.json` was a stale orphan from a prior `npm install`. Path (a) chosen: deleted the orphan + added to `.gitignore` + documented `pnpm install` requirement in `apps/mobile/CLAUDE.md`. Mobile tests 33 pass / 15 skip (matches baseline); Expo CLI resolves post-install. |
 
 ### Roadmap features (ON-64..68) — opened 2026-04-25
 
@@ -223,6 +226,16 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-04-25 PM — security + CI hardening + harness consolidation (PRs #158–#173)
+✅ **TD-25** `supabaseServer` session-refresh unit test (PR #158)
+✅ **TD-28** `messagingPush` + `educationTipRefresh` Inngest failure tests + `DeviceNotRegistered` fix (PR #160)
+✅ **TD-29** Long-tail transitive vuln triage — `vite` → 8.0.10, `dompurify` → 3.4.1, `follow-redirects` → 1.16.0, `postcss` → 8.5.10, `hono` → 4.12.14, `uuid` → 14.0.0, `@tootallnate/once` → 3.x; deleted stale `apps/web/pnpm-lock.yaml` (root lockfile is canonical); `apps/mobile/package-lock.json` hand-patched (`workspace:*` blocks `npm install`); OSV/Trivy/pnpm-audit flipped to blocking (PR #165)
+✅ **TD-32** Run E2E on PR pushes (PR #154)
+✅ **TD-36** Migrated `apps/mobile` to pnpm workspace — deleted stale `package-lock.json`, added `.gitignore` rule, documented in `apps/mobile/CLAUDE.md` (PR #173)
+✅ **CI infra** Mergify config: drop phantom `audit` check, switch to `CI Summary` aggregate, upgrade to current format, enable merge queue (PRs #166, #168, #171, #172)
+✅ **Docs** CLAUDE.md auto-merge → Mergify queue workflow rewrite (PR #167)
+
 
 ### 2026-04-25 backlog burndown + harness consolidation (PRs #145–#161)
 ✅ **fix(security)** Drop share_token + error stack from PostHog — closes 2 PHI leak vectors (PR #145)
