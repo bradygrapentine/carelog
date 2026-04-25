@@ -172,7 +172,7 @@ jobs:
       - name: Run pgTAP tests
         run: supabase test db
 
-  # ─── E2E — only on push to main (slow, needs full stack) ────────────────────
+  # ─── E2E — runs on PR + push to main (slow, needs full stack) ───────────────
 
   e2e:
     name: E2E (Playwright)

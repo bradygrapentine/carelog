@@ -151,6 +151,8 @@ The gate is real-world-tested by the very PR that adds it: opening it should tri
 
 The four security checks are emitted by `.github/workflows/security.yml` (PR #143). OSV / Trivy / pnpm-audit currently run **warn-only** (`continue-on-error: true`) so the gate registers but real findings don't block — see TD-21 in the backlog for triage.
 
+**E2E runtime cost (TD-32):** The `E2E (Playwright)` job boots local Supabase + builds + serves the web app + runs Playwright. Historical job duration is ~10–15 minutes (longer runs got cancelled by concurrency, capping observed data). As of TD-32 it runs on every PR push and on push-to-main. Per-PR GH Actions cost: ~15 minutes of `ubuntu-latest` runtime. If this becomes a billing concern, follow-up options: path-filter to skip on docs-only PRs (see TD-30 pattern), or skip on draft PRs via `if: github.event.pull_request.draft == false`.
+
 `gh pr merge --auto --squash` is the canonical path. Auto-merge IS disabled at the repo level (`enablePullRequestAutoMerge: false`); manual merge after CI passes is required.
 
 ### Where to configure
