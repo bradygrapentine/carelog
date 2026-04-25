@@ -32,7 +32,9 @@ let mockGetUser: ReturnType<typeof vi.fn>;
 let mockRefreshSession: ReturnType<typeof vi.fn>;
 let capturedCookieHandlers: {
   getAll?: () => { name: string; value: string }[];
-  setAll?: (cookies: { name: string; value: string; options: unknown }[]) => void;
+  setAll?: (
+    cookies: { name: string; value: string; options: unknown }[],
+  ) => void;
 } = {};
 
 const VALID_USER = { id: "user-uuid-123", email: "test@example.com" };
@@ -51,7 +53,9 @@ vi.mock("@supabase/ssr", () => ({
       opts: {
         cookies: {
           getAll: () => { name: string; value: string }[];
-          setAll: (cookies: { name: string; value: string; options: unknown }[]) => void;
+          setAll: (
+            cookies: { name: string; value: string; options: unknown }[],
+          ) => void;
         };
       },
     ) => {
@@ -101,11 +105,17 @@ function setCookies(pairs: { name: string; value: string }[]) {
   cookieStore.cookies = [...pairs];
 }
 
-function mockGetUserSuccess(user: { id: string; email: string }): MockGetUserResult {
+function mockGetUserSuccess(user: {
+  id: string;
+  email: string;
+}): MockGetUserResult {
   return { data: { user }, error: null };
 }
 
-function mockGetUserFailure(message = "JWT expired", status = 401): MockGetUserResult {
+function mockGetUserFailure(
+  message = "JWT expired",
+  status = 401,
+): MockGetUserResult {
   return { data: { user: null }, error: { message, status } };
 }
 
@@ -163,7 +173,9 @@ describe("createServerSupabase — cookie session refresh", () => {
       { name: "sb-access-token", value: "refreshed-token", options: {} },
     ]);
 
-    const updatedCookie = cookieStore.getAll().find((c) => c.name === "sb-access-token");
+    const updatedCookie = cookieStore
+      .getAll()
+      .find((c) => c.name === "sb-access-token");
     expect(updatedCookie?.value).toBe("refreshed-token");
   });
 
@@ -306,15 +318,17 @@ describe("createRequestSupabase — bearer-token client", () => {
     vi.mocked(createClient).mockImplementationOnce((_url, _key, opts) => {
       capturedOpts = opts;
       // Return a minimal stub — double-cast to satisfy the type system in tests only
-      return { auth: { getUser: mockGetUser, refreshSession: mockRefreshSession } } as unknown as ReturnType<typeof createClient>;
+      return {
+        auth: { getUser: mockGetUser, refreshSession: mockRefreshSession },
+      } as unknown as ReturnType<typeof createClient>;
     });
 
     const headers = new Headers({ Authorization: "Bearer tok" });
     const { createRequestSupabase } = await import("../supabaseServer");
     await createRequestSupabase({ headers });
 
-    expect(capturedOpts!?.auth?.autoRefreshToken).toBe(false);
-    expect(capturedOpts!?.auth?.persistSession).toBe(false);
+    expect(capturedOpts?.auth?.autoRefreshToken).toBe(false);
+    expect(capturedOpts?.auth?.persistSession).toBe(false);
   });
 
   it("falls back to cookie-based client when no Authorization header is present", async () => {
