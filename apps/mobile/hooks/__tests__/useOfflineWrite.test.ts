@@ -187,4 +187,115 @@ describe("useOfflineWrite", () => {
     expect(enqueue).toHaveBeenCalled();
     expect(mockCareEventsInsert).not.toHaveBeenCalled();
   });
+
+  // --- Branch coverage: lines 79-80, 87, 95-96 ---
+
+  it("network failure mid-sync: increments attempts but does NOT dequeue (line 87)", async () => {
+    // Simulate a transient network failure during mutation
+    mockCareEventsInsert.mockRejectedValueOnce(new Error("Network error"));
+
+    const { result } = renderHook(() => useOfflineWrite("org-1"));
+
+    const { incrementAttempts } = require("../../store/offlineQueue");
+
+    (getQueue as jest.Mock).mockResolvedValueOnce([
+      {
+        id: "uuid-fail",
+        event_type: "journal",
+        entry_kind: "journal_entry",
+        payload: { text: "will fail" },
+        recipient_id: "r1",
+        occurred_at: "2026-04-11T12:00:00Z",
+        attempts: 0,
+      },
+    ]);
+
+    await act(async () => {
+      await result.current.write({
+        event_type: "journal",
+        entry_kind: "journal_entry",
+        payload: { text: "will fail" },
+        recipient_id: "r1",
+      });
+    });
+
+    // Queue item must NOT be removed — it stays for retry
+    expect(dequeue).not.toHaveBeenCalledWith("uuid-fail");
+    // Attempts counter must be bumped
+    expect(incrementAttempts).toHaveBeenCalledWith("uuid-fail");
+  });
+
+  it("permanent 4xx retry: dequeues item once attempts reach MAX_ATTEMPTS (lines 78-80)", async () => {
+    // Item has already exhausted retries (attempts === 5 === MAX_ATTEMPTS)
+    const { incrementAttempts } = require("../../store/offlineQueue");
+
+    const { result } = renderHook(() => useOfflineWrite("org-1"));
+
+    (getQueue as jest.Mock).mockResolvedValueOnce([
+      {
+        id: "uuid-exhausted",
+        event_type: "journal",
+        entry_kind: "journal_entry",
+        payload: { text: "too many retries" },
+        recipient_id: "r1",
+        occurred_at: "2026-04-11T12:00:00Z",
+        attempts: 5, // === MAX_ATTEMPTS
+      },
+    ]);
+
+    await act(async () => {
+      await result.current.write({
+        event_type: "journal",
+        entry_kind: "journal_entry",
+        payload: { text: "trigger flush" },
+        recipient_id: "r1",
+      });
+    });
+
+    // Exhausted item must be dequeued (dead-letter dropped)
+    expect(dequeue).toHaveBeenCalledWith("uuid-exhausted");
+    // Mutation must NOT be called for the exhausted item
+    expect(mockCareEventsInsert).not.toHaveBeenCalledWith(
+      expect.objectContaining({ idempotencyKey: "uuid-exhausted" }),
+    );
+    // Attempts must NOT be incremented (already dead)
+    expect(incrementAttempts).not.toHaveBeenCalledWith("uuid-exhausted");
+  });
+
+  it("queue cleared on success after reconnect flush (lines 85, 95-96)", async () => {
+    // Arrange: item in queue, reconnect fires flush, mutation succeeds
+    (getQueue as jest.Mock).mockResolvedValue([
+      {
+        id: "uuid-reconnect",
+        event_type: "journal",
+        entry_kind: "journal_entry",
+        payload: { text: "queued while offline" },
+        recipient_id: "r2",
+        occurred_at: "2026-04-11T10:00:00Z",
+        attempts: 0,
+      },
+    ]);
+    mockCareEventsInsert.mockResolvedValue({ id: "ce-ok" });
+
+    renderHook(() => useOfflineWrite("org-1"));
+
+    // Simulate NetInfo reconnect event (the addEventListener listener)
+    await act(async () => {
+      for (const listener of netInfoListeners) {
+        listener({ isConnected: true });
+      }
+      // Allow microtasks to drain
+      await Promise.resolve();
+    });
+
+    // On success the item must be dequeued
+    expect(dequeue).toHaveBeenCalledWith("uuid-reconnect");
+    expect(mockCareEventsInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: "org-1",
+        recipientId: "r2",
+        idempotencyKey: "uuid-reconnect",
+      }),
+    );
+  });
 });
