@@ -10,10 +10,11 @@ Monorepo: `apps/`, `packages/`, `supabase/`.
 Rules — non-negotiable:
 
 1. **Start every session / resumed task by reading `BACKLOG.md` §0 (status board) and the relevant §1–§5 row.** Do not explore code to figure out what's "next" — the backlog answers that.
-2. **Update `BACKLOG.md` in the same commit as the work.** Status transitions (pick up → in review → shipped → blocked) are part of the change, not a follow-up. See `BACKLOG.md` §10 for the transition table.
-3. **Never track planned work anywhere else.** Not in PR descriptions, not in memory, not in ad-hoc markdown. New work = new row with `Status: 🟢 Ready` and the right prefix (`TD-*`, `A11Y-*`, `ON-*`, `PP-*`, `UX-*`).
-4. **Run `/backlog-sync`** at session start, at session end (via `/session-end`), and on a daily cron (`/schedule`). It reconciles BACKLOG.md against git/PRs and rewrites the §0 counts. Never hand-edit §0.
-5. BACKLOG.md §7 is the **shipped log**. There is no separate BUILD_STATUS or TECH_DEBT — everything lives in BACKLOG.md.
+2. **Feature/fix PRs DO NOT touch `BACKLOG.md` at all.** No row updates, no status flips, no new follow-up TD rows in feature commits. Story status is derivative — `/backlog-sync` reconstructs it from git log + PR list. Two PRs touching adjacent rows in the same markdown table create guaranteed conflicts on rebase; today's 2026-04-25 session was 90% rebase pain because 5 of 7 PRs touched BACKLOG.md for legitimate-seeming reasons. A conventional-commit subject (`feat(td-24): …`) is enough for `/backlog-sync` to find the story.
+3. **Add new TD/ON rows in dedicated `chore(backlog): …` PRs** — never bundle them into a feature PR. If you discover follow-up work mid-feature, capture it as a TODO in the PR description; open a fresh BACKLOG-only PR after the feature merges (or let `/backlog-sync` pick it up).
+4. **Never track planned work anywhere else.** Not in PR descriptions long-term, not in memory, not in ad-hoc markdown. New work = new row in a backlog PR with `Status: 🟢 Ready` and the right prefix (`TD-*`, `A11Y-*`, `ON-*`, `PP-*`, `UX-*`).
+5. **Run `/backlog-sync`** at session start, at session end (via `/session-end`), and on a daily cron (`/schedule`). It rewrites everything (rows + §0 counts) on its own branch — that's where ALL backlog edits happen.
+6. BACKLOG.md §7 is the **shipped log**. There is no separate BUILD_STATUS or TECH_DEBT — everything lives in BACKLOG.md.
 
 If you catch yourself about to start work without a backlog row, stop and create the row first.
 
@@ -79,6 +80,43 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Start every complex task (3+ files) in plan mode
 - Pour energy into the plan → 1-shot implementation
 - When something goes sideways, re-plan — don't keep pushing
+
+## Auto-merge Workflow
+
+Repo-level auto-merge is **enabled** (as of 2026-04-25). Use `gh pr merge --auto --squash <num>` after opening a PR; it'll self-merge once CI passes.
+
+### Pre-arm validation (run BEFORE `gh pr merge --auto`)
+
+Auto-merge can silently stall if armed against a PR with stale required checks or hidden conflicts. Validate first — three checks, ~5 seconds:
+
+```sh
+PR=<num>
+# 1. Mergeable into current main? Aborts on conflicts.
+gh pr view "$PR" --json mergeable,mergeStateStatus -q '.mergeable + " / " + .mergeStateStatus'
+#    Want: "MERGEABLE / CLEAN" (or BLOCKED — that's just required checks pending, fine).
+#    Bad:  "CONFLICTING / DIRTY" — rebase before arming.
+
+# 2. Have all required checks fired on the head SHA? (Catches the #143 trap.)
+gh pr checks "$PR" 2>&1 | awk '{print $2}' | sort -u
+#    Want: only "pass" / "pending" / "skipping". A required check that's missing
+#    from this list is silently absent and auto-merge will wait forever.
+
+# 3. Cross-check against branch protection's required-check list.
+gh api "repos/{owner}/{repo}/branches/main/protection/required_status_checks/contexts" --jq '.[]'
+#    Every name here must appear in step 2's output. Missing = auto-merge will deadlock.
+```
+
+If any of those three is wrong, FIX before arming auto-merge. Don't fire-and-forget into a doomed state.
+
+### Wakeup-on-arm
+
+When you arm auto-merge, **always schedule a wakeup** (10-15 min) to verify the PR landed. If still pending: surface what's blocking (failing check, conflict appeared, missing check). Silent stalls are the worst auto-merge failure mode — the wakeup converts them into actionable signal.
+
+### Failure-mode shortlist
+- **Stale required-check** (check name in protection but not on PR head SHA) → re-push or rerun the missing job to make it fire.
+- **Flaky test** → rerun the failed job from the PR page; auto-merge picks up the rerun.
+- **Conflict appears** while armed → auto-merge cancels; rebase (`git rebase origin/main`) + re-arm.
+- **Force-push race** → don't push while armed unless you intend to invalidate the merge.
 
 ## Branch Hygiene
 
