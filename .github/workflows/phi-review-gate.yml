@@ -1,0 +1,102 @@
+name: PHI review gate
+
+# TD-31: Auto-label PRs touching PHI-sensitive paths and emit a `phi-review`
+# commit status that stays pending until a human runs /review and removes
+# the `needs-phi-review` label.
+#
+# Required-check wiring (post-merge, manual):
+#   GitHub > Settings > Branches > main > Required status checks
+#     -> add `phi-review`
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  phi-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Apply / refresh the `needs-phi-review` label based on the path globs
+      # in .github/labeler.yml. The labeler will not remove the label on its
+      # own (sync-labels: false) — humans remove it after running /review.
+      - name: Apply PHI label
+        if: github.event.action != 'unlabeled' && github.event.action != 'labeled'
+        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: false
+
+      # Decide the commit status:
+      #   - PHI paths matched + label present  -> pending  (awaiting human review)
+      #   - PHI paths matched + label removed  -> success  (human cleared it)
+      #   - No PHI paths                        -> success  (nothing to review)
+      - name: Set phi-review commit status
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const phiGlobs = [
+              /(^|\/)posthog/i,
+              /(^|\/)analytics/i,
+              /[Rr]epository\.ts$/,
+              /(^|\/)auth\//,
+              /^apps\/web\/lib\/supabase/,
+              /^supabase\/migrations\//,
+              /^supabase\/policies\//,
+            ];
+
+            // Re-fetch the PR fresh — labeler may have just mutated labels.
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const sha = pr.head.sha;
+
+            // Enumerate changed files (paginates for large PRs).
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const phiTouched = files.some((f) =>
+              phiGlobs.some((re) => re.test(f.filename))
+            );
+
+            const hasLabel = (pr.labels || []).some(
+              (l) => l.name === 'needs-phi-review'
+            );
+
+            let state, description;
+            if (!phiTouched) {
+              state = 'success';
+              description = 'No PHI-sensitive paths touched.';
+            } else if (hasLabel) {
+              state = 'pending';
+              description =
+                'PHI paths touched. Run /review, then remove the needs-phi-review label.';
+            } else {
+              state = 'success';
+              description = 'PHI review label cleared.';
+            }
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha,
+              state,
+              context: 'phi-review',
+              description,
+            });
+
+            core.info(`phi-review = ${state} (${description}) on ${sha}`);
