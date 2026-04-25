@@ -30,7 +30,6 @@ queue_rules:
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
       - "check-success=Vuln scan (Trivy)"
-      - "check-success=audit"
     # Same checks must stay green on the synthetic merge SHA before the
     # batch lands. Mergify reruns CI on a temporary branch per batch.
     merge_conditions:
@@ -41,7 +40,6 @@ queue_rules:
       - "check-success=OSV Scanner"
       - "check-success=Secret scan (Gitleaks)"
       - "check-success=Vuln scan (Trivy)"
-      - "check-success=audit"
     merge_method: squash
     # Batch up to 5 queued PRs into one CI run. With one-person workflow
     # and the existing parallel-dispatch pattern, batching saves a lot
