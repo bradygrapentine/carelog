@@ -16,9 +16,9 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 6 | TD-03 · TD-14 · PP-009 · PP-014 · UX-17 · UX-21 |
-| 🔎 In review | 8 | UX-14 (#125) · UX-15 (#126) · UX-16 (#128) · UX-18 (#127) · UX-19 (#129) · UX-20 (#130) · TD-15 (#131) · TD-16 |
-| 🔴 Blocked | 0 | — |
+| 🟢 Ready | 4 | TD-03 · PP-009 · UX-21 · ON-61 |
+| 🔎 In review | 3 | UX-17 (#138) · TD-20 (#140) · TD-17 (#141) |
+| 🔴 Blocked | 1 | PP-014 (no billing router) |
 | 🌙 Overnight queue | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -129,7 +129,7 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
-| PP-014 | 🟢 Ready | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch instead of `trpc.billing.getSubscription`. ~0.5 day. |
+| PP-014 | 🔴 Blocked | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. **Blocked by:** no `billing` router exists in `apps/web/server/trpc/router.ts` (file's own comment at L7-9 confirms). Wiring requires first creating a billing tRPC router (Stripe subscription read), which is multi-day, not 0.5d. Open a prerequisite story for the billing router before unblocking. |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
 ---
