@@ -83,42 +83,41 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Pour energy into the plan → 1-shot implementation
 - When something goes sideways, re-plan — don't keep pushing
 
-## Auto-merge Workflow
+## Merge Queue (Mergify)
 
-Repo-level auto-merge is **enabled** (as of 2026-04-25). Use `gh pr merge --auto --squash <num>` after opening a PR; it'll self-merge once CI passes.
+Repo uses **Mergify merge queue** (as of 2026-04-25, replacing GitHub native auto-merge — see #163, #166). Config lives at `.mergify.yml`. Mergify batches up to 5 PRs into one CI run on a synthetic merge SHA, eliminating the rebase-storm tax that armed auto-merge incurred when multiple PRs targeted main concurrently (O(N²) → O(N)).
 
-### Pre-arm validation (run BEFORE `gh pr merge --auto`)
+### How to merge a PR
 
-Auto-merge can silently stall if armed against a PR with stale required checks or hidden conflicts. Validate first — three checks, ~5 seconds:
+```sh
+gh pr edit <num> --add-label queue
+```
+
+Mergify watches for the `queue` label and routes the PR into the default queue. Don't use `gh pr merge --auto --squash` — GitHub native auto-merge races Mergify (auto-merge rebases the PR head; Mergify queues a synthetic merge SHA).
+
+### Pre-queue validation (run BEFORE `--add-label queue`)
+
+Mergify won't queue a PR with failing required checks or conflicts. Quick check:
 
 ```sh
 PR=<num>
-# 1. Mergeable into current main? Aborts on conflicts.
 gh pr view "$PR" --json mergeable,mergeStateStatus -q '.mergeable + " / " + .mergeStateStatus'
-#    Want: "MERGEABLE / CLEAN" (or BLOCKED — that's just required checks pending, fine).
-#    Bad:  "CONFLICTING / DIRTY" — rebase before arming.
+#   Want: MERGEABLE / anything-but-DIRTY. CONFLICTING/DIRTY → rebase first.
 
-# 2. Have all required checks fired on the head SHA? (Catches the #143 trap.)
-gh pr checks "$PR" 2>&1 | awk '{print $2}' | sort -u
-#    Want: only "pass" / "pending" / "skipping". A required check that's missing
-#    from this list is silently absent and auto-merge will wait forever.
-
-# 3. Cross-check against branch protection's required-check list.
-gh api "repos/{owner}/{repo}/branches/main/protection/required_status_checks/contexts" --jq '.[]'
-#    Every name here must appear in step 2's output. Missing = auto-merge will deadlock.
+gh pr checks "$PR" 2>&1 | grep -E "fail" | head -5
+#   Want: empty. Any "fail" → fix or rerun before labeling.
 ```
 
-If any of those three is wrong, FIX before arming auto-merge. Don't fire-and-forget into a doomed state.
+### Wakeup-on-label
 
-### Wakeup-on-arm
-
-When you arm auto-merge, **always schedule a wakeup** (10-15 min) to verify the PR landed. If still pending: surface what's blocking (failing check, conflict appeared, missing check). Silent stalls are the worst auto-merge failure mode — the wakeup converts them into actionable signal.
+When you add the `queue` label, **always schedule a wakeup** (10-15 min) to verify the PR landed. Mergify will comment on the PR if it can't queue (config issue, missing checks, conflicts). Silent stalls are the worst failure mode — the wakeup converts them into actionable signal.
 
 ### Failure-mode shortlist
-- **Stale required-check** (check name in protection but not on PR head SHA) → re-push or rerun the missing job to make it fire.
-- **Flaky test** → rerun the failed job from the PR page; auto-merge picks up the rerun.
-- **Conflict appears** while armed → auto-merge cancels; rebase (`git rebase origin/main`) + re-arm.
-- **Force-push race** → don't push while armed unless you intend to invalidate the merge.
+- **Mergify won't queue** → check the PR for a Mergify comment explaining why; usually a missing required check or a conflict.
+- **Batch fails CI on the merge SHA** → Mergify bisects to find the bad PR and ejects it; sibling PRs continue.
+- **`Configuration changed` check fails** → `.mergify.yml` syntax error; Mergify dashboard link in the check details has the parse error.
+- **Conflict appears while queued** → Mergify ejects + comments; rebase (`git rebase origin/main`) + re-add label.
+- **Required-check name drift** → if a workflow renames a check, update both `.mergify.yml` queue_conditions AND branch protection required-checks; otherwise Mergify never finds the check.
 
 ## Branch Hygiene
 
