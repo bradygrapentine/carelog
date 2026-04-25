@@ -16,12 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 14 | TD-03 · PP-009 · UX-21 · ON-61 · TD-22 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · TD-29 · ON-64 · ON-65..68 |
-| 🔎 In review | 1 | TD-21+23 (#148) |
-| 🔎 In review | 0 | — |
-| 🔴 Blocked | 1 | PP-014 (no billing router) |
-| 🟢 Ready | 17 | TD-03 · PP-009 · UX-21 · ON-61 · TD-21 · TD-23 · TD-24 · TD-25 · TD-26 · TD-27 · TD-28 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 · PP-014 |
-| 🔎 In review | 1 | TD-22 |
+| 🟢 Ready | 9 | TD-03 · TD-29 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
+| 🔎 In review | 3 | TD-25 (#158) · TD-28 (#160) · TD-32 (#154) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -97,12 +93,12 @@ Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 fi
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-24 | 🟢 Ready | **`care_events_rls.test.sql`** | `care_events` is the most-frequently-written PHI table (every journal entry) and has NO dedicated RLS test file today (only `care_event_comments` does). A cross-recipient SELECT/INSERT leak would be silent in CI. Test coordinator/aide/outer-circle SELECT and INSERT isolation — especially the cross-recipient leak vector. ~2 hr. |
-| TD-25 | 🟢 Ready | **`supabaseServer` session-refresh unit test** | New file: `apps/web/lib/__tests__/supabaseServer.test.ts`. Cookie-API regressions from Next.js or `@supabase/ssr` upgrades currently have no regression net (route tests mock the client). Simulate expired `access_token` + valid `refresh_token` in cookies, verify a new session is returned (or 401 thrown cleanly). Silent-break vector for ALL SSR routes. ~3 hr. |
-| TD-26 | 🟢 Ready | **`useOfflineWrite` error/retry branch coverage** | Branch coverage is 50% (lines 79-80, 87, 95-96 — the offline retry and error-clear paths). Exactly the code that runs during intermittent connectivity, the most common mobile failure mode. Test: network failure mid-sync (queue not removed), repeated retry on permanent 4xx, queue clear on success. ~2 hr. |
-| TD-27 | 🟢 Ready | **Aide cross-recipient scoping integration test** | New file: `apps/web/server/routers/__tests__/careEventsRouter.scope.test.ts`. RLS covers DB-layer isolation but the tRPC `where` clause is untested for cross-org isolation. Use a real local DB; assert `careEvents.list` called with a `recipient_id` the aide is NOT a member of returns empty (or 403), not data. ~3 hr. |
-| TD-28 | 🟢 Ready | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
-| TD-30 | 🟢 Ready | **Path-filtered required CI checks (cut rebase wait time)** | 12 required checks fire on every PR including `Mobile — Android debug build` (~3 min) and `RLS pgTAP tests` (~2.5 min) even when no mobile/SQL code changed. With 5 stacked PRs the rebase cascade burns ~30 min of CI per merge cycle. Fix: in `.github/workflows/ci.yml`, scope expensive jobs with `paths:` filters; introduce a single fast `ci-summary` meta-job that always runs and reports the required check name regardless of which downstream jobs fired. Move the 12 specific check names off `required_status_checks` and replace with one `ci-summary`. Branch protection unchanged in spirit — every PR still has to pass — but a docs-only PR finishes in ~30s instead of ~5min. ~2 hr (workflow YAML + branch-protection PATCH). |
+| TD-24 | ✅ Shipped · PR #146 | **`care_events_rls.test.sql`** | `care_events` is the most-frequently-written PHI table (every journal entry) and has NO dedicated RLS test file today (only `care_event_comments` does). A cross-recipient SELECT/INSERT leak would be silent in CI. Test coordinator/aide/outer-circle SELECT and INSERT isolation — especially the cross-recipient leak vector. ~2 hr. |
+| TD-25 | 🔎 In review · PR #158 | **`supabaseServer` session-refresh unit test** | New file: `apps/web/lib/__tests__/supabaseServer.test.ts`. Cookie-API regressions from Next.js or `@supabase/ssr` upgrades currently have no regression net (route tests mock the client). Simulate expired `access_token` + valid `refresh_token` in cookies, verify a new session is returned (or 401 thrown cleanly). Silent-break vector for ALL SSR routes. ~3 hr. |
+| TD-26 | ✅ Shipped · PR #159 | **`useOfflineWrite` error/retry branch coverage** | Branch coverage is 50% (lines 79-80, 87, 95-96 — the offline retry and error-clear paths). Exactly the code that runs during intermittent connectivity, the most common mobile failure mode. Test: network failure mid-sync (queue not removed), repeated retry on permanent 4xx, queue clear on success. ~2 hr. |
+| TD-27 | ✅ Shipped · PR #153 | **Aide cross-recipient scoping integration test** | New file: `apps/web/server/routers/__tests__/careEventsRouter.scope.test.ts`. RLS covers DB-layer isolation but the tRPC `where` clause is untested for cross-org isolation. Use a real local DB; assert `careEvents.list` called with a `recipient_id` the aide is NOT a member of returns empty (or 403), not data. ~3 hr. |
+| TD-28 | 🔎 In review · PR #160 | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
+| TD-30 | ✅ Shipped · PR #149 | **Path-filtered required CI checks (cut rebase wait time)** | 12 required checks fire on every PR including `Mobile — Android debug build` (~3 min) and `RLS pgTAP tests` (~2.5 min) even when no mobile/SQL code changed. With 5 stacked PRs the rebase cascade burns ~30 min of CI per merge cycle. Fix: in `.github/workflows/ci.yml`, scope expensive jobs with `paths:` filters; introduce a single fast `ci-summary` meta-job that always runs and reports the required check name regardless of which downstream jobs fired. Move the 12 specific check names off `required_status_checks` and replace with one `ci-summary`. Branch protection unchanged in spirit — every PR still has to pass — but a docs-only PR finishes in ~30s instead of ~5min. ~2 hr (workflow YAML + branch-protection PATCH). |
 
 ### Roadmap features (ON-64..68) — opened 2026-04-25
 
@@ -227,6 +223,21 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-04-25 backlog burndown + harness consolidation (PRs #145–#161)
+✅ **fix(security)** Drop share_token + error stack from PostHog — closes 2 PHI leak vectors (PR #145)
+✅ **TD-24** care_events RLS pgTAP coverage — 15 tests covering coordinator/aide/outer-circle SELECT+INSERT isolation (PR #146)
+✅ **TD-22** Billing tRPC router — `billing.getSubscription`, unblocks PP-014 (PR #147)
+✅ **TD-21** CVE bumps — Next.js → 16.2.3, protobufjs → 8.0.1, @xmldom/xmldom → 0.9.10; long-tail triage deferred to TD-29 (PR #148)
+✅ **TD-23** SHA-pin 5 workflow action refs + checksum OSV binary download (PR #148)
+✅ **TD-30** Path-filtered required CI checks — story filed; workflow YAML implementation tracked separately (PR #149)
+✅ **TD-31** Automated PHI review label gate workflow (PR #155)
+✅ **TD-27** Aide cross-recipient tRPC scoping integration test (env-gated for CI; runs locally with `SUPABASE_INTEGRATION=1`) (PR #153)
+✅ **vitest infra** Headless + flake-free by default (PR #157)
+✅ **TD-26** useOfflineWrite retry/error branch coverage — closes the offline-sync coverage gap (PR #159)
+✅ **TD-33** Document worktree-commit-hook + vitest yaml-flake gotchas in CLAUDE.md (PR #156)
+✅ **TD-34** Consolidate /dispatch + /backlog-dispatch into one canonical skill (mirrors /wave shape); promote worktree-subagents to canonical primitive owning pre-flight + symlink-worktree + scope-contract (PR #161)
+
 
 ### 2026-04-23..24 UX-14..21 design-spec batch + CI rescue (PRs #124–#135)
 ✅ **UX-14** Command palette (⌘K) — modal with Jump / Log / Admin sections, fuzzy search, keyboard nav (PR #125)
