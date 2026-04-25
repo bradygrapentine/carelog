@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(14);
+SELECT plan(17);
 
 -- ─── fixtures ────────────────────────────────────────────────────────────────
 
@@ -23,31 +23,38 @@ ON CONFLICT (id) DO NOTHING;
 -- Create org_a and org_b
 INSERT INTO organizations (id, name, org_type)
 VALUES
-  ('org0000a-0000-0000-0000-000000000001', 'Org A', 'family'),
-  ('org0000b-0000-0000-0000-000000000002', 'Org B', 'family')
+  ('a0000000-0000-0000-0000-000000000001', 'Org A', 'family'),
+  ('b0000000-0000-0000-0000-000000000002', 'Org B', 'family')
 ON CONFLICT DO NOTHING;
 
 -- Create memberships: alice (coordinator), bob (caregiver), carol (caregiver) in org_a
 INSERT INTO memberships (org_id, user_id, role, accepted_at)
 VALUES
-  ('org0000a-0000-0000-0000-000000000001', 'aaaa0001-0000-0000-0000-000000000001', 'coordinator', now()),
-  ('org0000a-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002', 'caregiver', now()),
-  ('org0000a-0000-0000-0000-000000000001', 'cccc0003-0000-0000-0000-000000000003', 'caregiver', now()),
-  ('org0000b-0000-0000-0000-000000000002', 'eeee0004-0000-0000-0000-000000000004', 'caregiver', now())
+  ('a0000000-0000-0000-0000-000000000001', 'aaaa0001-0000-0000-0000-000000000001', 'coordinator', now()),
+  ('a0000000-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002', 'caregiver', now()),
+  ('a0000000-0000-0000-0000-000000000001', 'cccc0003-0000-0000-0000-000000000003', 'caregiver', now()),
+  ('b0000000-0000-0000-0000-000000000002', 'eeee0004-0000-0000-0000-000000000004', 'caregiver', now())
+ON CONFLICT DO NOTHING;
+
+-- Create a care recipient in org_a (required for shifts)
+INSERT INTO identity_vault (org_id, full_name)
+VALUES ('a0000000-0000-0000-0000-000000000001', 'STR Test Recipient')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO care_recipients (id, org_id, identity_token)
+SELECT 'fa000001-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', token
+FROM identity_vault WHERE org_id = 'a0000000-0000-0000-0000-000000000001' LIMIT 1
 ON CONFLICT DO NOTHING;
 
 -- Create a shift assigned to bob in org_a
-INSERT INTO shifts (id, org_id, assignee_user_id, start_time, end_time)
+INSERT INTO shifts (id, org_id, recipient_id, assignee_user_id, start_at, end_at, created_by)
 VALUES
-  ('shift001-0000-0000-0000-000000000001', 'org0000a-0000-0000-0000-000000000001',
-   'bbbb0002-0000-0000-0000-000000000002', now(), now() + interval '8 hours')
-ON CONFLICT DO NOTHING;
-
--- Create a shift assigned to eve in org_b (for isolation testing)
-INSERT INTO shifts (id, org_id, assignee_user_id, start_time, end_time)
-VALUES
-  ('shift002-0000-0000-0000-000000000002', 'org0000b-0000-0000-0000-000000000002',
-   'eeee0004-0000-0000-0000-000000000004', now(), now() + interval '8 hours')
+  ('ca000001-0000-0000-0000-000000000001',
+   'a0000000-0000-0000-0000-000000000001',
+   'fa000001-0000-0000-0000-000000000001',
+   'bbbb0002-0000-0000-0000-000000000002',
+   now(), now() + interval '8 hours',
+   'aaaa0001-0000-0000-0000-000000000001')
 ON CONFLICT DO NOTHING;
 
 -- Create a targeted trade request: bob requests carol to take his shift
@@ -55,8 +62,8 @@ INSERT INTO shift_trade_requests (
   id, shift_id, org_id, requested_by, target_user_id, status, message
 )
 VALUES
-  ('trade01-0000-0000-0000-000000000001', 'shift001-0000-0000-0000-000000000001',
-   'org0000a-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002',
+  ('db000001-0000-0000-0000-000000000001', 'ca000001-0000-0000-0000-000000000001',
+   'a0000000-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002',
    'cccc0003-0000-0000-0000-000000000003', 'open', 'Can you take my shift?')
 ON CONFLICT DO NOTHING;
 
@@ -65,8 +72,8 @@ INSERT INTO shift_trade_requests (
   id, shift_id, org_id, requested_by, target_user_id, status, message
 )
 VALUES
-  ('trade02-0000-0000-0000-000000000002', 'shift001-0000-0000-0000-000000000001',
-   'org0000a-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002',
+  ('db000002-0000-0000-0000-000000000002', 'ca000001-0000-0000-0000-000000000001',
+   'a0000000-0000-0000-0000-000000000001', 'bbbb0002-0000-0000-0000-000000000002',
    null, 'open', 'Anyone available?')
 ON CONFLICT DO NOTHING;
 
@@ -79,8 +86,8 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002"
 SELECT lives_ok(
   $$INSERT INTO shift_trade_requests (shift_id, org_id, requested_by, target_user_id, status)
     VALUES (
-      'shift001-0000-0000-0000-000000000001',
-      'org0000a-0000-0000-0000-000000000001',
+      'ca000001-0000-0000-0000-000000000001',
+      'a0000000-0000-0000-0000-000000000001',
       'bbbb0002-0000-0000-0000-000000000002',
       'cccc0003-0000-0000-0000-000000000003',
       'open'
@@ -94,8 +101,8 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003"
 SELECT throws_ok(
   $$INSERT INTO shift_trade_requests (shift_id, org_id, requested_by, target_user_id, status)
     VALUES (
-      'shift001-0000-0000-0000-000000000001',
-      'org0000a-0000-0000-0000-000000000001',
+      'ca000001-0000-0000-0000-000000000001',
+      'a0000000-0000-0000-0000-000000000001',
       'cccc0003-0000-0000-0000-000000000003',
       'bbbb0002-0000-0000-0000-000000000002',
       'open'
@@ -110,8 +117,8 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"eeee0004-0000-0000-0000-000000000004"
 SELECT throws_ok(
   $$INSERT INTO shift_trade_requests (shift_id, org_id, requested_by, target_user_id, status)
     VALUES (
-      'shift001-0000-0000-0000-000000000001',
-      'org0000a-0000-0000-0000-000000000001',
+      'ca000001-0000-0000-0000-000000000001',
+      'a0000000-0000-0000-0000-000000000001',
       'eeee0004-0000-0000-0000-000000000004',
       'cccc0003-0000-0000-0000-000000000003',
       'open'
@@ -126,8 +133,8 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"aaaa0001-0000-0000-0000-000000000001"
 SELECT throws_ok(
   $$INSERT INTO shift_trade_requests (shift_id, org_id, requested_by, target_user_id, status)
     VALUES (
-      'shift001-0000-0000-0000-000000000001',
-      'org0000a-0000-0000-0000-000000000001',
+      'ca000001-0000-0000-0000-000000000001',
+      'a0000000-0000-0000-0000-000000000001',
       'aaaa0001-0000-0000-0000-000000000001',
       'cccc0003-0000-0000-0000-000000000003',
       'open'
@@ -137,19 +144,20 @@ SELECT throws_ok(
 );
 
 -- 5. All org members can SELECT trade requests
+--    Note: test 1 added a 3rd row, so count is now 3
 SET LOCAL "request.jwt.claims" TO '{"sub":"aaaa0001-0000-0000-0000-000000000001","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'org0000a-0000-0000-0000-000000000001'$$,
-  ARRAY[2]::int[],
+  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'a0000000-0000-0000-0000-000000000001'$$,
+  ARRAY[3]::int[],
   'Alice (coordinator) can SELECT trade requests in her org'
 );
 
 SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'org0000a-0000-0000-0000-000000000001'$$,
-  ARRAY[2]::int[],
+  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'a0000000-0000-0000-0000-000000000001'$$,
+  ARRAY[3]::int[],
   'Bob (caregiver) can SELECT trade requests in his org'
 );
 
@@ -157,7 +165,7 @@ SELECT results_eq(
 SET LOCAL "request.jwt.claims" TO '{"sub":"eeee0004-0000-0000-0000-000000000004","role":"authenticated"}';
 
 SELECT results_eq(
-  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'org0000a-0000-0000-0000-000000000001'$$,
+  $$SELECT count(*)::int FROM shift_trade_requests WHERE org_id = 'a0000000-0000-0000-0000-000000000001'$$,
   ARRAY[0]::int[],
   'Eve (cross-org) cannot SELECT trade requests from org_a'
 );
@@ -168,7 +176,7 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003"
 SELECT lives_ok(
   $$UPDATE shift_trade_requests
     SET status = 'accepted'
-    WHERE id = 'trade01-0000-0000-0000-000000000001' AND target_user_id = 'cccc0003-0000-0000-0000-000000000003'$$,
+    WHERE id = 'db000001-0000-0000-0000-000000000001' AND target_user_id = 'cccc0003-0000-0000-0000-000000000003'$$,
   'Carol (target) can UPDATE status to accepted'
 );
 
@@ -176,7 +184,7 @@ SELECT lives_ok(
 --    First, restore the trade request to 'open' state
 SET LOCAL ROLE postgres;
 UPDATE shift_trade_requests SET status = 'open'
-WHERE id = 'trade01-0000-0000-0000-000000000001';
+WHERE id = 'db000001-0000-0000-0000-000000000001';
 
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
@@ -184,55 +192,60 @@ SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003"
 SELECT lives_ok(
   $$UPDATE shift_trade_requests
     SET status = 'declined'
-    WHERE id = 'trade01-0000-0000-0000-000000000001'$$,
+    WHERE id = 'db000001-0000-0000-0000-000000000001'$$,
   'Carol (target) can UPDATE status to declined'
 );
 
 -- 9. Bob (non-target) cannot UPDATE Carol's targeted request
-SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002","role":"authenticated"}';
-
--- First restore trade01 to 'open' with null status for the next test
+--    RLS USING clause silently skips rows where predicate fails (no throw for UPDATE)
+--    Restore db000001 to 'open' first
 SET LOCAL ROLE postgres;
 UPDATE shift_trade_requests SET status = 'open', resolved_by = null, resolved_at = null
-WHERE id = 'trade01-0000-0000-0000-000000000001';
+WHERE id = 'db000001-0000-0000-0000-000000000001';
 
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"bbbb0002-0000-0000-0000-000000000002","role":"authenticated"}';
 
-SELECT throws_ok(
+SELECT lives_ok(
   $$UPDATE shift_trade_requests
     SET status = 'accepted'
-    WHERE id = 'trade01-0000-0000-0000-000000000001'$$,
-  '42501', NULL,
-  'Bob (non-target) cannot UPDATE Carol targeted request'
+    WHERE id = 'db000001-0000-0000-0000-000000000001'$$,
+  'Bob (non-target) UPDATE does not throw (RLS silently skips)'
+);
+
+-- Verify bob's UPDATE did not change status (silently skipped 0 rows)
+SET LOCAL ROLE postgres;
+SELECT results_eq(
+  $$SELECT status FROM shift_trade_requests WHERE id = 'db000001-0000-0000-0000-000000000001'$$,
+  ARRAY['open'::text],
+  'Bob (non-target) UPDATE silently skipped — status still open'
 );
 
 -- 10. Alice (coordinator) can force-UPDATE any trade request
+SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"aaaa0001-0000-0000-0000-000000000001","role":"authenticated"}';
 
 SELECT lives_ok(
   $$UPDATE shift_trade_requests
     SET status = 'accepted', resolved_by = 'aaaa0001-0000-0000-0000-000000000001', resolved_at = now()
-    WHERE id = 'trade01-0000-0000-0000-000000000001'$$,
+    WHERE id = 'db000001-0000-0000-0000-000000000001'$$,
   'Alice (coordinator) can force-UPDATE any trade request'
 );
 
--- 11. No one can DELETE (RLS silently skips — test with lives_ok + verify row exists)
-SET LOCAL "request.jwt.claims" TO '{"sub":"aaaa0001-0000-0000-0000-000000000001","role":"authenticated"}';
-
+-- 11. No one can DELETE (no DELETE policy — RLS silently skips)
 SELECT lives_ok(
-  $$DELETE FROM shift_trade_requests WHERE id = 'trade02-0000-0000-0000-000000000002'$$,
+  $$DELETE FROM shift_trade_requests WHERE id = 'db000002-0000-0000-0000-000000000002'$$,
   'DELETE does not throw (RLS silently skips)'
 );
 
 -- Verify the row still exists
 SELECT results_eq(
-  $$SELECT count(*)::int FROM shift_trade_requests WHERE id = 'trade02-0000-0000-0000-000000000002'$$,
+  $$SELECT count(*)::int FROM shift_trade_requests WHERE id = 'db000002-0000-0000-0000-000000000002'$$,
   ARRAY[1]::int[],
   'Trade request row still exists after DELETE attempt (RLS silently skipped)'
 );
 
--- 12. Anon blocked on all operations
+-- 12. Anon blocked on SELECT (sees 0 rows)
 SET LOCAL ROLE anon;
 SET LOCAL "request.jwt.claims" TO '{"role":"anon"}';
 
@@ -242,11 +255,12 @@ SELECT results_eq(
   'Anon role cannot SELECT shift_trade_requests'
 );
 
+-- 13. Anon blocked on INSERT (throws 42501)
 SELECT throws_ok(
   $$INSERT INTO shift_trade_requests (shift_id, org_id, requested_by, target_user_id, status)
     VALUES (
-      'shift001-0000-0000-0000-000000000001',
-      'org0000a-0000-0000-0000-000000000001',
+      'ca000001-0000-0000-0000-000000000001',
+      'a0000000-0000-0000-0000-000000000001',
       'bbbb0002-0000-0000-0000-000000000002',
       'cccc0003-0000-0000-0000-000000000003',
       'open'
@@ -255,21 +269,16 @@ SELECT throws_ok(
   'Anon role cannot INSERT into shift_trade_requests'
 );
 
--- 13. Open trade (null target_user_id) — any org member can UPDATE to accept
+-- 14. Open trade (null target_user_id) — any org member can UPDATE to accept
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
 
 SELECT lives_ok(
   $$UPDATE shift_trade_requests
     SET status = 'accepted'
-    WHERE id = 'trade02-0000-0000-0000-000000000002'$$,
+    WHERE id = 'db000002-0000-0000-0000-000000000002'$$,
   'Carol can UPDATE open trade (null target) to accept'
 );
-
--- 14. Skip status transition constraint test — no constraint currently in migration
---     Placeholder for future: if a check constraint is added to enforce only 'open' → other,
---     add test here. For now, the RLS policies alone don't enforce transition rules.
-SELECT pass('Status transitions not enforced by RLS (would require check constraint)');
 
 SELECT * FROM finish();
 ROLLBACK;
