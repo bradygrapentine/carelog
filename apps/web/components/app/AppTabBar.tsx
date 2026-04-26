@@ -115,7 +115,9 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
             <Settings size={18} aria-hidden="true" />
           </Link>
           <button
-            onClick={onSignOut}
+            onClick={() => {
+              if (window.confirm("Sign out of CareSync?")) onSignOut?.();
+            }}
             aria-label="Sign out"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
           >
