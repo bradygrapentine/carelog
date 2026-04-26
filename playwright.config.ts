@@ -6,10 +6,10 @@ export default defineConfig({
   retries: 1,
   workers: 1,
   timeout: 60000,
-  // (TD-47) Bail after first failure so trace.zip uploads quickly during
-  // CI-debug iteration. With 176 tests serial × 60s × 2 retries, a fully-
-  // failing run takes hours and never uploads. Revert when E2E is green.
-  maxFailures: 1,
+  // Bail after 5 failures — small flake tolerance, but stop early enough
+  // that trace.zip uploads quickly during CI-debug iteration rather than
+  // running the full 176-test suite × 60s × 2 retries.
+  maxFailures: 5,
   reporter: "line",
   use: {
     baseURL: "http://localhost:3000",

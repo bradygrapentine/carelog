@@ -19,7 +19,7 @@ function roleEmail(role: string) {
 /** Navigate to the More panel which contains ExportButton (coordinator-only). */
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("tab", { name: "More" }).click();
   // Wait for the More panel to render — SymptomPanel always appears for all roles.
   await expect(
     page

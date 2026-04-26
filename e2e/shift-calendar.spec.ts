@@ -8,7 +8,7 @@ const COORDINATOR_EMAIL = "e2e-shifts@test.com";
 /** Navigate to the Shifts tab (calendar view) from the journal page. */
 async function goToShiftsCalendar(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "Shifts" }).click();
+  await page.getByRole("tab", { name: "Shifts" }).click();
   // Wait for ShiftList heading to confirm we're on the shifts panel.
   await expect(page.getByText("Shifts").first()).toBeVisible({ timeout: 8000 });
   // Click the "Calendar" tab to switch to ShiftCalendar.

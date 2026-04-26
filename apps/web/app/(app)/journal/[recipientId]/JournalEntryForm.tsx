@@ -127,6 +127,8 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                   <button
                     key={m.value}
                     type="button"
+                    data-mood={m.value}
+                    aria-pressed={mood === m.value}
                     onClick={() => setMood(mood === m.value ? "" : m.value)}
                     className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                       mood === m.value

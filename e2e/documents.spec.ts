@@ -22,7 +22,7 @@ function roleEmail(role: string) {
  */
 async function goToDocumentVault(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "Documents" }).click();
+  await page.getByRole("tab", { name: "Documents" }).click();
   // The vault is a collapsible section — expand it
   await page.getByRole("button", { name: /document vault/i }).click();
   await expect(

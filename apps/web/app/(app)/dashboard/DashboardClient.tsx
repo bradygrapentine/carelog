@@ -79,8 +79,8 @@ function ReferralCard({ org, userId }: ReferralCardProps) {
       </CardHeader>
       <CardContent className="pt-4 pb-4 px-4">
         <p className="text-sm text-muted-foreground mb-4">
-          Know another family who could use coordination support? Share Carelog
-          with them.
+          Know another family who could use coordination support? Share
+          CareSync with them.
         </p>
         <button
           type="button"

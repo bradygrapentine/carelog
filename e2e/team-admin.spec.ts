@@ -87,7 +87,7 @@ test.describe("Team member removal (TeamPanel)", () => {
       await caregiverCtx.close();
 
       // Back to coordinator — go to Team panel and confirm Remove button exists
-      await coordinatorPage.getByRole("button", { name: "Team" }).click();
+      await coordinatorPage.getByRole("tab", { name: "Team" }).click();
 
       const removeBtn = coordinatorPage
         .getByRole("button", { name: /^Remove / })
@@ -103,7 +103,7 @@ test.describe("Team member removal (TeamPanel)", () => {
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
-    await page.getByRole("button", { name: "Team" }).click();
+    await page.getByRole("tab", { name: "Team" }).click();
 
     // The coordinator row carries a "you" suffix; a Remove button on it would be a bug
     const youRow = page.locator('div:has-text("you")').first();

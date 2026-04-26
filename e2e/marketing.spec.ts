@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Marketing pages", () => {
-  test("landing page loads with Carelog branding and hero content", async ({
+  test("landing page loads with CareSync branding and hero content", async ({
     page,
   }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Carelog/, { timeout: 10000 });
-    await expect(page.getByText(/Get started|Carelog/i).first()).toBeVisible({
+    await expect(page).toHaveTitle(/CareSync/, { timeout: 10000 });
+    await expect(page.getByText(/Get started|CareSync/i).first()).toBeVisible({
       timeout: 10000,
     });
   });

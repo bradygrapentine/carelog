@@ -19,7 +19,7 @@ async function writeEntry(page: any, text: string) {
 
 async function addMedication(page: any, drugName: string) {
   // Click "Medications" accordion/tab to open panel
-  await page.getByRole("button", { name: "Medications" }).click();
+  await page.getByRole("tab", { name: "Medications" }).click();
   // Click "+ Add medication" button
   await page.getByRole("button", { name: /add medication/i }).click();
   // Fill drug name

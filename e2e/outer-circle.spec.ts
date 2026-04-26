@@ -13,7 +13,7 @@ test.describe("Outer Circle coordinator creation", () => {
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
-    await page.getByRole("button", { name: "Team" }).click();
+    await page.getByRole("tab", { name: "Team" }).click();
     await expect(page.getByText("Volunteer requests")).toBeVisible({
       timeout: 8000,
     });
@@ -27,7 +27,7 @@ test.describe("Outer Circle coordinator creation", () => {
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
-    await page.getByRole("button", { name: "Team" }).click();
+    await page.getByRole("tab", { name: "Team" }).click();
     await page.getByRole("button", { name: "+ New request" }).click();
 
     await expect(page.getByLabel(/^Title/)).toBeVisible({ timeout: 5000 });

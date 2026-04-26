@@ -42,6 +42,6 @@ test.describe("UI layout smoke", () => {
     await expect(hamburger).toBeVisible({ timeout: 10000 });
 
     await hamburger.click();
-    await expect(page.getByText("Carelog")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("CareSync")).toBeVisible({ timeout: 5000 });
   });
 });
