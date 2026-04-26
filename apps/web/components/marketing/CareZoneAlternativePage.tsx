@@ -82,7 +82,7 @@ export function CareZoneAlternativePage() {
           The CareZone alternative built for the whole care team
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
-          CareZone helped families manage medications. Carelog goes further —
+          CareZone helped families manage medications. CareSync goes further —
           coordinating your full team of family caregivers, professional aides,
           and supporters.{" "}
           <span className="font-semibold text-[var(--color-ink)]">
@@ -125,7 +125,7 @@ export function CareZoneAlternativePage() {
           id="cz-comparison-heading"
           className="mb-8 text-center text-2xl font-bold tracking-tight text-[var(--color-ink)]"
         >
-          How Carelog compares to CareZone
+          How CareSync compares to CareZone
         </h2>
 
         <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)] shadow-sm">
@@ -151,7 +151,7 @@ export function CareZoneAlternativePage() {
                   scope="col"
                   className="px-5 py-4 text-center font-semibold text-[var(--color-primary)]"
                 >
-                  Carelog
+                  CareSync
                 </th>
               </tr>
             </thead>
@@ -196,7 +196,7 @@ export function CareZoneAlternativePage() {
           </h2>
           <p className="mt-2 text-[var(--color-text-secondary)]">
             Paste your medication list below and we&apos;ll show you what
-            Carelog will import when you sign up.
+            CareSync will import when you sign up.
           </p>
         </div>
       </section>
