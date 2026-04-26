@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
+import { Heart } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 type Medication = {
@@ -118,13 +119,42 @@ export default function BriefPage({
   }
 
   if (error || !brief) {
+    const message =
+      error === "This care brief is no longer available."
+        ? "This care brief link has expired or been revoked."
+        : (error ?? "This care brief link has expired or been revoked.");
     return (
       <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
-        <div className="max-w-md text-center p-8">
-          <p className="text-[var(--color-muted)] text-base">
-            {error ?? "This care brief is no longer available."}
-          </p>
-        </div>
+        <main className="w-full max-w-sm">
+          <Card className="shadow-sm gap-2">
+            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-2">
+                <Heart
+                  className="w-4 h-4 text-[var(--color-primary)]"
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-semibold text-[var(--color-ink)]">
+                  CareSync
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4 pb-6 text-center space-y-3">
+              <p className="text-base font-medium text-[var(--color-ink)]">
+                {message}
+              </p>
+              <p className="text-sm text-[var(--color-muted)]">
+                Care briefs are private snapshots and may expire after a set
+                period for the family&apos;s privacy.
+              </p>
+              <a
+                href="/"
+                className="inline-block mt-2 text-sm font-medium text-[var(--color-primary)] underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded-sm"
+              >
+                Visit CareSync
+              </a>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }
