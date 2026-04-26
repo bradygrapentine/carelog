@@ -20,7 +20,7 @@ function roleEmail(role: string) {
  */
 async function goToSymptomsPanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("tab", { name: "More" }).click();
   // Expand the symptom readings accordion
   await page.getByRole("button", { name: "Symptom readings" }).click();
   await expect(page.getByLabel("Pain level")).toBeVisible({ timeout: 8000 });
@@ -47,7 +47,7 @@ test.describe("Symptoms", () => {
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
-    await page.getByRole("button", { name: "More" }).click();
+    await page.getByRole("tab", { name: "More" }).click();
     // Collapsed state shows the expand button
     await expect(
       page.getByRole("button", { name: "Symptom readings" }),
@@ -117,7 +117,7 @@ test.describe("Symptoms", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await supporterPage.getByRole("button", { name: "More" }).click();
+        await supporterPage.getByRole("tab", { name: "More" }).click();
         // Expand the panel
         await supporterPage
           .getByRole("button", { name: "Symptom readings" })

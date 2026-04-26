@@ -120,7 +120,7 @@ test.describe("Panel tab navigation", () => {
 
     await page.click('button[aria-label="More"]');
     await expect(page).toHaveURL(/[?&]panel=more/, { timeout: 8000 });
-    await expect(page.getByRole("button", { name: "More" })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "More" })).toHaveAttribute(
       "aria-selected",
       "true",
     );

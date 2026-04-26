@@ -17,7 +17,7 @@ function roleEmail(role: string) {
 /** Navigate to the "More" panel which contains the burnout check-in form. */
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("tab", { name: "More" }).click();
   await expect(page.getByText("How are you doing this week?")).toBeVisible({
     timeout: 8000,
   });
@@ -165,7 +165,7 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
-        await supporterPage.getByRole("button", { name: "More" }).click();
+        await supporterPage.getByRole("tab", { name: "More" }).click();
         // Supporters see the More panel but not the burnout form
         await expect(
           supporterPage.getByText("How are you doing this week?"),

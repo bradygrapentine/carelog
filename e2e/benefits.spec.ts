@@ -6,7 +6,7 @@ const COORDINATOR_EMAIL = "e2e-benefits@test.com";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("tab", { name: "More" }).click();
 }
 
 test.beforeEach(async () => {
