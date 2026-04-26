@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,8 +82,10 @@ export function OuterCirclePanel({
       setRequestType("meal");
       setSlotsTotal("1");
       setNeededBy("");
+      toast.success("Request created");
     } catch {
       setError("Something went wrong. Please try again.");
+      toast.error("Couldn't create request");
     }
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,10 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
     onSuccess: () => {
       utils.coverageWindows.list.invalidate();
       setLabel("");
+      toast.success("Coverage window saved");
+    },
+    onError: () => {
+      toast.error("Couldn't save coverage window");
     },
   });
 
