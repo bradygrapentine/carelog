@@ -28,3 +28,7 @@ apps/mobile/ios/
 
 # Mobile lockfile — managed by root pnpm; npm install must NOT be run here
 apps/mobile/package-lock.json
+
+# /live-test runtime state (gitignored; flows/ IS committed)
+.live-test/state/
+.live-test/runs/
