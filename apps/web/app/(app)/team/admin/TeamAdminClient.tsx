@@ -107,9 +107,11 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
                         <p className="font-medium text-[var(--color-ink)]">
                           {member.display_name ?? member.email ?? "Team member"}
                         </p>
-                        <p className="text-xs text-[var(--color-muted)]">
-                          {member.email}
-                        </p>
+                        {member.display_name && member.email && (
+                          <p className="text-xs text-[var(--color-muted)]">
+                            {member.email}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </td>
