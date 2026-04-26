@@ -106,8 +106,11 @@ export async function ensureCareTeam(page: Page): Promise<void> {
   await page.fill("[name=orgName]", "E2E Test Family");
   await page.click("button[type=submit]");
   // Onboarding redirects back to /dashboard with the team now seeded.
-  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-  await page.waitForSelector('text="View care journal"', { timeout: 15000 });
+  // 30s matches signIn's post-OTP wait (TD-39): CI's slower runner +
+  // cold-cache prod build can push the redirect past 15s even when the
+  // submit succeeds. Locally it fits in 15s; in CI it doesn't. (TD-45)
+  await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
+  await page.waitForSelector('text="View care journal"', { timeout: 30_000 });
 }
 
 // Navigate from the dashboard to the journal page, creating a care team first if needed.
