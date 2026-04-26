@@ -36,18 +36,22 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
   });
-} else {
-  // No api key (CI, local-dev without analytics): init in opted-out mode so
-  // posthog.capture() / .identify() are safe no-ops instead of throwing
-  // "You must pass your PostHog project's api key" — which previously aborted
-  // form-submit handlers (sign-in, onboarding) before their router.replace()
-  // call, hanging E2E tests on /signin and /onboarding.
-  posthog.init("phc_e2e_stub", {
-    api_host: "/ingest",
-    autocapture: false,
-    capture_pageview: false,
-    capture_exceptions: false,
-    disable_session_recording: true,
-    loaded: (ph) => ph.opt_out_capturing(),
-  });
 }
+
+// Defensive wrap: analytics must NEVER block product UX. Unguarded
+// posthog.capture/identify calls in form handlers (SignInForm,
+// OnboardingForm, etc.) previously threw "You must pass your PostHog
+// project's api key" in CI (no env var), aborting the handler before
+// router.replace() — hanging E2E on /signin and /onboarding. Wrapping
+// at the SDK boundary fixes every call site at once and protects
+// against any future posthog throw (network down, init race, etc.).
+const wrap = <T extends (...args: never[]) => unknown>(fn: T): T =>
+  ((...args: Parameters<T>) => {
+    try {
+      return fn.apply(posthog, args);
+    } catch {
+      // swallow — analytics is best-effort, never load-bearing
+    }
+  }) as T;
+posthog.capture = wrap(posthog.capture.bind(posthog));
+posthog.identify = wrap(posthog.identify.bind(posthog));
