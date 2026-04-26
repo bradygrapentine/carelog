@@ -25,10 +25,11 @@ test.describe("Benefits navigator", () => {
     });
   });
 
-  // (TD-55) Screener question element exists in DOM but is hidden — likely
-  // collapsed behind an expansion/disclosure UI that the test doesn't open.
-  // Real product-behavior drift, not selector drift. Investigate in TD-55.
-  test.fixme("screener questions are visible on desktop (always shown when no results)", async ({
+  // (TD-55) Screener form is hidden by default behind a "Start screener"
+  // disclosure (BenefitsNavigator.tsx:177-203 — commit bf5d1043 "revert
+  // always-open forms"). Test must click "Start screener" before asserting
+  // on the question copy.
+  test("screener questions are visible on desktop after clicking Start screener", async ({
     page,
   }) => {
     // Mock latest query to return null (no prior screener)
@@ -43,7 +44,9 @@ test.describe("Benefits navigator", () => {
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
-    // Desktop: screener form always shown when no prior results
+    // Click the disclosure to expand the screener form
+    await page.getByRole("button", { name: "Start screener" }).click();
+
     await expect(
       page.getByText("Is the care recipient 65 or older?"),
     ).toBeVisible({ timeout: 8000 });
@@ -52,9 +55,8 @@ test.describe("Benefits navigator", () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  // (TD-55) Same hidden-screener-form issue as the test above — clicking
-  // the Find button requires the form to be visible first.
-  test.fixme("Find matching programs button fires screen mutation", async ({
+  // (TD-55) Same disclosure prerequisite as the test above.
+  test("Find matching programs button fires screen mutation", async ({
     page,
   }) => {
     let screenCalled = false;
@@ -79,6 +81,8 @@ test.describe("Benefits navigator", () => {
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
+    // Expand the screener form first (TD-55 disclosure)
+    await page.getByRole("button", { name: "Start screener" }).click();
     await page.getByRole("button", { name: "Find matching programs" }).click();
 
     await expect(async () => {
@@ -86,10 +90,10 @@ test.describe("Benefits navigator", () => {
     }).toPass({ timeout: 5000 });
   });
 
-  // (TD-55) Same More-panel content drift family — Benefits navigator card
-  // not in expected position. Snapshot from v15 showed Symptom readings +
-  // weekly check-in form instead of the screener results panel.
-  test.fixme("prior screener results are displayed when latest returns data", async ({
+  // (TD-55) Results path doesn't go through the Start-screener disclosure —
+  // when latest returns data, displayResults !== null, so the results view
+  // renders directly (BenefitsNavigator.tsx:125-175).
+  test("prior screener results are displayed when latest returns data", async ({
     page,
   }) => {
     await page.route("**/trpc/benefits.latest*", async (route) => {

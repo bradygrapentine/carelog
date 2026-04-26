@@ -187,10 +187,12 @@ export function BenefitsNavigator({
           </div>
         )}
 
-        {/* Screener form:
-            - Mobile: shown when showForm is true OR no results yet on desktop
-            - Desktop: always shown when no prior results or when showForm is active
-            Single DOM instance — class toggles visibility. */}
+        {/* Screener form — visible only when showForm === true.
+            Default state (no prior results, !showForm) shows only the
+            "Start screener" disclosure above (line 178). Both mobile and
+            desktop go through this disclosure since commit bf5d1043
+            "revert always-open forms". Single DOM instance — class
+            toggles visibility so the form can mount once and animate. */}
         <div
           className={
             displayResults === null || showForm
