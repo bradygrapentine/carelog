@@ -69,6 +69,7 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
         type="button"
         onClick={toggle}
         aria-expanded={expanded}
+        data-testid="comment-toggle"
         className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[var(--color-text-secondary)] dark:text-gray-300 hover:bg-[var(--color-primary-subtle)] dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
       >
         <MessageSquare size={16} aria-hidden="true" />
