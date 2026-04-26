@@ -67,8 +67,9 @@ test("select mood tag before posting and verify entry shows mood badge", async (
   });
   await expect(entryCard).toBeVisible({ timeout: 5000 });
 
-  // If mood was selected, should see a mood badge in the entry
-  // (check for mood badge or badge element in the entry)
-  const moodBadge = entryCard.locator('[class*="mood"]');
+  // (TD-52) Earlier selector `[class*="mood"]` matched nothing — the
+  // MOOD_BADGE map's class strings are bg-green-50/text-green-700/etc
+  // with no "mood" substring. Stable data-testid added to JournalTimeline.
+  const moodBadge = entryCard.locator('[data-testid="mood-badge"]');
   await expect(moodBadge).toBeVisible({ timeout: 3000 });
 });

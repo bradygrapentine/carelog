@@ -181,6 +181,7 @@ function JournalCard({
             {payload.mood && (
               <Badge
                 variant="outline"
+                data-testid="mood-badge"
                 className={
                   "shrink-0 capitalize text-xs " +
                   (MOOD_BADGE[payload.mood] ?? "")
