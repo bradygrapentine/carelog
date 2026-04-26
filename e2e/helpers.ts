@@ -59,6 +59,11 @@ export async function getOtpFromMailpit(
 // wrong element, leaving the form unsubmitted and waitForURL spinning until
 // timeout. Use explicit role + exact name + form scoping instead.
 export async function signIn(page: Page, email: string): Promise<void> {
+  // Clear any existing auth cookies so a second signIn() call in the same
+  // test file doesn't get redirected away from /signin by an active session.
+  // (TD-53: second signIn() timed out waiting for "Check your email" because
+  //  the browser context preserved cookies from the first signIn() run.)
+  await page.context().clearCookies();
   await clearMailpit();
   await page.goto("/signin");
 
