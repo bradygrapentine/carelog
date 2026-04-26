@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-25**.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26**.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -10,14 +10,18 @@ Human account-signup tasks (Supabase/Vercel/Stripe/etc.) live in `docs/project-i
 
 ---
 
+Human Backlog Items:
+- ability to schedule team wide meetings and embed zoom links
+
+
 ## 0. Status board (at-a-glance)
 
 Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 10 | TD-03 · TD-42 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
-| 🔎 In review | 2 | TD-35 (#170) · TD-41 (#178) |
+| 🟢 Ready | 9 | TD-03 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
+| 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -100,10 +104,10 @@ Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 fi
 | TD-28 | ✅ Shipped · PR #160 | **`messagingPush` + `educationTipRefresh` Inngest failure tests** | These are the only 2 Inngest functions with zero test coverage (out of 11). `messagingPush` fans out push notifications to potentially all family members — an unhandled `DeviceNotRegistered` error would silently drop the job. Test malformed payload + `DeviceNotRegistered` + Expo API timeout. ~2 hr. |
 | TD-30 | ✅ Shipped · PR #149 | **Path-filtered required CI checks (cut rebase wait time)** | 12 required checks fire on every PR including `Mobile — Android debug build` (~3 min) and `RLS pgTAP tests` (~2.5 min) even when no mobile/SQL code changed. With 5 stacked PRs the rebase cascade burns ~30 min of CI per merge cycle. Fix: in `.github/workflows/ci.yml`, scope expensive jobs with `paths:` filters; introduce a single fast `ci-summary` meta-job that always runs and reports the required check name regardless of which downstream jobs fired. Move the 12 specific check names off `required_status_checks` and replace with one `ci-summary`. Branch protection unchanged in spirit — every PR still has to pass — but a docs-only PR finishes in ~30s instead of ~5min. ~2 hr (workflow YAML + branch-protection PATCH). |
 | TD-32 | ✅ Shipped · PR #154 | **Run E2E (Playwright) on PR pushes** | E2E was previously only running on push-to-main; PRs got no Playwright coverage. Re-enabled via `pull_request:` trigger; now in CI Summary. |
-| TD-35 | 🔎 In review · PR #170 | **Fix TD-30 path-filter false-skip on lockfile-only PRs** | TD-30's per-job `if:` used `contains(toJSON(github.event.pull_request.changed_files), 'apps/web')` — but `changed_files` is an INTEGER (file count), not a path list, so the predicate was always false and every test job silently SKIPPED on every PR. CI Summary treats SKIPPED as pass, so deps bumps shipped without test verification (e.g. TD-29 #165). Fix: replace with SHA-pinned `dorny/paths-filter@v3` doing real glob-based path matching; new `changes` job exposes `web`/`mobile`/`supabase`/`deps`/`e2e` outputs that downstream jobs gate on via `needs:`. |
+| TD-35 | ✅ Shipped · PR #187 | **Fix TD-30 path-filter false-skip on lockfile-only PRs** | TD-30's per-job `if:` used `contains(toJSON(github.event.pull_request.changed_files), 'apps/web')` — but `changed_files` is an INTEGER (file count), not a path list, so the predicate was always false and every test job silently SKIPPED on every PR. CI Summary treats SKIPPED as pass, so deps bumps shipped without test verification (e.g. TD-29 #165). Fix: replace with SHA-pinned `dorny/paths-filter@v3` doing real glob-based path matching; new `changes` job exposes `web`/`mobile`/`supabase`/`deps`/`e2e` outputs that downstream jobs gate on via `needs:`. |
 | TD-36 | ✅ Shipped · PR #173 | **Mobile lockfile management — pnpm-monorepo compatibility** | Investigation found apps/mobile already in `pnpm-workspace.yaml` + `pnpm-lock.yaml`; the npm-format `package-lock.json` was a stale orphan from a prior `npm install`. Path (a) chosen: deleted the orphan + added to `.gitignore` + documented `pnpm install` requirement in `apps/mobile/CLAUDE.md`. Mobile tests 33 pass / 15 skip (matches baseline); Expo CLI resolves post-install. |
-| TD-41 | 🔎 In review · PR #178 | **PostHog uninitialized in CI breaks every form-submit** | CI doesn't set `NEXT_PUBLIC_POSTHOG_KEY`. Server `lib/posthog-server.ts` constructs `new PostHog(undefined!)` which throws "You must pass your PostHog project's api key" — surfaced as 500 from `/api/onboarding/create` and every other event-capturing route. Browser-side, `posthog.capture()` / `posthog.identify()` calls in `SignInForm` + `OnboardingForm` threw the same message, aborting the submit handler **before** `router.replace('/dashboard')`. Form silently stayed on /signin or /onboarding; `waitForURL` timed out — the visible CI symptom. Fix: server returns no-op stub when no key; client inits with placeholder + `opt_out_capturing()` when no key. Bundles a Next 16 hydration fix in `app/layout.tsx` (anti-FOUC `<script>` was a direct child of `<html>`, hard-failing hydration in React 19). |
-| TD-42 | 🟢 Ready | **`ensureCareTeam` helper selector drift — dashboard "View care journal" is a `<p>` not a `<button>`** | `e2e/helpers.ts:91,100,110` waits for `button:has-text("View care journal")`. The dashboard renders that string as `<p className="text-sm text-muted-foreground">` inside a clickable `<Card onClick>` (see `apps/web/app/(app)/dashboard/DashboardClient.tsx:319-323`), so the selector never matches and `ensureCareTeam` times out for any test using it. Slipped in with TD-40 (#177). Fix: replace the three selectors with `text="View care journal"` (or scope to the parent Card heading). Once landed, ai-assistant.spec progresses past `beforeEach` and the remaining 4 consent-modal failures become visible (separate diagnosis). |
+| TD-41 | ✅ Shipped · PR #178 | **PostHog uninitialized in CI breaks every form-submit** | CI doesn't set `NEXT_PUBLIC_POSTHOG_KEY`. Server `lib/posthog-server.ts` constructs `new PostHog(undefined!)` which throws "You must pass your PostHog project's api key" — surfaced as 500 from `/api/onboarding/create` and every other event-capturing route. Browser-side, `posthog.capture()` / `posthog.identify()` calls in `SignInForm` + `OnboardingForm` threw the same message, aborting the submit handler **before** `router.replace('/dashboard')`. Form silently stayed on /signin or /onboarding; `waitForURL` timed out — the visible CI symptom. Fix: server returns no-op stub when no key; client inits with placeholder + `opt_out_capturing()` when no key. Bundles a Next 16 hydration fix in `app/layout.tsx` (anti-FOUC `<script>` was a direct child of `<html>`, hard-failing hydration in React 19). |
+| TD-42 | ✅ Shipped · PR #180 | **`ensureCareTeam` helper selector drift — dashboard "View care journal" is a `<p>` not a `<button>`** | `e2e/helpers.ts:91,100,110` waits for `button:has-text("View care journal")`. The dashboard renders that string as `<p className="text-sm text-muted-foreground">` inside a clickable `<Card onClick>` (see `apps/web/app/(app)/dashboard/DashboardClient.tsx:319-323`), so the selector never matches and `ensureCareTeam` times out for any test using it. Slipped in with TD-40 (#177). Fix: replace the three selectors with `text="View care journal"` (or scope to the parent Card heading). Once landed, ai-assistant.spec progresses past `beforeEach` and the remaining 4 consent-modal failures become visible (separate diagnosis). |
 
 ### Roadmap features (ON-64..68) — opened 2026-04-25
 
@@ -228,6 +232,38 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-04-26 — E2E unblock + product polish wave (PRs #175–#205)
+✅ **TD-38** Update dispatch skills for Mergify queue trigger — drop `--auto --squash`, reach for the `queue` label (PR #175)
+✅ **TD-39** Harden `e2e/helpers.ts` — selector ambiguity, OTP regex, auth-callback timeout (PR #176)
+✅ **TD-40** E2E AI Assistant FAB needs `ensureCareTeam` fixture — pre-create team in beforeEach (PR #177)
+✅ **TD-41** Guard PostHog calls when key is unset — server stub + client `opt_out_capturing()`; bundles Next 16 hydration fix (PR #178)
+✅ **TD-42** `ensureCareTeam` selector drift — dashboard "View care journal" rendered as `<p>` inside clickable `<Card>`, not `<button>` (PR #180)
+✅ **TD-43** Defensively wrap `posthog.capture`/`identify` so analytics never blocks UX (PR #181)
+✅ **TD-44** Rate-limit fail-closed only in real prod (`VERCEL_ENV`), not `NODE_ENV` — was bricking E2E in CI (PR #182)
+✅ **TD-45** Bump `ensureCareTeam` post-onboarding `waitForURL` 15s → 30s for slow CI cold boot (PR #183)
+✅ **TD-46** Diag: instrument `OnboardingForm` to surface CI E2E redirect mystery (PR #185)
+✅ **TD-47** Bail E2E after first failure + upload trace on cancel (PR #186)
+✅ **TD-35 / TD-48 / TD-50** Unblock E2E end-to-end — path-filter false-skip fix (TD-35), Onboarding redirect (TD-48), helpers cleanup (TD-50) (PR #187)
+✅ **TD-49** Docs: drafted upstream `supabase/cli` JWT-rotation issue write-up (PR #191)
+✅ **TD-53** Clear browser cookies in `signIn()` to fix second-call timeout (PR #189)
+✅ **TD-55** Fix `benefits.latest` mock URL + response format; un-fixme test (PR #194)
+✅ **TD-56** Query `display_names` PHI vault instead of `care_recipients.display_name` (PR #190)
+✅ **TD-57** Un-fixme multi-context burnout tests + add step diagnostics (PR #193)
+✅ **TD-58** Un-fixme comment-toggle E2E test (PR #192)
+✅ **TD-63** Restore AI Assistant FAB visibility (PR #198)
+✅ **TD-64** Unify remaining `care_recipients.display_name` callers with PHI vault pattern (PR #197)
+✅ **TD-65** Restore brand copy + add sign-out confirmation (PR #196)
+✅ **TD-66** Clean up Carelog brand string in user-visible copy (keep email domain) (PR #200)
+✅ **TD-67** Dedup team-admin member row — show email once, prefer `display_name` (PR #199)
+✅ **TD-68** Add success feedback after Generate shareable brief (PR #202)
+✅ **TD-69** Add success feedback after burnout check-in submit (PR #201)
+✅ **TD-70** Add success toasts to silent form submits across More panel (PR #205)
+✅ **TD-71** Brand the brief expired/invalid empty state with CareSync logo + CTA (PR #203)
+✅ **TD-72** Align coverage-settings E2E tests with current product state (PR #204)
+✅ **Skills** `/live-test` skill — interactive flow investigation + E2E runbook (PR #188); hot-reload + capture-replay + screenshot modes (PR #195)
+✅ **CI infra** Mergify `batch_max_wait_time` 5 min → 150 s for faster queue cycles (PR #184)
+
 
 ### 2026-04-25 PM — security + CI hardening + harness consolidation (PRs #158–#173)
 ✅ **TD-25** `supabaseServer` session-refresh unit test (PR #158)
