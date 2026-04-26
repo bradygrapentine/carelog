@@ -80,8 +80,13 @@ export async function signIn(page: Page, email: string): Promise<void> {
   ]);
 }
 
-// Navigate from the dashboard to the journal page, creating a care team first if needed.
-export async function navigateToJournal(page: Page): Promise<void> {
+// Ensure the signed-in user has a care team / org membership. The (app)/layout
+// guards membership-dependent surfaces (e.g. AIAssistantProvider only mounts
+// when orgId is non-null) so any test that asserts on those surfaces must call
+// this in its beforeEach. Idempotent: returns immediately if a team already
+// exists. Leaves the page on /dashboard.
+export async function ensureCareTeam(page: Page): Promise<void> {
+  await page.goto("/dashboard");
   await Promise.race([
     page.waitForSelector('button:has-text("View care journal")', {
       timeout: 15000,
@@ -93,18 +98,23 @@ export async function navigateToJournal(page: Page): Promise<void> {
 
   const hasCareTeam =
     (await page.locator('button:has-text("View care journal")').count()) > 0;
+  if (hasCareTeam) return;
 
-  if (!hasCareTeam) {
-    await page.click('a:has-text("Set up a care team")');
-    await page.waitForURL(/\/onboarding/, { timeout: 10000 });
-    await page.fill("[name=recipientName]", "E2E Test Person");
-    await page.fill("[name=orgName]", "E2E Test Family");
-    await page.click("button[type=submit]");
-    await page.waitForSelector('button:has-text("View care journal")', {
-      timeout: 15000,
-    });
-  }
+  await page.click('a:has-text("Set up a care team")');
+  await page.waitForURL(/\/onboarding/, { timeout: 10000 });
+  await page.fill("[name=recipientName]", "E2E Test Person");
+  await page.fill("[name=orgName]", "E2E Test Family");
+  await page.click("button[type=submit]");
+  // Onboarding redirects back to /dashboard with the team now seeded.
+  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+  await page.waitForSelector('button:has-text("View care journal")', {
+    timeout: 15000,
+  });
+}
 
+// Navigate from the dashboard to the journal page, creating a care team first if needed.
+export async function navigateToJournal(page: Page): Promise<void> {
+  await ensureCareTeam(page);
   await page.click('button:has-text("View care journal")');
   await page.waitForURL(/\/journal\//);
 }
