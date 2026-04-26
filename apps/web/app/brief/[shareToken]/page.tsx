@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import posthog from "posthog-js";
 import { Heart } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -146,12 +147,12 @@ export default function BriefPage({
                 Care briefs are private snapshots and may expire after a set
                 period for the family&apos;s privacy.
               </p>
-              <a
+              <Link
                 href="/"
                 className="inline-block mt-2 text-sm font-medium text-[var(--color-primary)] underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded-sm"
               >
                 Visit CareSync
-              </a>
+              </Link>
             </CardContent>
           </Card>
         </main>
