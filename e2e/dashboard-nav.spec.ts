@@ -15,10 +15,10 @@ test.describe("Dashboard and sign-out navigation", () => {
 
   test('"View care journal" navigates to journal page', async ({ page }) => {
     await page.goto("/dashboard");
-    await page.waitForSelector('button:has-text("View care journal")', {
+    await page.waitForSelector('text="View care journal"', {
       timeout: 15000,
     });
-    await page.click('button:has-text("View care journal")');
+    await page.click('text="View care journal"');
     await expect(page).toHaveURL(/\/journal\/[^/]+/, { timeout: 15000 });
     await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
       timeout: 10000,
@@ -30,10 +30,10 @@ test.describe("Dashboard and sign-out navigation", () => {
   }) => {
     // Navigate to journal first
     await page.goto("/dashboard");
-    await page.waitForSelector('button:has-text("View care journal")', {
+    await page.waitForSelector('text="View care journal"', {
       timeout: 15000,
     });
-    await page.click('button:has-text("View care journal")');
+    await page.click('text="View care journal"');
     await expect(page).toHaveURL(/\/journal\//, { timeout: 15000 });
 
     // The AppTabBar has no "Dashboard" tab — navigating away from /journal happens

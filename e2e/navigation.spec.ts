@@ -5,10 +5,10 @@ import { checkA11y } from "./helpers";
 // Navigate to the journal page from dashboard — reused across all tests
 async function goToJournal(page: any) {
   await page.goto("/dashboard");
-  await page.waitForSelector('button:has-text("View care journal")', {
+  await page.waitForSelector('text="View care journal"', {
     timeout: 15000,
   });
-  await page.click('button:has-text("View care journal")');
+  await page.click('text="View care journal"');
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   // Confirm default panel loaded
   await page.waitForSelector('[placeholder="Share how today went..."]', {

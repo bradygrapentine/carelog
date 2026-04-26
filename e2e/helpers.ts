@@ -116,7 +116,7 @@ export async function ensureCareTeam(page: Page): Promise<void> {
 // Navigate from the dashboard to the journal page, creating a care team first if needed.
 export async function navigateToJournal(page: Page): Promise<void> {
   await ensureCareTeam(page);
-  await page.click('button:has-text("View care journal")');
+  await page.click('text="View care journal"');
   await page.waitForURL(/\/journal\//);
 }
 

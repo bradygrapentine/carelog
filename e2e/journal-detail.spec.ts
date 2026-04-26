@@ -3,10 +3,10 @@ import { test, expect } from "@playwright/test";
 
 async function goToJournal(page: any) {
   await page.goto("/dashboard");
-  await page.waitForSelector('button:has-text("View care journal")', {
+  await page.waitForSelector('text="View care journal"', {
     timeout: 15000,
   });
-  await page.click('button:has-text("View care journal")');
+  await page.click('text="View care journal"');
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   await page.waitForSelector('[placeholder="Share how today went..."]', {
     timeout: 10000,

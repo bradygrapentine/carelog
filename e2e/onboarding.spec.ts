@@ -35,7 +35,7 @@ test.describe("Onboarding flow", () => {
 
     // Onboarding redirects to /dashboard; care team is now visible
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    await page.click('button:has-text("View care journal")');
+    await page.click('text="View care journal"');
     await expect(page).toHaveURL(/\/journal\/[^/]+/, { timeout: 15000 });
     await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
       timeout: 10000,
@@ -49,9 +49,10 @@ test.describe("Onboarding flow", () => {
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
     // Should see "View care journal" — not the onboarding CTA
-    await expect(
-      page.getByRole("button", { name: /View care journal/i }),
-    ).toBeVisible({ timeout: 10000 });
+    // (TD-51) Renders as <p> inside a clickable Card, not a <button>.
+    await expect(page.locator('text="View care journal"')).toBeVisible({
+      timeout: 10000,
+    });
     await expect(
       page.getByRole("link", { name: /Set up a care team/i }),
     ).not.toBeVisible();
