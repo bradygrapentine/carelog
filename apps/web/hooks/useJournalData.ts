@@ -72,12 +72,18 @@ export function useJournalData(
 
   async function loadRecipients(orgId: string) {
     const supabase = createClient();
+    // care_recipients has no display_name column — names live in the display_names
+    // PHI-vault table (full_name, keyed by recipient_id).
     const { data } = await supabase
-      .from("care_recipients")
-      .select("id, display_name")
+      .from("display_names")
+      .select("recipient_id, full_name")
       .eq("org_id", orgId)
-      .order("display_name", { ascending: true });
-    if (data) setRecipients(data);
+      .order("full_name", { ascending: true });
+    if (data) {
+      setRecipients(
+        data.map((row) => ({ id: row.recipient_id, display_name: row.full_name })),
+      );
+    }
   }
 
   useEffect(() => {
