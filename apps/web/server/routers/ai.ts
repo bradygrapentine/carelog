@@ -98,9 +98,11 @@ export const aiRouter = router({
           .not("accepted_at", "is", null),
         input.recipientId
           ? ctx.supabase
-              .from("care_recipients")
-              .select("display_name")
-              .eq("id", input.recipientId)
+              // care_recipients has no display_name column — names live in the
+              // display_names PHI-vault table (full_name, keyed by recipient_id).
+              .from("display_names")
+              .select("full_name")
+              .eq("recipient_id", input.recipientId)
               .single()
           : Promise.resolve({ data: null }),
         ctx.supabase
@@ -132,8 +134,8 @@ export const aiRouter = router({
         .map((m) => m.display_name)
         .filter((n): n is string => Boolean(n));
       const recipientName =
-        (recipientRes as { data: { display_name?: string } | null }).data
-          ?.display_name ?? "care recipient";
+        (recipientRes as { data: { full_name?: string } | null }).data
+          ?.full_name ?? "care recipient";
       const nameMap = buildNameMap(recipientName, teamNames);
       const safePrompt = deidentifyText(input.prompt, nameMap);
 
