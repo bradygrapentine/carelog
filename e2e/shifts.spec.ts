@@ -19,7 +19,7 @@ function roleEmail(role: string) {
 async function goToShiftsPanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
   // SidebarNav renders buttons with aria-label matching the destination label.
-  await page.getByRole("button", { name: "Shifts" }).click();
+  await page.getByRole("tab", { name: "Shifts" }).click();
   // ShiftList always renders the "Shifts" card header — wait for it.
   await expect(page.getByText("Shifts").first()).toBeVisible({ timeout: 8000 });
 }

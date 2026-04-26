@@ -22,7 +22,7 @@ test.describe("Panel tab navigation", () => {
     await expect(
       page.getByPlaceholder("Share how today went..."),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Journal" })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "Journal" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -41,7 +41,7 @@ test.describe("Panel tab navigation", () => {
     await page.click('button[aria-label="Medications"]');
     await expect(page).toHaveURL(/[?&]panel=medications/, { timeout: 8000 });
     await expect(
-      page.getByRole("button", { name: "Medications" }),
+      page.getByRole("tab", { name: "Medications" }),
     ).toHaveAttribute("aria-selected", "true");
     // Panel renders its collapsed heading button
     await expect(
@@ -61,7 +61,7 @@ test.describe("Panel tab navigation", () => {
 
     await page.click('button[aria-label="Team"]');
     await expect(page).toHaveURL(/[?&]panel=team/, { timeout: 8000 });
-    await expect(page.getByRole("button", { name: "Team" })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "Team" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -80,7 +80,7 @@ test.describe("Panel tab navigation", () => {
 
     await page.click('button[aria-label="Shifts"]');
     await expect(page).toHaveURL(/[?&]panel=shifts/, { timeout: 8000 });
-    await expect(page.getByRole("button", { name: "Shifts" })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "Shifts" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -103,7 +103,7 @@ test.describe("Panel tab navigation", () => {
     await page.click('button[aria-label="Documents"]');
     await expect(page).toHaveURL(/[?&]panel=documents/, { timeout: 8000 });
     await expect(
-      page.getByRole("button", { name: "Documents" }),
+      page.getByRole("tab", { name: "Documents" }),
     ).toHaveAttribute("aria-selected", "true");
     await expect(page.getByText(/Document vault/i)).toBeVisible({
       timeout: 5000,

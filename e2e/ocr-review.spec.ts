@@ -8,7 +8,7 @@ const COORDINATOR_EMAIL = "e2e-ocr@test.com";
 
 async function goToDocumentsPanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "Documents" }).click();
+  await page.getByRole("tab", { name: "Documents" }).click();
 }
 
 test.beforeEach(async () => {

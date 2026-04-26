@@ -22,7 +22,7 @@ function roleEmail(role: string) {
  */
 async function goToCoverageSettings(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
-  await page.getByRole("button", { name: "Shifts" }).click();
+  await page.getByRole("tab", { name: "Shifts" }).click();
   // Wait for the Shifts panel to finish loading.
   await expect(page.getByText("Shifts").first()).toBeVisible({ timeout: 8000 });
   // Expand the CoverageSettings accordion — the heading text is "Coverage expectations".
@@ -91,7 +91,7 @@ test.describe("Coverage settings — role gate", () => {
 
       try {
         await navigateToJournal(supporterPage);
-        await supporterPage.getByRole("button", { name: "Shifts" }).click();
+        await supporterPage.getByRole("tab", { name: "Shifts" }).click();
         await expect(supporterPage.getByText("Shifts").first()).toBeVisible({
           timeout: 8000,
         });

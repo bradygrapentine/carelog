@@ -41,7 +41,7 @@ test.describe("Education library", () => {
     page,
   }) => {
     await page.goto("/dashboard");
-    await page.getByRole("button", { name: "Education" }).click();
+    await page.getByRole("tab", { name: "Education" }).click();
     await expect(page).toHaveURL(/\/education/);
   });
 });

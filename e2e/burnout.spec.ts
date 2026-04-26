@@ -137,7 +137,7 @@ test.describe("Burnout check-in", () => {
 
         // Navigate away and back to reset the saved state in the component,
         // then submit again — should upsert silently without an error message.
-        await caregiverPage.getByRole("button", { name: "Journal" }).click();
+        await caregiverPage.getByRole("tab", { name: "Journal" }).click();
         await goToMorePanel(caregiverPage);
         await submitBurnoutCheckIn(caregiverPage);
         await expect(caregiverPage.getByText(/error|failed/i)).not.toBeVisible({
