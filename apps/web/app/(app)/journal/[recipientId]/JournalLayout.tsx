@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useState } from "react";
+import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,7 +70,11 @@ export type LayoutProps = {
   onPost: (text: string, mood: string) => Promise<void>;
   onFlag: (eventId: string, flagged: boolean) => Promise<void>;
   onGenerateBrief: () => Promise<void>;
-  onInvite: (email: string, role: string, aideRecipientId?: string | null) => Promise<void>;
+  onInvite: (
+    email: string,
+    role: string,
+    aideRecipientId?: string | null,
+  ) => Promise<void>;
   onToggleInvite: () => void;
   onFlushQueue?: () => void;
 };
@@ -314,9 +319,21 @@ export function JournalLayout({
                         : "Generate shareable brief"}
                     </button>
                     {briefUrl && (
-                      <p className="text-xs text-[var(--color-muted)] mt-2 break-all">
-                        {briefUrl}
-                      </p>
+                      <div className="mt-2 flex items-start gap-2">
+                        <p className="text-xs text-[var(--color-muted)] break-all flex-1">
+                          {briefUrl}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(briefUrl);
+                            toast.success("Link copied");
+                          }}
+                          className="shrink-0 text-xs font-medium text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"
+                        >
+                          Copy link
+                        </button>
+                      </div>
                     )}
                   </div>
                   <Card className="border-border">
