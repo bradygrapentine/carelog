@@ -7,7 +7,12 @@ import {
   acceptInviteAsNewUser,
 } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-coordinator-flow@test.com";
+// Per-test coordinator email — same reasoning as invitee emails: a fresh
+// coordinator each test side-steps any per-email Supabase rate-limit and
+// avoids cross-test session leakage. (TD-73)
+function coordinatorEmail(suffix: string): string {
+  return `e2e-coord-flow-${suffix}-${Date.now()}@test.com`;
+}
 // Invitee emails are timestamped per-test so a partially-completed previous
 // run (which leaves a pending invite_token in the DB) doesn't 409 the next
 // run with "An invite for this email is already pending". (TD-73)
@@ -24,12 +29,13 @@ test("invitee accepts invite and sees care team dashboard", async ({
 }) => {
   test.setTimeout(180_000);
   const email = inviteeEmail("accept");
+  const coordEmail = coordinatorEmail("accept");
   const coordinatorCtx = await browser.newContext();
   const coordinatorPage = await coordinatorCtx.newPage();
 
   try {
     // Coordinator sets up and sends invite
-    await signIn(coordinatorPage, COORDINATOR_EMAIL);
+    await signIn(coordinatorPage, coordEmail);
     await navigateToJournal(coordinatorPage);
 
     const inviteUrl = await sendInviteAndGetUrl(
@@ -72,12 +78,13 @@ test("coordinator sees new team member after invitation acceptance", async ({
 }) => {
   test.setTimeout(180_000);
   const email = inviteeEmail("seemember");
+  const coordEmail = coordinatorEmail("seemember");
   const coordinatorCtx = await browser.newContext();
   const coordinatorPage = await coordinatorCtx.newPage();
 
   try {
     // Coordinator sets up and sends invite
-    await signIn(coordinatorPage, COORDINATOR_EMAIL);
+    await signIn(coordinatorPage, coordEmail);
     await navigateToJournal(coordinatorPage);
 
     const inviteUrl = await sendInviteAndGetUrl(
@@ -105,9 +112,8 @@ test("coordinator sees new team member after invitation acceptance", async ({
         hasText: "Care team",
       }),
     ).toBeVisible({ timeout: 15000 });
-    // Member count grows monotonically (the previous-run invitee is still
-    // a member). Match any digit ≥ 2 instead of exactly "2 members".
-    await expect(coordinatorPage.getByText(/[2-9]\d* members/)).toBeVisible({
+    // Fresh coordinator + 1 accepted invitee = exactly 2 members.
+    await expect(coordinatorPage.getByText(/2 members/)).toBeVisible({
       timeout: 5000,
     });
   } finally {

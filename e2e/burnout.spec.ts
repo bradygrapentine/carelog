@@ -5,10 +5,7 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-burnout@test.com";
+  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-burn-" + role + "-" + Date.now() + "@test.com";
@@ -37,6 +34,7 @@ test.beforeEach(async () => {
 
 test.describe("Burnout org summary privacy", () => {
   test("coordinator sees 'Team wellbeing' panel", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
     await expect(page.getByText("Team wellbeing")).toBeVisible({
@@ -47,6 +45,7 @@ test.describe("Burnout org summary privacy", () => {
   test("suppression copy shown when fewer than 3 check-ins exist", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
     // min-group suppression: body explains individual scores are never shown
@@ -60,6 +59,7 @@ test.describe("Burnout check-in", () => {
   test("coordinator sees burnout check-in form on More panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -72,6 +72,7 @@ test.describe("Burnout check-in", () => {
   });
 
   test("caregiver completes a burnout check-in", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     // 2 OTP roundtrips (coordinator + caregiver) + multi-context navigation
     // budget; CI's slow runner needs >60s. (TD-73)
     test.setTimeout(180_000);
@@ -127,6 +128,7 @@ test.describe("Burnout check-in", () => {
   test("weekly idempotency — submitting twice in same week does not error", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     // 2 OTP roundtrips + multi-context + double-submit budget. (TD-73)
     test.setTimeout(180_000);
     const email = roleEmail("caregiver-idem");
@@ -189,6 +191,7 @@ test.describe("Burnout check-in", () => {
   test("supporter does not see the burnout check-in form", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     // 2 OTP roundtrips + multi-context budget. (TD-73)
     test.setTimeout(180_000);
     const email = roleEmail("supporter");

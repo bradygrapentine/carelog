@@ -1,4 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+// (TD-73) Load apps/web/.env.local so e2e/helpers.ts can read
+// SUPABASE_SERVICE_ROLE_KEY for the admin-link signIn bypass. CI sets
+// this via repository secrets, so the file may not exist there.
+try {
+  const envPath = resolve(__dirname, "apps/web/.env.local");
+  for (const line of readFileSync(envPath, "utf8").split("\n")) {
+    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (m && m[1] && !process.env[m[1]])
+      process.env[m[1]] = (m[2] ?? "").trim();
+  }
+} catch {
+  // .env.local missing in CI — that's fine, env vars come from secrets.
+}
 
 export default defineConfig({
   testDir: "./e2e",

@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit } from "./helpers";
-
-const TEST_EMAIL = "e2e-auth@test.com";
+import { signIn, clearMailpit, uniqueEmail } from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -18,11 +16,13 @@ test("sign in page loads correctly", async ({ page }) => {
 });
 
 test("sign in with OTP lands on dashboard", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("auth");
   await signIn(page, TEST_EMAIL);
   await expect(page.getByText("Your care teams")).toBeVisible();
 });
 
 test("sign out works", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("auth");
   await signIn(page, TEST_EMAIL);
 
   // TD-65 wrapped sign-out in a window.confirm("Sign out of CareSync?")

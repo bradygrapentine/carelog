@@ -2,9 +2,7 @@
 // Regression guard for apps/web/proxy.ts — ensures OTP sign-in lands on /dashboard
 // and does not redirect-loop back to /signin.
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit } from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-proxy@test.com";
+import { signIn, clearMailpit, uniqueEmail } from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -14,6 +12,7 @@ test.describe("Auth proxy redirect behaviour", () => {
   test("OTP sign-in lands on /dashboard, not back on /signin", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("proxy");
     await signIn(page, COORDINATOR_EMAIL);
     // signIn already asserts waitForURL(/\/dashboard/) internally;
     // this assertion is an explicit regression check on the final settled URL.
@@ -23,6 +22,7 @@ test.describe("Auth proxy redirect behaviour", () => {
   test("URL never reverts to /signin after successful auth", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("proxy");
     await signIn(page, COORDINATOR_EMAIL);
 
     // Snapshot the URL right after dashboard load.

@@ -1,8 +1,11 @@
 // e2e/benefits.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-benefits@test.com";
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -17,6 +20,7 @@ test.describe("Benefits navigator", () => {
   test("coordinator sees Benefits navigator card on More panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("benefits");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -32,6 +36,7 @@ test.describe("Benefits navigator", () => {
   test("screener questions are visible on desktop after clicking Start screener", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("benefits");
     // Mock latest query to return null (no prior screener)
     await page.route("**/trpc/benefits.latest*", async (route) => {
       await route.fulfill({
@@ -59,6 +64,7 @@ test.describe("Benefits navigator", () => {
   test("Find matching programs button fires screen mutation", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("benefits");
     let screenCalled = false;
 
     await page.route("**/trpc/benefits.latest*", async (route) => {
@@ -93,6 +99,7 @@ test.describe("Benefits navigator", () => {
   test("prior screener results are displayed when latest returns data", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("benefits");
     // The httpBatchLink groups multiple More-panel queries into ONE URL like
     // `/api/trpc/symptoms.list,burnout.orgSummary,...,benefits.latest?batch=1&input=...`
     // and returns one array element per procedure (in input order). We can't

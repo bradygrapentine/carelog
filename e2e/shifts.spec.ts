@@ -6,10 +6,7 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-shifts@test.com";
+  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-shift-" + role + "-" + Date.now() + "@test.com";
@@ -32,6 +29,7 @@ test.describe("Shifts panel — coordinator", () => {
   test("coordinator sees ShiftForm card and can expand it", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("shifts-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -55,6 +53,7 @@ test.describe("Shifts panel — coordinator", () => {
   });
 
   test("coordinator can fill and submit a shift", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("shifts-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -85,6 +84,7 @@ test.describe("Shifts panel — role gate", () => {
   test("supporter does not see ShiftForm but does see ShiftList", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("shifts-coord");
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();

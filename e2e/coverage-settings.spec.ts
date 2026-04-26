@@ -10,10 +10,7 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-coverage@test.com";
+  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-cov-" + role + "-" + Date.now() + "@test.com";
@@ -46,6 +43,7 @@ test.describe("Coverage settings — coordinator", () => {
   test.fixme("coordinator can expand coverage settings accordion", // TD-72: CoverageSettings is not rendered in JournalLayout Shifts tab.
   // Re-enable once the component is wired in.
   async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("cov-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToCoverageSettings(page);
 
@@ -58,6 +56,7 @@ test.describe("Coverage settings — coordinator", () => {
   test.fixme("coordinator can add a recurring coverage window", // TD-72: CoverageSettings is not rendered in JournalLayout Shifts tab.
   // Re-enable once the component is wired in.
   async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("cov-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToCoverageSettings(page);
 
@@ -79,6 +78,7 @@ test.describe("Coverage settings — role gate", () => {
   // the not.toBeVisible assertion passes trivially, but the test structure
   // (invite flow) is kept intact for when the component is re-integrated.
   async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("cov-coord");
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
