@@ -39,12 +39,16 @@ export default function RootLayout({
         fraunces.variable,
       )}
     >
-      {/* Anti-FOUC: set dark class before paint */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `(function(){try{var s=localStorage.getItem('carelog-theme');if(s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(_){}})();`,
-        }}
-      />
+      <head>
+        {/* Anti-FOUC: set dark class before paint. Must live in <head> —
+            Next 16 / React 19 throw a hydration error if <script> is a
+            direct child of <html>. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('carelog-theme');if(s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(_){}})();`,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         <PostHogProvider>
           <TrpcProvider>{children}</TrpcProvider>

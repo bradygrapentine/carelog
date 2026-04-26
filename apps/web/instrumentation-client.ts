@@ -36,4 +36,18 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
   });
+} else {
+  // No api key (CI, local-dev without analytics): init in opted-out mode so
+  // posthog.capture() / .identify() are safe no-ops instead of throwing
+  // "You must pass your PostHog project's api key" — which previously aborted
+  // form-submit handlers (sign-in, onboarding) before their router.replace()
+  // call, hanging E2E tests on /signin and /onboarding.
+  posthog.init("phc_e2e_stub", {
+    api_host: "/ingest",
+    autocapture: false,
+    capture_pageview: false,
+    capture_exceptions: false,
+    disable_session_recording: true,
+    loaded: (ph) => ph.opt_out_capturing(),
+  });
 }
