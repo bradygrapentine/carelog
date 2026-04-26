@@ -32,33 +32,73 @@ export function OnboardingForm() {
       data: { user },
     } = await supabase.auth.getUser();
 
+    // [TD-46 DIAGNOSTIC] revert after CI E2E mystery is resolved
+    console.error("[onboarding] user check:", {
+      hasUser: !!user,
+      userId: user?.id,
+    });
+
     if (!user) {
+      console.error("[onboarding] no user — replacing to /signin");
       router.replace("/signin");
       return;
     }
 
-    const res = await authenticatedFetch("/api/onboarding/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipientName,
-        recipientDob: recipientDob || null,
-        orgName,
-      }),
-    });
+    let res: Response;
+    try {
+      res = await authenticatedFetch("/api/onboarding/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientName,
+          recipientDob: recipientDob || null,
+          orgName,
+        }),
+      });
+    } catch (err) {
+      console.error("[onboarding] fetch threw:", err);
+      setError(
+        "Network error: " + (err instanceof Error ? err.message : String(err)),
+      );
+      setLoading(false);
+      return;
+    }
 
-    const data = await res.json();
+    console.error("[onboarding] API status:", res.status, res.statusText);
+
+    let data: { orgId?: string; error?: string };
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error("[onboarding] json parse threw:", err);
+      const text = await res.text().catch(() => "<unreadable>");
+      console.error("[onboarding] raw body:", text.slice(0, 500));
+      setError("Invalid server response");
+      setLoading(false);
+      return;
+    }
+
+    console.error("[onboarding] API body:", JSON.stringify(data));
 
     if (!res.ok || data.error) {
+      console.error("[onboarding] not ok — setting error, no redirect");
       setError(data.error ?? "Something went wrong.");
       setLoading(false);
       return;
     }
 
-    posthog.capture("care_team_created", { org_id: data.orgId });
-    posthog.identify(user.id, { org_id: data.orgId }); // UUID + org_id only — never email (PHI)
+    console.error("[onboarding] about to capture + redirect");
+    try {
+      posthog.capture("care_team_created", { org_id: data.orgId });
+      posthog.identify(user.id, { org_id: data.orgId }); // UUID + org_id only — never email (PHI)
+    } catch (err) {
+      console.error("[onboarding] posthog threw (caught):", err);
+    }
     const pendingInvite = sessionStorage.getItem("pending_invite");
-    router.replace(pendingInvite ? "/invite/" + pendingInvite : "/dashboard");
+    const target = pendingInvite ? "/invite/" + pendingInvite : "/dashboard";
+    console.error("[onboarding] router.replace ->", target);
+    router.replace(target);
+    console.error("[onboarding] router.replace returned");
   }
 
   return (
