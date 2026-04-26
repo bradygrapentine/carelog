@@ -1,0 +1,13 @@
+{
+  "name": "more-panel",
+  "description": "Walk to the More panel and screenshot the Benefits navigator + symptom tracking surfaces.",
+  "email": "live-test@example.com",
+  "steps": [
+    { "kind": "ensureSignedIn" },
+    { "kind": "ensureCareTeam", "recipientName": "Live Test Person", "orgName": "Live Test Family" },
+    { "kind": "clickText", "text": "View care journal" },
+    { "kind": "clickRole", "role": "tab", "name": "More" },
+    { "kind": "expect", "text": "Symptom readings" },
+    { "kind": "expect", "text": "Benefits navigator" }
+  ]
+}

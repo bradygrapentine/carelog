@@ -1,6 +1,6 @@
 ---
 name: live-test
-description: Drive the local stack (Supabase + Next.js) in a real browser via chrome-devtools-mcp to walk a user flow end-to-end. Captures page snapshots, console errors, network failures, Supabase logs, DB row diffs, and a selector-vs-DOM diff against a Playwright spec. Use to investigate failing E2E tests, validate selectors before writing tests, or reproduce a UX bug locally without writing throwaway code. Inputs: (a) path to an `e2e/*.spec.ts` file to validate, OR (b) a freeform flow description like "sign in, create journal entry with mood=Good, verify badge renders".
+description: Rapid UI-iteration loop AND debugger. Drive the local stack (Supabase + Next.js) in a real browser via chrome-devtools-mcp OR the scripts/live-test.mjs CLI. Two complementary modes — (1) **debugger**: walk a flow once, inspect a11y snapshots, console, network, DB diffs (good for "why does this E2E test fail?"); (2) **iteration loop**: persistent storage state + capture-and-replay against the same browser session, screenshots saved per step for multimodal feedback (good for "what does this UI look like after my change?"). Use to investigate failing E2E tests, validate selectors before writing tests, reproduce a UX bug locally, OR iterate on a UI change with screenshot feedback after every code edit. Inputs: (a) `e2e/*.spec.ts` path, (b) freeform flow description, OR (c) named flow JSON in `.live-test/flows/`.
 ---
 
 # /live-test — interactive flow investigation
@@ -24,13 +24,38 @@ Born from the 2026-04-26 TD-48 debug session: the same investigation that took a
 - CI-environment-only bugs (e.g. JWT crypto failures from CLI rotation) — local Supabase often has different env than CI
 - Pure backend logic with no UI — write a test or use `supabase` CLI directly
 
+## Two modes — pick the right one
+
+### Mode 1: debugger (chrome-devtools-mcp, one-shot)
+Use when investigating a *specific* failure or unknown UI surface. Walk once, capture everything, emit categorized report. No replay, no persistent state.
+
+### Mode 2: iteration loop (`scripts/live-test.mjs`, persistent + screenshot)
+Use when *iterating on a UI change*. Persistent browser session = no re-signin between runs. Replays the same flow after every file change. Saves a PNG screenshot per step which the model can Read back to *see* the UI, not just the a11y tree.
+
+```sh
+# Record / replay a flow
+node scripts/live-test.mjs record  <flow-name>     # walks the flow, saves storage state + screenshots
+node scripts/live-test.mjs replay  <flow-name>     # re-walks against persistent session
+node scripts/live-test.mjs watch   <flow-name>     # replays on every file change in apps/web/
+
+# Output:
+#   .live-test/state/<flow>.json       Playwright storageState (cookies, localStorage)
+#   .live-test/runs/<ts>/<step>.png    Screenshot per step
+#   .live-test/runs/<ts>/<step>.snap.json  A11y snapshot per step
+#   .live-test/runs/<ts>/report.md     Run report w/ inline image links
+```
+
+The Read tool is multimodal — after a replay, **read the most recent screenshot back into context** (`Read .live-test/runs/<ts>/<step>.png`) so the next change is informed by what the user actually sees, not the serialized a11y text.
+
 ## Inputs
 
-Two forms:
+Three forms:
 
-**(a) Spec file** — `/live-test e2e/auth-journal.spec.ts` or `/live-test e2e/auth-journal.spec.ts:30` (specific test). The skill reads the spec, extracts the user flow (signIn → ensureCareTeam → click → assert), walks it in the browser, and compares each `expect(...)` against the actual DOM at that step. Output flags every drift.
+**(a) Spec file** — `/live-test e2e/auth-journal.spec.ts` or `/live-test e2e/auth-journal.spec.ts:30` (specific test). Mode 1. The skill reads the spec, extracts the user flow, walks it, and compares each `expect(...)` against the actual DOM. Flags every drift.
 
-**(b) Freeform description** — `/live-test sign in as e2e@test.com, create a journal entry with mood=Good, verify the mood badge renders in the timeline`. The skill parses the steps and walks them. No assertion comparison — just snapshots + log capture at each step.
+**(b) Freeform description** — `/live-test sign in as e2e@test.com, create a journal entry with mood=Good, verify the mood badge renders in the timeline`. Mode 1. Parses steps, walks them, captures snapshots + logs.
+
+**(c) Named flow** — `/live-test post-journal-entry` (matching `.live-test/flows/post-journal-entry.json`). Mode 2. Replays via the CLI. Persistent session, screenshot per step.
 
 ## Pre-flight
 
@@ -179,6 +204,70 @@ Always emit a single structured report. Path: `/tmp/live-test-<unix-ts>.md`. Pri
 - 1 selector fix: ai-assistant.spec.ts FAB collision — add data-testid + bump z-index OR move AIFab off QuickLog's footprint
 - 1 production fix: dashboard "Refer a family" copy
 ```
+
+## Iteration loop recipes
+
+### Make a UI change, see the result in 10 seconds
+```
+1. Make the code change in apps/web/
+2. node scripts/live-test.mjs replay <flow>
+3. Read .live-test/runs/<latest-ts>/<final-step>.png    ← multimodal: model SEES the UI
+4. Compare against the previous run's screenshot
+5. Iterate
+```
+
+### Watch mode — replay on every save
+```
+node scripts/live-test.mjs watch post-journal-entry
+# (in another shell, edit a component)
+# every save → automatic replay → new screenshots in .live-test/runs/
+```
+
+The model can then `Read .live-test/runs/<latest>/<step>.png` to see the current state without re-running anything.
+
+### Capture-and-replay (regression-style)
+```
+1. node scripts/live-test.mjs record  <flow>     # baseline
+2. <change source>
+3. node scripts/live-test.mjs replay <flow>      # captures new screenshots
+4. diff side-by-side: ls -la .live-test/runs/*/<step>.png   # last-vs-prev visual diff
+```
+
+### Flow JSON shape (`.live-test/flows/<name>.json`)
+```json
+{
+  "name": "post-journal-entry",
+  "email": "live-test@example.com",
+  "steps": [
+    { "kind": "ensureSignedIn" },
+    { "kind": "ensureCareTeam", "recipientName": "Test Person", "orgName": "Test Family" },
+    { "kind": "clickText", "text": "View care journal" },
+    { "kind": "expect", "text": "Share how today went..." },
+    { "kind": "fill", "selector": "[placeholder='Share how today went...']", "value": "Test entry" },
+    { "kind": "clickText", "text": "Share update" },
+    { "kind": "expect", "text": "Test entry" }
+  ]
+}
+```
+
+Supported step kinds: `ensureSignedIn`, `ensureCareTeam`, `navigate`, `clickRole`, `clickText`, `fill`, `expect`, `wait`, `screenshot`. See `scripts/live-test.mjs` for the executor.
+
+### Hot-reload aware: when does signin actually re-run?
+- The CLI saves Playwright storageState (cookies + localStorage) to `.live-test/state/<flow>.json` after every run.
+- On subsequent `replay`, it boots a context with that state. `ensureSignedIn` step navigates to `/dashboard`; if it lands there, signin is skipped (`✓ session valid`). If redirected to `/signin`, full OTP flow runs and re-saves state.
+- Result: after the first record, subsequent replays start with the user already signed in. Typical replay time: 5–10 seconds vs ~30 for a full sign-in.
+
+### Screenshot-driven prompting (the real lever)
+The standard Read tool is multimodal — PNGs come back as image tokens. After a replay:
+```
+Read /tmp/.live-test/runs/<ts>/05-clickRole-More.png
+```
+The model now sees the actual rendered UI (FAB collisions, hidden elements, broken layouts, color contrast issues) — not just the serialized accessibility tree. Use this to:
+- Confirm a UI change rendered as intended (no broken layout)
+- Catch visual regressions the a11y tree would miss (overlapping elements, wrong colors, missing icons)
+- Provide a concrete starting point for the next iteration ("the badge is wrapping to two lines; tighten the padding")
+
+Reading the screenshot ≠ reading the snapshot JSON. They're complementary: snapshot tells you *what's queryable*, screenshot tells you *what looks right*.
 
 ## Hard rules
 

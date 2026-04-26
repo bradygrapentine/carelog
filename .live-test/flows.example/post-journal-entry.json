@@ -1,0 +1,14 @@
+{
+  "name": "post-journal-entry",
+  "description": "Sign in, ensure care team exists, navigate to journal, post an entry, verify it appears.",
+  "email": "live-test@example.com",
+  "steps": [
+    { "kind": "ensureSignedIn" },
+    { "kind": "ensureCareTeam", "recipientName": "Live Test Person", "orgName": "Live Test Family" },
+    { "kind": "clickText", "text": "View care journal" },
+    { "kind": "expect", "text": "Share how today went..." },
+    { "kind": "fill", "selector": "[placeholder='Share how today went...']", "value": "Live test entry" },
+    { "kind": "clickText", "text": "Share update" },
+    { "kind": "expect", "text": "Live test entry" }
+  ]
+}
