@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,8 +52,12 @@ export function MedicationPanel({
       setPharmacy("");
       setSupply("");
       setError(null);
+      toast.success("Medication added");
     },
-    onError: () => setError("Something went wrong. Please try again."),
+    onError: () => {
+      setError("Something went wrong. Please try again.");
+      toast.error("Couldn't add medication");
+    },
   });
 
   const deleteMutation = trpc.medications.delete.useMutation({

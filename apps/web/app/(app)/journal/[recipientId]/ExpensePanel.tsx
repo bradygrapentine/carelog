@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,8 +74,12 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
     onSuccess: () => {
       utils.expenses.list.invalidate();
       setError(null);
+      toast.success("Expense logged");
     },
-    onError: () => setError("Failed to log expense. Please try again."),
+    onError: () => {
+      setError("Failed to log expense. Please try again.");
+      toast.error("Couldn't log expense");
+    },
   });
 
   const deleteMutation = trpc.expenses.delete.useMutation({

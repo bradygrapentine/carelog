@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,8 +104,12 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
       setMobility("");
       setNotes("");
       setError(null);
+      toast.success("Symptom logged");
     },
-    onError: () => setError("Something went wrong. Please try again."),
+    onError: () => {
+      setError("Something went wrong. Please try again.");
+      toast.error("Couldn't log symptom");
+    },
   });
 
   const readings = (data ?? []).slice(0, 7) as SymptomRow[];
