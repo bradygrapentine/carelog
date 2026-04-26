@@ -16,8 +16,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 9 | TD-03 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
-| 🔎 In review | 1 | TD-35 (#170) |
+| 🟢 Ready | 10 | TD-03 · TD-42 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
+| 🔎 In review | 2 | TD-35 (#170) · TD-41 (#178) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 4 | §5 ON-54 · §8 A2 · C3 · PP-008 |
@@ -102,6 +102,8 @@ Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 fi
 | TD-32 | ✅ Shipped · PR #154 | **Run E2E (Playwright) on PR pushes** | E2E was previously only running on push-to-main; PRs got no Playwright coverage. Re-enabled via `pull_request:` trigger; now in CI Summary. |
 | TD-35 | 🔎 In review · PR #170 | **Fix TD-30 path-filter false-skip on lockfile-only PRs** | TD-30's per-job `if:` used `contains(toJSON(github.event.pull_request.changed_files), 'apps/web')` — but `changed_files` is an INTEGER (file count), not a path list, so the predicate was always false and every test job silently SKIPPED on every PR. CI Summary treats SKIPPED as pass, so deps bumps shipped without test verification (e.g. TD-29 #165). Fix: replace with SHA-pinned `dorny/paths-filter@v3` doing real glob-based path matching; new `changes` job exposes `web`/`mobile`/`supabase`/`deps`/`e2e` outputs that downstream jobs gate on via `needs:`. |
 | TD-36 | ✅ Shipped · PR #173 | **Mobile lockfile management — pnpm-monorepo compatibility** | Investigation found apps/mobile already in `pnpm-workspace.yaml` + `pnpm-lock.yaml`; the npm-format `package-lock.json` was a stale orphan from a prior `npm install`. Path (a) chosen: deleted the orphan + added to `.gitignore` + documented `pnpm install` requirement in `apps/mobile/CLAUDE.md`. Mobile tests 33 pass / 15 skip (matches baseline); Expo CLI resolves post-install. |
+| TD-41 | 🔎 In review · PR #178 | **PostHog uninitialized in CI breaks every form-submit** | CI doesn't set `NEXT_PUBLIC_POSTHOG_KEY`. Server `lib/posthog-server.ts` constructs `new PostHog(undefined!)` which throws "You must pass your PostHog project's api key" — surfaced as 500 from `/api/onboarding/create` and every other event-capturing route. Browser-side, `posthog.capture()` / `posthog.identify()` calls in `SignInForm` + `OnboardingForm` threw the same message, aborting the submit handler **before** `router.replace('/dashboard')`. Form silently stayed on /signin or /onboarding; `waitForURL` timed out — the visible CI symptom. Fix: server returns no-op stub when no key; client inits with placeholder + `opt_out_capturing()` when no key. Bundles a Next 16 hydration fix in `app/layout.tsx` (anti-FOUC `<script>` was a direct child of `<html>`, hard-failing hydration in React 19). |
+| TD-42 | 🟢 Ready | **`ensureCareTeam` helper selector drift — dashboard "View care journal" is a `<p>` not a `<button>`** | `e2e/helpers.ts:91,100,110` waits for `button:has-text("View care journal")`. The dashboard renders that string as `<p className="text-sm text-muted-foreground">` inside a clickable `<Card onClick>` (see `apps/web/app/(app)/dashboard/DashboardClient.tsx:319-323`), so the selector never matches and `ensureCareTeam` times out for any test using it. Slipped in with TD-40 (#177). Fix: replace the three selectors with `text="View care journal"` (or scope to the parent Card heading). Once landed, ai-assistant.spec progresses past `beforeEach` and the remaining 4 consent-modal failures become visible (separate diagnosis). |
 
 ### Roadmap features (ON-64..68) — opened 2026-04-25
 
