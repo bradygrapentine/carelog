@@ -90,33 +90,32 @@ test.describe("Benefits navigator", () => {
     }).toPass({ timeout: 5000 });
   });
 
-  // (TD-55) Mock for benefits.latest doesn't appear to take effect — More
-  // panel still shows the empty state with "Start screener" button instead
-  // of the results view. Likely a tRPC URL pattern mismatch (route("**/trpc/
-  // benefits.latest*") vs actual URL) OR react-query already cached the
-  // initial null fetch before the mock route was registered. Investigate
-  // with /live-test in a follow-up.
-  test.fixme("prior screener results are displayed when latest returns data", async ({
+  test("prior screener results are displayed when latest returns data", async ({
     page,
   }) => {
-    await page.route("**/trpc/benefits.latest*", async (route) => {
+    // httpBatchLink sends to /api/trpc/benefits.latest?batch=1&input=...
+    // and expects an array response (one element per batched call).
+    // Register before signIn so the mock is in place before any navigation.
+    await page.route("**/api/trpc/benefits.latest*", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({
-          result: {
-            data: {
-              results: [
-                {
-                  key: "medicare_savings",
-                  name: "Medicare Savings Program",
-                  description: "Helps pay Medicare premiums.",
-                  applyUrl: "https://www.medicare.gov/",
-                },
-              ],
+        body: JSON.stringify([
+          {
+            result: {
+              data: {
+                results: [
+                  {
+                    key: "medicare_savings",
+                    name: "Medicare Savings Program",
+                    description: "Helps pay Medicare premiums.",
+                    applyUrl: "https://www.medicare.gov/",
+                  },
+                ],
+              },
             },
           },
-        }),
+        ]),
       });
     });
 
