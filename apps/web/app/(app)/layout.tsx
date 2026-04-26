@@ -26,11 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <>
       <Toaster position="top-right" richColors />
       <AppShellClient userInitials={userInitials}>
-        {orgId ? (
-          <AIAssistantProvider orgId={orgId}>{children}</AIAssistantProvider>
-        ) : (
-          children
-        )}
+        <AIAssistantProvider orgId={orgId ?? ""}>{children}</AIAssistantProvider>
       </AppShellClient>
     </>
   );
