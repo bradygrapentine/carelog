@@ -16,10 +16,34 @@ type Med = {
 };
 
 const INITIAL_MEDS: Med[] = [
-  { id: "donepezil", name: "Donepezil", dose: "5 mg", timeLabel: "8:00a", taken: true },
-  { id: "metformin", name: "Metformin", dose: "500 mg", timeLabel: "8:00a", taken: true },
-  { id: "lisinopril", name: "Lisinopril", dose: "10 mg", timeLabel: "12:00p", taken: false },
-  { id: "atorvastatin", name: "Atorvastatin", dose: "20 mg", timeLabel: "8:00p", taken: false },
+  {
+    id: "donepezil",
+    name: "Donepezil",
+    dose: "5 mg",
+    timeLabel: "8:00a",
+    taken: true,
+  },
+  {
+    id: "metformin",
+    name: "Metformin",
+    dose: "500 mg",
+    timeLabel: "8:00a",
+    taken: true,
+  },
+  {
+    id: "lisinopril",
+    name: "Lisinopril",
+    dose: "10 mg",
+    timeLabel: "12:00p",
+    taken: false,
+  },
+  {
+    id: "atorvastatin",
+    name: "Atorvastatin",
+    dose: "20 mg",
+    timeLabel: "8:00p",
+    taken: false,
+  },
 ];
 
 export function MedCard() {
@@ -33,7 +57,7 @@ export function MedCard() {
   return (
     <section
       aria-labelledby="meds-card-heading"
-      className="rounded-xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+      className="rounded-xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
     >
       <div className="mb-3 flex items-baseline justify-between">
         <h2
@@ -56,7 +80,7 @@ export function MedCard() {
             data-taken={med.taken ? "true" : "false"}
             className={[
               "flex items-center gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2",
-              med.taken ? "opacity-60" : "bg-white",
+              med.taken ? "opacity-60" : "bg-card",
             ].join(" ")}
           >
             <span

@@ -64,7 +64,7 @@ export default function TrustPage() {
           {COMMITMENTS.map(({ title, description }) => (
             <li
               key={title}
-              className="rounded-2xl border border-[var(--color-border)] bg-white p-6"
+              className="rounded-2xl border border-[var(--color-border)] bg-card p-6"
             >
               <h3 className="text-base font-semibold text-[var(--color-ink)]">
                 {title}

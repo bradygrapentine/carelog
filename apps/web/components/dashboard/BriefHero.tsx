@@ -27,7 +27,7 @@ export function BriefHero() {
   return (
     <section
       aria-label="Today's brief"
-      className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-white p-6 shadow-sm sm:p-8"
+      className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-card p-6 shadow-sm sm:p-8"
     >
       <div
         data-testid="brief-blob"
@@ -47,8 +47,8 @@ export function BriefHero() {
           data-testid="brief-headline"
           className="headline-display text-[26px] leading-[1.2] text-[var(--color-ink)] sm:text-[28px]"
         >
-          Eleanor had a <em>settled</em> night — sleep held for seven hours
-          and the morning routine is on pace.
+          Eleanor had a <em>settled</em> night — sleep held for seven hours and
+          the morning routine is on pace.
         </p>
 
         <ul className="flex flex-wrap gap-2">

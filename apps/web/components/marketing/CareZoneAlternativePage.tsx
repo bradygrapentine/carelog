@@ -160,7 +160,7 @@ export function CareZoneAlternativePage() {
                 <tr
                   key={row.feature}
                   className={
-                    i % 2 === 0 ? "bg-white" : "bg-[var(--color-surface)]"
+                    i % 2 === 0 ? "bg-card" : "bg-[var(--color-surface)]"
                   }
                 >
                   <td className="px-5 py-3 font-medium text-[var(--color-ink)]">

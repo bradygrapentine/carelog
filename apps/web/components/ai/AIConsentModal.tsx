@@ -58,7 +58,7 @@ export function AIConsentModal({ onEnable, onDismiss }: Props) {
     >
       <div
         ref={containerRef}
-        className="bg-white rounded-2xl shadow-2xl border border-[var(--color-border)] p-6 max-w-sm w-full space-y-4"
+        className="bg-card rounded-2xl shadow-2xl border border-[var(--color-border)] p-6 max-w-sm w-full space-y-4"
       >
         <div className="space-y-1">
           <h2

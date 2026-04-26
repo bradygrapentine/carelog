@@ -26,7 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-center max-w-sm">
+          <div className="bg-card border border-[var(--color-border)] rounded-xl p-8 shadow-sm text-center max-w-sm">
             <p className="text-gray-900 font-medium mb-2">
               Something went wrong
             </p>

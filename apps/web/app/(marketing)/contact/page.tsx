@@ -52,7 +52,7 @@ export default function ContactPage() {
               {FAQ.map(({ q, a }) => (
                 <li
                   key={q}
-                  className="rounded-2xl border border-[var(--color-border)] bg-white p-5"
+                  className="rounded-2xl border border-[var(--color-border)] bg-card p-5"
                 >
                   <p className="text-sm font-semibold text-[var(--color-ink)]">
                     {q}

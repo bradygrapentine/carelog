@@ -27,7 +27,7 @@ export function CareZoneMedicationImport() {
       aria-labelledby="cz-import-heading"
       className="mx-auto max-w-2xl px-6 pb-20"
     >
-      <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[var(--color-border)] bg-card p-6 shadow-sm">
         <h2
           id="cz-import-heading"
           className="mb-1 text-lg font-bold text-[var(--color-ink)]"
