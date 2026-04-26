@@ -4,6 +4,7 @@ import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import posthog from "posthog-js";
 
 type Props = {
@@ -78,6 +79,7 @@ export function BurnoutCheckin({
     onSuccess: () => {
       setSaved(true);
       setError(null);
+      toast.success("Check-in saved.");
       posthog.capture("burnout_checkin_submitted", {
         sleep_score: sleepScore,
         stress_score: stressScore,
@@ -85,7 +87,10 @@ export function BurnoutCheckin({
         has_notes: notes.trim().length > 0,
       });
     },
-    onError: () => setError("Something went wrong. Please try again."),
+    onError: () => {
+      setError("Something went wrong. Please try again.");
+      toast.error("Couldn't save check-in — try again");
+    },
   });
 
   // Only coordinators and caregivers fill out check-ins
