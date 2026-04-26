@@ -13,11 +13,14 @@ const DEFAULT_MAX_REQUESTS = 5;
 let redis: Redis | null = null;
 let devWarned = false;
 
+// "Real prod" — only Vercel sets VERCEL_ENV. NODE_ENV=production is
+// auto-set by `next start` in any prod-mode build (CI E2E, local
+// `pnpm start`, preview deploys), so it's a poor prod indicator. Using
+// it here previously caused CI's E2E job to 503 on every rate-limited
+// route because Upstash creds aren't set in CI — fail-closed kicked in
+// for what's effectively a test environment. (TD-44)
 export function isProductionRuntime(): boolean {
-  return (
-    process.env.NODE_ENV === "production" ||
-    process.env.VERCEL_ENV === "production"
-  );
+  return process.env.VERCEL_ENV === "production";
 }
 
 function getRedis(): Redis | null {
