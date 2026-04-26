@@ -71,12 +71,7 @@ test.describe("Burnout check-in", () => {
     await expect(page.getByLabel("Support from others")).toBeVisible();
   });
 
-  // (TD-57) Multi-context invite flow times out at coordinatorCtx.close()
-  // — actual failure is upstream (likely in invite acceptance or
-  // submitBurnoutCheckIn). 60s test budget exhausted before close. All 3
-  // multi-context burnout tests in this file fail the same way. Investigate
-  // the invite-acceptance + caregiver-burnout-form path with /live-test.
-  test.fixme("caregiver completes a burnout check-in", async ({ browser }) => {
+  test("caregiver completes a burnout check-in", async ({ browser }) => {
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -94,7 +89,21 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
+        // Diagnostic: confirm caregiver landed on /dashboard after invite acceptance
+        await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
+        await expect(
+          caregiverPage.getByText("View care journal"),
+        ).toBeVisible({ timeout: 10000 });
+
         await goToMorePanel(caregiverPage);
+
+        // Diagnostic: confirm the More tab is active and the check-in form loaded
+        await expect(
+          caregiverPage.getByRole("button", { name: "Save check-in" }),
+        ).toBeVisible({ timeout: 5000 });
+
         await submitBurnoutCheckIn(caregiverPage);
 
         await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
@@ -108,8 +117,7 @@ test.describe("Burnout check-in", () => {
     }
   });
 
-  // (TD-57) Same multi-context invite-flow timeout as above.
-  test.fixme("weekly idempotency — submitting twice in same week does not error", async ({
+  test("weekly idempotency — submitting twice in same week does not error", async ({
     browser,
   }) => {
     const email = roleEmail("caregiver-idem");
@@ -129,7 +137,21 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
+        // Diagnostic: confirm caregiver landed on /dashboard after invite acceptance
+        await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
+        await expect(
+          caregiverPage.getByText("View care journal"),
+        ).toBeVisible({ timeout: 10000 });
+
         await goToMorePanel(caregiverPage);
+
+        // Diagnostic: confirm the More tab is active and the check-in form loaded
+        await expect(
+          caregiverPage.getByRole("button", { name: "Save check-in" }),
+        ).toBeVisible({ timeout: 5000 });
+
         await submitBurnoutCheckIn(caregiverPage);
         await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
           timeout: 8000,
@@ -151,8 +173,7 @@ test.describe("Burnout check-in", () => {
     }
   });
 
-  // (TD-57) Same multi-context invite-flow timeout as above.
-  test.fixme("supporter does not see the burnout check-in form", async ({
+  test("supporter does not see the burnout check-in form", async ({
     browser,
   }) => {
     const email = roleEmail("supporter");
@@ -172,7 +193,19 @@ test.describe("Burnout check-in", () => {
         await acceptInviteAsNewUser(browser, inviteUrl, email);
 
       try {
+        // Diagnostic: confirm supporter landed on /dashboard after invite acceptance
+        await expect(supporterPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        // Diagnostic: confirm "View care journal" is visible (supporter joined a team)
+        await expect(
+          supporterPage.getByText("View care journal"),
+        ).toBeVisible({ timeout: 10000 });
+
+        // Navigate to journal and click More tab
+        await supporterPage.click('text="View care journal"');
+        await supporterPage.waitForURL(/\/journal\//, { timeout: 10000 });
         await supporterPage.getByRole("tab", { name: "More" }).click();
+
         // Supporters see the More panel but not the burnout form
         await expect(
           supporterPage.getByText("How are you doing this week?"),
