@@ -43,17 +43,14 @@ test("select mood tag before posting and verify entry shows mood badge", async (
   await textarea.click();
   await textarea.fill(entryText);
 
-  // Select a mood tag (should have mood buttons like 'Good', 'Okay', 'Difficult')
-  // Get all mood selection buttons and click on one (e.g., the first mood button)
-  const moodButtons = page.locator('button[class*="mood"]');
-  const moodCount = await moodButtons.count();
-
-  if (moodCount > 0) {
-    // Click the first mood button to select a mood
-    await moodButtons.first().click();
-    // Verify button shows as selected (likely has a different style or is highlighted)
-    await expect(moodButtons.first()).toHaveAttribute("data-selected", "true");
-  }
+  // (TD-52) Earlier `button[class*="mood"]` selector matched nothing — mood
+  // buttons in JournalEntryForm have classes like bg-green-100/text-green-800
+  // (no "mood" substring). Stable data-mood attr added to the form. Same
+  // story for selection state: there's no `data-selected` — switched to
+  // standard aria-pressed which the component now sets.
+  const moodButton = page.locator("button[data-mood=good]");
+  await moodButton.click();
+  await expect(moodButton).toHaveAttribute("aria-pressed", "true");
 
   await page.waitForSelector("text=Share update", { timeout: 3000 });
   await page.click("text=Share update");
