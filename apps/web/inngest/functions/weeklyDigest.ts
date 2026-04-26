@@ -111,7 +111,7 @@ export function digestHtml(opts: {
         '<a href="' + journalUrl + '" style="display:inline-block;background:#111;color:#fff;font-size:14px;font-weight:500;padding:10px 20px;border-radius:8px;text-decoration:none;">View the full journal \u2192</a>' +
       '</div>' +
       '<hr style="border:none;border-top:1px solid #eee;margin:32px 0 16px;">' +
-      '<p style="font-size:12px;color:#bbb;margin:0;">You\'re receiving this because you\'re part of the ' + orgName + ' care team on Carelog.</p>' +
+      '<p style="font-size:12px;color:#bbb;margin:0;">You\'re receiving this because you\'re part of the ' + orgName + ' care team on CareSync.</p>' +
     '</body></html>'
   )
 }

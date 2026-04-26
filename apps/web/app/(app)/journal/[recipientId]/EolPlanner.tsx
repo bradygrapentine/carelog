@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,8 +60,12 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
       setSaved(true);
       setError(null);
       setTimeout(() => setSaved(false), 4000);
+      toast.success("Plan saved");
     },
-    onError: () => setError("Something went wrong. Please try again."),
+    onError: () => {
+      setError("Something went wrong. Please try again.");
+      toast.error("Couldn't save plan");
+    },
   });
 
   if (currentUserRole !== "coordinator") return null;
