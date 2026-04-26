@@ -45,7 +45,11 @@ queue_rules:
     # and the existing parallel-dispatch pattern, batching saves a lot
     # of CI minutes on multi-PR sessions.
     batch_size: 5
-    batch_max_wait_time: "5 min"
+    # 5 min was too long — by the time CI Summary went green, the human
+    # had often already clicked merge before Mergify formed a batch
+    # ("You were too fast!" message). 150 s = snappy enough to win the
+    # race while still bundling rapid back-to-back PRs.
+    batch_max_wait_time: "150 s"
     # If a batch fails, Mergify bisects to find the bad PR and ejects it.
     queue_branch_prefix: mq/
 
