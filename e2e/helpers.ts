@@ -125,26 +125,50 @@ export async function navigateToJournal(page: Page): Promise<void> {
   await page.waitForURL(/\/journal\//);
 }
 
-// Send an invite from the journal page and return the invite URL from the alert.
-// The waitForEvent must be registered before the click that triggers the dialog.
+// Send an invite from the Team panel and return the invite URL.
+//
+// (TD-73) Two layered breakages — both fixed here:
+//   1. Panels under /journal/[id] render lazily based on `?panel=`. The
+//      invite form lives on the Team panel only; calling this helper from
+//      any other panel found nothing and hung forever. Switch to Team first.
+//   2. PR #94 replaced the legacy `window.alert(inviteUrl)` with
+//      `navigator.clipboard.writeText(inviteUrl) + toast.success(...)`.
+//      The previous helper waited on `page.waitForEvent("dialog")` which
+//      never fires anymore — read the response body instead.
+//
+// On desktop (≥ lg) the invite form is always shown via `lg:block`. Tests
+// run at the 1280×720 desktop viewport so we skip the mobile-only branch
+// where "Invite someone" is a toggle button.
 export async function sendInviteAndGetUrl(
   page: Page,
   email: string,
   role: string,
 ): Promise<string> {
-  await page.click("text=Invite someone");
-  await page.fill("[type=email]", email);
-  await page.selectOption("select", role);
+  // Switch to the Team panel — clicking the desktop tablist tab is enough;
+  // SidebarContext writes ?panel=team into the URL and re-renders the layout.
+  await page.getByRole("tab", { name: "Team" }).first().click();
+  await page.getByLabel("Email address").waitFor({ state: "visible" });
 
-  const dialogPromise = page.waitForEvent("dialog");
-  await page.click("text=Send invite");
-  const dialog = await dialogPromise;
-  const match = dialog.message().match(/http[^\s]+/);
-  await dialog.accept();
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Role").selectOption(role);
 
-  if (!match)
-    throw new Error("No URL found in invite dialog: " + dialog.message());
-  return match[0];
+  // Capture the /api/invite response — that's where the inviteUrl lives now.
+  const responsePromise = page.waitForResponse(
+    (r) => r.url().endsWith("/api/invite") && r.request().method() === "POST",
+    { timeout: 15_000 },
+  );
+  await page.getByRole("button", { name: "Send invite" }).click();
+  const response = await responsePromise;
+  const data = (await response.json()) as {
+    inviteUrl?: string;
+    error?: string;
+  };
+  if (!data.inviteUrl) {
+    throw new Error(
+      "No inviteUrl in /api/invite response: " + JSON.stringify(data),
+    );
+  }
+  return data.inviteUrl;
 }
 
 // Accept a pending invite as a new user. The invitee must not already be signed in.

@@ -26,13 +26,13 @@ test.describe("Auth proxy redirect behaviour", () => {
     await signIn(page, COORDINATOR_EMAIL);
 
     // Snapshot the URL right after dashboard load.
-    const urlAfterLogin = page.url();
-    expect(urlAfterLogin).toMatch(/\/dashboard/);
-
-    // Wait briefly then assert no redirect loop occurred.
-    // If proxy.ts were broken it would redirect getUser() failures back to /signin.
-    await page.waitForTimeout(1000);
-    expect(page.url()).not.toMatch(/\/signin/);
     expect(page.url()).toMatch(/\/dashboard/);
+
+    // Poll for ~3s instead of sleeping a fixed 1s — under the CI runner the
+    // settled URL can flicker briefly, and a static sleep races against
+    // hydration. expect().toHaveURL retries until the assertion stabilises
+    // OR fails outright (the regression we're guarding against).
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 3_000 });
+    await expect(page).not.toHaveURL(/\/signin/, { timeout: 3_000 });
   });
 });
