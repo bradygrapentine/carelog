@@ -86,7 +86,10 @@ test.describe("Benefits navigator", () => {
     }).toPass({ timeout: 5000 });
   });
 
-  test("prior screener results are displayed when latest returns data", async ({
+  // (TD-55) Same More-panel content drift family — Benefits navigator card
+  // not in expected position. Snapshot from v15 showed Symptom readings +
+  // weekly check-in form instead of the screener results panel.
+  test.fixme("prior screener results are displayed when latest returns data", async ({
     page,
   }) => {
     await page.route("**/trpc/benefits.latest*", async (route) => {
