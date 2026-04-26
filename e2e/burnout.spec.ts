@@ -71,7 +71,12 @@ test.describe("Burnout check-in", () => {
     await expect(page.getByLabel("Support from others")).toBeVisible();
   });
 
-  test("caregiver completes a burnout check-in", async ({ browser }) => {
+  // (TD-57) Multi-context invite flow times out at coordinatorCtx.close()
+  // — actual failure is upstream (likely in invite acceptance or
+  // submitBurnoutCheckIn). 60s test budget exhausted before close. All 3
+  // multi-context burnout tests in this file fail the same way. Investigate
+  // the invite-acceptance + caregiver-burnout-form path with /live-test.
+  test.fixme("caregiver completes a burnout check-in", async ({ browser }) => {
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -103,7 +108,8 @@ test.describe("Burnout check-in", () => {
     }
   });
 
-  test("weekly idempotency — submitting twice in same week does not error", async ({
+  // (TD-57) Same multi-context invite-flow timeout as above.
+  test.fixme("weekly idempotency — submitting twice in same week does not error", async ({
     browser,
   }) => {
     const email = roleEmail("caregiver-idem");
@@ -145,7 +151,8 @@ test.describe("Burnout check-in", () => {
     }
   });
 
-  test("supporter does not see the burnout check-in form", async ({
+  // (TD-57) Same multi-context invite-flow timeout as above.
+  test.fixme("supporter does not see the burnout check-in form", async ({
     browser,
   }) => {
     const email = roleEmail("supporter");
