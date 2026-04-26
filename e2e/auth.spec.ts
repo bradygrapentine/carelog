@@ -22,11 +22,7 @@ test("sign in with OTP lands on dashboard", async ({ page }) => {
   await expect(page.getByText("Your care teams")).toBeVisible();
 });
 
-// (TD-53) Second signIn() call within auth.spec.ts (or auth-proxy.spec.ts)
-// times out at helpers.ts:68 waiting for "Check your email" — first signIn
-// works, second one stalls. Hypothesis: OTP rate limit, stale browser state,
-// or signin-page redirect-when-authenticated behavior. Investigate in TD-53.
-test.fixme("sign out works", async ({ page }) => {
+test("sign out works", async ({ page }) => {
   await signIn(page, TEST_EMAIL);
   await page.click("text=Sign out");
   await page.waitForTimeout(1000);

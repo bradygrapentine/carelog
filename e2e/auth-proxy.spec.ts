@@ -20,11 +20,7 @@ test.describe("Auth proxy redirect behaviour", () => {
     expect(page.url()).toMatch(/\/dashboard/);
   });
 
-  // (TD-53) Second signIn() in this file times out at helpers.ts:68
-  // waiting for "Check your email" — first signIn works, second stalls.
-  // Hypothesis: OTP rate limit, stale browser state, or signin redirect.
-  // Investigate in TD-53.
-  test.fixme("URL never reverts to /signin after successful auth", async ({
+  test("URL never reverts to /signin after successful auth", async ({
     page,
   }) => {
     await signIn(page, COORDINATOR_EMAIL);
