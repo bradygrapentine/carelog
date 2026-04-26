@@ -2,9 +2,8 @@
 // Tests the "Generate shareable brief" button in the coordinator More panel.
 // The /api/brief POST is mocked so the test runs without a live AI backend.
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-carebrief@test.com";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -19,6 +18,7 @@ test.describe("Care brief generation", () => {
   test("coordinator sees Generate shareable brief button on More panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-carebrief");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -31,6 +31,7 @@ test.describe("Care brief generation", () => {
   test("clicking Generate shareable brief — share URL appears after mock response", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-carebrief");
     const SHARE_TOKEN = "e2e-brief-tok-123";
 
     await page.route("**/api/brief", async (route) => {
@@ -57,6 +58,7 @@ test.describe("Care brief generation", () => {
   test("button shows Generating... while request is in-flight", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-carebrief");
     // Delay the mock response so we can catch the loading state
     await page.route("**/api/brief", async (route) => {
       await new Promise((r) => setTimeout(r, 1500));

@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-outer-circle@test.com";
 
 test.describe("Outer Circle coordinator creation", () => {
   test.beforeEach(async () => {
@@ -11,6 +10,7 @@ test.describe("Outer Circle coordinator creation", () => {
   test("coordinator sees Volunteer requests panel under Team destination", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-outer-circle");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.getByRole("tab", { name: "Team" }).click();
@@ -25,6 +25,7 @@ test.describe("Outer Circle coordinator creation", () => {
   test("coordinator opens request form and fills Title field", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-outer-circle");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.getByRole("tab", { name: "Team" }).click();

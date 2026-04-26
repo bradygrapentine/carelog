@@ -1,8 +1,7 @@
 // e2e/expenses.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-expenses@test.com";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -15,6 +14,7 @@ test.beforeEach(async () => {
 
 test.describe("Expenses panel", () => {
   test("coordinator sees expense form on More panel", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-expenses");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -28,6 +28,7 @@ test.describe("Expenses panel", () => {
   });
 
   test("coordinator adds expense — appears in list", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-expenses");
     await signIn(page, COORDINATOR_EMAIL);
 
     // Mock tRPC calls so the test doesn't depend on real DB
@@ -72,6 +73,7 @@ test.describe("Expenses panel", () => {
   test("coordinator submits expense form — Log expense button present", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-expenses");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -81,6 +83,7 @@ test.describe("Expenses panel", () => {
   });
 
   test("caregiver also sees expense form (can write)", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-expenses");
     // Caregiver role also has canWrite, so the form should be visible.
     // This test just checks the selector on a coordinator account since
     // multi-user invite flows are covered in burnout/documents specs.

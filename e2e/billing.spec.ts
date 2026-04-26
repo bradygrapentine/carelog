@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-billing@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -15,6 +14,7 @@ test.describe("Billing page", () => {
   });
 
   test("coordinator sees Billing heading", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-billing");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/billing");
@@ -26,6 +26,7 @@ test.describe("Billing page", () => {
   });
 
   test("billing shows plan info", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-billing");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/billing");

@@ -1,8 +1,7 @@
 // e2e/journal-write.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const AUTHOR_EMAIL = "e2e-author@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -10,6 +9,7 @@ test.beforeEach(async () => {
 
 test.describe("Journal write flows", () => {
   test("create a journal entry — appears in timeline", async ({ page }) => {
+    const AUTHOR_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, AUTHOR_EMAIL);
     await navigateToJournal(page);
 
@@ -31,6 +31,7 @@ test.describe("Journal write flows", () => {
   });
 
   test("entry persists after page reload", async ({ page }) => {
+    const AUTHOR_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, AUTHOR_EMAIL);
     await navigateToJournal(page);
 
@@ -56,6 +57,7 @@ test.describe("Journal write flows", () => {
   });
 
   test("form clears after submit", async ({ page }) => {
+    const AUTHOR_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, AUTHOR_EMAIL);
     await navigateToJournal(page);
 

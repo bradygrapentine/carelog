@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const TEST_EMAIL = "e2e-med-tagging@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -32,6 +31,7 @@ async function addMedication(page: any, drugName: string) {
 
 test.describe("Medication chip-filter", () => {
   test("chip bar appears when medications exist", async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("e2e-med-tagging");
     await signIn(page, TEST_EMAIL);
     await navigateToJournal(page);
 
@@ -46,6 +46,7 @@ test.describe("Medication chip-filter", () => {
   test("clicking a medication chip filters journal entries", async ({
     page,
   }) => {
+    const TEST_EMAIL = uniqueEmail("e2e-med-tagging");
     await signIn(page, TEST_EMAIL);
     await navigateToJournal(page);
 
@@ -66,6 +67,7 @@ test.describe("Medication chip-filter", () => {
   });
 
   test("clicking All chip resets the filter", async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("e2e-med-tagging");
     await signIn(page, TEST_EMAIL);
     await navigateToJournal(page);
 
@@ -94,6 +96,7 @@ test.describe("Medication chip-filter", () => {
   });
 
   test("vault chip bar filters documents", async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("e2e-med-tagging");
     await signIn(page, TEST_EMAIL);
     await navigateToJournal(page);
 
@@ -106,6 +109,7 @@ test.describe("Medication chip-filter", () => {
   });
 
   test("medication detail shows linked sections", async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("e2e-med-tagging");
     await signIn(page, TEST_EMAIL);
     await navigateToJournal(page);
 

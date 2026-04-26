@@ -1,13 +1,6 @@
 import { test, expect } from "@playwright/test";
-import {
-  signIn,
-  clearMailpit,
-  navigateToJournal,
-  sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, sendInviteAndGetUrl, acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-team-admin@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -21,6 +14,7 @@ test.describe("Team Admin", () => {
   });
 
   test("coordinator sees Team Admin heading", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-team-admin");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/team/admin");
@@ -32,6 +26,7 @@ test.describe("Team Admin", () => {
   });
 
   test("coordinator sees members table", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-team-admin");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/team/admin");
@@ -66,6 +61,7 @@ test.describe("Team member removal (TeamPanel)", () => {
   test("coordinator sees a Remove button for another member", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-team-admin");
     const email = "e2e-teamrm-caregiver-" + Date.now() + "@test.com";
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -101,6 +97,7 @@ test.describe("Team member removal (TeamPanel)", () => {
   test("coordinator cannot see a Remove button for themselves", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-team-admin");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.getByRole("tab", { name: "Team" }).click();

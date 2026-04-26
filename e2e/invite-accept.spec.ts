@@ -1,15 +1,8 @@
 import { test, expect } from "@playwright/test";
-import {
-  signIn,
-  clearMailpit,
-  navigateToJournal,
-  sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, sendInviteAndGetUrl, acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
 // Use distinct emails from invite-flow.spec.ts to avoid conflicts
-const COORDINATOR_EMAIL = "e2e-coordinator-accept@test.com";
-const INVITEE_EMAIL = "e2e-invitee-accept@test.com";
+
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -18,6 +11,8 @@ test.beforeEach(async () => {
 test("coordinator invite accepted — invitee lands on dashboard with correct role", async ({
   browser,
 }) => {
+  const COORDINATOR_EMAIL = uniqueEmail("e2e-coordinator-accept");
+  const INVITEE_EMAIL = uniqueEmail("e2e-invitee-accept");
   const coordinatorCtx = await browser.newContext();
   const coordinatorPage = await coordinatorCtx.newPage();
 

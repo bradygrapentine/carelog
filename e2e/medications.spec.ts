@@ -1,14 +1,7 @@
 // e2e/medications.spec.ts
 import { test, expect } from "@playwright/test";
-import {
-  signIn,
-  clearMailpit,
-  navigateToJournal,
-  sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, sendInviteAndGetUrl, acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-medications@test.com";
 
 function roleEmail(role: string) {
   return "e2e-med-" + role + "-" + Date.now() + "@test.com";
@@ -26,6 +19,7 @@ test.beforeEach(async () => {
 
 test.describe("Medications", () => {
   test("coordinator adds a medication — appears in list", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-medications");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMedicationsTab(page);
 
@@ -48,6 +42,7 @@ test.describe("Medications", () => {
   test("coordinator deletes a medication — removed from list", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-medications");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMedicationsTab(page);
 
@@ -65,6 +60,7 @@ test.describe("Medications", () => {
   });
 
   test("caregiver sees the medication list", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-medications");
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -114,6 +110,7 @@ test.describe("Medications", () => {
   test("supporter sees the medication list (read-only)", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-medications");
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -167,6 +164,7 @@ test.describe("Medications", () => {
   test('MedicationChecklist shows today\'s doses and "Gave it" marks as given', async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-medications");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMedicationsTab(page);
 

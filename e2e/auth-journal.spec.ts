@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const TEST_EMAIL = "e2e-auth-journal@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
 });
 
 test("sign in and navigate to journal — entry form loads", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-auth-journal");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
   await expect(page.getByPlaceholder("Share how today went...")).toBeVisible();
@@ -16,6 +16,7 @@ test("sign in and navigate to journal — entry form loads", async ({ page }) =>
 test("create a journal entry and verify it appears in timeline", async ({
   page,
 }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-auth-journal");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
@@ -35,6 +36,7 @@ test("create a journal entry and verify it appears in timeline", async ({
 test("select mood tag before posting and verify entry shows mood badge", async ({
   page,
 }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-auth-journal");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 

@@ -1,8 +1,7 @@
 // e2e/eol-planner.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-eolplanner@test.com";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -17,6 +16,7 @@ test.describe("EolPlanner", () => {
   test("coordinator sees End-of-life plan card on More panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-eolplanner");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -31,6 +31,7 @@ test.describe("EolPlanner", () => {
   test("coordinator can open the plan form via Create plan button", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-eolplanner");
     // Mock tRPC so the plan query returns null (no plan on file yet)
     await page.route("**/trpc/eolPlan.get*", async (route) => {
       await route.fulfill({
@@ -60,6 +61,7 @@ test.describe("EolPlanner", () => {
   test("coordinator fills and submits EOL plan — Save plan button fires mutation", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-eolplanner");
     let upsertCalled = false;
 
     await page.route("**/trpc/eolPlan.get*", async (route) => {

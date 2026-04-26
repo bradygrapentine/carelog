@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal, checkA11y } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, checkA11y, uniqueEmail } from "./helpers";
 
 // Smoke test: verifies the redesigned layout renders without errors
 // after a logged-in user navigates to their journal.
 
-const SMOKE_EMAIL = "e2e-smoke@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -12,6 +11,7 @@ test.beforeEach(async () => {
 
 test.describe("UI layout smoke", () => {
   test("sidebar rail is present on desktop", async ({ page }) => {
+    const SMOKE_EMAIL = uniqueEmail("e2e-smoke");
     await signIn(page, SMOKE_EMAIL);
     await navigateToJournal(page);
 
@@ -30,6 +30,7 @@ test.describe("UI layout smoke", () => {
   });
 
   test("hamburger menu opens sidebar on mobile", async ({ page }) => {
+    const SMOKE_EMAIL = uniqueEmail("e2e-smoke");
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, SMOKE_EMAIL);
     await navigateToJournal(page);

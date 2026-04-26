@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit } from "./helpers";
+import { signIn, clearMailpit, uniqueEmail } from "./helpers";
 
 // The (app)/ layout enforces auth — all tests must sign in first.
-const EMAIL = "e2e-billing-success@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -10,6 +9,7 @@ test.beforeEach(async () => {
 
 test.describe("Billing success page", () => {
   test("no session_id shows error", async ({ page }) => {
+    const EMAIL = uniqueEmail("e2e-billing-success");
     await signIn(page, EMAIL);
     await page.goto("/billing/success");
     await expect(page.getByText("Something went wrong")).toBeVisible({
@@ -18,6 +18,7 @@ test.describe("Billing success page", () => {
   });
 
   test("valid session shows Welcome to Family Plan", async ({ page }) => {
+    const EMAIL = uniqueEmail("e2e-billing-success");
     await signIn(page, EMAIL);
     await page.route("**/api/stripe/verify**", async (route) => {
       await route.fulfill({
@@ -33,6 +34,7 @@ test.describe("Billing success page", () => {
   });
 
   test("monthly plan shows $14/mo label", async ({ page }) => {
+    const EMAIL = uniqueEmail("e2e-billing-success");
     await signIn(page, EMAIL);
     await page.route("**/api/stripe/verify**", async (route) => {
       await route.fulfill({
@@ -46,6 +48,7 @@ test.describe("Billing success page", () => {
   });
 
   test("yearly plan shows $120/yr label", async ({ page }) => {
+    const EMAIL = uniqueEmail("e2e-billing-success");
     await signIn(page, EMAIL);
     await page.route("**/api/stripe/verify**", async (route) => {
       await route.fulfill({

@@ -1,15 +1,8 @@
 // e2e/shift-trade-requests.spec.ts (ON-45)
 // Covers TradeRequestForm.tsx, TradeRequestList.tsx, and TradeRequestCard.tsx
 import { test, expect } from "@playwright/test";
-import {
-  signIn,
-  clearMailpit,
-  navigateToJournal,
-  sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, sendInviteAndGetUrl, acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-trade-coord@test.com";
 
 function roleEmail(role: string) {
   return "e2e-trade-" + role + "-" + Date.now() + "@test.com";
@@ -32,6 +25,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
   test("coordinator sees Trade Requests section on the shifts panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -45,6 +39,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
   });
 
   test("can open trade request form and cancel it", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -68,6 +63,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
   });
 
   test("caregiver can submit an open trade request", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -102,6 +98,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
   });
 
   test("can decline a trade request", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
 
@@ -143,6 +140,7 @@ test.describe("Shift Trade Requests — role gate", () => {
   test.skip("supporter cannot create trade requests but can see existing ones", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     // This test is skipped pending TradeRequestList integration into shift detail view.
     // The component exists but is not yet mounted on the shifts panel where supporters
     // can access it. Once integrated, this test should verify role-based visibility.

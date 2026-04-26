@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit } from "./helpers";
+import { signIn, clearMailpit, uniqueEmail } from "./helpers";
 
-const TEST_EMAIL = "e2e-settings-notifs@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
 });
 
 test("all notification categories are present", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-settings-notifs");
   await signIn(page, TEST_EMAIL);
   await page.goto("/settings");
   await page.waitForURL(/\/settings/);
@@ -47,6 +47,7 @@ test("all notification categories are present", async ({ page }) => {
 });
 
 test("toggle notification pref, reload, verify persisted", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-settings-notifs");
   await signIn(page, TEST_EMAIL);
   await page.goto("/settings");
   await page.waitForURL(/\/settings/);

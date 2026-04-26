@@ -1,8 +1,7 @@
 // e2e/onboarding.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit } from "./helpers";
+import { signIn, clearMailpit, uniqueEmail } from "./helpers";
 
-const EXISTING_EMAIL = "e2e-author@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -45,6 +44,7 @@ test.describe("Onboarding flow", () => {
   test("existing user with care team skips onboarding CTA", async ({
     page,
   }) => {
+    const EXISTING_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, EXISTING_EMAIL);
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });

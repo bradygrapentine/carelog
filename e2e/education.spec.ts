@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { signIn } from "./helpers";
-
-const TEST_EMAIL = "e2e-test@example.com";
+import { signIn, uniqueEmail } from "./helpers";
 
 test.describe("Education library", () => {
   test.beforeEach(async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("edu");
     await signIn(page, TEST_EMAIL);
   });
 
