@@ -215,6 +215,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: supabase/setup-cli@v1
         with:
+          # (TD-48) See JWT-override step in the e2e job below for full context
+          # on why we don't trust the CLI's emitted ANON/SERVICE_ROLE keys.
           version: latest
       - name: Start Supabase
         run: supabase start
@@ -247,6 +249,7 @@ jobs:
           cache: pnpm
       - uses: supabase/setup-cli@v1
         with:
+          # (TD-48) See JWT-override step below for why we tolerate `latest`.
           version: latest
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
@@ -255,6 +258,34 @@ jobs:
         run: |
           supabase start
           supabase status -o env >> $GITHUB_ENV
+      - name: Override Supabase keys with deterministic HS256 JWTs
+        # (TD-48) The CLI's emitted ANON_KEY/SERVICE_ROLE_KEY are signed with a
+        # rotated asymmetric key (PR #4688, 2026-01-07) that the local
+        # PostgREST's static JWT_SECRET can't verify, producing
+        # "JWT cryptographic operation failed" on every authed call. Empirically
+        # confirmed against latest, v2.84.10, and v2.71.0 CLIs.
+        #
+        # Workaround: generate ANON and SERVICE_ROLE JWTs ourselves with HS256
+        # signed by the standard local-dev JWT_SECRET. PostgREST is configured
+        # with that same secret, so these JWTs verify cleanly. Later writes to
+        # $GITHUB_ENV win, so this overrides the CLI-emitted values.
+        # Decoupled from CLI version forever — bump CLI without re-breaking E2E.
+        run: |
+          node -e "
+          const c = require('crypto');
+          const s = 'super-secret-jwt-token-with-at-least-32-characters-long';
+          const b = x => Buffer.from(x).toString('base64url');
+          const sign = p => {
+            const h = b(JSON.stringify({alg:'HS256',typ:'JWT'}));
+            const y = b(JSON.stringify(p));
+            const g = c.createHmac('sha256', s).update(h+'.'+y).digest('base64url');
+            return h+'.'+y+'.'+g;
+          };
+          const iat = Math.floor(Date.now()/1000);
+          const exp = iat + 60*60*24*365*5;
+          console.log('ANON_KEY=' + sign({role:'anon', iss:'supabase-demo', iat, exp}));
+          console.log('SERVICE_ROLE_KEY=' + sign({role:'service_role', iss:'supabase-demo', iat, exp}));
+          " >> $GITHUB_ENV
       - name: Build web app
         run: |
           NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
