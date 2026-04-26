@@ -20,14 +20,14 @@ export async function getOtpFromMailpit(
   while (Date.now() < deadline) {
     try {
       const res = await fetch("http://127.0.0.1:54324/api/v1/messages");
-      const data = (await res.json()) as { messages?: Array<{
-        Snippet?: string;
-        To?: Array<{ Address?: string }>;
-      }> };
+      const data = (await res.json()) as {
+        messages?: Array<{
+          Snippet?: string;
+          To?: Array<{ Address?: string }>;
+        }>;
+      };
       const messages = data?.messages ?? [];
-      const msg = messages.find((m) =>
-        m.To?.some((t) => t.Address === email),
-      );
+      const msg = messages.find((m) => m.To?.some((t) => t.Address === email));
       if (msg) {
         // Match common Supabase OTP email phrasings:
         //   "Your code: 123456"
@@ -64,9 +64,7 @@ export async function signIn(page: Page, email: string): Promise<void> {
 
   // Email step — exact button name to avoid the "Sending code..." disabled state.
   await page.getByLabel("Email address").fill(email);
-  await page
-    .getByRole("button", { name: /^Continue with email$/ })
-    .click();
+  await page.getByRole("button", { name: /^Continue with email$/ }).click();
   await page.getByText("Check your email", { exact: false }).waitFor();
 
   // OTP step.
@@ -88,16 +86,18 @@ export async function signIn(page: Page, email: string): Promise<void> {
 export async function ensureCareTeam(page: Page): Promise<void> {
   await page.goto("/dashboard");
   await Promise.race([
-    page.waitForSelector('button:has-text("View care journal")', {
-      timeout: 15000,
-    }),
+    page.waitForSelector('text="View care journal"', { timeout: 15000 }),
     page.waitForSelector('a:has-text("Set up a care team")', {
       timeout: 15000,
     }),
   ]);
 
+  // "View care journal" renders as a <p> inside a clickable Card
+  // (DashboardClient.tsx:319-323), not a <button> — earlier selector
+  // `button:has-text(...)` never matched, so ensureCareTeam timed out
+  // for any test using it.
   const hasCareTeam =
-    (await page.locator('button:has-text("View care journal")').count()) > 0;
+    (await page.locator('text="View care journal"').count()) > 0;
   if (hasCareTeam) return;
 
   await page.click('a:has-text("Set up a care team")');
@@ -107,9 +107,7 @@ export async function ensureCareTeam(page: Page): Promise<void> {
   await page.click("button[type=submit]");
   // Onboarding redirects back to /dashboard with the team now seeded.
   await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-  await page.waitForSelector('button:has-text("View care journal")', {
-    timeout: 15000,
-  });
+  await page.waitForSelector('text="View care journal"', { timeout: 15000 });
 }
 
 // Navigate from the dashboard to the journal page, creating a care team first if needed.
@@ -155,15 +153,11 @@ export async function acceptInviteAsNewUser(
   await clearMailpit();
   await Promise.all([
     page.waitForURL(/\/signin/, { timeout: 10000 }),
-    page
-      .getByRole("button", { name: /^Accept invitation$/ })
-      .click(),
+    page.getByRole("button", { name: /^Accept invitation$/ }).click(),
   ]);
 
   await page.getByLabel("Email address").fill(inviteeEmail);
-  await page
-    .getByRole("button", { name: /^Continue with email$/ })
-    .click();
+  await page.getByRole("button", { name: /^Continue with email$/ }).click();
   await page.getByText("Check your email", { exact: false }).waitFor();
   const otp = await getOtpFromMailpit(inviteeEmail);
   await page.getByPlaceholder("123456").fill(otp);
@@ -175,9 +169,7 @@ export async function acceptInviteAsNewUser(
   ]);
   await Promise.all([
     page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
-    page
-      .getByRole("button", { name: /^Accept invitation$/ })
-      .click(),
+    page.getByRole("button", { name: /^Accept invitation$/ }).click(),
   ]);
 
   return { page, ctx };
