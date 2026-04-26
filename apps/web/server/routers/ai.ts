@@ -6,7 +6,7 @@ import { supabaseAdmin } from "../supabaseAdmin.server";
 import { formatContextBlob, type PageContext } from "../../lib/ai-context";
 import { buildNameMap, deidentifyText } from "../../lib/ai-deidentify";
 
-const SYSTEM_PROMPT = `You are a helpful assistant for Carelog, a family caregiving coordination app.
+const SYSTEM_PROMPT = `You are a helpful assistant for CareSync, a family caregiving coordination app.
 You help caregivers stay on top of care data, draft communications, and manage schedules.
 
 Rules:

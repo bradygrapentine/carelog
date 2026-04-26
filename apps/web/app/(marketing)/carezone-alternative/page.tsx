@@ -3,9 +3,9 @@ import { CareZoneAlternativePage } from "../../../components/marketing/CareZoneA
 import { CareZoneMedicationImport } from "../../../components/marketing/CareZoneMedicationImport";
 
 export const metadata: Metadata = {
-  title: "CareZone Alternative — Carelog",
+  title: "CareZone Alternative — CareSync",
   description:
-    "Looking for a CareZone alternative? Carelog offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
+    "Looking for a CareZone alternative? CareSync offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
 };
 
 export default function CareZoneAlternativeLandingPage() {

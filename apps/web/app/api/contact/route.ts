@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
   if (resend) {
     await resend.emails.send({
-      from: "Carelog Contact <noreply@carelog.app>",
+      from: "CareSync Support <noreply@carelog.app>",
       to: ["hello@carelog.app"],
       reply_to: email,
       subject: "Contact form: " + name,

@@ -119,9 +119,9 @@ export function ForReferrersPage() {
           The family caregiving platform you can recommend with confidence
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
-          Carelog helps families coordinate care for aging parents and loved
+          CareSync helps families coordinate care for aging parents and loved
           ones. When a family you work with is juggling medications, aide
-          schedules, and a scattered care team — Carelog brings it all together.
+          schedules, and a scattered care team — CareSync brings it all together.
         </p>
       </section>
 
