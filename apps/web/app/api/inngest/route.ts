@@ -12,6 +12,8 @@ import { messagingPushFn } from "../../../inngest/functions/messagingPush";
 import { careEventCommentFanoutFn } from "../../../inngest/functions/careEventCommentFanout";
 import { shiftTradeExpiry } from "../../../inngest/functions/shiftTradeExpiry";
 import { educationTipRefresh } from "../../../inngest/functions/educationTipRefresh";
+import { rateLimit429Monitor } from "../../../inngest/functions/rateLimit429Monitor";
+import { digestDeliveryMonitor } from "../../../inngest/functions/digestDeliveryMonitor";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -28,5 +30,7 @@ export const { GET, POST, PUT } = serve({
     careEventCommentFanoutFn,
     shiftTradeExpiry,
     educationTipRefresh,
+    rateLimit429Monitor,
+    digestDeliveryMonitor,
   ],
 });

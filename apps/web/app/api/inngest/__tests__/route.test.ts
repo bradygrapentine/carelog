@@ -80,9 +80,9 @@ describe("Inngest route handler", () => {
     expect((client as unknown as { id: string }).id).toBe("carelog");
   });
 
-  it("registers exactly 12 Inngest functions", () => {
+  it("registers exactly 14 Inngest functions", () => {
     const [{ functions }] = vi.mocked(serve).mock.calls[0]!;
-    expect((functions as unknown[]).length).toBe(12);
+    expect((functions as unknown[]).length).toBe(14);
   });
 
   it("route exports GET handler", async () => {

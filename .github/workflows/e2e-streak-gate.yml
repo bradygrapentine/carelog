@@ -1,0 +1,21 @@
+name: E2E green-streak gate
+
+on:
+  schedule:
+    # Daily at 8am UTC, after the nightly E2E run completes
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-streak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 20
+
+      - name: Check E2E green streak
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-e2e-streak.mjs
