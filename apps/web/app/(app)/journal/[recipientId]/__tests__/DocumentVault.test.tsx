@@ -8,12 +8,16 @@ const {
   mockDeleteMutate,
   mockInvalidate,
   mockAuthenticatedFetch,
+  mockShareLinkMutation,
+  mockShareLinkMutate,
 } = vi.hoisted(() => ({
   mockListUseQuery: vi.fn(),
   mockDeleteMutation: vi.fn(),
   mockDeleteMutate: vi.fn(),
   mockInvalidate: vi.fn(),
   mockAuthenticatedFetch: vi.fn(),
+  mockShareLinkMutation: vi.fn(),
+  mockShareLinkMutate: vi.fn(),
 }));
 
 vi.mock("@/lib/trpc", () => ({
@@ -22,6 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     documents: {
       list: { useQuery: mockListUseQuery },
       delete: { useMutation: mockDeleteMutation },
+      createShareLink: { useMutation: mockShareLinkMutation },
     },
     medications: {
       getDocumentIdsForMedication: {
@@ -64,6 +69,10 @@ beforeEach(() => {
   mockListUseQuery.mockReturnValue({ data: [], isLoading: false });
   mockDeleteMutation.mockReturnValue({
     mutate: mockDeleteMutate,
+    isPending: false,
+  });
+  mockShareLinkMutation.mockReturnValue({
+    mutate: mockShareLinkMutate,
     isPending: false,
   });
 });
@@ -109,6 +118,49 @@ describe("DocumentVault — with documents", () => {
   it("hides delete button for supporter", () => {
     renderVault({ currentUserRole: "supporter" });
     expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
+  });
+});
+
+describe("DocumentVault — share with aide (ON-68)", () => {
+  beforeEach(() => {
+    mockListUseQuery.mockReturnValue({ data: sampleDocs, isLoading: false });
+  });
+
+  it("renders Share button per row for coordinator", () => {
+    renderVault();
+    expect(
+      screen.getByRole("button", {
+        name: /share power of attorney with aide/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides Share button for supporter", () => {
+    renderVault({ currentUserRole: "supporter" });
+    expect(
+      screen.queryByRole("button", { name: /share .*with aide/i }),
+    ).toBeNull();
+  });
+
+  it("opens share panel and calls createShareLink with chosen hours", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    renderVault();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /share power of attorney with aide/i,
+      }),
+    );
+
+    const hoursInput = screen.getByLabelText(/link expires in/i);
+    fireEvent.change(hoursInput, { target: { value: "48" } });
+
+    fireEvent.click(screen.getByRole("button", { name: /generate link/i }));
+
+    expect(mockShareLinkMutate).toHaveBeenCalledWith({
+      id: "doc-1",
+      org_id: ORG_ID,
+      expires_in_hours: 48,
+    });
   });
 });
 

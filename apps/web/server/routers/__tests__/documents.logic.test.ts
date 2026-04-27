@@ -219,3 +219,141 @@ describe("documents.delete — business logic", () => {
     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
 });
+
+describe("documents.createShareLink — ON-68 vault sharing", () => {
+  const storagePath = "org-1/rec-1/poa.pdf";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns a signed URL + ISO expiry for a coordinator", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1)
+        return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      return makeSelectChain({
+        data: { storage_path: storagePath, display_name: "POA.pdf" },
+        error: null,
+      });
+    });
+
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: "https://example.com/signed?token=abc" },
+      error: null,
+    });
+    vi.mocked(supabaseAdmin.storage.from).mockReturnValue({
+      createSignedUrl,
+    } as any);
+
+    const result = await authedCaller.documents.createShareLink({
+      id: DOC_ID,
+      org_id: ORG_ID,
+      expires_in_hours: 24,
+    });
+
+    expect(result.url).toBe("https://example.com/signed?token=abc");
+    expect(result.display_name).toBe("POA.pdf");
+    expect(new Date(result.expires_at).getTime()).toBeGreaterThan(Date.now());
+    expect(createSignedUrl).toHaveBeenCalledWith(storagePath, 24 * 3600);
+    expect(vi.mocked(supabaseAdmin.storage.from)).toHaveBeenCalledWith(
+      "care-documents",
+    );
+  });
+
+  it("rejects when caller is not a coordinator", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: { role: "aide" }, error: null }) as any,
+    );
+
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 24,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects when caller has no membership", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: null, error: null }) as any,
+    );
+
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 24,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("throws NOT_FOUND when document does not exist", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1)
+        return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      return makeSelectChain({
+        data: null,
+        error: { code: "PGRST116", message: "not found" },
+      });
+    });
+
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 24,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("throws INTERNAL_SERVER_ERROR when storage signing fails", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1)
+        return makeSelectChain({ data: { role: "coordinator" }, error: null });
+      return makeSelectChain({
+        data: { storage_path: storagePath, display_name: "POA.pdf" },
+        error: null,
+      });
+    });
+
+    vi.mocked(supabaseAdmin.storage.from).mockReturnValue({
+      createSignedUrl: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "bucket unavailable" },
+      }),
+    } as any);
+
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 24,
+      }),
+    ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
+  });
+
+  it("rejects expires_in_hours outside the 1..168 window at the schema layer", async () => {
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 0,
+      }),
+    ).rejects.toThrow();
+
+    await expect(
+      authedCaller.documents.createShareLink({
+        id: DOC_ID,
+        org_id: ORG_ID,
+        expires_in_hours: 169,
+      }),
+    ).rejects.toThrow();
+  });
+});
