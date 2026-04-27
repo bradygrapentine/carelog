@@ -14,6 +14,12 @@ const deleteInput = z.object({
   org_id: z.string().uuid(),
 });
 
+const shareLinkInput = z.object({
+  id: z.string().uuid(),
+  org_id: z.string().uuid(),
+  expires_in_hours: z.number().int().min(1).max(168),
+});
+
 export const documentsRouter = router({
   list: protectedProcedure.input(listInput).query(async ({ ctx, input }) => {
     const { data: membership } = await supabaseAdmin
@@ -115,6 +121,54 @@ export const documentsRouter = router({
       match_snippet: null as string | null,
     }));
   }),
+
+  /**
+   * ON-68: generate a time-limited signed URL for sharing a vault document
+   * with an external aide. Caller must be a coordinator on the org.
+   * `expires_in_hours` is clamped at the schema layer to 1..168 (≤ 7 days).
+   */
+  createShareLink: protectedProcedure
+    .input(shareLinkInput)
+    .mutation(async ({ ctx, input }) => {
+      const { data: membership } = await supabaseAdmin
+        .from("memberships")
+        .select("role")
+        .eq("org_id", input.org_id)
+        .eq("user_id", ctx.user.id)
+        .not("accepted_at", "is", null)
+        .single();
+      if (!membership || membership.role !== "coordinator") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const { data: doc, error: fetchError } = await supabaseAdmin
+        .from("documents")
+        .select("storage_path, display_name")
+        .eq("id", input.id)
+        .eq("org_id", input.org_id)
+        .single();
+      if (fetchError || !doc) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const expiresInSeconds = input.expires_in_hours * 3600;
+      const { data: signed, error: signedError } = await supabaseAdmin.storage
+        .from("care-documents")
+        .createSignedUrl(doc.storage_path, expiresInSeconds);
+
+      if (signedError || !signed?.signedUrl) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: signedError?.message ?? "Failed to sign URL",
+        });
+      }
+
+      return {
+        url: signed.signedUrl,
+        expires_at: new Date(
+          Date.now() + expiresInSeconds * 1000,
+        ).toISOString(),
+        display_name: doc.display_name,
+      };
+    }),
 
   delete: protectedProcedure
     .input(deleteInput)

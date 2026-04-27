@@ -14,7 +14,11 @@ type Props = {
   orgId: string;
   recipientId: string;
   currentUserRole: string;
-  medications?: Array<{ id: string; drug_name: string; brand_name: string | null }>;
+  medications?: Array<{
+    id: string;
+    drug_name: string;
+    brand_name: string | null;
+  }>;
 };
 
 type DocRow = {
@@ -64,6 +68,11 @@ export function DocumentVault({
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedMedId, setSelectedMedId] = useState<string | null>(null);
+  const [shareForId, setShareForId] = useState<string | null>(null);
+  const [shareHours, setShareHours] = useState(24);
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -99,6 +108,40 @@ export function DocumentVault({
   const deleteMutation = trpc.documents.delete.useMutation({
     onSuccess: () => utils.documents.list.invalidate(),
   });
+
+  const shareLinkMutation = trpc.documents.createShareLink.useMutation({
+    onSuccess: (result) => {
+      setShareLink(result.url);
+      setShareError(null);
+      setLinkCopied(false);
+    },
+    onError: (err) => {
+      setShareError(err.message);
+      setShareLink(null);
+    },
+  });
+
+  function startShare(docId: string) {
+    setShareForId(docId);
+    setShareLink(null);
+    setShareError(null);
+    setShareHours(24);
+    setLinkCopied(false);
+  }
+
+  function cancelShare() {
+    setShareForId(null);
+    setShareLink(null);
+    setShareError(null);
+    setLinkCopied(false);
+  }
+
+  async function copyShareLink() {
+    if (!shareLink || typeof navigator === "undefined" || !navigator.clipboard)
+      return;
+    await navigator.clipboard.writeText(shareLink);
+    setLinkCopied(true);
+  }
 
   async function handleUpload(e: React.FormEvent) {
     const form = e.currentTarget as HTMLFormElement;
@@ -248,6 +291,16 @@ export function DocumentVault({
                     {isCoordinator && (
                       <button
                         type="button"
+                        onClick={() => startShare(doc.id)}
+                        className="text-xs text-primary hover:underline"
+                        aria-label={"Share " + doc.display_name + " with aide"}
+                      >
+                        Share
+                      </button>
+                    )}
+                    {isCoordinator && (
+                      <button
+                        type="button"
                         onClick={() =>
                           deleteMutation.mutate({ id: doc.id, org_id: orgId })
                         }
@@ -274,6 +327,94 @@ export function DocumentVault({
               );
             })}
           </ul>
+        )}
+
+        {shareForId && (
+          <div
+            className="mt-3 p-3 rounded-lg border border-border bg-[var(--color-surface)] space-y-2"
+            role="region"
+            aria-label="Share document with aide"
+          >
+            <p className="text-xs font-medium text-muted-foreground">
+              Share with aide
+            </p>
+            {!shareLink ? (
+              <>
+                <label
+                  htmlFor="share-hours"
+                  className="text-xs text-muted-foreground"
+                >
+                  Link expires in (hours, max 168)
+                </label>
+                <Input
+                  id="share-hours"
+                  type="number"
+                  min={1}
+                  max={168}
+                  value={shareHours}
+                  onChange={(e) =>
+                    setShareHours(Math.max(1, Number(e.target.value) || 1))
+                  }
+                  className="w-32 text-sm"
+                />
+                {shareError && (
+                  <p className="text-xs text-[var(--color-danger)]">
+                    {shareError}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      shareLinkMutation.mutate({
+                        id: shareForId,
+                        org_id: orgId,
+                        expires_in_hours: shareHours,
+                      })
+                    }
+                    disabled={shareLinkMutation.isPending}
+                  >
+                    {shareLinkMutation.isPending
+                      ? "Generating..."
+                      : "Generate link"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelShare}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground break-all">
+                  {shareLink}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={copyShareLink}
+                    aria-label="Copy share link"
+                  >
+                    {linkCopied ? "Copied" : "Copy link"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelShare}
+                  >
+                    Done
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         )}
 
         {isCoordinator && (
