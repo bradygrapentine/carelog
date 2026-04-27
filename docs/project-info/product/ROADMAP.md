@@ -166,6 +166,23 @@ Advance directive, healthcare proxy, funeral preferences, legacy messages.
 When this ships, the elder law attorney referral channel becomes dramatically
 more valuable — they're the ones having this exact conversation with families.
 
+## Phase 6 — Launch readiness
+
+### Mobile App Store launch
+Run an internal TestFlight cycle (minimum one week, three or more real-device testers) before submitting to App Store Review. Complete the App Store Connect listing: app description, keywords, localized screenshots at iPhone 6.7″ and 5.5″ sizes, and the iOS privacy nutrition label. Mirror the full listing on Google Play Console. Tracked as LAUNCH-001 (human-gated — requires EAS production build and Apple Developer enrollment).
+
+### EAS production build
+Finalize `eas.json` production profile: set `channel: "production"`, a `runtimeVersion` policy (e.g. `"appVersion"`), and distribution type. Configure `expo-updates` OTA gating so only builds in the production channel receive over-the-air updates. Add `eas build --platform all --profile production` to the release runbook. Tracked as LAUNCH-002.
+
+### Web go-live
+Add Open Graph and Twitter Card meta tags to all marketing pages. Generate `sitemap.xml` and `robots.txt` via Next.js route handlers. Add `Organization` and `SoftwareApplication` JSON-LD structured data to the landing page for search-engine discoverability. Tracked as LAUNCH-003.
+
+### Observability
+Before accepting paying users: wire Sentry source-map uploads (unblocked by TD-03 once `SENTRY_AUTH_TOKEN` is set in Vercel), add a production rate-limit dashboard alerting on elevated 429s in auth and tRPC routes (TD-73), instrument weekly digest delivery monitoring to alert when Sunday send count falls below 80% of org count (TD-74), and gate the merge queue on a weekly E2E green-streak script that fails CI if E2E has been red for more than three consecutive nightly runs (TD-75). Coordinated as LAUNCH-004.
+
+### Compliance and legal
+Publish a privacy policy and Terms of Service at stable URLs linked from the signup flow and site footer. Obtain a Business Associate Agreement from Supabase (HIPAA) and from Resend if email bodies contain PHI. Document a data-retention and right-to-erasure runbook covering how to honor deletion requests within the required timeframe. Requires legal review — tracked as LAUNCH-005 (human-gated).
+
 ## Feature sequencing rationale
 
 **Why journal before scheduler:**
