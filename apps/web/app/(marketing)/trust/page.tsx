@@ -1,10 +1,37 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+const BASE_URL = "https://carelog.app";
+
 export const metadata: Metadata = {
-  title: "Data Commitment — CareSync",
+  title: "Data Commitment — Carelog",
   description:
-    "Our data stewardship commitment. Your family's health data is protected.",
+    "Our data stewardship commitment. Your family's health data is protected and never sold.",
+  alternates: { canonical: `${BASE_URL}/trust` },
+  openGraph: {
+    title: "Data Commitment — Carelog",
+    description:
+      "Our data stewardship commitment. Your family's health data is protected and never sold.",
+    url: `${BASE_URL}/trust`,
+    siteName: "Carelog",
+    images: [
+      {
+        url: `${BASE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Carelog Data Commitment",
+      },
+    ],
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Data Commitment — Carelog",
+    description:
+      "Our data stewardship commitment. Your family's health data is protected and never sold.",
+    images: [`${BASE_URL}/og-image.png`],
+  },
 };
 
 const COMMITMENTS = [

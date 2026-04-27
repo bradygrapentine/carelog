@@ -1,9 +1,37 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+const BASE_URL = "https://carelog.app";
+
 export const metadata: Metadata = {
-  title: "About — CareSync",
-  description: "CareSync — built by a caregiver, for caregivers.",
+  title: "About — Carelog",
+  description:
+    "Carelog — built by a caregiver, for caregivers. Our story and values.",
+  alternates: { canonical: `${BASE_URL}/about` },
+  openGraph: {
+    title: "About — Carelog",
+    description:
+      "Carelog — built by a caregiver, for caregivers. Our story and values.",
+    url: `${BASE_URL}/about`,
+    siteName: "Carelog",
+    images: [
+      {
+        url: `${BASE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "About Carelog",
+      },
+    ],
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About — Carelog",
+    description:
+      "Carelog — built by a caregiver, for caregivers. Our story and values.",
+    images: [`${BASE_URL}/og-image.png`],
+  },
 };
 
 const VALUES = [
