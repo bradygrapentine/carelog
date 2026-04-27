@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26**.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26** (PM — promoted ON-64/65/66/67 to §7 after pre-flight audit found code already shipped).
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 9 | TD-03 · PP-009 · PP-014 · UX-21 · ON-64 · ON-65 · ON-66 · ON-67 · ON-68 |
+| 🟢 Ready | 5 | TD-03 · PP-009 · PP-014 · UX-21 · ON-68 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
@@ -115,10 +115,6 @@ From `docs/project-info/product/ROADMAP.md` Phases 3–5. Greenlit 2026-04-25 to
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| ON-64 | 🟢 Ready | **Care brief generation pipeline (Phase 3)** | The viewer page `/brief/[shareToken]/page.tsx` exists, but the *generator* that builds a snapshot from `identity_vault` + `medications` + `documents` and emits a signed share URL isn't wired. Per ROADMAP.md §Phase 3: de-tokenization happens ONCE at generation time; the stored snapshot has real names; the vault is never accessed at view time. New: `apps/web/app/api/brief/generate/route.ts` + `lib/buildCareBrief.ts` (pure helper) + Supabase row in `care_briefs` table (may need migration). Coordinator dashboard "Generate brief" button. ~2 days incl. RLS test + pgTAP. |
-| ON-65 | 🟢 Ready | **Refill alerts (Phase 3)** | Inngest nightly job: find `medications WHERE supply_days_remaining <= 7`. Send notification to coordinator + assigned caregiver with pharmacy contact pre-populated. Idempotency key: `refill:{medication_id}:{week_stamp}`. New: `apps/web/inngest/functions/medicationRefillAlerts.ts` + test. Schema is ready (`supply_days_remaining` column exists). ~1 day. |
-| ON-66 | 🟢 Ready | **Symptom tracker (Phase 4)** | Log pain (0-10), mood, appetite, mobility, vitals (BP, pulse, temp). Trend view shows status over time. Flagged symptoms surface in doctor export. Schema: extend existing `care_events.event_type` enum with `symptom` + jsonb payload OR create dedicated `symptoms` table (decide in plan; `symptoms.ts` router skeleton already exists per `apps/web/server/routers/`). Web journal panel + mobile screen. ~3 days. |
-| ON-67 | 🟢 Ready | **Burnout tracker (Phase 4) — the differentiator** | ROADMAP.md: *"the differentiator nobody else builds. CareZone didn't. Caring Village doesn't."* Weekly check-in for the CAREGIVER (not recipient): sleep score, stress score, support score. If 2-week trend is bad, surface respite resources. New table `caregiver_wellbeing` (member_id, week_stamp, scores, created_at) + RLS (member sees only own). Inngest weekly reminder. UI: prompt in TopBar Sunday + dedicated `/wellbeing` route. ~3 days. |
 | ON-68 | 🟢 Ready | **Document vault (Phase 5)** | Encrypted storage for HIPAA auth, POA, advance directive, insurance cards, medication list. Documents schema exists (`documents` table + RLS); needs vault-specific UI surface that aggregates by category, plus a "share with new aide" workflow that generates a time-limited signed URL. ~2.5 days. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
@@ -261,6 +257,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **TD-70** Add success toasts to silent form submits across More panel (PR #205)
 ✅ **TD-71** Brand the brief expired/invalid empty state with CareSync logo + CTA (PR #203)
 ✅ **TD-72** Align coverage-settings E2E tests with current product state (PR #204)
+✅ **ON-64** Care brief generation pipeline — generator at `apps/web/app/api/brief/route.ts` (de-tokenizes once, stores snapshot in `care_briefs`); Generate shareable brief + Copy link UI in `JournalLayout.tsx`; RLS pgTAP `care_briefs_rls.test.sql`; viewer at `/brief/[shareToken]/page.tsx`. Polish completed by TD-68 (PR #202) + TD-71 (PR #203).
+✅ **ON-65** Medication refill alerts — Inngest nightly function `apps/web/inngest/functions/refillAlert.ts` shipped; idempotent per medication × week.
+✅ **ON-66** Symptom tracker — `server/routers/symptoms.ts` (+ logic + security tests) reads/writes `symptom_readings` table (chose dedicated table over `care_events` enum extension); web `journal/[recipientId]/SymptomPanel.tsx`; mobile `app/(app)/symptoms/{index,log}.tsx` + a11y test.
+✅ **ON-67** Burnout tracker (the differentiator) — `server/routers/burnout.ts` + logic/security tests; weekly Inngest `inngest/functions/burnoutAlert.ts`; check-in submit polish via TD-69 (PR #201).
 ✅ **Skills** `/live-test` skill — interactive flow investigation + E2E runbook (PR #188); hot-reload + capture-replay + screenshot modes (PR #195)
 ✅ **CI infra** Mergify `batch_max_wait_time` 5 min → 150 s for faster queue cycles (PR #184)
 
