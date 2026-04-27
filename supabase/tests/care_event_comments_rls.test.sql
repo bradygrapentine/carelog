@@ -18,7 +18,7 @@ insert into auth.users (
    'bob@cec-rls.com', now(), now(), now(), '{}', '{}', false),
   ('eeee0003-4400-0000-0000-000000000003', 'authenticated', 'authenticated',
    'eve@cec-rls.com', now(), now(), now(), '{}', '{}', false),
-  ('pppp0004-4400-0000-0000-000000000004', 'authenticated', 'authenticated',
+  ('dddd0004-4400-0000-0000-000000000004', 'authenticated', 'authenticated',
    'pat@cec-rls.com', now(), now(), now(), '{}', '{}', false)
 on conflict (id) do nothing;
 
@@ -33,7 +33,7 @@ insert into memberships (org_id, user_id, role, accepted_at) values
   ('aaaa0010-4400-0000-0000-000000000010', 'aaaa0001-4400-0000-0000-000000000001', 'coordinator', now()),
   ('aaaa0010-4400-0000-0000-000000000010', 'bbbb0002-4400-0000-0000-000000000002', 'caregiver',   now()),
   ('eeee0020-4400-0000-0000-000000000020', 'eeee0003-4400-0000-0000-000000000003', 'caregiver',   now()),
-  ('aaaa0010-4400-0000-0000-000000000010', 'pppp0004-4400-0000-0000-000000000004', 'caregiver',   NULL)
+  ('aaaa0010-4400-0000-0000-000000000010', 'dddd0004-4400-0000-0000-000000000004', 'caregiver',   NULL)
 on conflict do nothing;
 
 -- Care recipient in org_a (via identity_vault pattern)
@@ -238,7 +238,7 @@ select throws_ok(
 
 -- H4 (sec-review): Pre-acceptance member (accepted_at IS NULL) cannot SELECT comments
 set local role authenticated;
-set local "request.jwt.claims" to '{"sub":"pppp0004-4400-0000-0000-000000000004","role":"authenticated"}';
+set local "request.jwt.claims" to '{"sub":"dddd0004-4400-0000-0000-000000000004","role":"authenticated"}';
 
 select ok(
   (select count(*) from care_event_comments
@@ -253,7 +253,7 @@ select throws_ok(
     values (
       'dddd0040-4400-0000-0000-000000000040',
       'aaaa0010-4400-0000-0000-000000000010',
-      'pppp0004-4400-0000-0000-000000000004',
+      'dddd0004-4400-0000-0000-000000000004',
       'Pat pending comment'
     )
   $$,
