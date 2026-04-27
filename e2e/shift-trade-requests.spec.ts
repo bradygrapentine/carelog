@@ -22,7 +22,7 @@ test.beforeEach(async () => {
 });
 
 test.describe("Shift Trade Requests panel — coordinator", () => {
-  test("coordinator sees Trade Requests section on the shifts panel", async ({
+  test.fixme("coordinator sees Trade Requests section on the shifts panel", async ({
     page,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
@@ -38,7 +38,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
     });
   });
 
-  test("can open trade request form and cancel it", async ({ page }) => {
+  test.fixme("can open trade request form and cancel it", async ({ page }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);

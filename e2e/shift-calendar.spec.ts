@@ -34,7 +34,7 @@ test.describe("Shift Calendar", () => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-shifts");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsCalendar(page);
-    await page.getByRole("button", { name: "Month" }).click();
+    await page.getByRole("button", { name: "Month" }).first().click();
     await expect(page.locator(".rbc-month-view")).toBeVisible({
       timeout: 5000,
     });
@@ -44,7 +44,7 @@ test.describe("Shift Calendar", () => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-shifts");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsCalendar(page);
-    await page.getByRole("button", { name: "Day" }).click();
+    await page.getByRole("button", { name: "Day" }).first().click();
     await expect(page.locator(".rbc-time-view")).toBeVisible({ timeout: 5000 });
   });
 
