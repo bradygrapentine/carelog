@@ -4,7 +4,9 @@
     "strict": true,
     "types": ["jest"],
     "paths": {
-      "../../web/*": ["../web/*"]
+      "../../web/*": ["../web/*"],
+      "@trpc/server": ["../web/node_modules/@trpc/server"],
+      "@trpc/server/*": ["../web/node_modules/@trpc/server/*"]
     }
   },
   "exclude": ["node_modules"]
