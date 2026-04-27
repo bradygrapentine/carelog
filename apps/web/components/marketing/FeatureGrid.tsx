@@ -75,7 +75,7 @@ const FEATURES = [
 
 export function FeatureGrid() {
   return (
-    <section id="features" className="bg-white py-20">
+    <section id="features" className="bg-card py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-[var(--color-ink)]">

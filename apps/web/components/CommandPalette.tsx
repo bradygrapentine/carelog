@@ -297,7 +297,7 @@ export function CommandPalette({ onSignOut }: Props) {
         role="dialog"
         aria-label="Command palette"
         aria-modal="true"
-        className="relative w-full max-w-lg rounded-lg border border-[var(--color-border)] bg-white shadow-xl overflow-hidden"
+        className="relative w-full max-w-lg rounded-lg border border-[var(--color-border)] bg-card shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >

@@ -115,7 +115,7 @@ export function QuickLogFab() {
             id="quick-log-menu"
             role="menu"
             aria-label="Quick log actions"
-            className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-xl border border-[var(--color-border)]"
+            className="flex flex-col gap-2 rounded-xl bg-card p-3 shadow-xl border border-[var(--color-border)]"
           >
             {ACTIONS.map((action) => (
               <button
@@ -132,7 +132,13 @@ export function QuickLogFab() {
                     : "text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)]",
                 )}
               >
-                <span className={action.disabled ? "text-[var(--color-muted)]" : "text-[var(--color-primary)]"}>
+                <span
+                  className={
+                    action.disabled
+                      ? "text-[var(--color-muted)]"
+                      : "text-[var(--color-primary)]"
+                  }
+                >
                   {action.icon}
                 </span>
                 <span>{action.label}</span>

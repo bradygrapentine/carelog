@@ -103,7 +103,7 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
     <div
       role="complementary"
       aria-label="AI Assistant"
-      className="fixed bottom-20 right-4 z-40 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[var(--color-primary)] flex flex-col max-h-[70vh]"
+      className="fixed bottom-20 right-4 z-40 w-80 sm:w-96 bg-card rounded-2xl shadow-2xl border border-[var(--color-primary)] flex flex-col max-h-[70vh]"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-primary)] rounded-t-2xl">

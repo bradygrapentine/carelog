@@ -50,7 +50,7 @@ export function Testimonials() {
         {quotes.map((q) => (
           <figure
             key={q.name}
-            className="flex h-full flex-col justify-between rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-sm"
+            className="flex h-full flex-col justify-between rounded-3xl border border-[var(--color-border)] bg-card p-6 shadow-sm"
           >
             <blockquote className="text-sm leading-relaxed text-[var(--color-text-primary)]">
               <span

@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { computeAdherence, type MedForAdherence, type DoseEvent } from "@/lib/medAdherence";
+import {
+  computeAdherence,
+  type MedForAdherence,
+  type DoseEvent,
+} from "@/lib/medAdherence";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -166,7 +170,8 @@ export function VisitSummary({
       [...symptomReadings]
         .sort(
           (a, b) =>
-            new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime(),
+            new Date(b.recorded_at).getTime() -
+            new Date(a.recorded_at).getTime(),
         )
         .slice(0, 5),
     [symptomReadings],
@@ -185,11 +190,13 @@ export function VisitSummary({
   }, [journalEntries]);
 
   const age = calculateAge(recipient.dob);
-  const generated = generatedAt ? formatDate(generatedAt) : formatDate(new Date().toISOString());
+  const generated = generatedAt
+    ? formatDate(generatedAt)
+    : formatDate(new Date().toISOString());
 
   return (
     <article
-      className="visit-summary max-w-[720px] mx-auto px-8 py-10 print:px-6 print:py-8 font-sans text-[var(--color-ink)] bg-white"
+      className="visit-summary max-w-[720px] mx-auto px-8 py-10 print:px-6 print:py-8 font-sans text-[var(--color-ink)] bg-card print:bg-white"
       aria-label="Visit summary"
     >
       {/* ── Header ── */}
@@ -237,7 +244,9 @@ export function VisitSummary({
         className="mb-8 page-break-inside-avoid"
       >
         <SectionHeading>
-          <span id="section-meds">Medications &amp; Adherence (last 28 days)</span>
+          <span id="section-meds">
+            Medications &amp; Adherence (last 28 days)
+          </span>
         </SectionHeading>
         {medsWithAdherence.length === 0 ? (
           <p className="text-sm text-[var(--color-muted)]">
@@ -300,16 +309,26 @@ export function VisitSummary({
             {painValues.length >= 3 && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium w-20">Pain level</span>
-                <Sparkline values={painValues} label="Pain level trend over last 28 days" />
+                <Sparkline
+                  values={painValues}
+                  label="Pain level trend over last 28 days"
+                />
                 <span className="text-xs text-[var(--color-muted)]">
-                  avg {(painValues.reduce((s, v) => s + v, 0) / painValues.length).toFixed(1)}/10
+                  avg{" "}
+                  {(
+                    painValues.reduce((s, v) => s + v, 0) / painValues.length
+                  ).toFixed(1)}
+                  /10
                 </span>
               </div>
             )}
             {moodValues.length >= 3 && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium w-20">Mood</span>
-                <Sparkline values={moodValues} label="Mood trend over last 28 days" />
+                <Sparkline
+                  values={moodValues}
+                  label="Mood trend over last 28 days"
+                />
                 <span className="text-xs text-[var(--color-muted)]">
                   {moodValues[moodValues.length - 1] >= 3 ? "Stable" : "Watch"}
                 </span>
@@ -328,7 +347,9 @@ export function VisitSummary({
           <span id="section-symptoms">Recent Symptoms (last 28 days)</span>
         </SectionHeading>
         {recentSymptoms.length === 0 ? (
-          <p className="text-sm text-[var(--color-muted)]">No symptoms recorded.</p>
+          <p className="text-sm text-[var(--color-muted)]">
+            No symptoms recorded.
+          </p>
         ) : (
           <ul className="space-y-2 text-sm">
             {recentSymptoms.map((r) => (
@@ -363,7 +384,9 @@ export function VisitSummary({
           <span id="section-journal">Journal Highlights</span>
         </SectionHeading>
         {journalHighlights.length === 0 ? (
-          <p className="text-sm text-[var(--color-muted)]">No journal entries recorded.</p>
+          <p className="text-sm text-[var(--color-muted)]">
+            No journal entries recorded.
+          </p>
         ) : (
           <ul className="space-y-3 text-sm">
             {journalHighlights.map((e) => {
@@ -373,7 +396,9 @@ export function VisitSummary({
                   : typeof e.payload["notes"] === "string"
                     ? e.payload["notes"]
                     : null;
-              const excerpt = note ? note.slice(0, 180) + (note.length > 180 ? "…" : "") : "No details";
+              const excerpt = note
+                ? note.slice(0, 180) + (note.length > 180 ? "…" : "")
+                : "No details";
               return (
                 <li key={e.id} className="flex gap-3">
                   <time
@@ -402,7 +427,8 @@ export function VisitSummary({
           htmlFor="doctor-questions"
           className="block text-xs text-[var(--color-muted)] mb-2"
         >
-          Write your questions below before printing, or leave blank to fill in by hand.
+          Write your questions below before printing, or leave blank to fill in
+          by hand.
         </label>
         <textarea
           id="doctor-questions"
@@ -418,8 +444,9 @@ export function VisitSummary({
       {/* ── Footer ── */}
       <footer className="mt-8 pt-4 border-t border-[var(--color-border)] print:border-gray-300 text-xs text-[var(--color-muted)]">
         <p>
-          Generated by CareSync · {generated} · This summary is for informational
-          purposes only and does not replace professional medical advice.
+          Generated by CareSync · {generated} · This summary is for
+          informational purposes only and does not replace professional medical
+          advice.
         </p>
       </footer>
     </article>

@@ -14,7 +14,7 @@ export function MoodCard() {
   return (
     <section
       aria-labelledby="mood-card-heading"
-      className="rounded-xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+      className="rounded-xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
     >
       <div className="mb-3 flex items-baseline justify-between">
         <h2

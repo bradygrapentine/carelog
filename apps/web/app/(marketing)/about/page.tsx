@@ -62,9 +62,11 @@ export default function AboutPage() {
           {VALUES.map(({ icon, title, description }) => (
             <li
               key={title}
-              className="rounded-2xl border border-[var(--color-border)] bg-white p-6"
+              className="rounded-2xl border border-[var(--color-border)] bg-card p-6"
             >
-              <span className="text-2xl" aria-hidden="true">{icon}</span>
+              <span className="text-2xl" aria-hidden="true">
+                {icon}
+              </span>
               <h3 className="mt-3 text-base font-semibold text-[var(--color-ink)]">
                 {title}
               </h3>

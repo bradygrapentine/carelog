@@ -18,7 +18,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Printer, ArrowLeft } from "lucide-react";
-import { VisitSummary, type VisitSummaryProps } from "@/components/VisitSummary";
+import {
+  VisitSummary,
+  type VisitSummaryProps,
+} from "@/components/VisitSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type LoadedData = {
@@ -62,7 +65,9 @@ export default function VisitSummaryPage() {
           .maybeSingle();
 
         if (!membership) {
-          setError("No care team found. Set one up to generate a visit summary.");
+          setError(
+            "No care team found. Set one up to generate a visit summary.",
+          );
           setLoading(false);
           return;
         }
@@ -133,7 +138,8 @@ export default function VisitSummaryPage() {
             .limit(200),
         ]);
 
-        const allEvents = (eventsRes.data ?? []) as VisitSummaryProps["doseEvents"];
+        const allEvents = (eventsRes.data ??
+          []) as VisitSummaryProps["doseEvents"];
 
         // Dose events are care_events with event_type = 'medication_dose'
         const doseEvents = allEvents.filter(
@@ -154,7 +160,9 @@ export default function VisitSummaryPage() {
           journalEntries,
         });
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "An unexpected error occurred.");
+        setError(
+          e instanceof Error ? e.message : "An unexpected error occurred.",
+        );
       } finally {
         setLoading(false);
       }
@@ -180,7 +188,7 @@ export default function VisitSummaryPage() {
 
       {/* ── Toolbar (hidden on print) ── */}
       <div
-        className="no-print sticky top-0 z-10 bg-white border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between max-w-[720px] mx-auto print:hidden"
+        className="no-print sticky top-0 z-10 bg-card border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between max-w-[720px] mx-auto print:hidden"
         aria-label="Visit summary toolbar"
       >
         <button

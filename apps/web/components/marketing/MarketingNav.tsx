@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function MarketingNav() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--color-border)] bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-[var(--color-border)] bg-card/80 backdrop-blur-md">
       <nav
         className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4"
         aria-label="Main navigation"
