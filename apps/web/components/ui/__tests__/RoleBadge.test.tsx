@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { RoleBadge } from "../RoleBadge";
 
 describe("RoleBadge", () => {
-  it("renders coordinator with violet style", () => {
+  it("renders coordinator with primary token style", () => {
     render(<RoleBadge role="coordinator" />);
     const badge = screen.getByText("Coordinator");
     expect(badge).toBeInTheDocument();
-    expect(badge.className).toMatch(/violet|purple/i);
+    expect(badge.className).toMatch(/--color-primary/);
   });
 
   it("renders caregiver with amber style", () => {

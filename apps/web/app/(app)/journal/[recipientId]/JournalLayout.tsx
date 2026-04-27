@@ -140,7 +140,8 @@ export function JournalLayout({
               <span className="hidden sm:inline">What did I miss?</span>
             </button>
             <span className="text-xs text-[var(--color-muted)] hidden sm:inline">
-              {user.email}
+              {(user.user_metadata?.display_name as string | undefined) ??
+                user.email}
             </span>
           </div>
         </header>

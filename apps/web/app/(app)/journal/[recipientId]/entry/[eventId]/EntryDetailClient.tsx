@@ -5,13 +5,9 @@ import { FileX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../../../lib/authenticatedFetch";
+import { MOOD_BADGE_CLS } from "../../../../../../lib/mood";
 
-const MOOD_STYLES: Record<string, string> = {
-  good: "bg-green-50 text-green-700",
-  okay: "bg-yellow-50 text-yellow-700",
-  difficult: "bg-orange-50 text-orange-700",
-  crisis: "bg-red-50 text-red-700",
-};
+const MOOD_STYLES: Record<string, string> = MOOD_BADGE_CLS;
 
 const REACTIONS = [
   { key: "heart", title: "Heart", emoji: "❤️" },

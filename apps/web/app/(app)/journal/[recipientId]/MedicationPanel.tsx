@@ -318,7 +318,7 @@ export function MedicationPanel({
                           {dos}
                         </span>
                         {isLow && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]">
                             Low supply
                           </span>
                         )}
@@ -376,8 +376,14 @@ export function MedicationPanel({
                   </div>
                   {expandedMedId === medId && (
                     <div className="mt-2 space-y-2">
-                      <MedicationLinkedDocs medicationId={medId} orgId={orgId} />
-                      <MedicationRecentEvents medicationId={medId} orgId={orgId} />
+                      <MedicationLinkedDocs
+                        medicationId={medId}
+                        orgId={orgId}
+                      />
+                      <MedicationRecentEvents
+                        medicationId={medId}
+                        orgId={orgId}
+                      />
                     </div>
                   )}
                 </div>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import posthog from "posthog-js";
+import { MOOD_CHIP_CLS } from "@/lib/mood";
 
 const PROMPTS = [
   "How did they seem today?",
@@ -27,26 +28,10 @@ function pickPrompts(n: number) {
 }
 
 const MOODS = [
-  {
-    value: "good",
-    label: "Good",
-    color: "bg-green-100 text-green-800 border-green-200",
-  },
-  {
-    value: "okay",
-    label: "Okay",
-    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  },
-  {
-    value: "difficult",
-    label: "Difficult",
-    color: "bg-orange-100 text-orange-800 border-orange-200",
-  },
-  {
-    value: "crisis",
-    label: "Crisis",
-    color: "bg-red-100 text-red-800 border-red-200",
-  },
+  { value: "good", label: "Good" },
+  { value: "okay", label: "Okay" },
+  { value: "difficult", label: "Difficult" },
+  { value: "crisis", label: "Crisis" },
 ];
 
 type Props = {
@@ -132,7 +117,7 @@ export function JournalEntryForm({ onPost, posting }: Props) {
                     onClick={() => setMood(mood === m.value ? "" : m.value)}
                     className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                       mood === m.value
-                        ? m.color
+                        ? MOOD_CHIP_CLS[m.value]
                         : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-slate-100"
                     }`}
                   >

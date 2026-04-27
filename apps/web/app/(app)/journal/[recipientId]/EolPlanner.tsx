@@ -104,13 +104,13 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   return (
-    <Card className="border-red-50">
+    <Card className="border-[var(--color-danger)]/30">
       <div className="w-full px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground/80">
             End-of-life plan
           </span>
-          <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-[var(--color-danger-subtle)] text-[var(--color-danger)] px-2 py-0.5 rounded-full">
             Coordinator only
           </span>
         </div>

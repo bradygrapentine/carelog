@@ -41,11 +41,16 @@ const DOC_TYPE_OPTS = [
 ] as const;
 
 const DOC_TYPE_COLORS: Record<string, string> = {
-  hipaa_authorization: "bg-purple-100 text-purple-700",
-  power_of_attorney: "bg-amber-100 text-amber-700",
-  advance_directive: "bg-red-100 text-red-700",
-  insurance_card: "bg-[var(--color-primary-subtle)] text-primary",
-  medication_list: "bg-green-100 text-green-700",
+  hipaa_authorization:
+    "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]",
+  power_of_attorney:
+    "bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]",
+  advance_directive:
+    "bg-[var(--color-danger-subtle)] text-[var(--color-danger)]",
+  insurance_card:
+    "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]",
+  medication_list:
+    "bg-[var(--color-success-subtle)] text-[var(--color-success)]",
   other: "bg-[var(--color-surface)] text-foreground/80",
 };
 

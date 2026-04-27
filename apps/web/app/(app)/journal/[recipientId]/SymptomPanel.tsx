@@ -6,6 +6,7 @@ import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { MOOD_CHIP_CLS, MOOD_BADGE_CLS } from "../../../../lib/mood";
 
 type Props = {
   orgId: string;
@@ -48,19 +49,9 @@ const MOBILITY_OPTS: { value: MobilityVal; label: string }[] = [
   { value: "bedbound", label: "Bedbound" },
 ];
 
-const MOOD_ACTIVE_CLS: Record<string, string> = {
-  good: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  okay: "bg-sky-100 text-sky-800 border-sky-300",
-  difficult: "bg-amber-100 text-amber-800 border-amber-300",
-  crisis: "bg-red-100 text-red-800 border-red-300",
-};
+const MOOD_ACTIVE_CLS: Record<string, string> = MOOD_CHIP_CLS;
 
-const MOOD_TAG_CLS: Record<string, string> = {
-  good: "bg-emerald-50 text-emerald-700",
-  okay: "bg-sky-50 text-sky-700",
-  difficult: "bg-amber-50 text-amber-700",
-  crisis: "bg-red-50 text-red-700",
-};
+const MOOD_TAG_CLS: Record<string, string> = MOOD_BADGE_CLS;
 
 function painLabel(n: number): string {
   if (n <= 2) return "Minimal";
@@ -71,9 +62,9 @@ function painLabel(n: number): string {
 }
 
 function painColor(n: number): string {
-  if (n <= 3) return "text-emerald-600";
-  if (n <= 6) return "text-amber-600";
-  return "text-red-600";
+  if (n <= 3) return "text-[var(--color-mood-good)]";
+  if (n <= 6) return "text-[var(--color-mood-okay)]";
+  return "text-[var(--color-mood-crisis)]";
 }
 
 export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
