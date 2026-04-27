@@ -1,14 +1,11 @@
 /**
- * PP-003: Subscription read-only view
+ * PP-003 / PP-014: Subscription read-only view.
  *
- * Shows plan name, status badge, renewal date, and seat count.
- * "Manage on web" opens the Carelog web subscriptions page via expo-web-browser
- *
- * NOTE: No billing tRPC router exists yet in AppRouter. This screen uses a
- * placeholder REST fetch (TODO: wire trpc.billing.getSubscription once the
- * router is added to apps/web/server/trpc/router.ts).
+ * Reads plan + seat count via `trpc.billing.getSubscription` (router shipped
+ * in TD-22 / PR #147). "Manage on web" opens the Carelog web subscriptions
+ * page via expo-web-browser.
  */
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -18,55 +15,11 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { useAppTheme } from "../../../hooks/useAppTheme";
-import { getAccessToken } from "../../../utils/auth";
+import { trpc } from "../../../utils/trpc";
 
 const MANAGE_URL = "https://yourcarelog.com/subscriptions";
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
 type SubscriptionStatus = "active" | "past_due" | "canceled";
-
-type SubscriptionData = {
-  planName: string;
-  status: SubscriptionStatus;
-  renewalDate: string | null;
-  seatCount: number;
-};
-
-type FetchState =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "success"; data: SubscriptionData | null };
-
-function useSubscription(): FetchState & { refetch: () => void } {
-  const [state, setState] = useState<FetchState>({ phase: "loading" });
-
-  const fetch_ = useCallback(async () => {
-    setState({ phase: "loading" });
-    try {
-      const token = await getAccessToken();
-      const res = await fetch(`${API_URL}/api/trpc/billing.getSubscription`, {
-        headers: token ? { authorization: `Bearer ${token}` } : {},
-      });
-      if (res.status === 404 || !res.ok) {
-        // Billing endpoint not yet implemented — return null (no active plan)
-        setState({ phase: "success", data: null });
-        return;
-      }
-      const json = (await res.json()) as { result?: { data?: SubscriptionData } };
-      setState({ phase: "success", data: json?.result?.data ?? null });
-    } catch {
-      setState({ phase: "success", data: null });
-    }
-  }, []);
-
-  // Kick off on first render
-  useEffect(() => {
-    void fetch_();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return { ...state, refetch: fetch_ };
-}
 
 const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   active: "Active",
@@ -74,7 +27,13 @@ const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   canceled: "Canceled",
 };
 
-function StatusBadge({ status, colors }: { status: SubscriptionStatus; colors: ReturnType<typeof useAppTheme>["colors"] }) {
+function StatusBadge({
+  status,
+  colors,
+}: {
+  status: SubscriptionStatus;
+  colors: ReturnType<typeof useAppTheme>["colors"];
+}) {
   const bg =
     status === "active"
       ? colors.successBadgeBg
@@ -89,7 +48,14 @@ function StatusBadge({ status, colors }: { status: SubscriptionStatus; colors: R
         : colors.danger;
 
   return (
-    <View style={{ backgroundColor: bg, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3 }}>
+    <View
+      style={{
+        backgroundColor: bg,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 3,
+      }}
+    >
       <Text style={{ color: fg, fontWeight: "600", fontSize: 13 }}>
         {STATUS_LABELS[status]}
       </Text>
@@ -112,7 +78,8 @@ function formatDate(iso: string): string {
 // ts-prune-ignore-next // Expo Router page component
 export default function SubscriptionScreen() {
   const { colors, spacing, radii, typography } = useAppTheme();
-  const fetchState = useSubscription();
+  const { data, isLoading, error, refetch } =
+    trpc.billing.getSubscription.useQuery();
 
   const styles = useMemo(
     () =>
@@ -201,7 +168,7 @@ export default function SubscriptionScreen() {
     await WebBrowser.openBrowserAsync(MANAGE_URL);
   }
 
-  if (fetchState.phase === "loading") {
+  if (isLoading) {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator color={colors.primary} />
@@ -209,14 +176,14 @@ export default function SubscriptionScreen() {
     );
   }
 
-  if (fetchState.phase === "error") {
+  if (error) {
     return (
       <View style={styles.container}>
         <Text style={styles.heading}>Subscription</Text>
         <Text style={styles.errorText}>Unable to load subscription</Text>
         <TouchableOpacity
           style={styles.retryBtn}
-          onPress={fetchState.refetch}
+          onPress={() => refetch()}
           accessibilityRole="button"
           accessibilityLabel="Retry loading subscription"
         >
@@ -225,8 +192,6 @@ export default function SubscriptionScreen() {
       </View>
     );
   }
-
-  const { data } = fetchState;
 
   return (
     <View style={styles.container}>
