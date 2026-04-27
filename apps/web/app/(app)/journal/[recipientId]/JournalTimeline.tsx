@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { trpc } from "../../../../lib/trpc";
 import { MedicationChipBar } from "@/components/medications/MedicationChipBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,17 +13,22 @@ import { BookOpen } from "lucide-react";
 import { CommentThread } from "@/components/care-events/CommentThread";
 
 const MOOD_DOT: Record<string, string> = {
-  good: "bg-green-500",
-  okay: "bg-amber-400",
-  difficult: "bg-orange-500",
-  crisis: "bg-red-500",
+  good: "bg-[var(--color-mood-good)]",
+  okay: "bg-[var(--color-mood-okay)]",
+  difficult: "bg-[var(--color-mood-difficult)]",
+  crisis: "bg-[var(--color-mood-crisis)]",
 };
 
+// Badge tints — use the mood token for border + text, soft tinted background
+// derived via color-mix. Keeps a single source of truth in globals.css and
+// removes the raw bg-green-50 / bg-yellow-50 / bg-orange-50 / bg-red-50 classes.
 const MOOD_BADGE: Record<string, string> = {
-  good: "bg-green-50 text-green-700 border-green-200",
-  okay: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  difficult: "bg-orange-50 text-orange-700 border-orange-200",
-  crisis: "bg-red-50 text-red-700 border-red-200",
+  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_12%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_35%,white)]",
+  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_15%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_40%,white)]",
+  difficult:
+    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_15%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_40%,white)]",
+  crisis:
+    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_15%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_40%,white)]",
 };
 
 const REACTIONS = [
@@ -144,7 +149,6 @@ function JournalCard({
   recipientId,
   onFlag,
 }: CardProps) {
-  const router = useRouter();
   const payload = event.payload ?? {};
   const { counts, myReaction, toggle } = useReactions(event.id, currentUserId);
 
@@ -155,18 +159,31 @@ function JournalCard({
       : "text-muted-foreground hover:text-primary");
 
   const detailUrl = "/journal/" + recipientId + "/entry/" + event.id;
+  const entryTime = formatTime(event.occurred_at);
 
   return (
     <div data-testid="journal-entry-row">
       <Card
         data-testid="journal-entry"
-        className="cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => {
-          router.push(detailUrl);
-        }}
+        className="hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2"
       >
         <CardContent className="p-4">
-          <div className="flex items-start gap-3 mb-3">
+          {/*
+            C-2: full-card click target is now a real <Link> (anchor) so the
+            entry is keyboard-reachable. The link absolute-fills the card; the
+            flag/reaction buttons sit above it (z-10 + relative) so they remain
+            individually clickable. Buttons keep e.stopPropagation() defensively
+            so a stray bubble can't navigate.
+          */}
+          <Link
+            href={detailUrl}
+            aria-label={`Open journal entry from ${entryTime}`}
+            className="absolute inset-0 z-0 rounded-xl focus:outline-none"
+          >
+            <span className="sr-only">{`Open journal entry from ${entryTime}`}</span>
+          </Link>
+
+          <div className="flex items-start gap-3 mb-3 relative pointer-events-none">
             {payload.mood && (
               <span
                 className={
@@ -192,11 +209,11 @@ function JournalCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-[var(--color-muted)]">
-              {formatTime(event.occurred_at)}
+          <div className="flex items-center justify-between mb-2 relative">
+            <p className="text-xs text-[var(--color-muted)] pointer-events-none">
+              {entryTime}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative z-10">
               {event.flagged && (
                 <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
                   Flagged for doctor
@@ -204,11 +221,20 @@ function JournalCard({
               )}
               {canFlag && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onFlag(event.id, !event.flagged);
                   }}
-                  className={flagBtnClass}
+                  aria-label={
+                    event.flagged
+                      ? `Unflag entry from ${entryTime}`
+                      : `Flag entry from ${entryTime} for doctor`
+                  }
+                  className={
+                    flagBtnClass +
+                    " focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+                  }
                 >
                   {event.flagged ? "Unflag" : "Flag for doctor"}
                 </button>
@@ -216,26 +242,28 @@ function JournalCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)]">
+          <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)] relative z-10">
             {REACTIONS.map((r) => {
               const count = counts[r.key] ?? 0;
               const isActive = myReaction === r.key;
               const btnClass =
-                "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors " +
+                "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 " +
                 (isActive
                   ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]"
                   : "text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]");
               return (
                 <button
                   key={r.key}
-                  title={r.title}
+                  type="button"
+                  aria-label={r.title}
+                  aria-pressed={isActive}
                   onClick={(e) => {
                     e.stopPropagation();
                     toggle(r.key);
                   }}
                   className={btnClass}
                 >
-                  {r.emoji}
+                  <span aria-hidden="true">{r.emoji}</span>
                   {count > 0 && <span>{count}</span>}
                 </button>
               );
@@ -287,10 +315,12 @@ type MoodFilter = "good" | "okay" | "difficult" | "crisis";
 type KindFilter = "human" | "system";
 
 const MOOD_CHIP_CLS: Record<MoodFilter, string> = {
-  good: "bg-green-100 text-green-800 border-green-300",
-  okay: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  difficult: "bg-orange-100 text-orange-800 border-orange-300",
-  crisis: "bg-red-100 text-red-800 border-red-300",
+  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_18%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_45%,white)]",
+  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_22%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_50%,white)]",
+  difficult:
+    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_22%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_50%,white)]",
+  crisis:
+    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_22%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_50%,white)]",
 };
 
 function Chip({
