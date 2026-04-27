@@ -45,14 +45,16 @@ const CATEGORY_OPTS = [
 ] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  medication: "bg-[var(--color-primary-subtle)] text-primary",
+  medication: "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]",
   supplies: "bg-[var(--color-surface)] text-foreground/80",
-  equipment: "bg-purple-100 text-purple-700",
-  home_modification: "bg-amber-100 text-amber-700",
-  aide_hours: "bg-green-100 text-green-700",
-  transport: "bg-sky-100 text-sky-700",
-  food: "bg-orange-100 text-orange-700",
-  other: "bg-slate-100 text-slate-700",
+  equipment: "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]",
+  home_modification:
+    "bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]",
+  aide_hours: "bg-[var(--color-success-subtle)] text-[var(--color-success)]",
+  transport:
+    "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]",
+  food: "bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]",
+  other: "bg-[var(--color-surface)] text-[var(--color-muted)]",
 };
 
 export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {

@@ -549,7 +549,7 @@ function DangerZoneSection() {
 
   return (
     <Card className="shadow-sm gap-2 border-[var(--color-danger)]/30">
-      <CardHeader className="-mt-4 px-4 py-3 bg-red-50 border-b border-[var(--color-danger)]/30">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-danger-subtle)] border-b border-[var(--color-danger)]/30">
         <CardTitle className="text-sm text-[var(--color-danger)]">
           Danger zone
         </CardTitle>
@@ -570,7 +570,7 @@ function DangerZoneSection() {
               type="button"
               variant="outline"
               onClick={() => setShowLeaveModal(true)}
-              className="shrink-0 border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-red-50 focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
+              className="shrink-0 border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
             >
               Leave
             </Button>

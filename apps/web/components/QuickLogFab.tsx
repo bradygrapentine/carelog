@@ -120,6 +120,7 @@ export function QuickLogFab() {
             {ACTIONS.map((action) => (
               <button
                 key={action.id}
+                type="button"
                 role="menuitem"
                 onClick={() => handleActionClick(action)}
                 disabled={action.disabled}
@@ -143,7 +144,7 @@ export function QuickLogFab() {
                 </span>
                 <span>{action.label}</span>
                 {action.comingSoon && (
-                  <span className="ml-auto text-xs text-[var(--color-muted)] bg-gray-100 rounded-full px-2 py-0.5">
+                  <span className="ml-auto text-xs text-[var(--color-muted)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full px-2 py-0.5">
                     Soon
                   </span>
                 )}
@@ -154,6 +155,7 @@ export function QuickLogFab() {
 
         {/* FAB button */}
         <button
+          type="button"
           aria-label="Quick log"
           aria-expanded={open}
           aria-controls="quick-log-menu"

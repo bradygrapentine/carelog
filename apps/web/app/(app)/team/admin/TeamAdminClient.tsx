@@ -65,7 +65,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
       {error && (
         <div
           role="alert"
-          className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-[var(--color-danger)]"
+          className="mt-4 rounded-xl bg-[var(--color-danger-subtle)] px-4 py-3 text-sm text-[var(--color-danger)]"
         >
           {error}
         </div>
@@ -121,7 +121,9 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
                   <td className="px-4 py-3 text-right">
                     {member.role !== "coordinator" && (
                       <button
+                        type="button"
                         onClick={() => handleRemove(member.id)}
+                        aria-label={`Remove ${member.display_name ?? member.email ?? "member"}`}
                         className="rounded text-xs font-medium text-[var(--color-danger)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-1"
                       >
                         Remove
@@ -139,7 +141,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
         <h2 className="mb-4 text-lg font-semibold text-[var(--color-danger)]">
           Danger zone
         </h2>
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <div className="rounded-2xl border border-[var(--color-danger)]/30 bg-[var(--color-danger-subtle)] p-6">
           <p className="text-sm font-semibold text-[var(--color-ink)]">
             Delete organization
           </p>
@@ -149,6 +151,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
             removal.
           </p>
           <button
+            type="button"
             className="mt-4 rounded-xl border-2 border-[var(--color-danger)] px-4 py-2 text-sm font-semibold text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
             onClick={() => {
               if (confirm("Are you absolutely sure? This cannot be undone.")) {

@@ -17,10 +17,8 @@ const MOCK_PILLS: StatusPill[] = [
 
 const PILL_TONE_CLASS: Record<StatusPill["tone"], string> = {
   primary: "bg-[var(--color-primary-subtle)] text-[var(--color-ink)]",
-  success:
-    "bg-[color-mix(in_oklab,var(--color-success)_15%,white)] text-[var(--color-ink)]",
-  warning:
-    "bg-[color-mix(in_oklab,var(--color-warning)_18%,white)] text-[var(--color-ink)]",
+  success: "bg-[var(--color-success-subtle)] text-[var(--color-ink)]",
+  warning: "bg-[var(--color-warning-subtle)] text-[var(--color-ink)]",
 };
 
 export function BriefHero() {

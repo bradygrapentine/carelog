@@ -87,6 +87,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
               return (
                 <button
                   key={id}
+                  type="button"
                   role="tab"
                   aria-selected={isActive}
                   aria-controls={id + "-panel"}

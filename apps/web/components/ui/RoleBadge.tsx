@@ -3,17 +3,18 @@ import { cn } from "@/lib/utils";
 type Role = "coordinator" | "caregiver" | "aide" | "supporter";
 
 const ROLE_STYLES: Record<Role, string> = {
-  coordinator: "bg-violet-100 text-violet-800",
-  caregiver:   "bg-amber-100  text-amber-800",
-  aide:        "bg-slate-100  text-slate-700",
-  supporter:   "bg-gray-100   text-gray-600",
+  coordinator: "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]",
+  caregiver: "bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]",
+  aide: "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]",
+  supporter:
+    "bg-[var(--color-surface)] text-[var(--color-muted)] border border-[var(--color-border)]",
 };
 
 const ROLE_LABELS: Record<Role, string> = {
   coordinator: "Coordinator",
-  caregiver:   "Caregiver",
-  aide:        "Aide",
-  supporter:   "Supporter",
+  caregiver: "Caregiver",
+  aide: "Aide",
+  supporter: "Supporter",
 };
 
 type Props = {
@@ -26,8 +27,9 @@ export function RoleBadge({ role, className }: Props) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        ROLE_STYLES[role] ?? "bg-gray-100 text-gray-600",
-        className
+        ROLE_STYLES[role] ??
+          "bg-[var(--color-surface)] text-[var(--color-muted)]",
+        className,
       )}
     >
       {ROLE_LABELS[role] ?? role}

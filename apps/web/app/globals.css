@@ -33,9 +33,10 @@
   --color-warning: #f59e0b;
   --color-success: #10b981;
   --color-danger:  #c41a1a;
-  --color-success-subtle: #f0fdf4;   /* Green 50 — in-progress event bg */
-  --color-surface-muted:  #f9fafb;   /* Gray 50 — completed/cancelled/off-range bg */
-  --color-danger-subtle:  #fef2f2;   /* Red 50 — unassigned event bg */
+  --color-success-subtle:  #f0fdf4;   /* Green 50 — in-progress event bg */
+  --color-warning-subtle:  #fffbeb;   /* Amber 50 — warning tint */
+  --color-surface-muted:   #f9fafb;   /* Gray 50 — completed/cancelled/off-range bg */
+  --color-danger-subtle:   #fef2f2;   /* Red 50 — unassigned event bg */
 
   /* Mood (journal) */
   --color-mood-good:      #22c55e;

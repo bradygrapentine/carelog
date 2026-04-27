@@ -25,17 +25,18 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
           <div className="bg-card border border-[var(--color-border)] rounded-xl p-8 shadow-sm text-center max-w-sm">
-            <p className="text-gray-900 font-medium mb-2">
+            <p className="text-[var(--color-ink)] font-medium mb-2">
               Something went wrong
             </p>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-[var(--color-muted)] text-sm mb-6">
               We ran into an unexpected problem. Try refreshing the page.
             </p>
             <button
+              type="button"
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 bg-[var(--color-ink)] text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
             >
               Refresh
             </button>
