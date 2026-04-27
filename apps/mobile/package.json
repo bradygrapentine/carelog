@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@carelog/schemas": "workspace:*",
-    "@trpc/server": "^11.0.0-rc.477",
     "@carelog/types": "workspace:*",
     "@carelog/utils": "workspace:*",
     "@expo-google-fonts/inter": "^0.4.2",
@@ -30,8 +29,6 @@
     "@trpc/react-query": "^11.0.0-rc.477",
     "expo": "55.0.10-canary-20260327-0789fbc",
     "expo-camera": "~14.1.0",
-    "expo-constants": "~17.0.8",
-    "expo-device": "~7.0.4",
     "expo-clipboard": "^55.0.13",
     "expo-document-picker": "55.0.10-canary-20260327-0789fbc",
     "expo-font": "^55.0.6",
