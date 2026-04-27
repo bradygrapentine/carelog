@@ -1,13 +1,13 @@
 -- supabase/tests/care_event_comments_rls.test.sql
 -- ON-44: RLS coverage for care_event_comments
 begin;
-select plan(15);
+select plan(18);
 
 -- ─── Fixtures ──────────────────────────────────────────────────────────────
 
 set local role postgres;
 
--- Users: alice + bob in org_a, eve in org_b
+-- Users: alice + bob in org_a, eve in org_b, pat (pending invite — accepted_at IS NULL)
 insert into auth.users (
   id, aud, role, email, email_confirmed_at,
   created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_super_admin
@@ -17,7 +17,9 @@ insert into auth.users (
   ('bbbb0002-4400-0000-0000-000000000002', 'authenticated', 'authenticated',
    'bob@cec-rls.com', now(), now(), now(), '{}', '{}', false),
   ('eeee0003-4400-0000-0000-000000000003', 'authenticated', 'authenticated',
-   'eve@cec-rls.com', now(), now(), now(), '{}', '{}', false)
+   'eve@cec-rls.com', now(), now(), now(), '{}', '{}', false),
+  ('pppp0004-4400-0000-0000-000000000004', 'authenticated', 'authenticated',
+   'pat@cec-rls.com', now(), now(), now(), '{}', '{}', false)
 on conflict (id) do nothing;
 
 -- Orgs
@@ -26,11 +28,12 @@ insert into organizations (id, name, org_type) values
   ('eeee0020-4400-0000-0000-000000000020', 'Org B CEC', 'family')
 on conflict do nothing;
 
--- Memberships: alice + bob → org_a; eve → org_b
+-- Memberships: alice + bob → org_a (accepted); eve → org_b (accepted); pat → org_a (pending)
 insert into memberships (org_id, user_id, role, accepted_at) values
   ('aaaa0010-4400-0000-0000-000000000010', 'aaaa0001-4400-0000-0000-000000000001', 'coordinator', now()),
   ('aaaa0010-4400-0000-0000-000000000010', 'bbbb0002-4400-0000-0000-000000000002', 'caregiver',   now()),
-  ('eeee0020-4400-0000-0000-000000000020', 'eeee0003-4400-0000-0000-000000000003', 'caregiver',   now())
+  ('eeee0020-4400-0000-0000-000000000020', 'eeee0003-4400-0000-0000-000000000003', 'caregiver',   now()),
+  ('aaaa0010-4400-0000-0000-000000000010', 'pppp0004-4400-0000-0000-000000000004', 'caregiver',   NULL)
 on conflict do nothing;
 
 -- Care recipient in org_a (via identity_vault pattern)
@@ -231,6 +234,41 @@ select throws_ok(
   '23514',
   NULL,
   'body CHECK rejects empty string'
+);
+
+-- H4 (sec-review): Pre-acceptance member (accepted_at IS NULL) cannot SELECT comments
+set local role authenticated;
+set local "request.jwt.claims" to '{"sub":"pppp0004-4400-0000-0000-000000000004","role":"authenticated"}';
+
+select ok(
+  (select count(*) from care_event_comments
+    where care_event_id = 'dddd0040-4400-0000-0000-000000000040') = 0,
+  'H4: pending member (accepted_at IS NULL) cannot SELECT care_event_comments'
+);
+
+-- H4: Pre-acceptance member cannot INSERT comments
+select throws_ok(
+  $$
+    insert into care_event_comments (care_event_id, org_id, author_id, body)
+    values (
+      'dddd0040-4400-0000-0000-000000000040',
+      'aaaa0010-4400-0000-0000-000000000010',
+      'pppp0004-4400-0000-0000-000000000004',
+      'Pat pending comment'
+    )
+  $$,
+  '42501',
+  NULL,
+  'H4: pending member (accepted_at IS NULL) cannot INSERT care_event_comments'
+);
+
+-- H4: Accepted member can still SELECT after tightened policy
+set local "request.jwt.claims" to '{"sub":"aaaa0001-4400-0000-0000-000000000001","role":"authenticated"}';
+
+select ok(
+  (select count(*) from care_event_comments
+    where care_event_id = 'dddd0040-4400-0000-0000-000000000040') >= 1,
+  'H4: accepted member can still SELECT care_event_comments after policy tightening'
 );
 
 select finish();

@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(7);
+SELECT plan(8);
 
 -- ─── fixtures ────────────────────────────────────────────────────────────────
 
@@ -99,19 +99,37 @@ SELECT lives_ok(
   'coordinator can insert outer_circle_request'
 );
 
--- 4. Anyone can INSERT a claim — policy is WITH CHECK (true)
---    Run as outsider (non-member) to confirm open insert
+-- 4. H1 (sec-review): Direct INSERT into outer_circle_claims is now blocked for all roles.
+--    The open "WITH CHECK (true)" INSERT policy was removed in sec_high_fixes migration.
+--    An authenticated outsider direct-INSERTing must get 42501.
 SET LOCAL "request.jwt.claims" TO '{"sub":"cccc0003-0000-0000-0000-000000000003","role":"authenticated"}';
 
-SELECT lives_ok(
+SELECT throws_ok(
   $$INSERT INTO outer_circle_claims (request_id, claimer_name, claimer_email)
     VALUES (
       '40000000-0000-0000-0000-000000000001',
       'Jane Helper',
       'jane@example.com'
     )$$,
-  'anyone can insert an outer_circle_claim (open insert policy)'
+  '42501', NULL,
+  'H1: direct INSERT into outer_circle_claims is blocked (no open insert policy)'
 );
+
+-- 4b. H1: claim_outer_circle_slot() SECURITY DEFINER function succeeds for active request.
+--     Run as postgres to call the RPC directly (function runs under table-owner security).
+SET LOCAL ROLE postgres;
+
+SELECT lives_ok(
+  $$SELECT claim_outer_circle_slot(
+      '40000000-0000-0000-0000-000000000001'::uuid,
+      'Jane Helper',
+      'jane@example.com',
+      NULL
+  )$$,
+  'H1: claim_outer_circle_slot() SECURITY DEFINER succeeds for active request'
+);
+
+SET LOCAL ROLE authenticated;
 
 -- 5. Coordinator (request creator) can read claims for their requests
 --    Policy: SELECT USING (EXISTS (SELECT 1 FROM outer_circle_requests r WHERE r.id = request_id AND r.created_by = auth.uid()))

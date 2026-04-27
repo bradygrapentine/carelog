@@ -149,4 +149,51 @@ describe("POST /api/stripe/portal", () => {
     expect(res.status).toBe(200);
     expect(body.url).toBe("https://billing.stripe.com/session_456");
   });
+
+  it("H5: rejects request with a forged Origin not matching NEXT_PUBLIC_APP_URL", async () => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://app.carelog.app";
+    mockGetRequestUser.mockResolvedValue({ id: "user-1" });
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: { role: "coordinator" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "organizations") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: { id: TEST_ORG_ID, stripe_id: "cus_123" },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+    const req = new NextRequest("http://localhost:3000/api/stripe/portal", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://attacker.example.com",
+      },
+      body: JSON.stringify({ orgId: TEST_ORG_ID }),
+    });
+    const { POST } = await import("../portal/route");
+    const res = await POST(req);
+    // Forged non-allowlisted Origin must be rejected
+    expect(res.status).toBe(403);
+    delete process.env.NEXT_PUBLIC_APP_URL;
+  });
 });
