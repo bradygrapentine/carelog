@@ -1,11 +1,11 @@
 // e2e/journal-detail.spec.ts
 import { test, expect } from "@playwright/test";
+import { signIn, ensureCareTeam, uniqueEmail } from "./helpers";
 
-async function goToJournal(page: any) {
-  await page.goto("/dashboard");
-  await page.waitForSelector('text="View care journal"', {
-    timeout: 15000,
-  });
+async function goToJournal(page: import("@playwright/test").Page) {
+  // (TD-73) Tests can't rely on a leaked session — sign in fresh.
+  await signIn(page, uniqueEmail("journal-detail"));
+  await ensureCareTeam(page);
   await page.click('text="View care journal"');
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   await page.waitForSelector('[placeholder="Share how today went..."]', {
@@ -13,10 +13,25 @@ async function goToJournal(page: any) {
   });
 }
 
+/** Post a journal entry so the timeline isn't empty. (TD-73 — fresh users
+ * have no entries; tests that assert on `[data-testid=journal-entry]` must
+ * seed at least one first.) */
+async function postEntry(
+  page: import("@playwright/test").Page,
+  text: string,
+): Promise<void> {
+  const textarea = page.getByPlaceholder("Share how today went...");
+  await textarea.click();
+  await textarea.fill(text);
+  await page.getByRole("button", { name: "Share update" }).click();
+  await expect(textarea).toHaveValue("", { timeout: 12000 });
+  await expect(page.getByText(text)).toBeVisible({ timeout: 5000 });
+}
+
 test.describe("Journal entry detail navigation", () => {
   test("clicking an entry card navigates to detail page", async ({ page }) => {
     await goToJournal(page);
-    // Wait for at least one entry to appear in the timeline
+    await postEntry(page, "Detail-nav seed " + Date.now());
     const firstEntry = page.locator('[data-testid="journal-entry"]').first();
     await expect(firstEntry).toBeVisible({ timeout: 10000 });
 
@@ -29,6 +44,7 @@ test.describe("Journal entry detail navigation", () => {
 
   test("detail page renders entry content", async ({ page }) => {
     await goToJournal(page);
+    await postEntry(page, "Detail-render seed " + Date.now());
     const firstEntry = page.locator('[data-testid="journal-entry"]').first();
     await expect(firstEntry).toBeVisible({ timeout: 10000 });
     // Capture the entry text before navigating
@@ -46,6 +62,7 @@ test.describe("Journal entry detail navigation", () => {
 
   test("browser back from detail returns to journal", async ({ page }) => {
     await goToJournal(page);
+    await postEntry(page, "Detail-back seed " + Date.now());
     const journalUrl = page.url();
 
     const firstEntry = page.locator('[data-testid="journal-entry"]').first();
@@ -64,6 +81,7 @@ test.describe("Journal entry detail navigation", () => {
     page,
   }) => {
     await goToJournal(page);
+    await postEntry(page, "Detail-inapp-back seed " + Date.now());
 
     const firstEntry = page.locator('[data-testid="journal-entry"]').first();
     await expect(firstEntry).toBeVisible({ timeout: 10000 });

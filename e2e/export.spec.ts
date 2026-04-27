@@ -19,12 +19,11 @@ function roleEmail(role: string) {
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
   await page.getByRole("tab", { name: "More" }).click();
-  // (TD-73) Wait for the More panel to render. Use the burnout check-in card
-  // title (a card-title <div>) rather than naked getByText("Symptoms") which
-  // matches help copy like "Any additional observations — symptoms, …" too.
-  await expect(
-    page.getByText("How are you doing this week?", { exact: true }),
-  ).toBeVisible({ timeout: 8000 });
+  // (TD-73) Wait for ?panel=more in the URL — that's the role-agnostic
+  // signal that the panel mounted. The burnout card title only shows for
+  // coordinators/caregivers; "Symptom readings" is also there for all
+  // roles but the heading uses a generic `<div>` and would need scoping.
+  await page.waitForURL(/[?&]panel=more/, { timeout: 8000 });
 }
 
 test.beforeEach(async () => {

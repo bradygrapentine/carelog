@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signIn, uniqueEmail } from "./helpers";
+import { signIn, ensureCareTeam, uniqueEmail } from "./helpers";
 
 test.describe("Education library", () => {
   test.beforeEach(async ({ page }) => {
@@ -44,7 +44,6 @@ test.describe("Education library", () => {
     // through the journal first so the tablist is mounted.
     const TEST_EMAIL = uniqueEmail("edu-nav");
     await signIn(page, TEST_EMAIL);
-    const { ensureCareTeam } = await import("./helpers");
     await ensureCareTeam(page);
     await page.click('text="View care journal"');
     await page.waitForURL(/\/journal\//, { timeout: 15_000 });
