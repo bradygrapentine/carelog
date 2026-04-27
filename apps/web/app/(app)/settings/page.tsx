@@ -654,6 +654,25 @@ export default function SettingsPage() {
         <AppearanceSection />
         <LanguageSection />
         <DangerZoneSection />
+        {/* History export — coordinator-only, rendered as a link card */}
+        <a
+          href="/settings/history-export"
+          className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-card px-5 py-4 shadow-sm hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
+          aria-label="Export full care history"
+        >
+          <div>
+            <p className="text-sm font-medium text-[var(--color-ink)]">
+              Export care history
+            </p>
+            <p className="text-xs text-[var(--color-muted)] mt-0.5">
+              Download a full PDF or JSON export of all care records
+              (coordinators only).
+            </p>
+          </div>
+          <span className="ml-4 text-[var(--color-muted)]" aria-hidden="true">
+            →
+          </span>
+        </a>
       </div>
     </div>
   );
