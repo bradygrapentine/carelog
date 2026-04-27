@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26** (PM — promoted ON-64/65/66/67 to §7 after pre-flight audit found code already shipped).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26 PM2** — promoted PP-014 (#210), UX-21 (#211), ON-68 (#212) to §7 after wave shipped.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 5 | TD-03 · PP-009 · PP-014 · UX-21 · ON-68 |
+| 🟢 Ready | 2 | TD-03 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 8 | §5 ON-55 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
@@ -115,7 +115,6 @@ From `docs/project-info/product/ROADMAP.md` Phases 3–5. Greenlit 2026-04-25 to
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| ON-68 | 🟢 Ready | **Document vault (Phase 5)** | Encrypted storage for HIPAA auth, POA, advance directive, insurance cards, medication list. Documents schema exists (`documents` table + RLS); needs vault-specific UI surface that aggregates by category, plus a "share with new aide" workflow that generates a time-limited signed URL. ~2.5 days. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
 
@@ -128,7 +127,6 @@ Source: external design prototype (CareSync Prototype.html) handed off as enhanc
 | UX-18 | ✅ Shipped · PR #127 | **Patterns strip in Journal** | Horizontal-scroll row of pastel cards above journal feed surfacing AI insights ("Eleanor more anxious on Tuesdays", "Sleep drops 90m after PT", "Mood highest when Priya visits"). v1 ships scaffold + 3 hardcoded mock patterns + tap-to-detail (`?filter=mood` query param). Real aggregation deferred to UX-24. New: `apps/web/components/journal/PatternsStrip.tsx` + test. Mounted at top of `JournalLayout` journal-destination block. 15 tests added. |
 | UX-19 | ✅ Shipped · PR #129 | **Shift Handoff: "What did I miss?" view** | TopBar "What did I miss?" button (mounted in `JournalLayout` — no standalone TopBar exists) opens modal with 5 sections: Meds, Moments, Appointments, Concerns, Thanks. 24h/48h/72h period selector. Pure summary builder in `lib/handoffSummary.ts` with 18 tests; component with 12 tests. Uses existing `careEvents.timeline` tRPC query, client-side window filter. v1 manual trigger; auto-detect on `last_seen` deferred. Schema dump found: `entry_type` enum = journal/medication/shift/appointment/symptom/task/expense/handoff. **Will conflict with UX-18 (#127) on `JournalLayout.tsx` — trivial additive resolve.** |
 | UX-20 | ✅ Shipped · PR #130 | **Print-friendly visit summary** | Dashboard "Generate visit summary" button → authenticated `/visit-summary` route (no token; caregiver prints, doesn't share). 6-section printable layout: patient info (PHI from `identity_vault` per P4-03 pattern), meds + adherence %, vitals SVG sparklines, symptoms, journal highlights, blank questions textarea. Uses `window.print()` — no `@react-pdf/renderer` needed. `lib/medAdherence.ts` pure helper with 14 tests; component with 18 tests. **Will conflict with UX-19 button placement if we add a Visit Summary button to TopBar later — but currently mounted on Dashboard, so no overlap with #129.** |
-| UX-21 | 🟢 Ready | **Daily Brief: full-page editorial view** | Magazine-style article (`max-w-[720px]`) with Fraunces 48 headline ("A good morning for Eleanor"), mono dateline, 5-8 AI-generated paragraphs referencing care entries inline, doctor-friendly bullet section at bottom, "Email family" + "Print for visit" actions. Re-uses existing brief generation pipeline. Refactor of `apps/web/app/brief/[token]/page.tsx`. Depends on UX-16. ~1 day. |
 
 Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
 
@@ -160,7 +158,6 @@ Full table + stories: `docs/project-info/product/PLATFORM_PARITY.md`. Active ite
 | PP-010 | P2 | Android: document-share intent verification | ✅ Shipped · 2026-04-17 — 17 unit tests cover Android `Alert.alert` picker path; fixed stale empty-state assertion |
 | PP-011 | P2 | Offline behavior spec + write-queue for journal entries | ✅ Shipped · PR #88 |
 | PP-012 | P3 | Consolidate URL scheme (`yourcarelog://` ↔ brand `carelog`) | ⏳ |
-| PP-014 | 🟢 Ready | **Mobile subscription page: wire tRPC** | `apps/mobile/app/(app)/subscription/index.tsx` uses hardcoded REST fetch. Blocking dep (TD-22) cleared — `trpc.billing.getSubscription` now exists. Mobile wiring is ~1 hr. |
 | PP-013 | 🧊 P3 | Wear OS companion | Parked for v2 |
 
 ---
@@ -261,6 +258,9 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **ON-65** Medication refill alerts — Inngest nightly function `apps/web/inngest/functions/refillAlert.ts` shipped; idempotent per medication × week.
 ✅ **ON-66** Symptom tracker — `server/routers/symptoms.ts` (+ logic + security tests) reads/writes `symptom_readings` table (chose dedicated table over `care_events` enum extension); web `journal/[recipientId]/SymptomPanel.tsx`; mobile `app/(app)/symptoms/{index,log}.tsx` + a11y test.
 ✅ **ON-67** Burnout tracker (the differentiator) — `server/routers/burnout.ts` + logic/security tests; weekly Inngest `inngest/functions/burnoutAlert.ts`; check-in submit polish via TD-69 (PR #201).
+✅ **PP-014** Mobile subscription page on tRPC — `trpc.billing.getSubscription.useQuery()` replaces hand-rolled REST fetch in `apps/mobile/app/(app)/subscription/index.tsx`; resolves the placeholder TODO from TD-22 (PR #210).
+✅ **UX-21** Daily Brief magazine view — extracted `BriefEditorial.tsx` from `app/brief/[shareToken]/page.tsx`; `max-w-[720px]` article with `.headline-display` Fraunces 48 + `.eyebrow-mono` dateline + 5–8 body paragraphs sourced from `recent_entries` + doctor-bullet section + Email family / Print for visit actions; re-uses brief snapshot, no API change (PR #211).
+✅ **ON-68** Document share-with-aide signed-URL workflow — `documents.createShareLink` mutation (coordinator-only, 1–168 hour expiry) wraps Supabase Storage `createSignedUrl`; per-row Share button + inline hours-selector + Copy link panel in `DocumentVault.tsx`; no schema change (PR #212).
 ✅ **Skills** `/live-test` skill — interactive flow investigation + E2E runbook (PR #188); hot-reload + capture-replay + screenshot modes (PR #195)
 ✅ **CI infra** Mergify `batch_max_wait_time` 5 min → 150 s for faster queue cycles (PR #184)
 
