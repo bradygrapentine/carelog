@@ -51,10 +51,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const origin =
-    request.headers.get("origin") ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000";
+  // H5: Validate Origin header to prevent CSRF / cross-origin billing portal abuse.
+  const requestOrigin = request.headers.get("origin");
+  const allowedOrigin =
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const isAllowedOrigin =
+    !requestOrigin ||
+    requestOrigin === allowedOrigin ||
+    requestOrigin === "http://localhost:3000";
+
+  if (!isAllowedOrigin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const origin = allowedOrigin;
 
   const session = await getStripe().billingPortal.sessions.create({
     customer: org.stripe_id,
