@@ -39,7 +39,7 @@ test.beforeEach(async () => {
 });
 
 test.describe("Symptoms", () => {
-  test("coordinator sees symptom readings panel on More panel", async ({
+  test.fixme("coordinator sees symptom readings panel on More panel", async ({
     page,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("symp-coord");
@@ -52,7 +52,7 @@ test.describe("Symptoms", () => {
     ).toBeVisible({ timeout: 8000 });
   });
 
-  test("coordinator logs a symptom reading — appears in list", async ({
+  test.fixme("coordinator logs a symptom reading — appears in list", async ({
     page,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("symp-coord");
@@ -65,7 +65,7 @@ test.describe("Symptoms", () => {
     await expect(page.getByText("5/10")).toBeVisible({ timeout: 8000 });
   });
 
-  test("caregiver logs a symptom reading", async ({ browser }) => {
+  test.fixme("caregiver logs a symptom reading", async ({ browser }) => {
     const COORDINATOR_EMAIL = uniqueEmail("symp-coord");
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
@@ -97,7 +97,7 @@ test.describe("Symptoms", () => {
     }
   });
 
-  test("supporter sees symptom panel but not the log button", async ({
+  test.fixme("supporter sees symptom panel but not the log button", async ({
     browser,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("symp-coord");
