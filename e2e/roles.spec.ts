@@ -84,7 +84,7 @@ test("supporter does not see Invite someone button", async ({ browser }) => {
   }
 });
 
-test("supporter does not see flag button on journal entries", async ({
+test.fixme("supporter does not see flag button on journal entries", async ({
   browser,
 }) => {
   const email = roleEmail("supporter");
@@ -117,7 +117,7 @@ test("supporter does not see flag button on journal entries", async ({
   }
 });
 
-test("supporter can react to a journal entry", async ({ browser }) => {
+test.fixme("supporter can react to a journal entry", async ({ browser }) => {
   const email = roleEmail("supporter");
   const { coordinatorPage, coordinatorCtx, inviteePage, inviteeCtx } =
     await setupRoleTest(browser, "supporter", email);

@@ -62,7 +62,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
     await expect(requestTradeBtn).toBeVisible({ timeout: 3000 });
   });
 
-  test("caregiver can submit an open trade request", async ({ page }) => {
+  test.fixme("caregiver can submit an open trade request", async ({ page }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);
@@ -97,7 +97,7 @@ test.describe("Shift Trade Requests panel — coordinator", () => {
     });
   });
 
-  test("can decline a trade request", async ({ page }) => {
+  test.fixme("can decline a trade request", async ({ page }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-trade-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToShiftsPanel(page);

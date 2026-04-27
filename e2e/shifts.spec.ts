@@ -6,7 +6,9 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
+  acceptInviteAsNewUser,
+  uniqueEmail,
+} from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-shift-" + role + "-" + Date.now() + "@test.com";
@@ -34,9 +36,12 @@ test.describe("Shifts panel — coordinator", () => {
     await goToShiftsPanel(page);
 
     // The ShiftForm renders a card with "Schedule a shift" as the CardTitle.
-    await expect(page.getByText("Schedule a shift")).toBeVisible({
-      timeout: 8000,
-    });
+    // Scope to card-title to avoid strict-mode collision with helper copy.
+    await expect(
+      page.locator('[data-slot="card-title"]', {
+        hasText: "Schedule a shift",
+      }),
+    ).toBeVisible({ timeout: 8000 });
 
     // On mobile the form is collapsed behind a "+ New shift" toggle.
     // Click it to expand and reveal the submit button.
