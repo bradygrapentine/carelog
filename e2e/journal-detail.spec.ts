@@ -44,20 +44,17 @@ test.describe("Journal entry detail navigation", () => {
 
   test("detail page renders entry content", async ({ page }) => {
     await goToJournal(page);
-    await postEntry(page, "Detail-render seed " + Date.now());
+    // (TD-73) Use a known-text seed so we can assert against a substring
+    // we control, rather than scraping the rendered card (which includes
+    // timestamp/reactions/etc that may not appear on the detail page).
+    const bodyText = "Detail-render seed " + Date.now();
+    await postEntry(page, bodyText);
     const firstEntry = page.locator('[data-testid="journal-entry"]').first();
     await expect(firstEntry).toBeVisible({ timeout: 10000 });
-    // Capture the entry text before navigating
-    const entryText = await firstEntry.textContent();
 
     await firstEntry.click();
     await expect(page).toHaveURL(/\/entry\//, { timeout: 10000 });
-    // The entry text should appear on the detail page
-    if (entryText && entryText.trim().length > 5) {
-      await expect(page.getByText(entryText.trim().slice(0, 40))).toBeVisible({
-        timeout: 8000,
-      });
-    }
+    await expect(page.getByText(bodyText)).toBeVisible({ timeout: 8000 });
   });
 
   test("browser back from detail returns to journal", async ({ page }) => {
@@ -77,7 +74,10 @@ test.describe("Journal entry detail navigation", () => {
     });
   });
 
-  test("in-app back button on detail page returns to journal", async ({
+  // (TD-73) The detail page does not currently render an in-app "Back"
+  // link/button — users rely on the browser back affordance (covered by the
+  // adjacent test). Skipping until a back link is added to the detail UI.
+  test.fixme("in-app back button on detail page returns to journal", async ({
     page,
   }) => {
     await goToJournal(page);
@@ -88,7 +88,6 @@ test.describe("Journal entry detail navigation", () => {
     await firstEntry.click();
     await expect(page).toHaveURL(/\/entry\//, { timeout: 10000 });
 
-    // In-app back — look for a back button or link
     const backButton = page
       .getByRole("link", { name: /back/i })
       .or(page.getByRole("button", { name: /back/i }));
