@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
-
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 test.describe("Outer Circle coordinator creation", () => {
   test.beforeEach(async () => {
@@ -89,9 +93,11 @@ test.describe("Outer Circle volunteer page", () => {
 
     await page.goto("/care/valid-tok");
     await expect(page.getByText("Grocery run")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Claim a slot")).toBeVisible({
-      timeout: 10000,
-    });
+    // (TD-73) "Claim a slot" appears as both a section heading and the
+    // submit button — scope to the button.
+    await expect(
+      page.getByRole("button", { name: "Claim a slot" }),
+    ).toBeVisible({ timeout: 10000 });
     await expect(page.getByLabel("Your name")).toBeVisible({ timeout: 10000 });
   });
 

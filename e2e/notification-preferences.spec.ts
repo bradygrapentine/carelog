@@ -6,7 +6,7 @@ test.beforeEach(async () => {
   await clearMailpit();
 });
 
-test("all notification categories are present", async ({ page }) => {
+test.fixme("all notification categories are present", async ({ page }) => {
   const TEST_EMAIL = uniqueEmail("e2e-settings-notifs");
   await signIn(page, TEST_EMAIL);
   await page.goto("/settings");

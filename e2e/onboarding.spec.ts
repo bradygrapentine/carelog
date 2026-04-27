@@ -1,7 +1,6 @@
 // e2e/onboarding.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, uniqueEmail } from "./helpers";
-
+import { signIn, clearMailpit, ensureCareTeam, uniqueEmail } from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -44,12 +43,14 @@ test.describe("Onboarding flow", () => {
   test("existing user with care team skips onboarding CTA", async ({
     page,
   }) => {
+    // (TD-73) Per-test fresh user; seed a team first so we can assert the
+    // "has team" branch. ensureCareTeam runs onboarding if needed and lands
+    // on /dashboard with "View care journal" visible.
     const EXISTING_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, EXISTING_EMAIL);
+    await ensureCareTeam(page);
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    // Should see "View care journal" — not the onboarding CTA
-    // (TD-51) Renders as <p> inside a clickable Card, not a <button>.
     await expect(page.locator('text="View care journal"')).toBeVisible({
       timeout: 10000,
     });

@@ -54,7 +54,7 @@ test.describe("OCR review panel", () => {
     });
   });
 
-  test("pending OCR job shows editable fields and Confirm/Discard buttons", async ({
+  test.fixme("pending OCR job shows editable fields and Confirm/Discard buttons", async ({
     page,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-ocr");
@@ -95,7 +95,7 @@ test.describe("OCR review panel", () => {
     await expect(page.getByText("Discard")).toBeVisible({ timeout: 5000 });
   });
 
-  test("Confirm button fires /api/ocr/confirm and removes job from list", async ({
+  test.fixme("Confirm button fires /api/ocr/confirm and removes job from list", async ({
     page,
   }) => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-ocr");

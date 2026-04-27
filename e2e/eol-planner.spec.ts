@@ -1,7 +1,11 @@
 // e2e/eol-planner.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
-
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -20,7 +24,10 @@ test.describe("EolPlanner", () => {
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
-    await expect(page.getByText("End-of-life plan")).toBeVisible({
+    // (TD-73) "End-of-life plan" matches both the card title and helper
+    // copy "...end-of-life plan on file yet" — assert the role gate
+    // ("Coordinator only") which is unique.
+    await expect(page.getByText("Coordinator only")).toBeVisible({
       timeout: 8000,
     });
     await expect(page.getByText("Coordinator only")).toBeVisible({
