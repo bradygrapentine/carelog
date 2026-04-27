@@ -1,3 +1,10 @@
+/* eslint-disable react-hooks/error-boundaries --
+ * This file uses JSX as the @react-pdf/renderer DSL (synchronous PDF
+ * generation), not React component instantiation. The rule's premise —
+ * "React doesn't render immediately so try/catch won't catch errors" —
+ * does not apply: renderToBuffer awaits synchronously and any thrown
+ * errors are caught by the surrounding try/catch.
+ */
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";

@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Printer } from "lucide-react";
+import { Printer, ChevronRight } from "lucide-react";
 import { BriefHero } from "@/components/dashboard/BriefHero";
 import { MedCard } from "@/components/dashboard/MedCard";
 import { MoodCard } from "@/components/dashboard/MoodCard";
@@ -79,8 +80,8 @@ function ReferralCard({ org, userId }: ReferralCardProps) {
       </CardHeader>
       <CardContent className="pt-4 pb-4 px-4">
         <p className="text-sm text-muted-foreground mb-4">
-          Know another family who could use coordination support? Share
-          CareSync with them.
+          Know another family who could use coordination support? Share CareSync
+          with them.
         </p>
         <button
           type="button"
@@ -295,62 +296,54 @@ export function DashboardClient({ user }: Props) {
               <p className="text-muted-foreground text-sm mb-6">
                 You do not have any care teams yet. Set one up to get started.
               </p>
-              <a
+              <Link
                 href="/onboarding"
-                className="inline-block px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                className="inline-block px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
               >
                 Set up a care team
-              </a>
+              </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {teams.map((team) => (
-              <Card
+              <Link
                 key={team.org.id}
-                className="cursor-pointer hover:border-border/80 transition-colors"
-                onClick={() => {
-                  router.push("/journal/" + team.recipientId);
-                }}
+                href={"/journal/" + team.recipientId}
+                aria-label={`Open care journal for ${team.org.name}`}
+                className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
               >
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <h2 className="text-base font-semibold text-foreground truncate">
-                        {team.org.name}
-                      </h2>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        View care journal
-                      </p>
-                      {team.eventCount > 0 && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {formatCareStats(team.eventCount, team.months)}
+                <Card className="cursor-pointer hover:border-border/80 transition-colors">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <h2 className="text-base font-semibold text-foreground truncate">
+                          {team.org.name}
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          View care journal
                         </p>
-                      )}
-                    </div>
-                    <svg
-                      className="w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
+                        {team.eventCount > 0 && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {formatCareStats(team.eventCount, team.months)}
+                          </p>
+                        )}
+                      </div>
+                      <ChevronRight
+                        className="w-5 h-5 text-muted-foreground shrink-0"
+                        aria-hidden="true"
                       />
-                    </svg>
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-            <a
+            <Link
               href="/onboarding"
-              className="block text-center text-sm text-muted-foreground hover:text-foreground/80 py-2"
+              className="block text-center text-sm text-muted-foreground hover:text-foreground/80 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
             >
               Add another care team
-            </a>
+            </Link>
             {isCoordinator && firstOrg !== null && (
               <ReferralCard org={firstOrg} userId={user.id} />
             )}
