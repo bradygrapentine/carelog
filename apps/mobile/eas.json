@@ -22,12 +22,18 @@
       }
     },
     "production": {
+      "distribution": "store",
       "channel": "production",
       "autoIncrement": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
       "ios": {
+        "image": "latest",
         "resourceClass": "m-medium"
       },
       "android": {
+        "image": "latest",
         "googleServicesFile": "./google-services.json"
       }
     }
