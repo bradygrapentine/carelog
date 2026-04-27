@@ -581,4 +581,5 @@ Items that **block** Claude-executable stories in `BACKLOG.md`:
 | `google-services.json` in EAS | `PP-007` — Android push notification verification |
 | APNs `.p8` key in EAS | iOS production push builds |
 | `SENTRY_AUTH_TOKEN` in Vercel | `TD-03` — source maps upload on each production build |
+| `HEALTH_CRONS_TOKEN` in Vercel | Required to call `GET /api/health/crons` — pass as `Authorization` header; generate with `openssl rand -hex 32` |
 | GitHub Actions billing healthy | Every CI job (see `CI_HEALTH.md`) |
