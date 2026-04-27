@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-outer-circle@test.com";
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 test.describe("Outer Circle coordinator creation", () => {
   test.beforeEach(async () => {
@@ -11,6 +14,7 @@ test.describe("Outer Circle coordinator creation", () => {
   test("coordinator sees Volunteer requests panel under Team destination", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-outer-circle");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.getByRole("tab", { name: "Team" }).click();
@@ -25,6 +29,7 @@ test.describe("Outer Circle coordinator creation", () => {
   test("coordinator opens request form and fills Title field", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-outer-circle");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.getByRole("tab", { name: "Team" }).click();
@@ -88,9 +93,11 @@ test.describe("Outer Circle volunteer page", () => {
 
     await page.goto("/care/valid-tok");
     await expect(page.getByText("Grocery run")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Claim a slot")).toBeVisible({
-      timeout: 10000,
-    });
+    // (TD-73) "Claim a slot" appears as both a section heading and the
+    // submit button — scope to the button.
+    await expect(
+      page.getByRole("button", { name: "Claim a slot" }),
+    ).toBeVisible({ timeout: 10000 });
     await expect(page.getByLabel("Your name")).toBeVisible({ timeout: 10000 });
   });
 

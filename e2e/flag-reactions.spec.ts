@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const TEST_EMAIL = "e2e-flag-reactions@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -18,6 +17,7 @@ async function writeEntry(page: any, text: string) {
 }
 
 test("can flag an entry for doctor", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-flag-reactions");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
@@ -39,6 +39,7 @@ test("can flag an entry for doctor", async ({ page }) => {
 });
 
 test("can add a heart reaction to an entry", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("e2e-flag-reactions");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 

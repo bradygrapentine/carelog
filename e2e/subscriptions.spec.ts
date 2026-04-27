@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-subscriptions@test.com";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -15,6 +14,7 @@ test.describe("Subscriptions page", () => {
   });
 
   test("shows Subscription heading", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-subscriptions");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/subscriptions");
@@ -24,6 +24,7 @@ test.describe("Subscriptions page", () => {
   });
 
   test("shows Family Plan with $14 price", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-subscriptions");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/subscriptions");
@@ -32,6 +33,7 @@ test.describe("Subscriptions page", () => {
   });
 
   test("shows no billing history message", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("e2e-subscriptions");
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/subscriptions");

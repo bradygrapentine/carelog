@@ -157,7 +157,7 @@ function JournalCard({
   const detailUrl = "/journal/" + recipientId + "/entry/" + event.id;
 
   return (
-    <div>
+    <div data-testid="journal-entry-row">
       <Card
         data-testid="journal-entry"
         className="cursor-pointer hover:shadow-md transition-shadow"

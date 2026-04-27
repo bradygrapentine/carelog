@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { signIn, ensureCareTeam } from "./helpers";
-
-const TEST_EMAIL = "e2e-test@example.com";
+import { signIn, ensureCareTeam, uniqueEmail } from "./helpers";
 
 test.describe("AI Assistant", () => {
   test.beforeEach(async ({ page }) => {
+    const TEST_EMAIL = uniqueEmail("ai");
     await signIn(page, TEST_EMAIL);
     // The AIAssistantProvider in (app)/layout only mounts when orgId is non-null,
     // so the FAB requires an active care team. Idempotent — fast no-op if already set up.

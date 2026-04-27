@@ -17,7 +17,11 @@ test.describe("Marketing pages", () => {
       page.getByText("Simple pricing for the whole family"),
     ).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("$14")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Family Plan")).toBeVisible({ timeout: 10000 });
+    // (TD-73) "Family Plan" appears as both heading and body copy ("One
+    // family plan covers…") — scope to the heading.
+    await expect(
+      page.getByRole("heading", { name: "Family Plan" }),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("about page loads with content", async ({ page }) => {

@@ -35,8 +35,13 @@ test.describe("Care Brief public page", () => {
       });
     });
     await page.goto("/brief/invalid-tok");
+    // TD-71: empty state was rebranded to "This care brief link has expired
+    // or been revoked." Match either the new copy or the legacy phrasings so
+    // a future copy tweak doesn't tank the suite again.
     await expect(
-      page.getByText(/no longer available|Unable to load/i),
+      page.getByText(
+        /expired or been revoked|no longer available|Unable to load/i,
+      ),
     ).toBeVisible({ timeout: 10000 });
   });
 

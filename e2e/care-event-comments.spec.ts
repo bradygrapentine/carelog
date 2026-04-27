@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal } from "./helpers";
-
-const TEST_EMAIL = "e2e-comments@test.com";
+import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -31,21 +29,25 @@ async function openCommentThread(page: any, entryText: string) {
 test("comment toggle shows 'Add a comment' when there are no comments", async ({
   page,
 }) => {
+  const TEST_EMAIL = uniqueEmail("comments");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
   const entryText = "Comment toggle test " + Date.now();
   await writeEntry(page, entryText);
 
-  const entryCard = page.locator('[data-testid="journal-entry"]', {
+  // The journal-entry Card and the CommentThread are siblings inside a
+  // wrapper `[data-testid="journal-entry-row"]`, so locate the row first.
+  const entryRow = page.locator('[data-testid="journal-entry-row"]', {
     hasText: entryText,
   });
-  const toggle = entryCard.locator('[data-testid="comment-toggle"]');
+  const toggle = entryRow.locator('[data-testid="comment-toggle"]');
   await expect(toggle).toBeVisible();
   await expect(toggle).toContainText("Add a comment");
 });
 
 test.fixme("can expand comment thread and post a comment", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("comments");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
@@ -69,6 +71,7 @@ test.fixme("can expand comment thread and post a comment", async ({ page }) => {
 });
 
 test.fixme("can edit own comment", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("comments");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
@@ -101,6 +104,7 @@ test.fixme("can edit own comment", async ({ page }) => {
 });
 
 test.fixme("can delete own comment", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("comments");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 
@@ -129,6 +133,7 @@ test.fixme("can delete own comment", async ({ page }) => {
 });
 
 test.fixme("collapsing thread hides comments", async ({ page }) => {
+  const TEST_EMAIL = uniqueEmail("comments");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
 

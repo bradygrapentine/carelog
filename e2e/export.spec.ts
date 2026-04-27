@@ -8,9 +8,8 @@ import {
   navigateToJournal,
   sendInviteAndGetUrl,
   acceptInviteAsNewUser,
+  uniqueEmail,
 } from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-export@test.com";
 
 function roleEmail(role: string) {
   return "e2e-exp-" + role + "-" + Date.now() + "@test.com";
@@ -20,14 +19,11 @@ function roleEmail(role: string) {
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
   await page.getByRole("tab", { name: "More" }).click();
-  // Wait for the More panel to render — SymptomPanel always appears for all roles.
-  await expect(
-    page
-      .getByText("Symptoms")
-      .or(page.getByText("How are you doing this week?")),
-  ).toBeVisible({
-    timeout: 8000,
-  });
+  // (TD-73) Wait for ?panel=more in the URL — that's the role-agnostic
+  // signal that the panel mounted. The burnout card title only shows for
+  // coordinators/caregivers; "Symptom readings" is also there for all
+  // roles but the heading uses a generic `<div>` and would need scoping.
+  await page.waitForURL(/[?&]panel=more/, { timeout: 8000 });
 }
 
 test.beforeEach(async () => {
@@ -38,6 +34,7 @@ test.describe("Export button — coordinator", () => {
   test("coordinator sees ExportButton card with 'Export full history' heading", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("export-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -52,6 +49,7 @@ test.describe("Export button — coordinator", () => {
   test("coordinator can trigger export — mocked /api/export returns fake blob", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("export-coord");
     // Intercept the export API before navigating so the route is registered early.
     await page.route("**/api/export", (route) => {
       route.fulfill({
@@ -83,6 +81,7 @@ test.describe("Export button — coordinator", () => {
   test("export error message shown when API returns non-OK", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("export-coord");
     await page.route("**/api/export", (route) => {
       route.fulfill({ status: 500, body: "Internal Server Error" });
     });
@@ -104,6 +103,7 @@ test.describe("Export button — coordinator", () => {
 
 test.describe("Export button — role gate", () => {
   test("supporter does not see ExportButton", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("export-coord");
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -139,6 +139,7 @@ test.describe("Export button — role gate", () => {
   });
 
   test("caregiver does not see ExportButton", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("export-coord");
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();

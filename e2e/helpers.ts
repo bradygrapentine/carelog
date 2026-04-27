@@ -53,34 +53,45 @@ export async function getOtpFromMailpit(
 
 // SignIn flow: enter email → wait for OTP email → enter code → wait for /dashboard.
 //
+// (TD-73) Supabase enforces a hardcoded ~60s send-rate-limit per email
+// address, regardless of `auth.email.max_frequency` and
+// `auth.rate_limit.email_sent`. Tests that share an email across multiple
+// signIn() calls (mid-suite) intermittently fail with "For security
+// purposes, you can only request this after N seconds." The fix is at the
+// callsite: pass a UNIQUE email per signIn() call. Use the
+// `uniqueEmail("role-or-purpose")` helper exported below.
+//
 // Selector hardening (TD-39): the signin page has THREE elements containing
 // the substring "Sign in" — heading "Sign in to CareSync", form button "Sign in",
 // and MarketingNav link. `text=Sign in` matched ambiguously and could click the
 // wrong element, leaving the form unsubmitted and waitForURL spinning until
 // timeout. Use explicit role + exact name + form scoping instead.
 export async function signIn(page: Page, email: string): Promise<void> {
-  // Clear any existing auth cookies so a second signIn() call in the same
-  // test file doesn't get redirected away from /signin by an active session.
-  // (TD-53: second signIn() timed out waiting for "Check your email" because
-  //  the browser context preserved cookies from the first signIn() run.)
   await page.context().clearCookies();
   await clearMailpit();
   await page.goto("/signin");
 
-  // Email step — exact button name to avoid the "Sending code..." disabled state.
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: /^Continue with email$/ }).click();
-  await page.getByText("Check your email", { exact: false }).waitFor();
+  await page
+    .getByText("Check your email", { exact: false })
+    .waitFor({ timeout: 30_000 });
 
-  // OTP step.
   const otp = await getOtpFromMailpit(email);
   await page.getByPlaceholder("123456").fill(otp);
 
   await Promise.all([
     page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
-    // Scope the click to a button (not the heading or MarketingNav link).
     page.getByRole("button", { name: /^Sign in$/ }).click(),
   ]);
+}
+
+// Generate a Supabase-rate-limit-safe email. Tests should call this once per
+// test (or once per `signIn()` callsite) so each OTP request hits a fresh
+// per-email cooldown bucket. Pattern: `uniqueEmail("burn-coord")` →
+// `e2e-burn-coord-1777244000123@test.com`.
+export function uniqueEmail(purpose: string): string {
+  return `e2e-${purpose}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@test.com`;
 }
 
 // Ensure the signed-in user has a care team / org membership. The (app)/layout
@@ -125,26 +136,50 @@ export async function navigateToJournal(page: Page): Promise<void> {
   await page.waitForURL(/\/journal\//);
 }
 
-// Send an invite from the journal page and return the invite URL from the alert.
-// The waitForEvent must be registered before the click that triggers the dialog.
+// Send an invite from the Team panel and return the invite URL.
+//
+// (TD-73) Two layered breakages — both fixed here:
+//   1. Panels under /journal/[id] render lazily based on `?panel=`. The
+//      invite form lives on the Team panel only; calling this helper from
+//      any other panel found nothing and hung forever. Switch to Team first.
+//   2. PR #94 replaced the legacy `window.alert(inviteUrl)` with
+//      `navigator.clipboard.writeText(inviteUrl) + toast.success(...)`.
+//      The previous helper waited on `page.waitForEvent("dialog")` which
+//      never fires anymore — read the response body instead.
+//
+// On desktop (≥ lg) the invite form is always shown via `lg:block`. Tests
+// run at the 1280×720 desktop viewport so we skip the mobile-only branch
+// where "Invite someone" is a toggle button.
 export async function sendInviteAndGetUrl(
   page: Page,
   email: string,
   role: string,
 ): Promise<string> {
-  await page.click("text=Invite someone");
-  await page.fill("[type=email]", email);
-  await page.selectOption("select", role);
+  // Switch to the Team panel — clicking the desktop tablist tab is enough;
+  // SidebarContext writes ?panel=team into the URL and re-renders the layout.
+  await page.getByRole("tab", { name: "Team" }).first().click();
+  await page.getByLabel("Email address").waitFor({ state: "visible" });
 
-  const dialogPromise = page.waitForEvent("dialog");
-  await page.click("text=Send invite");
-  const dialog = await dialogPromise;
-  const match = dialog.message().match(/http[^\s]+/);
-  await dialog.accept();
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Role").selectOption(role);
 
-  if (!match)
-    throw new Error("No URL found in invite dialog: " + dialog.message());
-  return match[0];
+  // Capture the /api/invite response — that's where the inviteUrl lives now.
+  const responsePromise = page.waitForResponse(
+    (r) => r.url().endsWith("/api/invite") && r.request().method() === "POST",
+    { timeout: 15_000 },
+  );
+  await page.getByRole("button", { name: "Send invite" }).click();
+  const response = await responsePromise;
+  const data = (await response.json()) as {
+    inviteUrl?: string;
+    error?: string;
+  };
+  if (!data.inviteUrl) {
+    throw new Error(
+      "No inviteUrl in /api/invite response: " + JSON.stringify(data),
+    );
+  }
+  return data.inviteUrl;
 }
 
 // Accept a pending invite as a new user. The invitee must not already be signed in.

@@ -1,6 +1,6 @@
 // e2e/dashboard-nav.spec.ts
 import { test, expect } from "@playwright/test";
-import { checkA11y } from "./helpers";
+import { signIn, ensureCareTeam, checkA11y, uniqueEmail } from "./helpers";
 
 test.describe("Dashboard and sign-out navigation", () => {
   // (TD-61) Test calls page.goto("/dashboard") without signIn() first —
@@ -36,11 +36,12 @@ test.describe("Dashboard and sign-out navigation", () => {
   test("Journal tab button navigates back to dashboard from journal", async ({
     page,
   }) => {
+    const NAV_EMAIL = uniqueEmail("nav");
+    // (TD-73) Tests on /dashboard need a session — sign in first or the
+    // page redirects to /signin and the rest of the flow can't run.
+    await signIn(page, NAV_EMAIL);
+    await ensureCareTeam(page);
     // Navigate to journal first
-    await page.goto("/dashboard");
-    await page.waitForSelector('text="View care journal"', {
-      timeout: 15000,
-    });
     await page.click('text="View care journal"');
     await expect(page).toHaveURL(/\/journal\//, { timeout: 15000 });
 
@@ -64,12 +65,16 @@ test.describe("Dashboard and sign-out navigation", () => {
   });
 
   test("sign-out redirects to /signin", async ({ page }) => {
-    await page.goto("/dashboard");
-    await page.waitForSelector('button[aria-label="Sign out"]', {
-      timeout: 15000,
-    });
-    await page.click('button[aria-label="Sign out"]');
-    await expect(page).toHaveURL(/\/signin/, { timeout: 10000 });
+    const NAV_EMAIL = uniqueEmail("nav");
+    // (TD-73) Sign in first; otherwise /dashboard redirects to /signin and
+    // there's no Sign-out button to click. Also: TD-65 wrapped sign-out in
+    // a window.confirm — auto-accept it.
+    await signIn(page, NAV_EMAIL);
+    page.once("dialog", (dialog) => dialog.accept());
+    await Promise.all([
+      page.waitForURL(/\/signin/, { timeout: 15_000 }),
+      page.getByRole("button", { name: "Sign out" }).first().click(),
+    ]);
     await expect(page.getByPlaceholder("you@example.com")).toBeVisible();
   });
 

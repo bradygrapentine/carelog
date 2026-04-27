@@ -7,9 +7,9 @@ import {
   navigateToJournal,
   sendInviteAndGetUrl,
   acceptInviteAsNewUser,
+  uniqueEmail,
 } from "./helpers";
 
-const COORDINATOR_EMAIL = "e2e-documents@test.com";
 // Minimal valid PDF checked in at e2e/setup/test.pdf
 const TEST_PDF = path.join(__dirname, "setup", "test.pdf");
 
@@ -23,13 +23,17 @@ function roleEmail(role: string) {
 async function goToDocumentVault(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
   await page.getByRole("tab", { name: "Documents" }).click();
-  // The vault is a collapsible section — expand it
-  await page.getByRole("button", { name: /document vault/i }).click();
-  await expect(
-    page.getByText(/No documents uploaded yet\.|Loading\.\.\./),
-  ).toBeVisible({
-    timeout: 8000,
-  });
+  // (TD-73) Document vault is no longer a collapsible. Wait on whichever
+  // post-mount signal is present: coordinators see the upload form's
+  // displayName input; caregivers/supporters see the Documents page heading.
+  await Promise.race([
+    page
+      .locator('input[name="displayName"]')
+      .waitFor({ state: "visible", timeout: 8000 }),
+    page
+      .getByRole("heading", { name: /Documents$/i })
+      .waitFor({ state: "visible", timeout: 8000 }),
+  ]);
 }
 
 /**
@@ -53,12 +57,14 @@ test.beforeEach(async () => {
 
 test.describe("Documents vault", () => {
   test("coordinator uploads a PDF — appears in the vault", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("doc-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToDocumentVault(page);
     await uploadTestPdf(page);
   });
 
   test("caregiver sees uploaded document in the vault", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("doc-coord");
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -92,6 +98,7 @@ test.describe("Documents vault", () => {
   test("supporter sees uploaded document but no upload form", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("doc-coord");
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -128,6 +135,7 @@ test.describe("Documents vault", () => {
     page,
     request,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("doc-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToDocumentVault(page);
     await uploadTestPdf(page, "E2E Download Test");
@@ -152,6 +160,7 @@ test.describe("Documents vault", () => {
   test("coordinator deletes a document — removed from vault", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("doc-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToDocumentVault(page);
     await uploadTestPdf(page, "E2E Delete Test");

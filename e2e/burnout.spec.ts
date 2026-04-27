@@ -5,10 +5,7 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser,
-} from "./helpers";
-
-const COORDINATOR_EMAIL = "e2e-burnout@test.com";
+  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-burn-" + role + "-" + Date.now() + "@test.com";
@@ -37,6 +34,7 @@ test.beforeEach(async () => {
 
 test.describe("Burnout org summary privacy", () => {
   test("coordinator sees 'Team wellbeing' panel", async ({ page }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
     await expect(page.getByText("Team wellbeing")).toBeVisible({
@@ -47,6 +45,7 @@ test.describe("Burnout org summary privacy", () => {
   test("suppression copy shown when fewer than 3 check-ins exist", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
     // min-group suppression: body explains individual scores are never shown
@@ -60,6 +59,7 @@ test.describe("Burnout check-in", () => {
   test("coordinator sees burnout check-in form on More panel", async ({
     page,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
@@ -72,6 +72,10 @@ test.describe("Burnout check-in", () => {
   });
 
   test("caregiver completes a burnout check-in", async ({ browser }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
+    // 2 OTP roundtrips (coordinator + caregiver) + multi-context navigation
+    // budget; CI's slow runner needs >60s. (TD-73)
+    test.setTimeout(180_000);
     const email = roleEmail("caregiver");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -93,9 +97,9 @@ test.describe("Burnout check-in", () => {
         await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
         // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
-        await expect(
-          caregiverPage.getByText("View care journal"),
-        ).toBeVisible({ timeout: 10000 });
+        await expect(caregiverPage.getByText("View care journal")).toBeVisible({
+          timeout: 10000,
+        });
 
         await goToMorePanel(caregiverPage);
 
@@ -106,9 +110,13 @@ test.describe("Burnout check-in", () => {
 
         await submitBurnoutCheckIn(caregiverPage);
 
-        await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
-          timeout: 8000,
-        });
+        // TD-69 added BOTH a sonner toast AND an inline status paragraph
+        // saying "Check-in saved." — naked getByText hits both and triggers
+        // strict mode. Scope to the inline status (role=status); the toast
+        // auto-dismisses, the inline copy persists for the assertion window.
+        await expect(
+          caregiverPage.getByRole("status").getByText("Check-in saved."),
+        ).toBeVisible({ timeout: 8000 });
       } finally {
         await caregiverCtx.close();
       }
@@ -120,6 +128,9 @@ test.describe("Burnout check-in", () => {
   test("weekly idempotency — submitting twice in same week does not error", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
+    // 2 OTP roundtrips + multi-context + double-submit budget. (TD-73)
+    test.setTimeout(180_000);
     const email = roleEmail("caregiver-idem");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -141,9 +152,9 @@ test.describe("Burnout check-in", () => {
         await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
         // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
-        await expect(
-          caregiverPage.getByText("View care journal"),
-        ).toBeVisible({ timeout: 10000 });
+        await expect(caregiverPage.getByText("View care journal")).toBeVisible({
+          timeout: 10000,
+        });
 
         await goToMorePanel(caregiverPage);
 
@@ -153,9 +164,13 @@ test.describe("Burnout check-in", () => {
         ).toBeVisible({ timeout: 5000 });
 
         await submitBurnoutCheckIn(caregiverPage);
-        await expect(caregiverPage.getByText("Check-in saved.")).toBeVisible({
-          timeout: 8000,
-        });
+        // TD-69 added BOTH a sonner toast AND an inline status paragraph
+        // saying "Check-in saved." — naked getByText hits both and triggers
+        // strict mode. Scope to the inline status (role=status); the toast
+        // auto-dismisses, the inline copy persists for the assertion window.
+        await expect(
+          caregiverPage.getByRole("status").getByText("Check-in saved."),
+        ).toBeVisible({ timeout: 8000 });
 
         // Navigate away and back to reset the saved state in the component,
         // then submit again — should upsert silently without an error message.
@@ -176,6 +191,9 @@ test.describe("Burnout check-in", () => {
   test("supporter does not see the burnout check-in form", async ({
     browser,
   }) => {
+    const COORDINATOR_EMAIL = uniqueEmail("burnout-coord");
+    // 2 OTP roundtrips + multi-context budget. (TD-73)
+    test.setTimeout(180_000);
     const email = roleEmail("supporter");
     const coordinatorCtx = await browser.newContext();
     const coordinatorPage = await coordinatorCtx.newPage();
@@ -197,9 +215,9 @@ test.describe("Burnout check-in", () => {
         await expect(supporterPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
         // Diagnostic: confirm "View care journal" is visible (supporter joined a team)
-        await expect(
-          supporterPage.getByText("View care journal"),
-        ).toBeVisible({ timeout: 10000 });
+        await expect(supporterPage.getByText("View care journal")).toBeVisible({
+          timeout: 10000,
+        });
 
         // Navigate to journal and click More tab
         await supporterPage.click('text="View care journal"');
