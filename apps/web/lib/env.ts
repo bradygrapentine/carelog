@@ -22,6 +22,8 @@ const OPTIONAL_WITH_FALLBACK = [
   "STRIPE_PRICE_ANNUAL",
   "OCR_API_KEY",
   "SENTRY_AUTH_TOKEN",
+  // Shared secret for GET /api/health/crons
+  "HEALTH_CRONS_TOKEN",
 ] as const;
 
 export function validateEnv() {
