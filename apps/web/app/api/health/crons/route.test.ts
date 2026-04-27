@@ -19,14 +19,37 @@ function makeSelectChain(result: { data: unknown; error: unknown }) {
   return chain;
 }
 
+const HEALTH_SECRET = "test-secret";
+
+function makeAuthedRequest() {
+  return new Request("http://localhost/api/health/crons", {
+    headers: { "x-health-secret": HEALTH_SECRET },
+  });
+}
+
 describe("GET /api/health/crons", () => {
   beforeEach(() => {
     mockFrom.mockReset();
+    vi.stubEnv("HEALTH_SECRET", HEALTH_SECRET);
+  });
+
+  it("returns 401 when x-health-secret header is missing", async () => {
+    const res = await GET(new Request("http://localhost/api/health/crons"));
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 401 when x-health-secret header is wrong", async () => {
+    const res = await GET(
+      new Request("http://localhost/api/health/crons", {
+        headers: { "x-health-secret": "wrong-secret" },
+      }),
+    );
+    expect(res.status).toBe(401);
   });
 
   it("returns 200 with empty crons array when table is empty", async () => {
     mockFrom.mockReturnValue(makeSelectChain({ data: [], error: null }));
-    const res = await GET();
+    const res = await GET(makeAuthedRequest());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.crons).toEqual([]);
@@ -49,7 +72,7 @@ describe("GET /api/health/crons", () => {
       },
     ];
     mockFrom.mockReturnValue(makeSelectChain({ data: rows, error: null }));
-    const res = await GET();
+    const res = await GET(makeAuthedRequest());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.crons).toEqual(rows);
@@ -57,7 +80,7 @@ describe("GET /api/health/crons", () => {
 
   it("returns 200 with empty array when DB returns null data", async () => {
     mockFrom.mockReturnValue(makeSelectChain({ data: null, error: null }));
-    const res = await GET();
+    const res = await GET(makeAuthedRequest());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.crons).toEqual([]);
@@ -67,7 +90,7 @@ describe("GET /api/health/crons", () => {
     mockFrom.mockReturnValue(
       makeSelectChain({ data: null, error: { message: "connection refused" } }),
     );
-    const res = await GET();
+    const res = await GET(makeAuthedRequest());
     expect(res.status).toBe(500);
     const body = await res.json();
     expect(body.error).toBe("connection refused");
@@ -76,7 +99,7 @@ describe("GET /api/health/crons", () => {
   it("includes checked_at ISO timestamp in successful response", async () => {
     mockFrom.mockReturnValue(makeSelectChain({ data: [], error: null }));
     const before = new Date().toISOString();
-    const res = await GET();
+    const res = await GET(makeAuthedRequest());
     const after = new Date().toISOString();
     const body = await res.json();
     expect(body.checked_at >= before).toBe(true);
