@@ -1,7 +1,11 @@
 // e2e/expenses.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
-
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 async function goToMorePanel(page: import("@playwright/test").Page) {
   await navigateToJournal(page);
@@ -31,14 +35,22 @@ test.describe("Expenses panel", () => {
     const COORDINATOR_EMAIL = uniqueEmail("e2e-expenses");
     await signIn(page, COORDINATOR_EMAIL);
 
-    // Mock tRPC calls so the test doesn't depend on real DB
-    await page.route("**/trpc/expenses.list*", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          result: {
-            data: [
+    // (TD-73) httpBatchLink groups multiple More-panel queries into ONE URL
+    // and the TRPC client uses superjson — we can't naively `route.fulfill`
+    // a synthetic batched body. Pass-through and splice expenses.list into
+    // the matching slot.
+    await page.route(/\/api\/trpc\/[^?]*expenses\.list/, async (route) => {
+      const url = new URL(route.request().url());
+      const procedures = decodeURIComponent(
+        url.pathname.split("/").pop() ?? "",
+      ).split(",");
+      const idx = procedures.indexOf("expenses.list");
+      const upstream = await route.fetch();
+      const body = (await upstream.json()) as Array<unknown>;
+      body[idx] = {
+        result: {
+          data: {
+            json: [
               {
                 id: "exp-1",
                 amount: 42.5,
@@ -50,15 +62,12 @@ test.describe("Expenses panel", () => {
               },
             ],
           },
-        }),
-      });
-    });
-
-    await page.route("**/trpc/expenses.create*", async (route) => {
+        },
+      };
       await route.fulfill({
-        status: 200,
+        response: upstream,
+        body: JSON.stringify(body),
         contentType: "application/json",
-        body: JSON.stringify({ result: { data: { id: "exp-new" } } }),
       });
     });
 
@@ -67,7 +76,9 @@ test.describe("Expenses panel", () => {
     await expect(page.getByText("E2E Prescription refill")).toBeVisible({
       timeout: 8000,
     });
-    await expect(page.getByText("$42.50")).toBeVisible({ timeout: 5000 });
+    // "$42.50" appears both as the line-item amount and in the
+    // category-summary "medication: $42.50" — assert the line item count.
+    await expect(page.getByText("$42.50")).toHaveCount(2, { timeout: 5000 });
   });
 
   test("coordinator submits expense form — Log expense button present", async ({
@@ -90,6 +101,10 @@ test.describe("Expenses panel", () => {
     await signIn(page, COORDINATOR_EMAIL);
     await goToMorePanel(page);
 
-    await expect(page.getByText("Log expense")).toBeVisible({ timeout: 8000 });
+    // "Log expense" appears as both the section heading <p> and the submit
+    // button — scope to the button to avoid strict-mode collision.
+    await expect(
+      page.getByRole("button", { name: /^Log expense$/ }),
+    ).toBeVisible({ timeout: 8000 });
   });
 });

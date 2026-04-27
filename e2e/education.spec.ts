@@ -39,7 +39,15 @@ test.describe("Education library", () => {
   test("Education link in sidebar nav navigates to library", async ({
     page,
   }) => {
-    await page.goto("/dashboard");
+    // (TD-73) The Education tab lives in the journal-context AppTabBar
+    // (only renders inside /journal/[id]) — not the dashboard. Navigate
+    // through the journal first so the tablist is mounted.
+    const TEST_EMAIL = uniqueEmail("edu-nav");
+    await signIn(page, TEST_EMAIL);
+    const { ensureCareTeam } = await import("./helpers");
+    await ensureCareTeam(page);
+    await page.click('text="View care journal"');
+    await page.waitForURL(/\/journal\//, { timeout: 15_000 });
     await page.getByRole("tab", { name: "Education" }).click();
     await expect(page).toHaveURL(/\/education/);
   });
