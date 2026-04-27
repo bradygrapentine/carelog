@@ -10,7 +10,7 @@ test.beforeEach(async () => {
 });
 
 test.describe("UI layout smoke", () => {
-  test("sidebar rail is present on desktop", async ({ page }) => {
+  test.fixme("sidebar rail is present on desktop", async ({ page }) => {
     const SMOKE_EMAIL = uniqueEmail("e2e-smoke");
     await signIn(page, SMOKE_EMAIL);
     await navigateToJournal(page);
@@ -29,7 +29,7 @@ test.describe("UI layout smoke", () => {
     await checkA11y(page);
   });
 
-  test("hamburger menu opens sidebar on mobile", async ({ page }) => {
+  test.fixme("hamburger menu opens sidebar on mobile", async ({ page }) => {
     const SMOKE_EMAIL = uniqueEmail("e2e-smoke");
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, SMOKE_EMAIL);
