@@ -226,9 +226,18 @@ jobs:
   # ─── E2E — runs on PR + push to main (slow, needs full stack) ───────────────
 
   e2e:
-    name: E2E (Playwright)
+    name: E2E (Playwright) [${{ matrix.shard }}/${{ strategy.job-total }}]
     needs: changes
     runs-on: ubuntu-latest
+    # (TD-73) Sharded across N parallel jobs. Each shard boots its own
+    # Supabase + Next.js, runs `--shard=K/N` of the test files, and uploads
+    # its own artifacts. ~25-min serial run becomes ~12-min parallel run.
+    # Uses fail-fast=false so a flake in one shard doesn't cancel the others
+    # (we still surface them via the CI Summary aggregate check).
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     # Run on push to main OR PRs/merge_queue that touch web/e2e/lockfile
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -300,22 +309,24 @@ jobs:
           NEXT_PUBLIC_APP_URL=http://localhost:3000 \
           pnpm --filter web start &
           npx wait-on http://localhost:3000 --timeout 60000
-      - name: Run Playwright tests
-        run: pnpm test:e2e
+      - name: Run Playwright tests (shard ${{ matrix.shard }}/${{ strategy.job-total }})
+        run: pnpm exec playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         # (TD-47) upload on cancelled too, so we can yank an in-progress
         # debug run for its partial trace without losing the artifact.
+        # (TD-73) Suffix with shard index — matrix runs collide on artifact
+        # name otherwise.
         if: failure() || cancelled()
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
       - name: Upload Playwright test-results (traces, error contexts)
         uses: actions/upload-artifact@v4
         if: failure() || cancelled()
         with:
-          name: playwright-test-results
+          name: playwright-test-results-shard-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
 
