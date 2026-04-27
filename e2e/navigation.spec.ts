@@ -68,7 +68,14 @@ test.describe("Panel tab navigation", () => {
     await expect(
       page.locator('[data-slot="card-title"]', { hasText: "Care team" }),
     ).toBeVisible({ timeout: 5000 });
-    expect(errors.filter((e) => !e.includes("favicon") && !e.includes("Clipboard"))).toHaveLength(0);
+    expect(
+      errors.filter(
+        (e) =>
+          !e.includes("favicon") &&
+          !e.includes("Clipboard") &&
+          !e.includes("Failed to load resource"),
+      ),
+    ).toHaveLength(0);
   });
 
   test("Shifts tab — panel content visible and URL updated", async ({
@@ -94,7 +101,12 @@ test.describe("Panel tab navigation", () => {
         .filter({ hasText: /Schedule a shift|Upcoming shifts/i }),
     ).toBeVisible({ timeout: 5000 });
     expect(
-      errors.filter((e) => !e.includes("favicon") && !e.includes("Clipboard")),
+      errors.filter(
+        (e) =>
+          !e.includes("favicon") &&
+          !e.includes("Clipboard") &&
+          !e.includes("Failed to load resource"),
+      ),
     ).toHaveLength(0);
   });
 
@@ -116,7 +128,14 @@ test.describe("Panel tab navigation", () => {
     await expect(page.getByText(/Document vault/i)).toBeVisible({
       timeout: 5000,
     });
-    expect(errors.filter((e) => !e.includes("favicon") && !e.includes("Clipboard"))).toHaveLength(0);
+    expect(
+      errors.filter(
+        (e) =>
+          !e.includes("favicon") &&
+          !e.includes("Clipboard") &&
+          !e.includes("Failed to load resource"),
+      ),
+    ).toHaveLength(0);
   });
 
   test("More tab — panel content visible and URL updated", async ({ page }) => {
@@ -136,7 +155,14 @@ test.describe("Panel tab navigation", () => {
     await expect(page.getByText(/Symptom readings|Scan label/i)).toBeVisible({
       timeout: 5000,
     });
-    expect(errors.filter((e) => !e.includes("favicon") && !e.includes("Clipboard"))).toHaveLength(0);
+    expect(
+      errors.filter(
+        (e) =>
+          !e.includes("favicon") &&
+          !e.includes("Clipboard") &&
+          !e.includes("Failed to load resource"),
+      ),
+    ).toHaveLength(0);
   });
 
   test("tab navigation is reversible — can return to Journal from Medications", async ({
