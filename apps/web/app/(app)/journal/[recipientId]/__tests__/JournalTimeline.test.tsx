@@ -6,6 +6,12 @@ const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
+
+// Match a button whose accessible name STARTS WITH the given prefix. The Flag /
+// Unflag buttons now embed the entry timestamp in their aria-label for context
+// (H-2 / a11y), so the literal-string assertion no longer works.
+const byNamePrefix = (prefix: string) =>
+  new RegExp("^" + prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 vi.mock("@/components/care-events/CommentThread", () => ({
   CommentThread: () => null,
 }));
@@ -85,7 +91,7 @@ describe("JournalTimeline — empty state", () => {
 });
 
 describe("JournalTimeline — human journal entries", () => {
-  it("navigates to detail page when a journal card is clicked", () => {
+  it("journal entry card links to the detail page", () => {
     render(
       <JournalTimeline
         events={[makeEvent({ id: "evt-nav" })]}
@@ -95,9 +101,11 @@ describe("JournalTimeline — human journal entries", () => {
         onFlag={vi.fn()}
       />,
     );
-    const card = screen.getByTestId("journal-entry");
-    fireEvent.click(card);
-    expect(mockPush).toHaveBeenCalledWith("/journal/r1/entry/evt-nav");
+    // C-2: card is a real <Link> (anchor) for keyboard accessibility.
+    const link = screen.getByRole("link", {
+      name: /open journal entry from/i,
+    });
+    expect(link).toHaveAttribute("href", "/journal/r1/entry/evt-nav");
   });
 
   it("renders the entry text", () => {
@@ -150,7 +158,7 @@ describe("JournalTimeline — human journal entries", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: "Flag for doctor" }),
+      screen.getByRole("button", { name: byNamePrefix("Flag entry from") }),
     ).toBeInTheDocument();
   });
 
@@ -165,7 +173,7 @@ describe("JournalTimeline — human journal entries", () => {
       />,
     );
     expect(
-      screen.queryByRole("button", { name: "Flag for doctor" }),
+      screen.queryByRole("button", { name: byNamePrefix("Flag entry from") }),
     ).not.toBeInTheDocument();
   });
 
@@ -180,7 +188,9 @@ describe("JournalTimeline — human journal entries", () => {
       />,
     );
     expect(screen.getByText("Flagged for doctor")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Unflag" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: byNamePrefix("Unflag entry from") }),
+    ).toBeInTheDocument();
   });
 
   it("calls onFlag with eventId and new flagged value when flag button is clicked", () => {
@@ -194,7 +204,9 @@ describe("JournalTimeline — human journal entries", () => {
         onFlag={onFlag}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Flag for doctor" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: byNamePrefix("Flag entry from") }),
+    );
     expect(onFlag).toHaveBeenCalledWith("evt-1", true);
   });
 
@@ -208,10 +220,15 @@ describe("JournalTimeline — human journal entries", () => {
         onFlag={vi.fn()}
       />,
     );
-    expect(screen.getByTitle("Heart")).toBeInTheDocument();
-    expect(screen.getByTitle("Thinking of you")).toBeInTheDocument();
-    expect(screen.getByTitle("Strong")).toBeInTheDocument();
-    expect(screen.getByTitle("Grateful")).toBeInTheDocument();
+    // H-3: reactions use aria-label, not title (better screen-reader support).
+    expect(screen.getByRole("button", { name: "Heart" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Thinking of you" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Strong" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Grateful" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -233,7 +250,9 @@ describe("JournalTimeline — system events", () => {
     );
     // System events show "<event_type> logged" text, not a full card
     expect(screen.getByText("medication logged")).toBeInTheDocument();
-    expect(screen.queryByTitle("Heart")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Heart" }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not show flag button for system events", () => {

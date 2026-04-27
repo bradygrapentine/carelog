@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { DashboardClient } from "../DashboardClient";
 
 // ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ describe("DashboardClient (flow)", () => {
     expect(screen.getByText("View care journal")).toBeInTheDocument();
   });
 
-  it("clicking a care team card navigates to the journal URL", async () => {
+  it("renders each care team as a keyboard-reachable link to the journal", async () => {
     setupTeams([
       { orgId: "org-1", orgName: "Smith Family", recipientId: "rec-42" },
     ]);
@@ -127,11 +127,13 @@ describe("DashboardClient (flow)", () => {
       expect(screen.getByText("Smith Family")).toBeInTheDocument(),
     );
 
-    fireEvent.click(
-      screen.getByText("Smith Family").closest("[class*='cursor-pointer']")!,
-    );
-
-    expect(mockPush).toHaveBeenCalledWith("/journal/rec-42");
+    // C-1: care-team card is a real <Link> (anchor) — keyboard accessible.
+    const link = screen.getByRole("link", {
+      name: /open care journal for smith family/i,
+    });
+    expect(link).toHaveAttribute("href", "/journal/rec-42");
+    // Visible focus ring class is present
+    expect(link.className).toMatch(/focus:ring-/);
   });
 
   it("shows 'Set up a care team' link for a new user with no teams", async () => {
