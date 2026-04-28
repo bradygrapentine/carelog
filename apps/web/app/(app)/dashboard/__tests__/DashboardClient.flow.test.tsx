@@ -17,6 +17,10 @@ vi.mock("@/lib/supabase", () => ({
   }),
 }));
 
+vi.mock("@/components/dashboard/BriefHero", () => ({
+  BriefHero: () => null,
+}));
+
 vi.mock("@/components/dashboard/MedCard", () => ({
   MedCard: () => null,
 }));
