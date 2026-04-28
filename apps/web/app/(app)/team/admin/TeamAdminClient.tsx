@@ -156,7 +156,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
             onClick={() => {
               if (confirm("Are you absolutely sure? This cannot be undone.")) {
                 toast.error(
-                  "Delete org: not yet implemented. Contact hello@carelog.app.",
+                  "Delete org: not yet implemented. Contact hello@care-log.org.",
                 );
               }
             }}

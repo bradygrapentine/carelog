@@ -277,10 +277,10 @@ export function ForReferrersPage() {
         <p className="text-[var(--color-text-secondary)]">
           Contact us at{" "}
           <a
-            href="mailto:hello@carelog.app"
+            href="mailto:hello@care-log.org"
             className="font-medium text-[var(--color-primary)] underline underline-offset-2 hover:text-[var(--color-primary)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           >
-            hello@carelog.app
+            hello@care-log.org
           </a>
         </p>
       </section>

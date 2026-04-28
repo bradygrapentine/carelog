@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PricingCards } from "../../../components/marketing/PricingCards";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Pricing — Carelog",
