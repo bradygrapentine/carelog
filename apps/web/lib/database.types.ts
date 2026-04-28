@@ -34,6 +34,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json[]
+          org_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json[]
+          org_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json[]
+          org_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       benefits_screenings: {
         Row: {
           answers: Json
@@ -128,7 +163,7 @@ export type Database = {
           content: Json
           created_at: string
           created_by: string
-          expires_at: string | null
+          expires_at: string
           id: string
           includes: string[]
           org_id: string
@@ -141,7 +176,7 @@ export type Database = {
           content: Json
           created_at?: string
           created_by: string
-          expires_at?: string | null
+          expires_at?: string
           id?: string
           includes?: string[]
           org_id: string
@@ -154,7 +189,7 @@ export type Database = {
           content?: Json
           created_at?: string
           created_by?: string
-          expires_at?: string | null
+          expires_at?: string
           id?: string
           includes?: string[]
           org_id?: string
@@ -228,9 +263,62 @@ export type Database = {
           },
         ]
       }
+      care_event_medications: {
+        Row: {
+          care_event_id: string
+          confidence: string
+          created_at: string
+          id: string
+          medication_id: string
+          org_id: string
+          tagged_by: string | null
+        }
+        Insert: {
+          care_event_id: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          medication_id: string
+          org_id: string
+          tagged_by?: string | null
+        }
+        Update: {
+          care_event_id?: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          medication_id?: string
+          org_id?: string
+          tagged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_event_medications_care_event_id_fkey"
+            columns: ["care_event_id"]
+            isOneToOne: false
+            referencedRelation: "care_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_event_medications_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_event_medications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       care_events: {
         Row: {
           actor_id: string
+          client_id: string | null
           created_at: string
           entry_kind: Database["public"]["Enums"]["entry_kind"]
           event_type: Database["public"]["Enums"]["event_type"]
@@ -244,6 +332,7 @@ export type Database = {
         }
         Insert: {
           actor_id: string
+          client_id?: string | null
           created_at?: string
           entry_kind?: Database["public"]["Enums"]["entry_kind"]
           event_type: Database["public"]["Enums"]["event_type"]
@@ -257,6 +346,7 @@ export type Database = {
         }
         Update: {
           actor_id?: string
+          client_id?: string | null
           created_at?: string
           entry_kind?: Database["public"]["Enums"]["entry_kind"]
           event_type?: Database["public"]["Enums"]["event_type"]
@@ -397,6 +487,27 @@ export type Database = {
           },
         ]
       }
+      cron_runs: {
+        Row: {
+          error_message: string | null
+          function_id: string
+          last_ran_at: string
+          last_status: string
+        }
+        Insert: {
+          error_message?: string | null
+          function_id: string
+          last_ran_at?: string
+          last_status: string
+        }
+        Update: {
+          error_message?: string | null
+          function_id?: string
+          last_ran_at?: string
+          last_status?: string
+        }
+        Relationships: []
+      }
       display_names: {
         Row: {
           cached_at: string
@@ -432,6 +543,58 @@ export type Database = {
             columns: ["recipient_id"]
             isOneToOne: true
             referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_medications: {
+        Row: {
+          confidence: string
+          created_at: string
+          document_id: string
+          id: string
+          medication_id: string
+          org_id: string
+          tagged_by: string | null
+        }
+        Insert: {
+          confidence?: string
+          created_at?: string
+          document_id: string
+          id?: string
+          medication_id: string
+          org_id: string
+          tagged_by?: string | null
+        }
+        Update: {
+          confidence?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          medication_id?: string
+          org_id?: string
+          tagged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_medications_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_medications_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_medications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -489,6 +652,32 @@ export type Database = {
             columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      education_tip_cache: {
+        Row: {
+          guide_slug: string
+          org_id: string
+          refreshed_at: string
+        }
+        Insert: {
+          guide_slug: string
+          org_id: string
+          refreshed_at?: string
+        }
+        Update: {
+          guide_slug?: string
+          org_id?: string
+          refreshed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_tip_cache_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1047,6 +1236,7 @@ export type Database = {
           sms_enabled: boolean
           updated_at: string
           user_id: string
+          web_push_enabled: boolean
         }
         Insert: {
           care_event_comments?: boolean
@@ -1058,6 +1248,7 @@ export type Database = {
           sms_enabled?: boolean
           updated_at?: string
           user_id: string
+          web_push_enabled?: boolean
         }
         Update: {
           care_event_comments?: boolean
@@ -1069,6 +1260,7 @@ export type Database = {
           sms_enabled?: boolean
           updated_at?: string
           user_id?: string
+          web_push_enabled?: boolean
         }
         Relationships: []
       }
@@ -1291,6 +1483,63 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_trade_requests: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          message: string | null
+          org_id: string
+          requested_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          shift_id: string
+          status: string
+          target_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          message?: string | null
+          org_id: string
+          requested_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift_id: string
+          status?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          message?: string | null
+          org_id?: string
+          requested_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift_id?: string
+          status?: string
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_trade_requests_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_trade_requests_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shifts: {
         Row: {
           assignee_user_id: string | null
@@ -1413,31 +1662,64 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          ai_assistant_enabled: boolean
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          education_tip_dismissed_until: string | null
           email: string | null
           id: string
           onboarded: boolean
           updated_at: string
         }
         Insert: {
+          ai_assistant_enabled?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          education_tip_dismissed_until?: string | null
           email?: string | null
           id: string
           onboarded?: boolean
           updated_at?: string
         }
         Update: {
+          ai_assistant_enabled?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          education_tip_dismissed_until?: string | null
           email?: string | null
           id?: string
           onboarded?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      web_push_subscriptions: {
+        Row: {
+          auth_key: string
+          auth_user_id: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh_key: string
+        }
+        Insert: {
+          auth_key: string
+          auth_user_id: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh_key: string
+        }
+        Update: {
+          auth_key?: string
+          auth_user_id?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh_key?: string
         }
         Relationships: []
       }
