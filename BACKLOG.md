@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-26 PM2** — promoted PP-014 (#210), UX-21 (#211), ON-68 (#212) to §7 after wave shipped.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-27 PM** — promoted LAUNCH-002 (#225), LAUNCH-003 (#226), TD-73/74/75 (#227), A11Y-012..017 (#224, #228), UX-025..034 + UX-036 (#224) to §7. UX-035 confirmed still pending (BriefHero mock content not gated).
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 26 | TD-03 · PP-009 · TD-73..75 · A11Y-012..017 · UX-025..036 · LAUNCH-002..004 |
+| 🟢 Ready | 4 | TD-03 · PP-009 · UX-035 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
@@ -96,9 +96,9 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-73 | 🟢 Ready | **Production rate-limit dashboard** | Vercel logs or external alerting on HTTP 429 responses from `/api/auth/*` and `/api/trpc/*`. Alert channel: Sentry or Slack webhook. Target: page-on-call if 429 rate > 1% over a 5-min window. ~0.5 day. |
-| TD-74 | 🟢 Ready | **Weekly digest delivery monitoring** | Alert if Sunday digest send count is < 80% of org count (Inngest function failure or Resend quota exhaustion). Query `cron_runs` + Resend delivery events. Target: PagerDuty / Slack alert before caregivers notice the missing email. ~0.5 day. |
-| TD-75 | 🟢 Ready | **Weekly E2E green-streak gate** | CI script that queries GitHub Actions API for the last N nightly E2E runs and fails (blocks merge queue) if E2E has been red for >3 consecutive nightly runs. Surface in CI Summary. ~0.5 day. |
+| TD-73 | ✅ Shipped · PR #227 | **Production rate-limit dashboard** | Vercel + Inngest 429 monitoring with Sentry/Slack alert when 429 rate > 1% in 5-min window. |
+| TD-74 | ✅ Shipped · PR #227 | **Weekly digest delivery monitoring** | Inngest `digestDeliveryMonitor` alerts when Sunday send count < 80% of org count. |
+| TD-75 | ✅ Shipped · PR #227 | **Weekly E2E green-streak gate** | `scripts/check-e2e-streak.mjs` + `.github/workflows/e2e-streak-gate.yml` block merge queue on >3 consecutive red nightly E2E runs. |
 
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
 
@@ -142,8 +142,8 @@ Source: external design prototype (CareSync Prototype.html) handed off as enhanc
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | LAUNCH-001 | 🧑 Needs human | **App Store launch — TestFlight QA + App Store Connect listing** | Run internal TestFlight cycle (≥1 week, ≥3 real-device testers). Complete App Store Connect listing: description, keywords, screenshots (iPhone 6.7″ + 5.5″), app preview video optional. iOS privacy nutrition label. Android Play Console parity (listing + privacy). Human-gated: EAS production build must be complete first. |
-| LAUNCH-002 | 🟢 Ready | **EAS production build profile + OTA gating** | Finalize `eas.json` `production` profile (channel pinning, `runtimeVersion` policy). Configure `expo-updates` OTA gating so only builds in the `production` channel receive updates. Add `eas build --platform all --profile production` to release runbook. ~0.5 day. |
-| LAUNCH-003 | 🟢 Ready | **Web go-live SEO/OG meta + sitemap + structured data** | Add `<meta og:*>` + `<meta twitter:*>` to marketing pages. Generate `sitemap.xml` + `robots.txt` via Next.js `sitemap.ts` / `robots.ts`. Add `Organization` + `SoftwareApplication` JSON-LD structured data to landing page. ~1 day. |
+| LAUNCH-002 | ✅ Shipped · PR #225 | **EAS production build profile + OTA gating** | Finalized `eas.json` production profile + channel pinning + `runtimeVersion` policy; release runbook at `docs/project-info/runbooks/MOBILE_RELEASE.md`. |
+| LAUNCH-003 | ✅ Shipped · PR #226 | **Web go-live SEO/OG meta + sitemap + structured data** | Added `<meta og/twitter>` to all marketing pages, `sitemap.ts`/`robots.ts`, Organization + SoftwareApplication JSON-LD on landing. |
 | LAUNCH-004 | 🟢 Ready | **Observability hardening** | Wire Sentry source maps (depends on TD-03 env var), add prod rate-limit dashboard (TD-73), add weekly digest monitoring (TD-74), add E2E green-streak gate (TD-75). Observability checklist doc in `docs/project-info/runbooks/`. ~1 day total (coordinates the TD sub-items). |
 | LAUNCH-005 | 🧑 Needs human | **Compliance / legal — privacy policy, ToS, BAA, data retention** | Publish privacy policy + ToS at stable URLs (linked from signup + footer). Obtain BAA from Supabase (HIPAA) and Resend if processing PHI in email bodies. Document data-retention and deletion runbook (how to honor right-to-erasure requests). Human-gated: legal review required. |
 
@@ -188,12 +188,12 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 | ID | Priority | Story |
 |---|---|---|
 | A11Y-011 | ✅ Shipped · PR #119 | **Web button aria-label sweep** | All 4 targets already WCAG 2.2 AA compliant — no code changes needed. |
-| A11Y-012 | 🟢 Ready | **Flag button: add `type="button"` + contextual `aria-label`** | `JournalTimeline.tsx:206-214` — "Flag for doctor" / "Unflag" `<button>` has no `type="button"` and no `aria-label` identifying which entry. Fix: `type="button" aria-label={\`Flag entry for doctor (${formatTime(...)})\`}`. Source: UI review H-2. |
-| A11Y-013 | 🟢 Ready | **TeamAdmin "Remove" button: `type="button"` + member-identifying `aria-label`** | `TeamAdminClient.tsx:123-128` — `<button>Remove</button>` repeated without member context. Screen readers hear "Remove" N times. Fix: `type="button" aria-label={\`Remove ${member.display_name ?? member.email}\`}`. Source: UI review H-4. |
-| A11Y-014 | 🟢 Ready | **TeamAdmin delete-org button: add `type="button"`** | `TeamAdminClient.tsx:151-163` — destructive delete button has no `type="button"`; risk of accidental form submission. Source: UI review H-5. |
-| A11Y-015 | 🟢 Ready | **AppTabBar tab buttons: add `type="button"`** | `AppTabBar.tsx:88, 139` — desktop and mobile nav tab `<button role="tab">` elements missing `type="button"`. Source: UI review L-1. |
-| A11Y-016 | 🟢 Ready | **QuickLogFab action buttons: add `type="button"`** | `QuickLogFab.tsx:121, 156` — FAB trigger and menu-item buttons missing `type="button"`. Source: UI review L-2. |
-| A11Y-017 | 🟢 Ready | **JournalLayout: replace `user.email` with `display_name` in sticky header** | `JournalLayout.tsx:142-144` — `{user.email}` rendered in sticky top bar (visible on ≥sm). Exposes PII in a context that may be screen-shared. Replace with `display_name` from user profile, or omit. Source: UI review L-3. |
+| A11Y-012 | ✅ Shipped · PR #224 | **Flag button: add `type="button"` + contextual `aria-label`** | JournalTimeline flag button now has `type="button"` and aria-label including entry timestamp. |
+| A11Y-013 | ✅ Shipped · PR #224 | **TeamAdmin "Remove" button: `type="button"` + member-identifying `aria-label`** | Remove button now has `type="button"` and `aria-label={`Remove ${member.display_name ?? member.email}`}`. |
+| A11Y-014 | ✅ Shipped · PR #224 | **TeamAdmin delete-org button: add `type="button"`** | Delete org button now has `type="button"`. |
+| A11Y-015 | ✅ Shipped · PR #228 | **AppTabBar tab buttons: add `type="button"`** | Desktop tab list shipped in #224 sweep; mobile tab strip closed in #228 (was the only remaining gap from the audit). |
+| A11Y-016 | ✅ Shipped · PR #224 | **QuickLogFab action buttons: add `type="button"`** | Both FAB trigger + menu-item buttons now have `type="button"`. |
+| A11Y-017 | ✅ Shipped · PR #224 | **JournalLayout: replace `user.email` with `display_name` in sticky header** | Sticky header now reads `user.user_metadata.display_name ?? user.email`. |
 | A11Y-018 | 🧑 Needs human | **Physical-device VoiceOver verification (residual from TD-02)** | Code-complete scaledFont + accessibilityLabel sweep shipped in TD-02 (PR #87). Physical-device VoiceOver end-to-end of the medication-log flow has not been verified — requires a real iPhone. See TD-02 in §7 for context. |
 
 ---
@@ -256,26 +256,34 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 
 ### Token-drift cleanups from UI review 2026-04-27 (UX-025..036)
 
-These are all 🟢 Ready. They came from `/tmp/carelog-ui-review-2026-04-27.md` — the 5 highest-impact findings (C-1, C-2, H-1, H-3, M-1) shipped in PR #220. Remaining token-drift and non-critical polish items:
+11 of 12 shipped via PR #224 polish sweep (verified 2026-04-27 against current main). UX-035 still pending — BriefHero hardcoded mock content and `TODO(UX-24+)` comment confirmed present.
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| UX-025 | 🟢 Ready | **Extract shared `MOOD_STYLES` constant using `var(--color-mood-*)` tokens** | `JournalEntryForm.tsx:33-48`, `EntryDetailClient.tsx:10-13`, `SymptomPanel.tsx:54-62,76` — raw green/yellow/orange/red Tailwind classes repeated across 4 files. Create `lib/mood.ts` with a token-backed map. Source: UI review M-2. |
-| UX-026 | 🟢 Ready | **Add `--color-danger-subtle` token + replace `bg-red-50` in DangerZone and TeamAdmin** | `settings/page.tsx:552,573`, `TeamAdminClient.tsx:68,142` — danger-zone containers use `bg-red-50`, `border-red-200`. Add `--color-danger-subtle` token to `globals.css` and replace raw classes. Source: UI review M-3. |
-| UX-027 | 🟢 Ready | **QuickLogFab "Soon" badge: replace `bg-gray-100` with token** | `QuickLogFab.tsx:146` — `bg-gray-100` pill; use `bg-[var(--color-surface)] border border-[var(--color-border)]`. Source: UI review M-4. |
-| UX-028 | 🟢 Ready | **`RoleBadge`: replace raw amber/gray Tailwind with tokens** | `RoleBadge.tsx:7,9,29` — `bg-amber-100 text-amber-800`, `bg-gray-100 text-gray-600`. Map to existing tokens or add `--color-role-caregiver`/`--color-role-supporter`. Source: UI review M-5. |
-| UX-029 | 🟢 Ready | **`ExpensePanel` and `DocumentVault` category badges: token-backed color map** | `ExpensePanel.tsx:51-54`, `DocumentVault.tsx:45-48` — raw amber/green/orange/red Tailwind. Consolidate into a shared token-backed category color map. Source: UI review M-6. |
-| UX-030 | 🟢 Ready | **`MedicationPanel` PRN badge: use `--color-secondary-subtle`** | `MedicationPanel.tsx:321` — `bg-amber-100 text-amber-700`. Use `--color-secondary-subtle` / `--color-secondary` tokens. Source: UI review M-7. |
-| UX-031 | 🟢 Ready | **Add `--color-success-subtle` + `--color-warning-subtle` tokens for BriefHero pills** | `BriefHero.tsx:21-23` — inline `color-mix()` expressions. Add the two subtle tokens to `globals.css` and reference as `bg-[var(--color-success-subtle)]`. Source: UI review M-8. |
-| UX-032 | 🟢 Ready | **`EolPlanner`: replace `border-red-50` + `text-red-600` with danger tokens** | `EolPlanner.tsx:107,113` — use `border-[var(--color-danger)]/30` and `text-[var(--color-danger)]`. Source: UI review M-9. |
-| UX-033 | 🟢 Ready | **`ErrorBoundary`: replace raw gray classes with design tokens** | `ErrorBoundary.tsx:28-38` — `bg-gray-50`, `text-gray-900`, `text-gray-500`, `bg-gray-900`. Replace with `var(--color-surface)`, `var(--color-ink)`, `var(--color-muted)`. Source: UI review L-4. |
-| UX-034 | 🟢 Ready | **DashboardClient: replace inline SVG chevron with `lucide-react` `ChevronRight`** | `DashboardClient.tsx:331-343` — hand-rolled `<svg>` chevron. Replace with `<ChevronRight className="w-5 h-5 text-muted-foreground" aria-hidden="true" />`. Source: UI review I-1. |
-| UX-035 | 🟢 Ready | **Gate `BriefHero` mock content behind feature flag or skeleton** | `BriefHero.tsx:1-4` — headline + pills are hardcoded mock data, every user sees "Eleanor had a settled night". Gate behind feature flag or show skeleton until UX-24 real aggregation ships. Source: UI review I-2. |
-| UX-036 | 🟢 Ready | **Move `CommentItem`/`CommentThread` dark-mode overrides to `globals.css` tokens** | `CommentItem.tsx`, `CommentThread.tsx` — scattered `dark:bg-gray-*`, `dark:text-gray-*` classes bypass the token system. Define dark-mode token overrides in `globals.css` `@media (prefers-color-scheme: dark)`. Source: UI review I-3. |
+| UX-025 | ✅ Shipped · PR #224 | **Extract shared `MOOD_STYLES` constant using `var(--color-mood-*)` tokens** | `apps/web/lib/mood.ts` created; consumed by EntryDetailClient + JournalEntryForm + SymptomPanel. |
+| UX-026 | ✅ Shipped · PR #224 | **Add `--color-danger-subtle` token + replace `bg-red-50` in DangerZone and TeamAdmin** | Token added to `globals.css`; DangerZone + TeamAdmin updated. |
+| UX-027 | ✅ Shipped · PR #224 | **QuickLogFab "Soon" badge: replace `bg-gray-100` with token** | Now uses `bg-[var(--color-surface)] border border-[var(--color-border)]`. |
+| UX-028 | ✅ Shipped · PR #224 | **`RoleBadge`: replace raw amber/gray Tailwind with tokens** | RoleBadge tokenized; tests updated. |
+| UX-029 | ✅ Shipped · PR #224 | **`ExpensePanel` and `DocumentVault` category badges: token-backed color map** | Both panels now use shared token map. |
+| UX-030 | ✅ Shipped · PR #224 | **`MedicationPanel` PRN badge: use `--color-secondary-subtle`** | PRN badge at MedicationPanel.tsx:321 now uses secondary-subtle tokens. |
+| UX-031 | ✅ Shipped · PR #224 | **Add `--color-success-subtle` + `--color-warning-subtle` tokens for BriefHero pills** | Both tokens added to `globals.css`; BriefHero references them. |
+| UX-032 | ✅ Shipped · PR #224 | **`EolPlanner`: replace `border-red-50` + `text-red-600` with danger tokens** | EolPlanner now uses `border-[var(--color-danger)]/30` and `text-[var(--color-danger)]`. |
+| UX-033 | ✅ Shipped · PR #224 | **`ErrorBoundary`: replace raw gray classes with design tokens** | ErrorBoundary now uses surface/ink/muted tokens. |
+| UX-034 | ✅ Shipped · PR #224 | **DashboardClient: replace inline SVG chevron with `lucide-react` `ChevronRight`** | DashboardClient.tsx:332 now uses `<ChevronRight />`. |
+| UX-035 | 🟢 Ready | **Gate `BriefHero` mock content behind feature flag or skeleton** | `BriefHero.tsx:1-4` still has hardcoded mock data + `TODO(UX-24+)` comment. Gate behind feature flag or skeleton until UX-24 real aggregation ships. |
+| UX-036 | ✅ Shipped · PR #224 | **Move `CommentItem`/`CommentThread` dark-mode overrides to `globals.css` tokens** | No `dark:bg-gray-*` matches remain in CommentItem/CommentThread. |
 
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-04-27 — Launch-readiness wave (PRs #224–#228)
+✅ **A11Y-012/013/014/016/017** Button `type="button"` + member-identifying `aria-label` sweep across JournalTimeline, TeamAdmin (Remove + delete-org), QuickLogFab, JournalLayout (display_name fallback) (PR #224)
+✅ **A11Y-015** AppTabBar mobile tab strip `type="button"` (desktop in #224, mobile in #228)
+✅ **UX-025/026/027/028/029/030/031/032/033/034/036** Token-drift sweep — `lib/mood.ts` extracted; `--color-danger-subtle` + `--color-success-subtle` + `--color-warning-subtle` tokens added; QuickLogFab/RoleBadge/ExpensePanel/DocumentVault/MedicationPanel/EolPlanner/ErrorBoundary/DashboardClient/CommentItem/CommentThread tokenized (PR #224)
+✅ **LAUNCH-002** EAS production build profile + OTA gating + `MOBILE_RELEASE.md` runbook (PR #225)
+✅ **LAUNCH-003** Web SEO/OG meta + `sitemap.ts` + `robots.ts` + JSON-LD structured data (PR #226)
+✅ **TD-73/74/75** Rate-limit dashboard + digest delivery monitoring + E2E green-streak gate (PR #227)
 
 ### 2026-04-26 — E2E unblock + product polish wave (PRs #175–#205)
 ✅ **TD-38** Update dispatch skills for Mergify queue trigger — drop `--auto --squash`, reach for the `queue` label (PR #175)
