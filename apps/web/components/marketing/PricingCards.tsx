@@ -51,7 +51,7 @@ export function PricingCards() {
           }
         >
           Annual
-          <span className="ml-1.5 rounded-full bg-[var(--color-success)]/10 px-2 py-0.5 text-xs font-bold text-[var(--color-success)]">
+          <span className="ml-1.5 rounded-full bg-[var(--color-tertiary-subtle)] px-2 py-0.5 text-xs font-bold text-[var(--color-tertiary)]">
             Save 29%
           </span>
         </button>

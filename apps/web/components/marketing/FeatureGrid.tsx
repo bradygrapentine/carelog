@@ -1,3 +1,9 @@
+const ICON_ACCENT_CYCLE = [
+  "bg-[var(--color-primary-subtle)]",
+  "bg-[var(--color-tertiary-subtle)]",
+  "bg-[var(--color-secondary-subtle)]",
+] as const;
+
 const FEATURES = [
   {
     icon: "📋",
@@ -86,12 +92,18 @@ export function FeatureGrid() {
           </p>
         </div>
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
-          {FEATURES.map(({ icon, title, description }) => (
+          {FEATURES.map(({ icon, title, description }, i) => (
             <li
               key={title}
               className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span
+                className={
+                  "flex h-10 w-10 items-center justify-center rounded-xl text-xl " +
+                  ICON_ACCENT_CYCLE[i % ICON_ACCENT_CYCLE.length]
+                }
+                aria-hidden="true"
+              >
                 {icon}
               </span>
               <h3 className="mt-3 text-base font-semibold text-[var(--color-ink)]">
