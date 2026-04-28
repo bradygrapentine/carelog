@@ -151,7 +151,7 @@ describe("POST /api/stripe/portal", () => {
   });
 
   it("H5: rejects request with a forged Origin not matching NEXT_PUBLIC_APP_URL", async () => {
-    process.env.NEXT_PUBLIC_APP_URL = "https://app.carelog.app";
+    process.env.NEXT_PUBLIC_APP_URL = "https://app.care-log.org";
     mockGetRequestUser.mockResolvedValue({ id: "user-1" });
     mockSupabaseFrom.mockImplementation((table: string) => {
       if (table === "memberships") {

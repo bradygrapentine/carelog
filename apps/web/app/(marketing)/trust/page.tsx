@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Data Commitment — Carelog",

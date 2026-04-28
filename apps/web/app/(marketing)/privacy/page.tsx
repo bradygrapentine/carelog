@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPageLayout } from "../../../components/marketing/LegalPageLayout";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Carelog",
@@ -83,10 +83,10 @@ export default function PrivacyPage() {
       <p>
         Questions about privacy? Email{" "}
         <a
-          href="mailto:privacy@carelog.app"
+          href="mailto:privacy@care-log.org"
           className="text-[var(--color-primary)]"
         >
-          privacy@carelog.app
+          privacy@care-log.org
         </a>
         .
       </p>

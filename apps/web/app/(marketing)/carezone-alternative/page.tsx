@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CareZoneAlternativePage } from "../../../components/marketing/CareZoneAlternativePage";
 import { CareZoneMedicationImport } from "../../../components/marketing/CareZoneMedicationImport";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "CareZone Alternative — Carelog",

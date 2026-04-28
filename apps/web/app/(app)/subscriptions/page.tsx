@@ -70,10 +70,10 @@ export default function SubscriptionsPage() {
         <p className="mt-6 rounded-xl bg-[var(--color-surface)] px-4 py-3 text-xs text-[var(--color-muted)]">
           Billing portal coming soon. To update payment details, email{" "}
           <a
-            href="mailto:hello@carelog.app"
+            href="mailto:hello@care-log.org"
             className="text-[var(--color-primary)] underline underline-offset-2"
           >
-            hello@carelog.app
+            hello@care-log.org
           </a>
           .
         </p>
@@ -185,7 +185,7 @@ export default function SubscriptionsPage() {
                   });
                   setShowCancelModal(false);
                   toast.error(
-                    "Cancellation: contact hello@carelog.app — Stripe not yet wired.",
+                    "Cancellation: contact hello@care-log.org — Stripe not yet wired.",
                   );
                 }}
                 className="flex-1 rounded-xl bg-[var(--color-danger)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"

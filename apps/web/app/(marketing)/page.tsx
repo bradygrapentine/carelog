@@ -6,7 +6,7 @@ import { HowItWorks } from "../../components/marketing/HowItWorks";
 import { ProductPreview } from "../../components/marketing/ProductPreview";
 import { Testimonials } from "../../components/marketing/Testimonials";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Carelog — Family Caregiving Coordination",
@@ -49,7 +49,7 @@ const organizationJsonLd = {
   logo: `${BASE_URL}/og-image.png`,
   contactPoint: {
     "@type": "ContactPoint",
-    email: "hello@carelog.app",
+    email: "hello@care-log.org",
     contactType: "customer support",
   },
 };

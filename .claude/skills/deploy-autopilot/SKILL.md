@@ -117,7 +117,7 @@ curl -fsS "$PREV_DEPLOY/api/health" | jq -e '.ok == true'
 
 Also revert aliases if custom domain was already flipped:
 ```sh
-vercel alias set "$PREV_DEPLOY" carelog.app
+vercel alias set "$PREV_DEPLOY" care-log.org
 ```
 
 ## 7. Reporting
@@ -128,7 +128,7 @@ Emit a final checklist. Each phase is PASS / FAIL / SKIPPED with a one-line deta
 Carelog Production Ship — <git sha>
 [PASS] Preflight      typecheck, test, lint, pgTAP green
 [PASS] Env            all Vercel keys present; Stripe webhook live; Resend verified
-[PASS] Domain/email   carelog.app valid; resend domain verified
+[PASS] Domain/email   care-log.org valid; resend domain verified
 [PASS] Deploy         https://<deploy-url> READY
 [PASS] Smoke          health + playwright prod (auth/invite/billing) green
 [----] Rollback       not triggered

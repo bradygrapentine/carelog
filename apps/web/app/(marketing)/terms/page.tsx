@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPageLayout } from "../../../components/marketing/LegalPageLayout";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Carelog",
@@ -68,10 +68,10 @@ export default function TermsPage() {
         You are responsible for maintaining the security of your account. Notify
         us immediately at{" "}
         <a
-          href="mailto:hello@carelog.app"
+          href="mailto:hello@care-log.org"
           className="text-[var(--color-primary)]"
         >
-          hello@carelog.app
+          hello@care-log.org
         </a>{" "}
         if you suspect unauthorized access.
       </p>

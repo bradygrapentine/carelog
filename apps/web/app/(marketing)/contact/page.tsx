@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ContactForm } from "../../../components/marketing/ContactForm";
 
-const BASE_URL = "https://carelog.app";
+const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
   title: "Contact — Carelog",
@@ -97,10 +97,10 @@ export default function ContactPage() {
             <p className="text-sm text-[var(--color-muted)]">
               Email:{" "}
               <a
-                href="mailto:hello@carelog.app"
+                href="mailto:hello@care-log.org"
                 className="text-[var(--color-primary)] underline underline-offset-2"
               >
-                hello@carelog.app
+                hello@care-log.org
               </a>
             </p>
             <p className="mt-1 text-sm text-[var(--color-muted)]">
