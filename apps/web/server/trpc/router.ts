@@ -19,6 +19,7 @@ import { shiftTradeRequestsRouter } from "../routers/shiftTradeRequests";
 import { notificationsRouter } from "../routers/notifications";
 import { billingRouter } from "../routers/billing";
 import { historyExportRouter } from "../routers/historyExport";
+import { moodEntriesRouter } from "../routers/moodEntries";
 import { briefsRouter } from "../routers/briefs";
 
 export const appRouter = router({
@@ -42,6 +43,7 @@ export const appRouter = router({
   notifications: notificationsRouter,
   billing: billingRouter,
   historyExport: historyExportRouter,
+  moodEntries: moodEntriesRouter,
   briefs: briefsRouter,
 });
 

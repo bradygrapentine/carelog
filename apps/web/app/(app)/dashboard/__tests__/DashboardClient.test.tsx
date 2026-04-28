@@ -17,6 +17,10 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+vi.mock("@/components/dashboard/MoodCard", () => ({
+  MoodCard: () => null,
+}));
+
 vi.mock("@/components/dashboard/BriefHero", () => ({
   BriefHero: () => null,
 }));
