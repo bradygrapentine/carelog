@@ -50,6 +50,8 @@ The DSN is read from the environment at **runtime**. If it's missing, the SDK si
 **Environment variable:** `SENTRY_AUTH_TOKEN` (Vercel, Production env only)
 **Vercel path:** Project → Settings → Environment Variables → `SENTRY_AUTH_TOKEN` → set to "Production" only
 
+**Build-time signal:** When the Vercel production build runs without `SENTRY_AUTH_TOKEN`, `apps/web/next.config.ts` emits a `[sentry] SENTRY_AUTH_TOKEN missing — source maps will not upload …` warning to stderr. The build still succeeds — the SDK no-ops gracefully — but the warning surfaces the silent-skip in CI logs so a missing token isn't invisible. The Sentry build plugin auto-deletes uploaded `.map` files from the client bundle after upload (default `sourcemaps.deleteSourcemapsAfterUpload: true` in `@sentry/nextjs` v10), so source maps don't ship to end users.
+
 **How to get the token:**
 
 1. Go to [sentry.io](https://sentry.io) → Organization → Settings → Auth Tokens
