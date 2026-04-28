@@ -19,6 +19,16 @@ const MOOD_DOT: Record<string, string> = {
   crisis: "bg-[var(--color-mood-crisis)]",
 };
 
+// Mood-tinted left border on the card — gives each entry a visually distinct
+// edge so the timeline reads as varied instead of monotonic. Falls back to a
+// neutral border when no mood is recorded.
+const MOOD_BORDER: Record<string, string> = {
+  good: "border-l-[var(--color-mood-good)]",
+  okay: "border-l-[var(--color-mood-okay)]",
+  difficult: "border-l-[var(--color-mood-difficult)]",
+  crisis: "border-l-[var(--color-mood-crisis)]",
+};
+
 // Badge tints — use the mood token for border + text, soft tinted background
 // derived via color-mix. Keeps a single source of truth in globals.css and
 // removes the raw bg-green-50 / bg-yellow-50 / bg-orange-50 / bg-red-50 classes.
@@ -165,7 +175,12 @@ function JournalCard({
     <div data-testid="journal-entry-row">
       <Card
         data-testid="journal-entry"
-        className="hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2"
+        className={
+          "hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2 border-l-4 " +
+          (payload.mood
+            ? (MOOD_BORDER[payload.mood] ?? "border-l-[var(--color-border)]")
+            : "border-l-[var(--color-border)]")
+        }
       >
         <CardContent className="p-4">
           {/*
@@ -210,9 +225,7 @@ function JournalCard({
           </div>
 
           <div className="flex items-center justify-between mb-2 relative">
-            <p className="text-xs text-[var(--color-muted)] pointer-events-none">
-              {entryTime}
-            </p>
+            <p className="eyebrow-mono pointer-events-none">{entryTime}</p>
             <div className="flex items-center gap-2 relative z-10">
               {event.flagged && (
                 <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
@@ -581,10 +594,10 @@ export function JournalTimeline({
                   ) : (
                     <div className="flex items-center gap-3 py-2 px-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-border)] shrink-0" />
-                      <p className="text-xs text-[var(--color-muted)] flex-1">
+                      <p className="eyebrow-mono flex-1">
                         {event.event_type} logged
                       </p>
-                      <p className="text-xs text-[var(--color-muted)]">
+                      <p className="eyebrow-mono">
                         {formatTime(event.occurred_at)}
                       </p>
                     </div>
