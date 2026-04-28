@@ -1,6 +1,12 @@
 import { Page, Browser } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+// Post-#243 dashboard cards/detail-panels expose journal navigation via
+// aria-label `Open care journal for ${orgName}` — no raw "View care journal"
+// text exists anywhere on the dashboard. Reuse this selector everywhere.
+export const CARE_JOURNAL_LINK_SELECTOR =
+  'a[aria-label^="Open care journal for"]';
+
 export async function clearMailpit(): Promise<void> {
   try {
     await fetch("http://127.0.0.1:54324/api/v1/messages", { method: "DELETE" });
@@ -102,18 +108,17 @@ export function uniqueEmail(purpose: string): string {
 export async function ensureCareTeam(page: Page): Promise<void> {
   await page.goto("/dashboard");
   await Promise.race([
-    page.waitForSelector('text="View care journal"', { timeout: 15000 }),
+    page.waitForSelector(CARE_JOURNAL_LINK_SELECTOR, { timeout: 15000 }),
     page.waitForSelector('a:has-text("Set up a care team")', {
       timeout: 15000,
     }),
   ]);
 
-  // "View care journal" renders as a <p> inside a clickable Card
-  // (DashboardClient.tsx:319-323), not a <button> — earlier selector
-  // `button:has-text(...)` never matched, so ensureCareTeam timed out
-  // for any test using it.
+  // Post-#243 the master/detail layout dropped the "View care journal" text;
+  // every team card / detail-panel CTA is now an <a aria-label="Open care
+  // journal for ${orgName}">. Anchor on that aria-label, not raw text.
   const hasCareTeam =
-    (await page.locator('text="View care journal"').count()) > 0;
+    (await page.locator(CARE_JOURNAL_LINK_SELECTOR).count()) > 0;
   if (hasCareTeam) return;
 
   await page.click('a:has-text("Set up a care team")');
@@ -126,13 +131,13 @@ export async function ensureCareTeam(page: Page): Promise<void> {
   // cold-cache prod build can push the redirect past 15s even when the
   // submit succeeds. Locally it fits in 15s; in CI it doesn't. (TD-45)
   await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
-  await page.waitForSelector('text="View care journal"', { timeout: 30_000 });
+  await page.waitForSelector(CARE_JOURNAL_LINK_SELECTOR, { timeout: 30_000 });
 }
 
 // Navigate from the dashboard to the journal page, creating a care team first if needed.
 export async function navigateToJournal(page: Page): Promise<void> {
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
   await page.waitForURL(/\/journal\//);
 }
 

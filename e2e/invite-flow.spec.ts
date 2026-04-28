@@ -5,6 +5,7 @@ import {
   navigateToJournal,
   sendInviteAndGetUrl,
   acceptInviteAsNewUser,
+  CARE_JOURNAL_LINK_SELECTOR,
 } from "./helpers";
 
 // Per-test coordinator email — same reasoning as invitee emails: a fresh
@@ -61,9 +62,14 @@ test("invitee accepts invite and sees care team dashboard", async ({
         timeout: 10000,
       });
       // Verify the joined team is visible on the dashboard (not just the
-      // empty state).
+      // empty state). Either the journal-link card OR the "Set up a care
+      // team" CTA satisfies "user has reached a usable dashboard."
       await expect(
-        inviteePage.getByText(/View care journal|Set up a care team/),
+        inviteePage
+          .locator(
+            `${CARE_JOURNAL_LINK_SELECTOR}, a:has-text("Set up a care team")`,
+          )
+          .first(),
       ).toBeVisible({ timeout: 8000 });
     } finally {
       await inviteeCtx.close();

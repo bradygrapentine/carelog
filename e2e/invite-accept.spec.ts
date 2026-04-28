@@ -6,6 +6,7 @@ import {
   sendInviteAndGetUrl,
   acceptInviteAsNewUser,
   uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
 } from "./helpers";
 
 // Use distinct emails from invite-flow.spec.ts to avoid conflicts
@@ -51,13 +52,14 @@ test("coordinator invite accepted — invitee lands on dashboard with correct ro
       });
 
       // The role label is on the Team panel, not on /dashboard. The
-      // dashboard surface a caregiver sees post-accept is the "View care
-      // journal" link — proves they joined SOMETHING (i.e. the membership
-      // was created). Role-specific gating is covered by the role-restricted
-      // selectors in burnout/documents/export specs. (TD-73)
-      await expect(inviteePage.getByText("View care journal")).toBeVisible({
-        timeout: 8000,
-      });
+      // dashboard surface a caregiver sees post-accept is the journal-link
+      // card (aria-label "Open care journal for ...") — proves they joined
+      // SOMETHING (i.e. the membership was created). Role-specific gating is
+      // covered by the role-restricted selectors in burnout/documents/export
+      // specs. (TD-73, post-#243 master/detail layout)
+      await expect(
+        inviteePage.locator(CARE_JOURNAL_LINK_SELECTOR).first(),
+      ).toBeVisible({ timeout: 8000 });
     } finally {
       await inviteeCtx.close();
     }

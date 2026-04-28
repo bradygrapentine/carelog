@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { signIn, ensureCareTeam, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  ensureCareTeam,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 test.describe("Education library", () => {
   test.beforeEach(async ({ page }) => {
@@ -45,7 +50,7 @@ test.describe("Education library", () => {
     const TEST_EMAIL = uniqueEmail("edu-nav");
     await signIn(page, TEST_EMAIL);
     await ensureCareTeam(page);
-    await page.click('text="View care journal"');
+    await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
     await page.waitForURL(/\/journal\//, { timeout: 15_000 });
     await page.getByRole("tab", { name: "Education" }).click();
     await expect(page).toHaveURL(/\/education/);

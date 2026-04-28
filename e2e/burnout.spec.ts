@@ -5,7 +5,10 @@ import {
   clearMailpit,
   navigateToJournal,
   sendInviteAndGetUrl,
-  acceptInviteAsNewUser, uniqueEmail } from "./helpers";
+  acceptInviteAsNewUser,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 function roleEmail(role: string) {
   return "e2e-burn-" + role + "-" + Date.now() + "@test.com";
@@ -96,10 +99,10 @@ test.describe("Burnout check-in", () => {
         // Diagnostic: confirm caregiver landed on /dashboard after invite acceptance
         await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
-        // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
-        await expect(caregiverPage.getByText("View care journal")).toBeVisible({
-          timeout: 10000,
-        });
+        // Diagnostic: confirm the journal-link card is visible (caregiver joined a team)
+        await expect(
+          caregiverPage.locator(CARE_JOURNAL_LINK_SELECTOR).first(),
+        ).toBeVisible({ timeout: 10000 });
 
         await goToMorePanel(caregiverPage);
 
@@ -151,10 +154,10 @@ test.describe("Burnout check-in", () => {
         // Diagnostic: confirm caregiver landed on /dashboard after invite acceptance
         await expect(caregiverPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
-        // Diagnostic: confirm "View care journal" is visible (caregiver joined a team)
-        await expect(caregiverPage.getByText("View care journal")).toBeVisible({
-          timeout: 10000,
-        });
+        // Diagnostic: confirm the journal-link card is visible (caregiver joined a team)
+        await expect(
+          caregiverPage.locator(CARE_JOURNAL_LINK_SELECTOR).first(),
+        ).toBeVisible({ timeout: 10000 });
 
         await goToMorePanel(caregiverPage);
 
@@ -214,13 +217,13 @@ test.describe("Burnout check-in", () => {
         // Diagnostic: confirm supporter landed on /dashboard after invite acceptance
         await expect(supporterPage).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
-        // Diagnostic: confirm "View care journal" is visible (supporter joined a team)
-        await expect(supporterPage.getByText("View care journal")).toBeVisible({
-          timeout: 10000,
-        });
+        // Diagnostic: confirm the journal-link card is visible (supporter joined a team)
+        await expect(
+          supporterPage.locator(CARE_JOURNAL_LINK_SELECTOR).first(),
+        ).toBeVisible({ timeout: 10000 });
 
         // Navigate to journal and click More tab
-        await supporterPage.click('text="View care journal"');
+        await supporterPage.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
         await supporterPage.waitForURL(/\/journal\//, { timeout: 10000 });
         await supporterPage.getByRole("tab", { name: "More" }).click();
 

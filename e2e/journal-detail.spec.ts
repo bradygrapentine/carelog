@@ -1,12 +1,17 @@
 // e2e/journal-detail.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, ensureCareTeam, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  ensureCareTeam,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 async function goToJournal(page: import("@playwright/test").Page) {
   // (TD-73) Tests can't rely on a leaked session — sign in fresh.
   await signIn(page, uniqueEmail("journal-detail"));
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   await page.waitForSelector('[placeholder="Share how today went..."]', {
     timeout: 10000,

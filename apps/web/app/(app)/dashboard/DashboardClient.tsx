@@ -424,10 +424,19 @@ export function DashboardClient({ user }: Props) {
 
             {/* Today-at-a-glance — auto-scoped to primary team. */}
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
-              <BriefHero />
+              <BriefHero
+                recipientId={teams[0]?.recipientId}
+                orgId={teams[0]?.org.id}
+              />
               <div className="flex flex-col gap-4">
-                <MedCard />
-                <MoodCard />
+                <MedCard
+                  recipientId={teams[0]?.recipientId}
+                  orgId={teams[0]?.org.id}
+                />
+                <MoodCard
+                  recipientId={teams[0]?.recipientId}
+                  orgId={teams[0]?.org.id}
+                />
               </div>
             </div>
 
@@ -490,10 +499,19 @@ export function DashboardClient({ user }: Props) {
             </div>
 
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
-              <BriefHero />
+              <BriefHero
+                recipientId={teams[0]?.recipientId}
+                orgId={teams[0]?.org.id}
+              />
               <div className="flex flex-col gap-4">
-                <MedCard />
-                <MoodCard />
+                <MedCard
+                  recipientId={teams[0]?.recipientId}
+                  orgId={teams[0]?.org.id}
+                />
+                <MoodCard
+                  recipientId={teams[0]?.recipientId}
+                  orgId={teams[0]?.org.id}
+                />
               </div>
             </div>
 
