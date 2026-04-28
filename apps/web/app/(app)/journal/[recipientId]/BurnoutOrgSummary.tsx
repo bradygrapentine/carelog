@@ -18,8 +18,8 @@ export function BurnoutOrgSummary({ orgId, currentUserRole }: Props) {
   if (!enabled) return null;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-2">
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <CardTitle className="text-sm">Team wellbeing</CardTitle>
       </CardHeader>
       <CardContent className="pt-2">

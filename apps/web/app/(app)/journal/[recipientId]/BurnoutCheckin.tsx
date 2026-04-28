@@ -112,15 +112,15 @@ export function BurnoutCheckin({
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="shadow-sm gap-2">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
         <CardTitle className="text-sm">How are you doing this week?</CardTitle>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Your answers are private and help us look out for you.
-        </p>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="pt-2">
+        <p className="text-xs text-muted-foreground mb-3">
+          Your answers are private and help us look out for you.
+        </p>
         {saved ? (
           <div className="py-4 text-center" role="status">
             <p className="text-sm font-medium text-emerald-700">
