@@ -20,6 +20,7 @@ import { notificationsRouter } from "../routers/notifications";
 import { billingRouter } from "../routers/billing";
 import { historyExportRouter } from "../routers/historyExport";
 import { moodEntriesRouter } from "../routers/moodEntries";
+import { briefsRouter } from "../routers/briefs";
 
 export const appRouter = router({
   ai: aiRouter,
@@ -43,6 +44,7 @@ export const appRouter = router({
   billing: billingRouter,
   historyExport: historyExportRouter,
   moodEntries: moodEntriesRouter,
+  briefs: briefsRouter,
 });
 
 export type AppRouter = typeof appRouter;
