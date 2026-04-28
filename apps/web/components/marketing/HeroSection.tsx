@@ -49,7 +49,7 @@ export function HeroSection() {
           </Link>
           <Link
             href="/#features"
-            className="inline-flex items-center justify-center rounded-xl border-2 border-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-xl border-2 border-[var(--color-tertiary)] px-6 py-3 text-sm font-semibold text-[var(--color-tertiary)] transition-colors hover:bg-[var(--color-tertiary-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)] focus:ring-offset-2"
           >
             See how it works
           </Link>
@@ -105,7 +105,7 @@ export function HeroSection() {
             role="presentation"
             className="absolute bottom-6 right-2 flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-card/95 px-4 py-3 shadow-lg backdrop-blur"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-[var(--color-tertiary)]">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"

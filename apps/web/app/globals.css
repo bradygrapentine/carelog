@@ -9,10 +9,15 @@
   --color-primary-light:  #a78bfa;   /* Violet 400 */
   --color-primary-subtle: #ede9fe;   /* Violet 100 */
 
-  /* Secondary — warm amber (hope, warmth) — complements violet */
+  /* Secondary — warm amber (hope, warmth) — editorial highlight */
   --color-secondary:        #d97706;   /* Amber 600 */
   --color-secondary-light:  #f59e0b;   /* Amber 500 */
   --color-secondary-subtle: #fef3c7;   /* Amber 100 */
+
+  /* Tertiary — warm coral — secondary actions, iconography, accents */
+  --color-tertiary:         #e76f51;   /* Coral 500 */
+  --color-tertiary-light:   #f08e76;
+  --color-tertiary-subtle:  #fbe0d6;
 
   /* Accent — soft rose, for decorative surfaces */
   --color-accent-soft:    #fde4e4;
@@ -234,6 +239,9 @@ body {
     --color-secondary:        #fbbf24;
     --color-secondary-light:  #fde68a;
     --color-secondary-subtle: #451a03;
+    --color-tertiary:         #f08e76;
+    --color-tertiary-light:   #f5a994;
+    --color-tertiary-subtle:  #4a1f15;
     --color-ink:              #f5f3ff;
     --color-surface:          #0f0a1a;
     --color-text-primary:     #e8e0f0;
@@ -278,6 +286,9 @@ body {
   --color-secondary:        #fbbf24;
   --color-secondary-light:  #fde68a;
   --color-secondary-subtle: #451a03;
+  --color-tertiary:         #f08e76;
+  --color-tertiary-light:   #f5a994;
+  --color-tertiary-subtle:  #4a1f15;
   --color-ink:              #f5f3ff;
   --color-surface:          #0f0a1a;
   --color-text-primary:     #e8e0f0;
@@ -318,6 +329,8 @@ body {
   :root {
     --color-primary:          #7c3aed;
     --color-primary-subtle:   #ede9fe;
+    --color-tertiary:         #e76f51;
+    --color-tertiary-subtle:  #fbe0d6;
     --color-ink:              #1e0a3c;
     --color-surface:          #faf5ff;
     --color-text-primary:     #1e0a3c;

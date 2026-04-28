@@ -39,8 +39,10 @@ Defined in `apps/web/app/globals.css` under `@theme inline`. Reference via CSS v
 |---|---|---|
 | Primary | `var(--color-primary)` | `#7c3aed` |
 | Primary subtle (tinted headers, chips) | `var(--color-primary-subtle)` | `#ede9fe` |
-| Secondary (amber accents) | `var(--color-secondary)` | `#d97706` |
+| Secondary (amber — editorial highlights) | `var(--color-secondary)` | `#d97706` |
 | Secondary subtle | `var(--color-secondary-subtle)` | `#fef3c7` |
+| Tertiary (coral — secondary actions, iconography) | `var(--color-tertiary)` | `#e76f51` |
+| Tertiary subtle | `var(--color-tertiary-subtle)` | `#fbe0d6` |
 | Ink / heading | `var(--color-ink)` | `#1e0a3c` |
 | Surface | `var(--color-surface)` | `#faf5ff` |
 | Body text | `var(--color-text-primary)` / `var(--color-text-secondary)` |
