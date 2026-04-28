@@ -21,6 +21,10 @@ vi.mock("@/components/dashboard/MoodCard", () => ({
   MoodCard: () => null,
 }));
 
+vi.mock("@/components/dashboard/MedCard", () => ({
+  MedCard: () => null,
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => "/dashboard",
