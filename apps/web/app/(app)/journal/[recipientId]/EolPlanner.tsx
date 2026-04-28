@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -104,19 +104,15 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   return (
-    <Card className="border-[var(--color-danger)]/30">
-      <div className="w-full px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground/80">
-            End-of-life plan
-          </span>
-          <span className="text-xs bg-[var(--color-danger-subtle)] text-[var(--color-danger)] px-2 py-0.5 rounded-full">
-            Coordinator only
-          </span>
-        </div>
-      </div>
+    <Card className="shadow-sm gap-2 border-[var(--color-danger)]/30">
+      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)] flex-row items-center justify-between">
+        <CardTitle className="text-sm">End-of-life plan</CardTitle>
+        <span className="text-xs bg-[var(--color-danger-subtle)] text-[var(--color-danger)] px-2 py-0.5 rounded-full">
+          Coordinator only
+        </span>
+      </CardHeader>
 
-      <div className="px-4 pb-4 border-t border-border space-y-4">
+      <CardContent className="pt-2 space-y-4">
         {planLoading && (
           <p className="text-sm text-muted-foreground pt-3">Loading...</p>
         )}
@@ -349,7 +345,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
             </div>
           </form>
         )}
-      </div>
+      </CardContent>
     </Card>
   );
 }
