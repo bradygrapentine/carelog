@@ -21,6 +21,10 @@ vi.mock("@/components/dashboard/BriefHero", () => ({
   BriefHero: () => null,
 }));
 
+vi.mock("@/components/dashboard/MedCard", () => ({
+  MedCard: () => null,
+}));
+
 const mockUser = {
   id: "user-123",
   email: "test@example.com",
