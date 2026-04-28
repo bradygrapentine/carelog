@@ -17,6 +17,10 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+vi.mock("@/components/dashboard/MedCard", () => ({
+  MedCard: () => null,
+}));
+
 const mockUser = {
   id: "user-123",
   email: "test@example.com",

@@ -17,6 +17,10 @@ vi.mock("@/lib/supabase", () => ({
   }),
 }));
 
+vi.mock("@/components/dashboard/MedCard", () => ({
+  MedCard: () => null,
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => "/dashboard",
