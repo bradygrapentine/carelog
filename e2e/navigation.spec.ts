@@ -7,7 +7,10 @@ import { signIn, ensureCareTeam, checkA11y, uniqueEmail } from "./helpers";
 async function goToJournal(page: import("@playwright/test").Page) {
   await signIn(page, uniqueEmail("nav-panel"));
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page
+    .getByRole("link", { name: /Open care journal for/i })
+    .first()
+    .click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   // Confirm default panel loaded
   await page.waitForSelector('[placeholder="Share how today went..."]', {

@@ -6,7 +6,10 @@ async function goToJournal(page: import("@playwright/test").Page) {
   // (TD-73) Tests can't rely on a leaked session — sign in fresh.
   await signIn(page, uniqueEmail("journal-detail"));
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page
+    .getByRole("link", { name: /Open care journal for/i })
+    .first()
+    .click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   await page.waitForSelector('[placeholder="Share how today went..."]', {
     timeout: 10000,

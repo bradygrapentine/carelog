@@ -45,7 +45,10 @@ test.describe("Education library", () => {
     const TEST_EMAIL = uniqueEmail("edu-nav");
     await signIn(page, TEST_EMAIL);
     await ensureCareTeam(page);
-    await page.click('text="View care journal"');
+    await page
+      .getByRole("link", { name: /Open care journal for/i })
+      .first()
+      .click();
     await page.waitForURL(/\/journal\//, { timeout: 15_000 });
     await page.getByRole("tab", { name: "Education" }).click();
     await expect(page).toHaveURL(/\/education/);

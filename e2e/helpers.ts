@@ -101,19 +101,17 @@ export function uniqueEmail(purpose: string): string {
 // exists. Leaves the page on /dashboard.
 export async function ensureCareTeam(page: Page): Promise<void> {
   await page.goto("/dashboard");
+  const careJournalLink = page.getByRole("link", {
+    name: /Open care journal for/i,
+  });
   await Promise.race([
-    page.waitForSelector('text="View care journal"', { timeout: 15000 }),
+    careJournalLink.first().waitFor({ state: "visible", timeout: 15000 }),
     page.waitForSelector('a:has-text("Set up a care team")', {
       timeout: 15000,
     }),
   ]);
 
-  // "View care journal" renders as a <p> inside a clickable Card
-  // (DashboardClient.tsx:319-323), not a <button> — earlier selector
-  // `button:has-text(...)` never matched, so ensureCareTeam timed out
-  // for any test using it.
-  const hasCareTeam =
-    (await page.locator('text="View care journal"').count()) > 0;
+  const hasCareTeam = (await careJournalLink.count()) > 0;
   if (hasCareTeam) return;
 
   await page.click('a:has-text("Set up a care team")');
@@ -126,13 +124,16 @@ export async function ensureCareTeam(page: Page): Promise<void> {
   // cold-cache prod build can push the redirect past 15s even when the
   // submit succeeds. Locally it fits in 15s; in CI it doesn't. (TD-45)
   await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
-  await page.waitForSelector('text="View care journal"', { timeout: 30_000 });
+  await careJournalLink.first().waitFor({ state: "visible", timeout: 30_000 });
 }
 
 // Navigate from the dashboard to the journal page, creating a care team first if needed.
 export async function navigateToJournal(page: Page): Promise<void> {
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page
+    .getByRole("link", { name: /Open care journal for/i })
+    .first()
+    .click();
   await page.waitForURL(/\/journal\//);
 }
 

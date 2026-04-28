@@ -55,9 +55,11 @@ test("coordinator invite accepted — invitee lands on dashboard with correct ro
       // journal" link — proves they joined SOMETHING (i.e. the membership
       // was created). Role-specific gating is covered by the role-restricted
       // selectors in burnout/documents/export specs. (TD-73)
-      await expect(inviteePage.getByText("View care journal")).toBeVisible({
-        timeout: 8000,
-      });
+      await expect(
+        inviteePage
+          .getByRole("link", { name: /Open care journal for/i })
+          .first(),
+      ).toBeVisible({ timeout: 8000 });
     } finally {
       await inviteeCtx.close();
     }

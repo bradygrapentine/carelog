@@ -63,7 +63,11 @@ test("invitee accepts invite and sees care team dashboard", async ({
       // Verify the joined team is visible on the dashboard (not just the
       // empty state).
       await expect(
-        inviteePage.getByText(/View care journal|Set up a care team/),
+        inviteePage
+          .getByRole("link", {
+            name: /Open care journal for|Set up a care team/i,
+          })
+          .first(),
       ).toBeVisible({ timeout: 8000 });
     } finally {
       await inviteeCtx.close();
