@@ -99,7 +99,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                   className={cn(
                     "flex items-center gap-1.5 border-b-2 px-4 py-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
                     isActive
-                      ? "border-[var(--color-primary-light)] text-white"
+                      ? "border-[var(--color-tertiary)] text-white"
                       : "border-transparent text-violet-300 hover:text-white",
                   )}
                 >
@@ -151,7 +151,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                 className={cn(
                   "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
                   isActive
-                    ? "border-[var(--color-primary-light)] text-white"
+                    ? "border-[var(--color-tertiary)] text-white"
                     : "border-transparent text-violet-300 hover:text-white",
                 )}
               >

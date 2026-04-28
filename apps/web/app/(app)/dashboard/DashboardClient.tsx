@@ -313,24 +313,27 @@ export function DashboardClient({ user }: Props) {
                 aria-label={`Open care journal for ${team.org.name}`}
                 className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
               >
-                <Card className="cursor-pointer hover:border-border/80 transition-colors">
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-foreground truncate">
+                <Card className="cursor-pointer hover:border-[var(--color-tertiary)]/40 transition-colors">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-sm font-semibold text-[var(--color-tertiary)]"
+                        aria-hidden="true"
+                      >
+                        {team.org.name.slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-sm font-semibold text-foreground truncate">
                           {team.org.name}
                         </h2>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          View care journal
-                        </p>
                         {team.eventCount > 0 && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-muted-foreground truncate">
                             {formatCareStats(team.eventCount, team.months)}
                           </p>
                         )}
                       </div>
                       <ChevronRight
-                        className="w-5 h-5 text-muted-foreground shrink-0"
+                        className="w-4 h-4 text-muted-foreground shrink-0"
                         aria-hidden="true"
                       />
                     </div>

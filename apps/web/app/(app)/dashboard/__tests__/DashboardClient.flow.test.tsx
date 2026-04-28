@@ -113,7 +113,9 @@ describe("DashboardClient (flow)", () => {
     await waitFor(() => {
       expect(screen.getByText("Smith Family")).toBeInTheDocument();
     });
-    expect(screen.getByText("View care journal")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Open care journal for Smith Family"),
+    ).toBeInTheDocument();
   });
 
   it("renders each care team as a keyboard-reachable link to the journal", async () => {
