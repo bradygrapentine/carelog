@@ -22,7 +22,7 @@ export function ProductPreview() {
           {/* Journal entry card */}
           <div
             role="presentation"
-            className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
             style={{ borderLeft: "3px solid var(--color-primary)" }}
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
@@ -73,7 +73,7 @@ export function ProductPreview() {
           {/* Team card */}
           <div
             role="presentation"
-            className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
               Care team

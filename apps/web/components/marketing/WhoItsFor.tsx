@@ -43,7 +43,7 @@ export function WhoItsFor() {
         {personas.map((p) => (
           <article
             key={p.title}
-            className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+            className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden">
               <Image
