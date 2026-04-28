@@ -39,9 +39,10 @@ function makeChain(opts: {
   chain.single = vi.fn().mockResolvedValue(opts.result);
   // For non-.single() terminal awaits (getUserOrganizations), the chain itself
   // resolves to result via .then.
-  (chain as unknown as PromiseLike<unknown>).then = (
-    onFulfilled: (v: unknown) => unknown,
-  ) => Promise.resolve(opts.result).then(onFulfilled);
+  chain.then = ((
+    onFulfilled?: ((value: unknown) => unknown) | null,
+    onRejected?: ((reason: unknown) => unknown) | null,
+  ) => Promise.resolve(opts.result).then(onFulfilled, onRejected)) as unknown;
   return {
     chain,
     inspect: () => ({ eqCalls, notCalled }),
