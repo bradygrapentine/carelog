@@ -27,6 +27,7 @@ export function MarketingNav() {
           {[
             { label: "Features", href: "/#features" },
             { label: "Pricing", href: "/pricing" },
+            { label: "Compare", href: "/compare" },
             { label: "CareZone users", href: "/carezone-alternative" },
             { label: "About", href: "/about" },
             { label: "Contact", href: "/contact" },
