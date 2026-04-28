@@ -175,7 +175,7 @@ export function ForReferrersPage() {
           {features.map(({ icon: Icon, title, description }) => (
             <li
               key={title}
-              className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
             >
               <div className="mb-3 flex items-center gap-3">
                 <span
@@ -212,7 +212,7 @@ export function ForReferrersPage() {
           {steps.map(({ number, title, detail }) => (
             <li
               key={number}
-              className="flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm"
+              className="flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
             >
               <span
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-white"
@@ -243,7 +243,7 @@ export function ForReferrersPage() {
         aria-labelledby="referrers-trust-heading"
         className="mx-auto max-w-4xl px-6 pb-16"
       >
-        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6 text-center shadow-sm">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-card p-6 text-center shadow-sm">
           <h2
             id="referrers-trust-heading"
             className="mb-2 text-lg font-bold text-[var(--color-ink)]"

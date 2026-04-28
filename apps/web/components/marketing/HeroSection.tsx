@@ -103,7 +103,7 @@ export function HeroSection() {
           {/* Floating stat badge */}
           <div
             role="presentation"
-            className="absolute bottom-6 right-2 flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-white/95 px-4 py-3 shadow-lg backdrop-blur"
+            className="absolute bottom-6 right-2 flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-card/95 px-4 py-3 shadow-lg backdrop-blur"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-secondary-subtle)] text-[var(--color-secondary)]">
               <svg

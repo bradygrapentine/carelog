@@ -59,7 +59,7 @@ export function PricingCards() {
 
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 md:flex-row">
         {/* Free tier */}
-        <div className="flex flex-1 flex-col rounded-2xl border border-[var(--color-border)] bg-white p-8">
+        <div className="flex flex-1 flex-col rounded-2xl border border-[var(--color-border)] bg-card p-8">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-[var(--color-ink)]">Free</h3>
             <div className="mt-2 flex items-end gap-1">
@@ -99,7 +99,7 @@ export function PricingCards() {
         </div>
 
         {/* Family Plan */}
-        <div className="relative flex flex-1 flex-col rounded-2xl border-2 border-[var(--color-primary)] bg-white p-8">
+        <div className="relative flex flex-1 flex-col rounded-2xl border-2 border-[var(--color-primary)] bg-card p-8">
           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--color-primary)] px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
             Most popular
           </span>
