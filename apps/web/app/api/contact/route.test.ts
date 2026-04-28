@@ -1,17 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockCapture } = vi.hoisted(() => ({
+const { mockCapture, mockAddBreadcrumb, mockEmailSend } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
+  mockAddBreadcrumb: vi.fn(),
+  mockEmailSend: vi.fn().mockResolvedValue({ error: null }),
 }));
 
 vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: vi.fn(() => ({ capture: mockCapture })),
 }));
 
+vi.mock("@sentry/nextjs", () => ({
+  addBreadcrumb: mockAddBreadcrumb,
+}));
+
 vi.mock("../../../server/resend.server", () => ({
   resend: {
     emails: {
-      send: vi.fn().mockResolvedValue({ error: null }),
+      send: mockEmailSend,
     },
   },
 }));
@@ -26,6 +32,9 @@ const UUID_RE =
 
 beforeEach(() => {
   mockCapture.mockClear();
+  mockAddBreadcrumb.mockClear();
+  mockEmailSend.mockReset();
+  mockEmailSend.mockResolvedValue({ error: null });
 });
 
 function makeRequest(body: unknown, init?: RequestInit) {
@@ -146,5 +155,94 @@ describe("POST /api/contact — PostHog PHI boundary", () => {
     const req = makeRequest({ name: "Alex", message: "hello" }); // missing email
     await POST(req);
     expect(mockCapture).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/contact — email delivery", () => {
+  it("calls resend.emails.send twice on valid submission (internal + confirmation)", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    expect(mockEmailSend).toHaveBeenCalledTimes(2);
+  });
+
+  it("sends internal notification to hello@care-log.org", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    const internalCall = mockEmailSend.mock.calls.find((call) =>
+      (call[0].to as string[]).includes("hello@care-log.org"),
+    );
+    expect(internalCall).toBeDefined();
+    expect(internalCall![0].reply_to).toBe("user@example.com");
+  });
+
+  it("sends confirmation email to the submitter", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    const confirmationCall = mockEmailSend.mock.calls.find((call) =>
+      (call[0].to as string[]).includes("user@example.com"),
+    );
+    expect(confirmationCall).toBeDefined();
+    expect(confirmationCall![0].subject).toMatch(/received/i);
+  });
+
+  it("confirmation email does NOT include the original message body", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "secret-message-body",
+    });
+    await POST(req);
+    const confirmationCall = mockEmailSend.mock.calls.find((call) =>
+      (call[0].to as string[]).includes("user@example.com"),
+    );
+    expect(confirmationCall![0].text).not.toContain("secret-message-body");
+  });
+});
+
+describe("POST /api/contact — Sentry breadcrumb", () => {
+  it("adds a Sentry breadcrumb on valid submission", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: "contact",
+        level: "info",
+        message: expect.stringContaining("submitted"),
+      }),
+    );
+  });
+
+  it("Sentry breadcrumb data does NOT contain email or name", async () => {
+    const req = makeRequest({
+      name: "Alex",
+      email: "user@example.com",
+      message: "hello",
+    });
+    await POST(req);
+    const allArgs = JSON.stringify(mockAddBreadcrumb.mock.calls);
+    expect(allArgs).not.toContain("user@example.com");
+    expect(allArgs).not.toContain("Alex");
+  });
+
+  it("does NOT add Sentry breadcrumb when fields are invalid", async () => {
+    const req = makeRequest({ name: "Alex", message: "hello" }); // missing email
+    await POST(req);
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
   });
 });
