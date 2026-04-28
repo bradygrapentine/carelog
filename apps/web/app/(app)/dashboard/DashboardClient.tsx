@@ -15,8 +15,16 @@ import { MoodCard } from "@/components/dashboard/MoodCard";
 type CareTeam = {
   org: { id: string; name: string };
   recipientId: string;
+  role: string;
   eventCount: number;
   months: number;
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  coordinator: "Coordinator",
+  caregiver: "Caregiver",
+  aide: "Aide",
+  supporter: "Supporter",
 };
 
 export function formatCareStats(count: number, months: number): string {
@@ -108,6 +116,16 @@ export function DashboardClient({ user }: Props) {
   const [firstOrg, setFirstOrg] = useState<{ id: string; name: string } | null>(
     null,
   );
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(
+    null,
+  );
+
+  // Default the master/detail selection to the first team once data loads.
+  useEffect(() => {
+    if (teams.length > 0 && selectedRecipientId === null) {
+      setSelectedRecipientId(teams[0]!.recipientId);
+    }
+  }, [teams, selectedRecipientId]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -226,6 +244,7 @@ export function DashboardClient({ user }: Props) {
             result.push({
               org,
               recipientId: recipients[0].id,
+              role: m.role,
               eventCount,
               months,
             });
@@ -280,16 +299,6 @@ export function DashboardClient({ user }: Props) {
           Coordinate care, track medications, and support your team.
         </p>
 
-        {teams.length > 0 && (
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
-            <BriefHero />
-            <div className="flex flex-col gap-4">
-              <MedCard />
-              <MoodCard />
-            </div>
-          </div>
-        )}
-
         {teams.length === 0 ? (
           <Card className="p-8 text-center">
             <CardContent className="p-0">
@@ -304,53 +313,194 @@ export function DashboardClient({ user }: Props) {
               </Link>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-4">
-            {teams.map((team) => (
-              <Link
-                key={team.org.id}
-                href={"/journal/" + team.recipientId}
-                aria-label={`Open care journal for ${team.org.name}`}
-                className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+        ) : teams.length >= 2 ? (
+          <>
+            {/*
+              Multi-team master/detail. Left = team list (selectable buttons),
+              right = selected team summary + journal CTA. On mobile (< md)
+              the two stack with the master list on top.
+            */}
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
+              <ul
+                role="listbox"
+                aria-label="Care teams"
+                aria-activedescendant={
+                  selectedRecipientId
+                    ? `team-option-${selectedRecipientId}`
+                    : undefined
+                }
+                className="space-y-2"
               >
-                <Card className="cursor-pointer hover:border-[var(--color-tertiary)]/40 transition-colors">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-sm font-semibold text-[var(--color-tertiary)]"
-                        aria-hidden="true"
+                {teams.map((team) => {
+                  const isSelected = team.recipientId === selectedRecipientId;
+                  return (
+                    <li key={team.org.id}>
+                      <button
+                        type="button"
+                        role="option"
+                        id={`team-option-${team.recipientId}`}
+                        aria-selected={isSelected}
+                        onClick={() => setSelectedRecipientId(team.recipientId)}
+                        className={
+                          "w-full text-left rounded-xl border p-3 transition-colors flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
+                          (isSelected
+                            ? "bg-[var(--color-tertiary-subtle)] border-[var(--color-tertiary)]"
+                            : "bg-card border-[var(--color-border)] hover:border-[var(--color-tertiary)]/40")
+                        }
                       >
-                        {team.org.name.slice(0, 2).toUpperCase()}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="text-sm font-semibold text-foreground truncate">
-                          {team.org.name}
-                        </h2>
-                        {team.eventCount > 0 && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {formatCareStats(team.eventCount, team.months)}
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-sm font-semibold text-[var(--color-tertiary)]"
+                          aria-hidden="true"
+                        >
+                          {team.org.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {team.org.name}
                           </p>
-                        )}
-                      </div>
-                      <ChevronRight
-                        className="w-4 h-4 text-muted-foreground shrink-0"
-                        aria-hidden="true"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                          <p className="text-xs text-muted-foreground truncate">
+                            {ROLE_LABEL[team.role] ?? team.role}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {selectedRecipientId &&
+                (() => {
+                  const team =
+                    teams.find((t) => t.recipientId === selectedRecipientId) ??
+                    teams[0]!;
+                  return (
+                    <Card className="shadow-sm gap-2">
+                      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
+                        <CardTitle className="text-base">
+                          {team.org.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-2 space-y-4">
+                        <dl className="space-y-1 text-sm">
+                          <div className="flex gap-2">
+                            <dt className="text-muted-foreground">
+                              Your role:
+                            </dt>
+                            <dd className="text-foreground/80 font-medium">
+                              {ROLE_LABEL[team.role] ?? team.role}
+                            </dd>
+                          </div>
+                          {team.eventCount > 0 ? (
+                            <div className="flex gap-2">
+                              <dt className="text-muted-foreground">
+                                Activity:
+                              </dt>
+                              <dd className="text-foreground/80">
+                                {formatCareStats(team.eventCount, team.months)}
+                              </dd>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              No events logged yet.
+                            </p>
+                          )}
+                        </dl>
+                        <Link
+                          href={"/journal/" + team.recipientId}
+                          aria-label={`Open care journal for ${team.org.name}`}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold hover:bg-[var(--color-primary)]/90 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                        >
+                          Open care journal
+                          <ChevronRight
+                            className="w-4 h-4"
+                            aria-hidden="true"
+                          />
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+            </div>
+
+            {/* Today-at-a-glance — auto-scoped to primary team. */}
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
+              <BriefHero />
+              <div className="flex flex-col gap-4">
+                <MedCard />
+                <MoodCard />
+              </div>
+            </div>
+
             <Link
               href="/onboarding"
-              className="block text-center text-sm text-muted-foreground hover:text-foreground/80 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="block text-center text-sm text-muted-foreground hover:text-foreground/80 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 mb-4"
             >
               Add another care team
             </Link>
+
             {isCoordinator && firstOrg !== null && (
               <ReferralCard org={firstOrg} userId={user.id} />
             )}
-          </div>
+          </>
+        ) : (
+          /* Single-team layout — compact card from #240, briefs below. */
+          <>
+            <div className="space-y-3 mb-8">
+              {teams.map((team) => (
+                <Link
+                  key={team.org.id}
+                  href={"/journal/" + team.recipientId}
+                  aria-label={`Open care journal for ${team.org.name}`}
+                  className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                >
+                  <Card className="cursor-pointer hover:border-[var(--color-tertiary)]/40 transition-colors">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-sm font-semibold text-[var(--color-tertiary)]"
+                          aria-hidden="true"
+                        >
+                          {team.org.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <h2 className="text-sm font-semibold text-foreground truncate">
+                            {team.org.name}
+                          </h2>
+                          {team.eventCount > 0 && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {formatCareStats(team.eventCount, team.months)}
+                            </p>
+                          )}
+                        </div>
+                        <ChevronRight
+                          className="w-4 h-4 text-muted-foreground shrink-0"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+              <Link
+                href="/onboarding"
+                className="block text-center text-sm text-muted-foreground hover:text-foreground/80 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              >
+                Add another care team
+              </Link>
+            </div>
+
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
+              <BriefHero />
+              <div className="flex flex-col gap-4">
+                <MedCard />
+                <MoodCard />
+              </div>
+            </div>
+
+            {isCoordinator && firstOrg !== null && (
+              <ReferralCard org={firstOrg} userId={user.id} />
+            )}
+          </>
         )}
       </div>
     </div>
