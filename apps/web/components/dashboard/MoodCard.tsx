@@ -3,14 +3,15 @@
 import { trpc } from "@/lib/trpc";
 
 type Props = {
-  recipientId: string;
-  orgId: string;
+  recipientId?: string;
+  orgId?: string;
 };
 
 export function MoodCard({ recipientId, orgId }: Props) {
+  const enabled = !!recipientId && !!orgId;
   const { data, isLoading, isError } = trpc.moodEntries.sparkline.useQuery(
-    { recipientId, orgId, days: 13 },
-    { staleTime: 60_000 },
+    { recipientId: recipientId ?? "", orgId: orgId ?? "", days: 13 },
+    { enabled, staleTime: 60_000 },
   );
 
   // ── Loading state ────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ export function MoodCard({ recipientId, orgId }: Props) {
               key={idx}
               data-testid="mood-bar"
               data-today={idx === 12 ? "true" : "false"}
-              style={{ height: `${20 + Math.random() * 40}%` }}
+              style={{ height: `${30 + ((idx * 13) % 40)}%` }}
               className="flex-1 animate-pulse rounded-sm bg-[var(--color-primary-subtle)]"
             />
           ))}
