@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-27 PM** — promoted LAUNCH-002 (#225), LAUNCH-003 (#226), TD-73/74/75 (#227), A11Y-012..017 (#224, #228), UX-025..034 + UX-036 (#224) to §7. UX-035 confirmed still pending (BriefHero mock content not gated).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-27 PM** — promoted LAUNCH-002 (#225), LAUNCH-003 (#226), TD-73/74/75 (#227), A11Y-012..017 (#224, #228), UX-025..034 + UX-036 (#224), TD-76 (#230) to §7. Added TD-77..84 from Wave 5 discovery audit. UX-035 confirmed still pending (BriefHero mock content not gated).
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,11 +20,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 4 | TD-03 · PP-009 · UX-035 · LAUNCH-004 |
+| 🟢 Ready | 11 | TD-03 · TD-77..82 · TD-84 · PP-009 · UX-035 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
-| 🧑 Needs human | 7 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 |
+| 🧑 Needs human | 8 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-83 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -99,6 +99,22 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | TD-73 | ✅ Shipped · PR #227 | **Production rate-limit dashboard** | Vercel + Inngest 429 monitoring with Sentry/Slack alert when 429 rate > 1% in 5-min window. |
 | TD-74 | ✅ Shipped · PR #227 | **Weekly digest delivery monitoring** | Inngest `digestDeliveryMonitor` alerts when Sunday send count < 80% of org count. |
 | TD-75 | ✅ Shipped · PR #227 | **Weekly E2E green-streak gate** | `scripts/check-e2e-streak.mjs` + `.github/workflows/e2e-streak-gate.yml` block merge queue on >3 consecutive red nightly E2E runs. |
+
+### Wave 5 discovery batch (TD-76..84) — opened 2026-04-27
+
+Surfaced by parallel pre-flight + test-gap audits (`docs/plans/WAVE5_DISCOVERY_REPORT.md`). The Codex adversarial leg of the audit produced no output (TD-84 re-runs it). Total ~10 hr if executed serially; designed to fan out via TDD dispatch in Wave 7+.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-76 | ✅ Shipped · PR #230 | **Regenerate `database.types.ts`** | Drift covered the C1+C2 security migrations; net +285/-3 lines after `npx supabase gen types typescript --local`. Stale types had been masking RLS schema changes at the type-checker level. |
+| TD-77 | 🟢 Ready | **Tests for `identityRepository.ts` (Tier 1 — PHI vault)** | Uses `supabaseAdmin` (no RLS protection). Untested cross-org `resolveIdentity(token, org_id)` could leak names/DOB/contact between orgs in a silent regression. New file: `apps/web/server/repositories/__tests__/identityRepository.test.ts`. Test (a) cross-org token rejection, (b) malformed token, (c) expired token. ~2 hr. |
+| TD-78 | 🟢 Ready | **Tests for `user.ts` tRPC router (Tier 1 — auth boundary)** | Zero auth-boundary tests. `IANA_TIMEZONE_PATTERN` regex untested for bypass (e.g. `"../../../"`); `dismissEducationTip` date math untested for off-by-one. New file: `apps/web/server/routers/__tests__/user.test.ts`. Test (a) `ctx.user = null` → 401, (b) timezone regex valid/invalid/empty, (c) dismissEducationTip date math, (d) updateNotifications upsert idempotency. ~1.5 hr. |
+| TD-79 | 🟢 Ready | **Tests for `careEventsRepository.ts` (Tier 1 — core PHI write)** | No `validatePayload()` regression net + no org_id/recipient_id isolation test for `getTimeline`. RLS covers DB layer; this is the helper layer. New file: `apps/web/server/repositories/__tests__/careEventsRepository.test.ts`. Test (a) invalid payload throws before DB write, (b) cross-recipient timeline returns empty, (c) `insertEvent()` respects org_id boundary. ~1.5 hr. |
+| TD-80 | 🟢 Ready | **Tests for `lib/stripe.ts` (Tier 1 — payment infra)** | Singleton init throws if `STRIPE_SECRET_KEY` missing. Zero test asserting the error path; affects every checkout/upgrade. New file: `apps/web/lib/__tests__/stripe.test.ts`. Test (a) missing env → clear error message, (b) singleton returns same instance, (c) API version `"2026-03-25.dahlia"` is current. ~0.5 hr. |
+| TD-81 | 🟢 Ready | **Tests for `organizationsRepository.ts` (Tier 2 — team isolation)** | Cross-org query (org_id unfiltered) could be silent in CI if test fixtures don't span orgs. New file: `apps/web/server/repositories/__tests__/organizationsRepository.test.ts`. Test cross-org fixtures + org UUID assignment. ~1.5 hr. |
+| TD-82 | 🟢 Ready | **RLS test stub for `care_events_client_id` migration** | `20260416000001_care_events_client_id.sql` has no dedicated test. Either add a minimal `supabase/tests/care_events_client_id.test.sql` or document why it's covered by the existing `care_events_rls.test.sql`. ~0.5 hr. |
+| TD-83 | 🧑 Needs human | **Verify `CI Summary` is in main branch protection** | Pre-flight audit couldn't read protection config (no PAT in shell). Manually verify via GitHub UI: Settings → Branches → main → required checks includes `CI Summary` (per TD-30). If missing, add via API. ~0.25 hr. |
+| TD-84 | 🟢 Ready | **Re-run Codex adversarial audit on apps/web/server + supabase/migrations + apps/web/inngest** | Wave 5 dispatch produced no output file (sandbox couldn't write `/tmp/wave5-codex-audit.md`). Re-dispatch via `/codex:rescue` with same prompt before LAUNCH-001 fires; route output to `.codex-runs/`. Synthesize new TD-* batch from results. ~0.5 hr (orchestration only — findings become a new batch). |
 
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
 
