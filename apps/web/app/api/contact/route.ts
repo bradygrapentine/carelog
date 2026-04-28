@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
 import { resend } from "../../../server/resend.server";
 import { rateLimit } from "@/lib/rateLimit";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
   const { name, email, message } = parsed.data;
 
   if (resend) {
+    // Notify internal team
     await resend.emails.send({
       from: "CareSync Support <noreply@care-log.org>",
       to: ["hello@care-log.org"],
@@ -51,7 +53,25 @@ export async function POST(request: NextRequest) {
       subject: "Contact form: " + name,
       text: "From: " + name + " <" + email + ">\n\n" + message,
     });
+
+    // Confirmation email to submitter — no original message body included
+    await resend.emails.send({
+      from: "CareSync Support <noreply@care-log.org>",
+      to: [email],
+      subject: "We received your message",
+      text:
+        "Hi " +
+        name +
+        ",\n\nThanks for reaching out! We've received your message and will reply within 24 hours.\n\nThe CareSync team",
+    });
   }
+
+  Sentry.addBreadcrumb({
+    category: "contact",
+    message: "Contact form submitted successfully",
+    level: "info",
+    data: { has_email: !!email },
+  });
 
   try {
     const posthog = getPostHogClient();
