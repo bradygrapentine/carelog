@@ -126,6 +126,8 @@ describe("DashboardClient", () => {
     await waitFor(() =>
       expect(screen.getByText("The Smith Family")).toBeInTheDocument(),
     );
-    expect(screen.getByText("View care journal")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Open care journal for The Smith Family"),
+    ).toBeInTheDocument();
   });
 });
