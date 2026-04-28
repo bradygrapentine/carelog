@@ -1,6 +1,12 @@
 // e2e/onboarding.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, ensureCareTeam, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  clearMailpit,
+  ensureCareTeam,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
@@ -33,7 +39,7 @@ test.describe("Onboarding flow", () => {
 
     // Onboarding redirects to /dashboard; care team is now visible
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    await page.click('text="View care journal"');
+    await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
     await expect(page).toHaveURL(/\/journal\/[^/]+/, { timeout: 15000 });
     await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
       timeout: 10000,
@@ -45,13 +51,13 @@ test.describe("Onboarding flow", () => {
   }) => {
     // (TD-73) Per-test fresh user; seed a team first so we can assert the
     // "has team" branch. ensureCareTeam runs onboarding if needed and lands
-    // on /dashboard with "View care journal" visible.
+    // on /dashboard with the journal-link aria-label visible.
     const EXISTING_EMAIL = uniqueEmail("e2e-author");
     await signIn(page, EXISTING_EMAIL);
     await ensureCareTeam(page);
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    await expect(page.locator('text="View care journal"')).toBeVisible({
+    await expect(page.locator(CARE_JOURNAL_LINK_SELECTOR).first()).toBeVisible({
       timeout: 10000,
     });
     await expect(

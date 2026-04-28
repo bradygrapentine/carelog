@@ -1,13 +1,19 @@
 // e2e/navigation.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, ensureCareTeam, checkA11y, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  ensureCareTeam,
+  checkA11y,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 // Navigate to the journal page — sign in fresh per test to dodge the
 // Supabase per-email OTP cooldown. (TD-73)
 async function goToJournal(page: import("@playwright/test").Page) {
   await signIn(page, uniqueEmail("nav-panel"));
   await ensureCareTeam(page);
-  await page.click('text="View care journal"');
+  await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   // Confirm default panel loaded
   await page.waitForSelector('[placeholder="Share how today went..."]', {

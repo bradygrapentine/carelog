@@ -1,6 +1,12 @@
 // e2e/dashboard-nav.spec.ts
 import { test, expect } from "@playwright/test";
-import { signIn, ensureCareTeam, checkA11y, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  ensureCareTeam,
+  checkA11y,
+  uniqueEmail,
+  CARE_JOURNAL_LINK_SELECTOR,
+} from "./helpers";
 
 test.describe("Dashboard and sign-out navigation", () => {
   // (TD-61) Test calls page.goto("/dashboard") without signIn() first —
@@ -19,14 +25,14 @@ test.describe("Dashboard and sign-out navigation", () => {
   });
 
   // (TD-61) Same missing-signIn assumption as above.
-  test.fixme('"View care journal" navigates to journal page', async ({
+  test.fixme('"Open care journal" navigates to journal page', async ({
     page,
   }) => {
     await page.goto("/dashboard");
-    await page.waitForSelector('text="View care journal"', {
+    await page.waitForSelector(CARE_JOURNAL_LINK_SELECTOR, {
       timeout: 15000,
     });
-    await page.click('text="View care journal"');
+    await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
     await expect(page).toHaveURL(/\/journal\/[^/]+/, { timeout: 15000 });
     await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
       timeout: 10000,
@@ -42,7 +48,7 @@ test.describe("Dashboard and sign-out navigation", () => {
     await signIn(page, NAV_EMAIL);
     await ensureCareTeam(page);
     // Navigate to journal first
-    await page.click('text="View care journal"');
+    await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
     await expect(page).toHaveURL(/\/journal\//, { timeout: 15000 });
 
     // The AppTabBar has no "Dashboard" tab — navigating away from /journal happens
