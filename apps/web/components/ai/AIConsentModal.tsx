@@ -54,7 +54,7 @@ export function AIConsentModal({ onEnable, onDismiss }: Props) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="ai-consent-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
     >
       <div
         ref={containerRef}

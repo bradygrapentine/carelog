@@ -100,7 +100,7 @@ export function QuickLogFab() {
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-40 bg-black/40"
           aria-hidden="true"
           onClick={close}
           data-testid="quick-log-backdrop"

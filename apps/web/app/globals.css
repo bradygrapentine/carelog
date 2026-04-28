@@ -23,8 +23,14 @@
   --color-accent-soft:    #fde4e4;
 
   /* Ink & surface */
-  --color-ink:     #1e0a3c;   /* Deep plum — headings, app tab bar bg */
+  --color-ink:     #1e0a3c;   /* Deep plum — headings */
   --color-surface: #faf5ff;   /* Violet 50 — page backgrounds */
+
+  /* App shell — stable dark plum across light/dark modes so the AppTabBar
+     doesn't invert into white-on-white when ink flips for dark mode. */
+  --color-app-shell:        #1e0a3c;
+  --color-app-shell-text:   #f5f3ff;
+  --color-app-shell-muted:  #c4b5fd;
 
   /* Text */
   --color-text-primary:   #1e0a3c;

@@ -41,7 +41,10 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   const router = useRouter();
 
   const journalMatch = pathname?.match(/^\/journal\/([^/?]+)/);
-  const recipientId = journalMatch ? journalMatch[1] : null;
+  // Standalone routes (e.g. /education) preserve the active recipient via
+  // ?recipientId=… so the tab strip stays usable from outside /journal.
+  const recipientFromQuery = searchParams?.get("recipientId") ?? null;
+  const recipientId = journalMatch ? journalMatch[1] : recipientFromQuery;
 
   const panelParam = searchParams?.get("panel") ?? "journal";
   const activeTab = pathname?.startsWith("/education")
@@ -52,7 +55,8 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
 
   function handleTabClick(tabId: string) {
     if (tabId in STANDALONE_ROUTES) {
-      router.push(STANDALONE_ROUTES[tabId]!);
+      const route = STANDALONE_ROUTES[tabId]!;
+      router.push(recipientId ? `${route}?recipientId=${recipientId}` : route);
       return;
     }
     if (!recipientId) return;
@@ -60,13 +64,13 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[var(--color-ink)] shadow-md">
+    <header className="sticky top-0 z-50 w-full bg-[var(--color-app-shell)] shadow-md">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 md:px-6">
         {/* Logo — returns to dashboard */}
         <Link
           href="/dashboard"
           aria-label="Go to dashboard"
-          className="flex items-center gap-2 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-2 focus:ring-offset-[var(--color-ink)]"
+          className="flex items-center gap-2 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-2 focus:ring-offset-[var(--color-app-shell)]"
         >
           <span
             className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary-light)]"
@@ -111,7 +115,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
           <Link
             href="/settings"
             aria-label="Settings"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-violet-300 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-violet-300 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
           >
             <Settings size={18} aria-hidden="true" />
           </Link>
@@ -120,7 +124,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
               if (window.confirm("Sign out of CareSync?")) onSignOut?.();
             }}
             aria-label="Sign out"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-ink)]"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
           >
             {userInitials}
           </button>
