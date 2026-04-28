@@ -59,7 +59,7 @@ export function PricingCards() {
 
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 md:flex-row">
         {/* Free tier */}
-        <div className="flex flex-1 flex-col rounded-2xl border border-[var(--color-border)] bg-card p-8">
+        <div className="flex flex-1 flex-col rounded-2xl border border-[var(--color-muted)] bg-card p-8">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-[var(--color-ink)]">Free</h3>
             <div className="mt-2 flex items-end gap-1">
@@ -92,7 +92,7 @@ export function PricingCards() {
           </ul>
           <a
             href="/signin"
-            className="mt-auto inline-flex items-center justify-center rounded-xl border-2 border-[var(--color-border)] px-6 py-3 text-sm font-semibold text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-auto inline-flex items-center justify-center rounded-xl border-2 border-[var(--color-muted)] px-6 py-3 text-sm font-semibold text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             Get started
           </a>
