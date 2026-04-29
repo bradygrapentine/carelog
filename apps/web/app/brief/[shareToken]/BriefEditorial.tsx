@@ -2,6 +2,7 @@
 
 import { Mail, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BriefHeadline } from "@/components/brief/BriefHeadline";
 
 type Medication = {
   drug_name: string;
@@ -45,10 +46,6 @@ function formatShortTime(iso: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function morningGreeting(name: string): string {
-  return `A good morning for ${name}`;
 }
 
 export function BriefEditorial({ brief }: { brief: Brief }) {
@@ -106,7 +103,12 @@ export function BriefEditorial({ brief }: { brief: Brief }) {
         <header className="space-y-3">
           <p className="eyebrow-mono">{dateline}</p>
           <h1 className="headline-display text-5xl text-[var(--color-ink)] leading-[1.05]">
-            {morningGreeting(content.recipient_name)}
+            <BriefHeadline
+              headline={(brief as { headline?: unknown }).headline}
+              fallback={
+                brief.title ?? `Care brief for ${content.recipient_name}`
+              }
+            />
           </h1>
         </header>
 

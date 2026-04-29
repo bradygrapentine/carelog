@@ -164,6 +164,7 @@ export type Database = {
           created_at: string
           created_by: string
           expires_at: string
+          headline: Json | null
           id: string
           includes: string[]
           org_id: string
@@ -177,6 +178,7 @@ export type Database = {
           created_at?: string
           created_by: string
           expires_at?: string
+          headline?: Json | null
           id?: string
           includes?: string[]
           org_id: string
@@ -190,6 +192,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           expires_at?: string
+          headline?: Json | null
           id?: string
           includes?: string[]
           org_id?: string
