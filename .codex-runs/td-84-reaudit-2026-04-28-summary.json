@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-04-28T00:00:00Z",
+  "story": "TD-84",
+  "scope_paths": [
+    "apps/web/server",
+    "apps/web/app/api",
+    "apps/web/inngest",
+    "supabase/migrations"
+  ],
+  "categories_audited": [
+    "silent_failure_patterns",
+    "supabaseAdmin_rls_bypass",
+    "csrf_rate_limit_mutating_routes",
+    "migration_safety_regressions"
+  ],
+  "findings_by_severity": {
+    "critical": 16,
+    "medium": 36,
+    "low": 14
+  },
+  "top_files": [
+    "apps/web/server/routers/medications.ts",
+    "apps/web/server/repositories/messagesRepository.ts",
+    "apps/web/server/routers/notifications.ts",
+    "apps/web/inngest/pushNotification.ts",
+    "apps/web/app/api/push/web-subscribe/route.ts",
+    "apps/web/app/api/stripe/checkout/route.ts",
+    "apps/web/app/api/stripe/portal/route.ts",
+    "apps/web/app/api/referral/track/route.ts",
+    "apps/web/app/api/brief/route.ts",
+    "supabase/migrations/20260408000001_shifts_schema_align.sql",
+    "supabase/migrations/20260427000000_sec_high_fixes.sql"
+  ],
+  "status": "complete",
+  "backend": "review-skill-fallback",
+  "agents_dispatched": [
+    "silent-failure-hunter @ apps/web/server",
+    "general-purpose @ apps/web/app/api (CSRF/rate-limit)",
+    "general-purpose @ supabase/migrations + apps/web/inngest"
+  ],
+  "notes": "Codex backend failed three times (W5 sandbox-write block, retry-1 quota limit, retry-2 stream timeout). Switched to /review skill with 3 parallel sub-agents scoped per category. Pattern findings dominate: (1) supabaseAdmin without membership gate is the top systemic risk — 7 Critical routes share the same shape; (2) zero origin/CSRF protection across mutating REST routes — recommend shared helper + proxy.ts defense-in-depth; (3) Inngest .error discard is widespread across step.run blocks. Recommend TD-85..92 batch in a follow-up chore(backlog) PR; TD-85 (membership gates) and TD-86 (push token hijack) should land before LAUNCH-001."
+}
