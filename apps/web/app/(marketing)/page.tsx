@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HeroSection } from "../../components/marketing/HeroSection";
 import { WhoItsFor } from "../../components/marketing/WhoItsFor";
+import { CompareStrip } from "../../components/marketing/CompareStrip";
 import { FeatureGrid } from "../../components/marketing/FeatureGrid";
 import { HowItWorks } from "../../components/marketing/HowItWorks";
 import { ProductPreview } from "../../components/marketing/ProductPreview";
@@ -86,6 +87,7 @@ export default function LandingPage() {
       />
       <HeroSection />
       <WhoItsFor />
+      <CompareStrip />
       <FeatureGrid />
       <HowItWorks />
       <ProductPreview />
