@@ -6,6 +6,7 @@ import {
   type MedForAdherence,
   type DoseEvent,
 } from "@/lib/medAdherence";
+import { formatShortDate } from "@/lib/format";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,14 +60,6 @@ function calculateAge(dob: string | null): string | null {
   const m = today.getMonth() - born.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < born.getDate())) age--;
   return age >= 0 ? String(age) : null;
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 /** Build SVG sparkline from an array of numeric values (min–max normalized). */
@@ -191,8 +184,8 @@ export function VisitSummary({
 
   const age = calculateAge(recipient.dob);
   const generated = generatedAt
-    ? formatDate(generatedAt)
-    : formatDate(new Date().toISOString());
+    ? formatShortDate(generatedAt)
+    : formatShortDate(new Date().toISOString());
 
   return (
     <article
@@ -230,7 +223,7 @@ export function VisitSummary({
                 Date of Birth
               </dt>
               <dd className="font-medium">
-                {formatDate(recipient.dob)}
+                {formatShortDate(recipient.dob)}
                 {age ? ` (age ${age})` : ""}
               </dd>
             </div>
@@ -358,7 +351,7 @@ export function VisitSummary({
                   dateTime={r.recorded_at}
                   className="shrink-0 text-[var(--color-muted)] w-24"
                 >
-                  {formatDate(r.recorded_at)}
+                  {formatShortDate(r.recorded_at)}
                 </time>
                 <span>
                   {[
@@ -405,7 +398,7 @@ export function VisitSummary({
                     dateTime={e.occurred_at}
                     className="shrink-0 text-[var(--color-muted)] w-24"
                   >
-                    {formatDate(e.occurred_at)}
+                    {formatShortDate(e.occurred_at)}
                   </time>
                   <span className="text-[var(--color-muted)]">{excerpt}</span>
                 </li>

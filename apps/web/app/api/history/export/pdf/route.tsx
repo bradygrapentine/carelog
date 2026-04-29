@@ -10,6 +10,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { buildHistoryExport } from "@/lib/buildHistoryExport";
+import { formatLocaleDate, formatLocaleDateTime } from "@/lib/format";
 import {
   renderToBuffer,
   Document,
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
           <View>
             <Text style={styles.title}>Care History Export</Text>
             <Text style={styles.subtitle}>
-              Generated {new Date(snapshot.generated_at).toLocaleString()} ·
+              Generated {formatLocaleDateTime(snapshot.generated_at)} ·
               Carelog
             </Text>
           </View>
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
                     : "—"}
                   {sr.notes ? ` · ${sr.notes}` : ""}
                   {" · "}
-                  {new Date(sr.recorded_at).toLocaleDateString()}
+                  {formatLocaleDate(sr.recorded_at)}
                 </Text>
               </View>
             ))
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest) {
             snapshot.care_events.map((ev) => (
               <View key={ev.id} style={styles.eventItem}>
                 <Text style={styles.eventDate}>
-                  {new Date(ev.occurred_at).toLocaleString()} · {ev.event_type}
+                  {formatLocaleDateTime(ev.occurred_at)} · {ev.event_type}
                   {ev.entry_kind ? ` (${ev.entry_kind})` : ""}
                 </Text>
                 {ev.payload &&
@@ -248,8 +249,8 @@ export async function POST(request: NextRequest) {
               <Text style={styles.value}>
                 Plan on file. Updated:{" "}
                 {snapshot.eol_plan.updated_at
-                  ? new Date(snapshot.eol_plan.updated_at).toLocaleDateString()
-                  : new Date(snapshot.eol_plan.created_at).toLocaleDateString()}
+                  ? formatLocaleDate(snapshot.eol_plan.updated_at)
+                  : formatLocaleDate(snapshot.eol_plan.created_at)}
               </Text>
             </>
           )}
@@ -266,7 +267,7 @@ export async function POST(request: NextRequest) {
                 <Text style={styles.label}>{doc.file_name ?? "Unnamed"}</Text>
                 <Text style={styles.value}>
                   {doc.file_type ?? "Unknown type"} ·{" "}
-                  {new Date(doc.created_at).toLocaleDateString()}
+                  {formatLocaleDate(doc.created_at)}
                 </Text>
               </View>
             ))

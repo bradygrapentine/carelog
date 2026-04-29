@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Check } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { formatClockTime } from "@/lib/format";
 
 type MedCardProps = {
   /** UUID of the recipient whose meds to show. Required for real data; omit to skip queries (stub/placeholder mode). */
@@ -10,16 +11,6 @@ type MedCardProps = {
   /** UUID of the org. Required for real data; omit to skip queries (stub/placeholder mode). */
   orgId?: string;
 };
-
-function formatTime(scheduledTime: string): string {
-  // scheduledTime is "HH:MM:SS" from Postgres
-  const [h, m] = scheduledTime.split(":");
-  const hour = parseInt(h, 10);
-  const min = m;
-  const period = hour >= 12 ? "p" : "a";
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return min === "00" ? `${hour12}:00${period}` : `${hour12}:${min}${period}`;
-}
 
 export function MedCard({ recipientId, orgId }: MedCardProps) {
   const enabled = !!recipientId && !!orgId;
@@ -85,7 +76,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
         medId: med.id,
         name: med.drug_name,
         dose: med.dosage,
-        timeLabel: formatTime(s.scheduled_time),
+        timeLabel: formatClockTime(s.scheduled_time),
         scheduledTime: s.scheduled_time,
         taken: takenIds.has(med.id),
       });

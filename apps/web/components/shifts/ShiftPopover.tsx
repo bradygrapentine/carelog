@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import type { Shift } from "./ShiftCalendar";
+import { formatShiftStart, formatTimeShortLocale } from "@/lib/format";
 
 type Props = {
   shift: Shift | null;
@@ -97,17 +98,8 @@ export function ShiftPopover({
     onClose();
   }
 
-  const start = new Date(shift.start_at).toLocaleString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const end = new Date(shift.end_at).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const start = formatShiftStart(shift.start_at);
+  const end = formatTimeShortLocale(shift.end_at);
 
   const statusColors: Record<string, string> = {
     scheduled: "text-[var(--color-primary)]",

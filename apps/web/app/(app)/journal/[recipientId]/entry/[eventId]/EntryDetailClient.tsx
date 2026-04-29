@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../../../../../lib/supabase";
 import { authenticatedFetch } from "../../../../../../lib/authenticatedFetch";
 import { MOOD_BADGE_CLS } from "../../../../../../lib/mood";
+import {
+  formatLongDateLocale,
+  formatTimeOfDay,
+} from "../../../../../../lib/format";
 
 const MOOD_STYLES: Record<string, string> = MOOD_BADGE_CLS;
 
@@ -28,16 +32,7 @@ type JournalEvent = {
 };
 
 function formatTime(iso: string) {
-  const d = new Date(iso);
-  return (
-    d.toLocaleDateString([], {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }) +
-    " at " +
-    d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  );
+  return `${formatLongDateLocale(iso)} at ${formatTimeOfDay(iso)}`;
 }
 
 type Props = {

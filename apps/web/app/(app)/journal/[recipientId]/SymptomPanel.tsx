@@ -8,6 +8,7 @@ import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MOOD_CHIP_CLS, MOOD_BADGE_CLS } from "../../../../lib/mood";
+import { formatMonthDay } from "../../../../lib/format";
 
 type Props = {
   orgId: string;
@@ -380,10 +381,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
             aria-label="Recent symptom readings"
           >
             {readings.map((r) => {
-              const dateStr = new Date(r.recorded_at).toLocaleDateString(
-                "en-US",
-                { month: "short", day: "numeric" },
-              );
+              const dateStr = formatMonthDay(r.recorded_at);
               const tagCls = r.mood
                 ? (MOOD_TAG_CLS[r.mood] ??
                   "bg-[var(--color-surface)] text-muted-foreground")
