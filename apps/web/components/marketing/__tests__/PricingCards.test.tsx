@@ -29,7 +29,7 @@ describe("PricingCards", () => {
     fireEvent.click(screen.getByRole("button", { name: /annual/i }));
     expect(screen.getByText("$120")).toBeInTheDocument();
     expect(screen.getByText("/yr")).toBeInTheDocument();
-    expect(screen.getByText("$10/mo — save $48/yr")).toBeInTheDocument();
+    expect(screen.getByText("$10/mo, save $48/yr")).toBeInTheDocument();
   });
 
   it("marks family plan as most popular", () => {

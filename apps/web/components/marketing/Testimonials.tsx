@@ -29,14 +29,7 @@ const quotes = [
 
 export function Testimonials() {
   return (
-    <section className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
-      >
-        <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-[var(--color-primary-subtle)] opacity-50 blur-3xl" />
-      </div>
-
+    <section className="mx-auto max-w-7xl px-6 py-20 md:py-28">
       <div className="mx-auto mb-14 max-w-2xl text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
           From the families who show up

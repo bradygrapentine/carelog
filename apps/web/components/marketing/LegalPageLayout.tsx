@@ -25,7 +25,7 @@ export function LegalPageLayout({ title, lastUpdated, sections, children }: Prop
       </div>
 
       <div className="flex gap-12">
-        {/* TOC sidebar — desktop only */}
+        {/* TOC sidebar, desktop only */}
         <nav
           className="hidden w-48 shrink-0 lg:block"
           aria-label="Table of contents"

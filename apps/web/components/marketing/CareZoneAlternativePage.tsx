@@ -64,16 +64,8 @@ export function CareZoneAlternativePage() {
         aria-labelledby="cz-hero-heading"
         className="relative mx-auto max-w-4xl px-6 pb-16 text-center"
       >
-        {/* Soft decorative background */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        >
-          <div className="absolute -top-16 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[var(--color-primary-subtle)] opacity-60 blur-3xl" />
-        </div>
-
         <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
-          CareZone users — your data deserves a new home
+          CareZone users, your data deserves a new home
         </p>
         <h1
           id="cz-hero-heading"
@@ -82,7 +74,7 @@ export function CareZoneAlternativePage() {
           The CareZone alternative built for the whole care team
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
-          CareZone helped families manage medications. CareSync goes further —
+          CareZone helped families manage medications. CareSync goes further,
           coordinating your full team of family caregivers, professional aides,
           and supporters.{" "}
           <span className="font-semibold text-[var(--color-ink)]">
@@ -93,9 +85,9 @@ export function CareZoneAlternativePage() {
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href="/signin"
-            className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
-            Start free — no credit card
+            Start free, no credit card
           </Link>
           <Link
             href="/#features"

@@ -3,7 +3,7 @@ import Image from "next/image";
 const personas = [
   {
     title: "Adult children",
-    body: "Managing mom or dad's appointments, medications, and mood while holding down a full-time job — and keeping siblings in the loop without a group text spiral.",
+    body: "Managing mom or dad's appointments, medications, and mood while holding down a full-time job, and keeping siblings in the loop without a group text spiral.",
     src: "/images/hero-7.jpg",
     alt: "A grandmother, mother, and grandson laughing together outside on a bench",
   },

@@ -35,7 +35,7 @@ export function CareZoneMedicationImport() {
           Preview your medication import
         </h2>
         <p className="mb-5 text-sm text-[var(--color-muted)]">
-          Paste your CareZone medication list — one medication per line.
+          Paste your CareZone medication list, one medication per line.
         </p>
 
         <label
@@ -104,10 +104,10 @@ export function CareZoneMedicationImport() {
 
             <Link
               href="/signin"
-              className="mt-6 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
             >
               Import {medications.length} medication
-              {medications.length === 1 ? "" : "s"} — sign up free
+              {medications.length === 1 ? "" : "s"}, sign up free
             </Link>
           </div>
         )}

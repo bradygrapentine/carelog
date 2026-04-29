@@ -32,10 +32,12 @@ export function PricingCards() {
       <div className="mx-auto mb-10 flex items-center justify-center gap-3">
         <button
           onClick={() => setInterval("month")}
+          aria-pressed={interval === "month"}
+          aria-label="Show monthly pricing"
           className={
             "rounded-lg px-4 py-2 text-sm font-semibold transition-colors " +
             (interval === "month"
-              ? "bg-[var(--color-primary)] text-white"
+              ? "bg-[var(--color-primary)] text-[var(--color-app-shell-text)]"
               : "text-[var(--color-muted)] hover:text-[var(--color-ink)]")
           }
         >
@@ -43,10 +45,12 @@ export function PricingCards() {
         </button>
         <button
           onClick={() => setInterval("year")}
+          aria-pressed={interval === "year"}
+          aria-label="Show annual pricing"
           className={
             "rounded-lg px-4 py-2 text-sm font-semibold transition-colors " +
             (interval === "year"
-              ? "bg-[var(--color-primary)] text-white"
+              ? "bg-[var(--color-primary)] text-[var(--color-app-shell-text)]"
               : "text-[var(--color-muted)] hover:text-[var(--color-ink)]")
           }
         >
@@ -100,7 +104,7 @@ export function PricingCards() {
 
         {/* Family Plan */}
         <div className="relative flex flex-1 flex-col rounded-2xl border-2 border-[var(--color-primary)] bg-card p-8">
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--color-primary)] px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--color-primary)] px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-[var(--color-app-shell-text)]">
             Most popular
           </span>
           <div className="mb-6">
@@ -117,7 +121,7 @@ export function PricingCards() {
             </div>
             {interval === "year" && (
               <p className="mt-1 text-sm font-medium text-[var(--color-success)]">
-                $10/mo — save $48/yr
+                $10/mo, save $48/yr
               </p>
             )}
             <p className="mt-2 text-sm text-[var(--color-muted)]">
@@ -142,7 +146,7 @@ export function PricingCards() {
           </ul>
           <button
             onClick={handleSubscribe}
-            className="mt-auto inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-auto inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             Subscribe
           </button>

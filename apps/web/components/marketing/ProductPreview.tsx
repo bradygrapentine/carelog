@@ -14,7 +14,7 @@ export function ProductPreview() {
             A shared journal your family will actually use
           </h2>
           <p className="mt-3 text-[var(--color-muted)]">
-            Small, warm moments — logged once, visible to everyone who cares.
+            Small, warm moments, logged once, visible to everyone who cares.
           </p>
         </div>
 
@@ -23,7 +23,6 @@ export function ProductPreview() {
           <div
             role="presentation"
             className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
-            style={{ borderLeft: "3px solid var(--color-primary)" }}
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
               Journal entry
@@ -57,15 +56,15 @@ export function ProductPreview() {
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-light)]">
                 Medication
               </p>
-              <p className="mt-2 text-sm font-semibold text-white">
+              <p className="mt-2 text-sm font-semibold text-[var(--color-app-shell-text)]">
                 💊 Lisinopril due at 9:00 AM
               </p>
-              <p className="mt-1 text-xs text-white/80">10 mg · with food</p>
+              <p className="mt-1 text-xs text-[var(--color-app-shell-text)]/80">10 mg · with food</p>
             </div>
             <div className="mt-6 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-[var(--color-secondary)]" />
-              <p className="text-xs text-white/90">
-                3 days of supply remaining — order refill soon
+              <p className="text-xs text-[var(--color-app-shell-text)]/90">
+                3 days of supply remaining, order refill soon
               </p>
             </div>
           </div>
@@ -86,18 +85,18 @@ export function ProductPreview() {
             </p>
             <div className="mt-4 flex -space-x-2">
               {[
-                "var(--color-primary)",       // #7c3aed
+                "var(--color-primary)", // #7c3aed
                 "var(--color-primary-light)", // #a78bfa
-                "var(--color-secondary)",     // #d97706
+                "var(--color-secondary)", // #d97706
               ].map((color) => (
                 <span
                   key={color}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--color-app-shell-text)] text-xs font-semibold text-[var(--color-app-shell-text)]"
                   style={{ backgroundColor: color }}
                   aria-hidden="true"
                 />
               ))}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[var(--color-primary-subtle)] text-xs font-medium text-[var(--color-primary)]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--color-app-shell-text)] bg-[var(--color-primary-subtle)] text-xs font-medium text-[var(--color-primary)]">
                 +2
               </span>
             </div>
