@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import posthog from "posthog-js";
@@ -112,10 +113,8 @@ export function BurnoutCheckin({
   }
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">How are you doing this week?</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="How are you doing this week?" />
 
       <CardContent className="pt-2">
         <p className="text-xs text-muted-foreground mb-3">
@@ -302,6 +301,6 @@ export function BurnoutCheckin({
           </form>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

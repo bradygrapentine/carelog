@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { ShiftCalendar, type Shift } from "@/components/shifts/ShiftCalendar";
 import { ShiftPopover } from "@/components/shifts/ShiftPopover";
 import { ShiftForm } from "./ShiftForm";
@@ -80,10 +81,8 @@ export function ShiftList({
 
   return (
     <>
-      <Card className="shadow-sm gap-2">
-        <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-          <CardTitle className="text-sm">Shift Schedule</CardTitle>
-        </CardHeader>
+      <TintedCard>
+        <TintedCardHeader title="Shift Schedule" />
         <CardContent className="pt-2 pb-4">
           <ShiftCalendar
             shifts={shifts}
@@ -94,7 +93,7 @@ export function ShiftList({
             onNavigate={(date) => setCalendarDate(date)}
           />
         </CardContent>
-      </Card>
+      </TintedCard>
 
       <ShiftPopover
         shift={selectedShift}

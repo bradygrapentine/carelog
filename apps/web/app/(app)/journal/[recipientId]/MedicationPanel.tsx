@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -233,20 +234,22 @@ export function MedicationPanel({
   ) : null;
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 flex flex-row items-center justify-between space-y-0 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Medications</CardTitle>
-        {/* Mobile-only toggle */}
-        {isCoordinator && !showForm && (
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            + Add
-          </button>
-        )}
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader
+        title="Medications"
+        action={
+          /* Mobile-only toggle */
+          isCoordinator && !showForm ? (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
+            >
+              + Add
+            </button>
+          ) : undefined
+        }
+      />
 
       <CardContent className="pt-4">
         {isLoading && (
@@ -413,6 +416,6 @@ export function MedicationPanel({
           </>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

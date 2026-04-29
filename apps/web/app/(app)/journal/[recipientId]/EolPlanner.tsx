@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -104,13 +105,15 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
   }
 
   return (
-    <Card className="shadow-sm gap-2 border-[var(--color-danger)]/30">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)] flex-row items-center justify-between">
-        <CardTitle className="text-sm">End-of-life plan</CardTitle>
-        <span className="text-xs bg-[var(--color-danger-subtle)] text-[var(--color-danger)] px-2 py-0.5 rounded-full">
-          Coordinator only
-        </span>
-      </CardHeader>
+    <TintedCard className="border-[var(--color-danger)]/30">
+      <TintedCardHeader
+        title="End-of-life plan"
+        action={
+          <span className="text-xs bg-[var(--color-danger-subtle)] text-[var(--color-danger)] px-2 py-0.5 rounded-full">
+            Coordinator only
+          </span>
+        }
+      />
 
       <CardContent className="pt-2 space-y-4">
         {planLoading && (
@@ -346,6 +349,6 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
           </form>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
