@@ -95,7 +95,9 @@ export function OuterCirclePanel({
       await deactivateMutation.mutateAsync({ id, org_id: orgId });
       utils.outerCircle.list.invalidate();
     } catch {
-      // silent — UI will refresh
+      toast.error(
+        "Saved, but the list didn't refresh. Reload to see the latest.",
+      );
     }
   }
 

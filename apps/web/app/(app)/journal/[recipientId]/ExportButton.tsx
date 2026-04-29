@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,13 +25,12 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
   // Server enforces coordinator-only; hide component for other roles
   if (currentUserRole !== "coordinator") return null;
 
-  async function handleDownload(e: React.FormEvent) {
-    e.preventDefault();
+  async function runDownload(fmt: Format, sinceValue: string) {
     setLoading(true);
     setError(null);
 
-    const body: Record<string, string> = { orgId, recipientId, format };
-    if (since) body.since = new Date(since).toISOString();
+    const body: Record<string, string> = { orgId, recipientId, format: fmt };
+    if (sinceValue) body.since = new Date(sinceValue).toISOString();
 
     const res = await authenticatedFetch("/api/export", {
       method: "POST",
@@ -39,7 +39,9 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
     });
 
     if (!res.ok) {
-      setError("The export didn't finish. Try again, or pick a smaller date range.");
+      setError(
+        "The export didn't finish. Try again, or pick a smaller date range.",
+      );
       setLoading(false);
       return;
     }
@@ -49,20 +51,36 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = format === "json" ? "care-history.json" : "care-history.pdf";
+      a.download = fmt === "json" ? "care-history.json" : "care-history.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       posthog.capture("care_history_exported", {
-        format,
-        has_date_filter: !!since,
+        format: fmt,
+        has_date_filter: !!sinceValue,
       });
     } catch {
-      setError("The export didn't finish. Try again, or pick a smaller date range.");
+      setError(
+        "The export didn't finish. Try again, or pick a smaller date range.",
+      );
+      toast.error(
+        "The export didn't finish. Try again, or pick a smaller date range.",
+        {
+          action: {
+            label: "Try again",
+            onClick: () => runDownload(fmt, sinceValue),
+          },
+        },
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleDownload(e: React.FormEvent) {
+    e.preventDefault();
+    await runDownload(format, since);
   }
 
   return (
