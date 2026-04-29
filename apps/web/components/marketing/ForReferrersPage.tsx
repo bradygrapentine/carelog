@@ -11,7 +11,7 @@ const features = [
     icon: Pill,
     title: "Medication tracking and refill alerts",
     description:
-      "Families track every medication, dosage, and schedule in one place — with alerts before refills run out.",
+      "Families track every medication, dosage, and schedule in one place, with alerts before refills run out.",
   },
   {
     icon: BookOpen,
@@ -23,13 +23,13 @@ const features = [
     icon: Users,
     title: "Professional aide coordination",
     description:
-      "Shift scheduling and handoff notes for paid caregivers and family volunteers — all in the same app.",
+      "Shift scheduling and handoff notes for paid caregivers and family volunteers, all in the same app.",
   },
   {
     icon: CalendarDays,
     title: "Weekly digest",
     description:
-      "A summary of the past week delivered to every team member — so no one is left out of the loop.",
+      "A summary of the past week delivered to every team member, so no one is left out of the loop.",
   },
 ];
 
@@ -42,12 +42,13 @@ const steps = [
   {
     number: "2",
     title: "Family creates an account",
-    detail: "Free to start — no credit card required.",
+    detail: "Free to start, no credit card required.",
   },
   {
     number: "3",
     title: "They start logging care the same day",
-    detail: "Onboarding takes minutes. The team can be set up in under an hour.",
+    detail:
+      "Onboarding takes minutes. The team can be set up in under an hour.",
   },
 ];
 
@@ -77,7 +78,7 @@ function CopyLinkButton() {
       type="button"
       onClick={handleCopy}
       aria-label="Copy signup link to clipboard"
-      className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[44px]"
+      className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[44px]"
     >
       {copied ? (
         <>
@@ -102,13 +103,6 @@ export function ForReferrersPage() {
         aria-labelledby="referrers-hero-heading"
         className="relative mx-auto max-w-4xl px-6 pb-16 text-center"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        >
-          <div className="absolute -top-16 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[var(--color-primary-subtle)] opacity-60 blur-3xl" />
-        </div>
-
         <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
           For professionals
         </p>
@@ -121,7 +115,7 @@ export function ForReferrersPage() {
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
           CareSync helps families coordinate care for aging parents and loved
           ones. When a family you work with is juggling medications, aide
-          schedules, and a scattered care team — CareSync brings it all together.
+          schedules, and a scattered care team, CareSync brings it all together.
         </p>
       </section>
 
@@ -131,10 +125,7 @@ export function ForReferrersPage() {
         className="mx-auto max-w-4xl px-6 pb-16"
       >
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-primary-subtle)] px-6 py-5 text-center">
-          <h2
-            id="referrers-audience-heading"
-            className="sr-only"
-          >
+          <h2 id="referrers-audience-heading" className="sr-only">
             Who this page is for
           </h2>
           <p className="text-base font-medium text-[var(--color-ink)]">
@@ -168,10 +159,7 @@ export function ForReferrersPage() {
         >
           What families get
         </h2>
-        <ul
-          className="grid gap-4 sm:grid-cols-2"
-          role="list"
-        >
+        <ul className="grid gap-4 sm:grid-cols-2" role="list">
           {features.map(({ icon: Icon, title, description }) => (
             <li
               key={title}
@@ -215,7 +203,7 @@ export function ForReferrersPage() {
               className="flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
             >
               <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-[var(--color-app-shell-text)]"
                 aria-label={`Step ${number}`}
               >
                 {number}

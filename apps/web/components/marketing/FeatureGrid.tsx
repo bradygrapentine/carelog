@@ -33,7 +33,7 @@ const FEATURES = [
     icon: "📁",
     title: "Documents",
     description:
-      "Upload insurance cards, discharge summaries, and advance directives — always accessible to your team.",
+      "Upload insurance cards, discharge summaries, and advance directives, always accessible to your team.",
   },
   {
     icon: "📬",

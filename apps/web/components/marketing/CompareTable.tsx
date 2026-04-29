@@ -67,7 +67,13 @@ const rows: Row[] = [
   },
 ];
 
-function SymbolBadge({ symbol, value }: { symbol?: Cell["symbol"]; value: string }) {
+function SymbolBadge({
+  symbol,
+  value,
+}: {
+  symbol?: Cell["symbol"];
+  value: string;
+}) {
   if (symbol === "check") {
     return (
       <span className="flex items-center gap-1.5">
@@ -113,7 +119,7 @@ function SymbolBadge({ symbol, value }: { symbol?: Cell["symbol"]; value: string
 export function CompareTable() {
   return (
     <div className="mx-auto max-w-5xl px-4 lg:px-8">
-      {/* Desktop table — md and up */}
+      {/* Desktop table, md and up */}
       <div className="hidden md:block overflow-hidden rounded-2xl border border-[var(--color-border)] shadow-sm">
         <table className="w-full border-collapse text-sm">
           <thead>
@@ -126,7 +132,7 @@ export function CompareTable() {
               </th>
               <th
                 scope="col"
-                className="px-6 py-4 text-left font-semibold text-white bg-[var(--color-primary)] w-1/4"
+                className="px-6 py-4 text-left font-semibold text-[var(--color-app-shell-text)] bg-[var(--color-primary)] w-1/4"
               >
                 CareSync
               </th>
@@ -145,16 +151,16 @@ export function CompareTable() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
-              <tr
-                key={row.feature}
-                className={i % 2 === 0 ? "bg-white" : "bg-[var(--color-surface)]"}
-              >
+            {rows.map((row) => (
+              <tr key={row.feature} className="bg-[var(--color-surface)]">
                 <td className="px-6 py-4 font-medium text-[var(--color-ink)]">
                   {row.feature}
                 </td>
                 <td className="px-6 py-4 bg-[var(--color-primary-subtle)]/30">
-                  <SymbolBadge symbol={row.carelog.symbol} value={row.carelog.value} />
+                  <SymbolBadge
+                    symbol={row.carelog.symbol}
+                    value={row.carelog.value}
+                  />
                 </td>
                 <td className="px-6 py-4">
                   <SymbolBadge
@@ -163,7 +169,10 @@ export function CompareTable() {
                   />
                 </td>
                 <td className="px-6 py-4">
-                  <SymbolBadge symbol={row.lotsa.symbol} value={row.lotsa.value} />
+                  <SymbolBadge
+                    symbol={row.lotsa.symbol}
+                    value={row.lotsa.value}
+                  />
                 </td>
               </tr>
             ))}
@@ -171,12 +180,12 @@ export function CompareTable() {
         </table>
       </div>
 
-      {/* Mobile stacked cards — below md */}
+      {/* Mobile stacked cards, below md */}
       <div className="space-y-4 md:hidden">
         {rows.map((row) => (
           <div
             key={row.feature}
-            className="rounded-xl border border-[var(--color-border)] bg-white shadow-sm overflow-hidden"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden"
           >
             <div className="px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
               <p className="text-sm font-semibold text-[var(--color-ink)]">
@@ -188,7 +197,10 @@ export function CompareTable() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
                   CareSync
                 </span>
-                <SymbolBadge symbol={row.carelog.symbol} value={row.carelog.value} />
+                <SymbolBadge
+                  symbol={row.carelog.symbol}
+                  value={row.carelog.value}
+                />
               </div>
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-xs font-medium text-[var(--color-muted)]">
@@ -203,7 +215,10 @@ export function CompareTable() {
                 <span className="text-xs font-medium text-[var(--color-muted)]">
                   Lotsa Helping Hands
                 </span>
-                <SymbolBadge symbol={row.lotsa.symbol} value={row.lotsa.value} />
+                <SymbolBadge
+                  symbol={row.lotsa.symbol}
+                  value={row.lotsa.value}
+                />
               </div>
             </div>
           </div>

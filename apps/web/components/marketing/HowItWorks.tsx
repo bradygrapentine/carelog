@@ -5,7 +5,7 @@ const steps = [
   {
     n: "01",
     title: "Invite your circle",
-    body: "Add family, caregivers, and volunteers. Each person gets a role — coordinator, supporter, or aide — so they see only what they need to.",
+    body: "Add family, caregivers, and volunteers. Each person gets a role, coordinator, supporter, or aide, so they see only what they need to.",
   },
   {
     n: "02",
@@ -41,7 +41,7 @@ export function HowItWorks() {
             A shared rhythm, not another app to manage
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
-            CareSync is designed to feel like a quiet family notebook — not a
+            CareSync is designed to feel like a quiet family notebook, not a
             hospital portal and not a chat app. Three small steps and your whole
             circle is on the same page.
           </p>
@@ -50,7 +50,7 @@ export function HowItWorks() {
             {steps.map((s) => (
               <li key={s.n} className="flex gap-4">
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-white"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-[var(--color-app-shell-text)]"
                 >
                   {s.n}
                 </span>
@@ -68,7 +68,7 @@ export function HowItWorks() {
 
           <Link
             href="/signin"
-            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
             Start your family's log
           </Link>
