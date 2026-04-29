@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleBadge } from "../../../../components/ui/RoleBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Member = {
   id: string;
@@ -22,6 +32,8 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [showDeleteOrg, setShowDeleteOrg] = useState(false);
 
   useEffect(() => {
     fetch("/api/members?orgId=" + orgId)
@@ -32,12 +44,10 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
       });
   }, [orgId]);
 
-  async function handleRemove(memberId: string) {
-    if (!confirm("Remove this team member? They will lose access immediately."))
-      return;
+  async function performRemove(memberId: string) {
     const res = await fetch("/api/members/" + memberId, { method: "DELETE" });
     if (res.ok) setMembers((prev) => prev.filter((m) => m.id !== memberId));
-    else setError("Failed to remove member. Please try again.");
+    else setError("Couldn't remove that member. Try again.");
   }
 
   if (loading) {
@@ -122,7 +132,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
                     {member.role !== "coordinator" && (
                       <button
                         type="button"
-                        onClick={() => handleRemove(member.id)}
+                        onClick={() => setRemoveTarget(member)}
                         aria-label={`Remove ${member.display_name ?? member.email ?? "member"}`}
                         className="rounded text-xs font-medium text-[var(--color-danger)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-1"
                       >
@@ -146,25 +156,78 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
             Delete organization
           </p>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
-            Permanently deletes your organization and all care data. This cannot
-            be undone. Your data is retained for 30 days before permanent
-            removal.
+            Deletes the care team and all its data. We hold a backup for 30 days
+            in case you change your mind — after that it&apos;s gone.
           </p>
           <button
             type="button"
             className="mt-4 rounded-xl border-2 border-[var(--color-danger)] px-4 py-2 text-sm font-semibold text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
-            onClick={() => {
-              if (confirm("Are you absolutely sure? This cannot be undone.")) {
-                toast.error(
-                  "Delete org: not yet implemented. Contact hello@care-log.org.",
-                );
-              }
-            }}
+            onClick={() => setShowDeleteOrg(true)}
           >
             Delete organization
           </button>
         </div>
       </section>
+
+      {/* Remove member confirmation */}
+      <AlertDialog
+        open={removeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {removeTarget
+                ? `Remove ${removeTarget.display_name ?? removeTarget.email ?? "this member"}?`
+                : "Remove member?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              They&apos;ll lose access right away.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (removeTarget) performRemove(removeTarget.id);
+                setRemoveTarget(null);
+              }}
+            >
+              Remove member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete organization confirmation */}
+      <AlertDialog open={showDeleteOrg} onOpenChange={setShowDeleteOrg}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete this care team and all its data?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You&apos;ll have 30 days to restore it before it&apos;s gone for
+              good.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowDeleteOrg(false);
+                toast.error(
+                  "Account deletion isn't self-serve yet. Email hello@caresync.app and we'll handle it within 24 hours.",
+                );
+              }}
+            >
+              Delete organization
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

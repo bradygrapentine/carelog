@@ -99,7 +99,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
       toast.success("Symptom logged");
     },
     onError: () => {
-      setError("Something went wrong. Please try again.");
+      setError("The reading didn't save. Try again.");
       toast.error("Couldn't log symptom");
     },
   });

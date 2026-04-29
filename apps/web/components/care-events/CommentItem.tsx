@@ -3,6 +3,17 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { CareEventComment } from "@carelog/schemas";
 
 type Props = {
@@ -96,16 +107,33 @@ export function CommentItem({
           >
             <Pencil size={14} aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            aria-label="Delete comment"
-            onClick={() => {
-              if (confirm("Delete this comment?")) onDelete(comment.id);
-            }}
-            className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-          >
-            <Trash2 size={14} aria-hidden="true" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="Delete comment"
+                  className="p-2 rounded hover:bg-[var(--color-primary-subtle)] dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                </button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Once deleted, it&apos;s gone for the whole team.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(comment.id)}>
+                  Delete comment
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>

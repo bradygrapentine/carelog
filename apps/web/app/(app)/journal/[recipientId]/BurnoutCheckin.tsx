@@ -89,8 +89,8 @@ export function BurnoutCheckin({
       });
     },
     onError: () => {
-      setError("Something went wrong. Please try again.");
-      toast.error("Couldn't save check-in — try again");
+      setError("The check-in didn't save. Try again.");
+      toast.error("Couldn't save the check-in. Try again.");
     },
   });
 

@@ -49,13 +49,14 @@ function BillingSuccessInner() {
         <Card className="max-w-sm text-center">
           <CardHeader>
             <p className="text-lg font-bold text-[var(--color-ink)]">
-              Something went wrong
+              We couldn&apos;t confirm your subscription
             </p>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-[var(--color-muted)]">
-              We couldn&apos;t confirm your subscription. Please check your
-              email for a receipt from Stripe.
+              Stripe didn&apos;t return a confirmation. If your card was
+              charged, refresh in a minute — or email hello@care-log.org and
+              we&apos;ll sort it out.
             </p>
             <a href="/dashboard" className={buttonVariants()}>
               Go to dashboard

@@ -85,7 +85,7 @@ export function OuterCirclePanel({
       setNeededBy("");
       toast.success("Request created");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("The request didn't save. Try again.");
       toast.error("Couldn't create request");
     }
   }
@@ -302,9 +302,7 @@ export function OuterCirclePanel({
         )}
 
         {/* Form: on mobile shown when showForm; on desktop always shown */}
-        <div className={showForm ? "block" : "hidden"}>
-          {requestForm}
-        </div>
+        <div className={showForm ? "block" : "hidden"}>{requestForm}</div>
       </CardContent>
     </TintedCard>
   );

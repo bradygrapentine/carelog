@@ -81,7 +81,7 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
       toast.success("Expense logged");
     },
     onError: () => {
-      setError("Failed to log expense. Please try again.");
+      setError("The expense didn't save. Try again.");
       toast.error("Couldn't log expense");
     },
   });

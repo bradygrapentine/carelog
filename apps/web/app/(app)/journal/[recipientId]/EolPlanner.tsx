@@ -64,7 +64,7 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
       toast.success("Plan saved");
     },
     onError: () => {
-      setError("Something went wrong. Please try again.");
+      setError("The plan didn't save. Try again.");
       toast.error("Couldn't save plan");
     },
   });

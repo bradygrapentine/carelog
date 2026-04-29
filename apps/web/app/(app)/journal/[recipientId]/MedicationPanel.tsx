@@ -56,7 +56,7 @@ export function MedicationPanel({
       toast.success("Medication added");
     },
     onError: () => {
-      setError("Something went wrong. Please try again.");
+      setError("The medication didn't save. Try again.");
       toast.error("Couldn't add medication");
     },
   });

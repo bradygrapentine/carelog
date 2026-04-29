@@ -93,7 +93,7 @@ describe("CommentThread", () => {
     });
     addMutationOpts.onError!(new Error("network"));
     expect(toast.error).toHaveBeenCalledWith(
-      "Could not add comment — please try again",
+      "That comment didn't post. Try again.",
     );
   });
 
@@ -104,7 +104,7 @@ describe("CommentThread", () => {
     });
     editMutationOpts.onError!(new Error("network"));
     expect(toast.error).toHaveBeenCalledWith(
-      "Could not edit comment — please try again",
+      "That edit didn't save.",
     );
   });
 
@@ -115,7 +115,7 @@ describe("CommentThread", () => {
     });
     removeMutationOpts.onError!(new Error("network"));
     expect(toast.error).toHaveBeenCalledWith(
-      "Could not delete comment — please try again",
+      "That comment didn't delete.",
     );
   });
 });

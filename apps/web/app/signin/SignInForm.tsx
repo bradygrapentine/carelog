@@ -5,6 +5,23 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import posthog from "posthog-js";
 
+// Map Supabase OTP error messages to plainspoken, actionable copy.
+// Default falls back to a generic-but-actionable line so users always know
+// what to do next, even when Supabase returns a string we haven't seen.
+function friendlyOtpError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("rate limit") || m.includes("too many")) {
+    return "Too many attempts. Wait a minute and try again.";
+  }
+  if (m.includes("expired")) {
+    return "The code expired. Send a new one.";
+  }
+  if (m.includes("invalid") || m.includes("not match")) {
+    return "That code didn't match. Check the digits or send a new code.";
+  }
+  return "Couldn't sign you in. Try again, or send a fresh code.";
+}
+
 export function SignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -23,7 +40,7 @@ export function SignInForm() {
       options: { shouldCreateUser: true },
     });
     if (error) {
-      setError(error.message);
+      setError(friendlyOtpError(error.message));
       setLoading(false);
       return;
     }
@@ -43,7 +60,7 @@ export function SignInForm() {
       type: "email",
     });
     if (error) {
-      setError(error.message);
+      setError(friendlyOtpError(error.message));
       setLoading(false);
       return;
     }

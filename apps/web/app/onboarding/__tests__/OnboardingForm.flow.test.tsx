@@ -110,7 +110,9 @@ describe("OnboardingForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create care team" }));
 
     await waitFor(() => {
-      expect(screen.getByText(/that didn't save/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/we couldn't finish setup/i),
+      ).toBeInTheDocument();
     });
     // The raw server error string must NOT leak to the user.
     expect(
