@@ -18,6 +18,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import { StyleSheet } from "@react-pdf/renderer";
+import { pdfTokens } from "@/lib/pdfTokens";
 
 const requestSchema = z.object({
   org_id: z.string().uuid(),
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     fontSize: 10,
     padding: 40,
-    color: "#1e0a3c",
+    color: pdfTokens.ink,
   },
   title: {
     fontSize: 18,
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 10,
-    color: "#6b7280",
+    color: pdfTokens.muted,
     marginBottom: 20,
   },
   sectionHeader: {
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: "#ede9fe",
+    borderBottomColor: pdfTokens.border,
     paddingBottom: 3,
   },
   row: {
@@ -63,17 +64,17 @@ const styles = StyleSheet.create({
   },
   value: {
     flex: 1,
-    color: "#374151",
+    color: pdfTokens.neutral700,
   },
   eventItem: {
     marginBottom: 6,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: pdfTokens.neutral100,
   },
   eventDate: {
     fontSize: 8,
-    color: "#6b7280",
+    color: pdfTokens.muted,
     marginBottom: 2,
   },
   eventText: {
@@ -81,12 +82,12 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   flagged: {
-    color: "#dc2626",
+    color: pdfTokens.dangerLegacy,
     fontSize: 8,
     marginTop: 2,
   },
   noData: {
-    color: "#6b7280",
+    color: pdfTokens.muted,
     fontStyle: "italic",
   },
   footer: {
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     left: 40,
     right: 40,
     fontSize: 8,
-    color: "#9ca3af",
+    color: pdfTokens.neutral400,
     textAlign: "center",
   },
 });

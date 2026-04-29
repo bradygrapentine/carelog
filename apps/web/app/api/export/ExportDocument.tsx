@@ -1,33 +1,35 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { EventType } from "@carelog/types";
+import { pdfTokens } from "@/lib/pdfTokens";
 
-// NOTE: @react-pdf/renderer does NOT support CSS variables — raw hex values are intentional here.
+// NOTE: @react-pdf/renderer does NOT support CSS variables — values come from
+// lib/pdfTokens.ts, which mirrors the globals.css design tokens.
 const s = StyleSheet.create({
   page: {
     padding: 48,
     fontFamily: "Helvetica",
     fontSize: 10,
-    color: "#1a1a1a",
+    color: pdfTokens.inkLegacy,
   },
   title: { fontSize: 18, fontWeight: "bold", marginBottom: 4 },
-  subtitle: { fontSize: 11, color: "#6b7280", marginBottom: 24 },
+  subtitle: { fontSize: 11, color: pdfTokens.muted, marginBottom: 24 },
   section: { marginBottom: 16 },
   sectionHead: {
     fontSize: 11,
     fontWeight: "bold",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: pdfTokens.neutral200,
     paddingBottom: 4,
     marginBottom: 8,
   },
   row: { flexDirection: "row", marginBottom: 4 },
-  label: { width: 100, color: "#6b7280" },
+  label: { width: 100, color: pdfTokens.muted },
   value: { flex: 1 },
   item: {
     marginBottom: 6,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: pdfTokens.neutral100,
   },
   footer: {
     position: "absolute",
@@ -35,7 +37,7 @@ const s = StyleSheet.create({
     left: 48,
     right: 48,
     textAlign: "center",
-    color: "#9ca3af",
+    color: pdfTokens.neutral400,
     fontSize: 8,
   },
 });
@@ -257,8 +259,7 @@ export function ExportDocument({ data }: { data: ExportData }) {
                 {e.flagged && (
                   <Text
                     style={{
-                      color:
-                        "#dc2626" /* TODO: no CSS var support in react-pdf; closest token --color-danger (#ef4444) */,
+                      color: pdfTokens.dangerLegacy,
                       fontSize: 9,
                     }}
                   >
