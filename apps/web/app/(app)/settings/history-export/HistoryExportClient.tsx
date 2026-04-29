@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Download, FileJson, FileText, Loader2 } from "lucide-react";
 
@@ -88,10 +89,8 @@ export function HistoryExportClient({ orgId, recipientId }: Props) {
   }
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Export care history</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Export care history" />
       <CardContent className="pt-4 flex flex-col gap-4">
         <p className="text-sm text-[var(--color-text-secondary)]">
           Download a complete copy of all care records — journal entries,
@@ -202,6 +201,6 @@ export function HistoryExportClient({ orgId, recipientId }: Props) {
           records up to this moment — generate a new export for the latest data.
         </p>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

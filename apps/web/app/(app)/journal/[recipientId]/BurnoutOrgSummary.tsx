@@ -1,7 +1,8 @@
 "use client";
 
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 
 type Props = {
   orgId: string;
@@ -18,10 +19,8 @@ export function BurnoutOrgSummary({ orgId, currentUserRole }: Props) {
   if (!enabled) return null;
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Team wellbeing</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Team wellbeing" />
       <CardContent className="pt-2">
         {isLoading && (
           <p className="text-sm text-muted-foreground">Loading...</p>
@@ -57,6 +56,6 @@ export function BurnoutOrgSummary({ orgId, currentUserRole }: Props) {
           </div>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

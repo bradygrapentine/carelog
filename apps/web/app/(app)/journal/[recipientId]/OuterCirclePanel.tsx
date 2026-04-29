@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -238,10 +239,8 @@ export function OuterCirclePanel({
   );
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Volunteer requests</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Volunteer requests" />
 
       <CardContent className="pt-4">
         {requests.filter((r) => r.active).length > 0 && (
@@ -307,6 +306,6 @@ export function OuterCirclePanel({
           {requestForm}
         </div>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

@@ -7,7 +7,8 @@ import {
   type ScreenerAnswers,
   type BenefitProgram,
 } from "../../../../lib/benefitsEligibility";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -115,10 +116,8 @@ export function BenefitsNavigator({
   );
 
   return (
-    <Card className="gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Benefits navigator</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Benefits navigator" />
 
       <CardContent className="pt-4 space-y-4">
         {/* Results view */}
@@ -205,6 +204,6 @@ export function BenefitsNavigator({
           {screenerForm}
         </div>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

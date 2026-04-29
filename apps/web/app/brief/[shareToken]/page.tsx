@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { Heart } from "lucide-react";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { BriefEditorial, type Brief } from "./BriefEditorial";
 
 export default function BriefPage({
@@ -71,18 +72,20 @@ export default function BriefPage({
     return (
       <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
         <main className="w-full max-w-sm">
-          <Card className="shadow-sm gap-2">
-            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-              <div className="flex items-center gap-2">
-                <Heart
-                  className="w-4 h-4 text-[var(--color-primary)]"
-                  aria-hidden="true"
-                />
-                <span className="text-sm font-semibold text-[var(--color-ink)]">
-                  CareSync
-                </span>
-              </div>
-            </CardHeader>
+          <TintedCard>
+            <TintedCardHeader
+              title={
+                <div className="flex items-center gap-2">
+                  <Heart
+                    className="w-4 h-4 text-[var(--color-primary)]"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm font-semibold text-[var(--color-ink)]">
+                    CareSync
+                  </span>
+                </div>
+              }
+            />
             <CardContent className="pt-4 pb-6 text-center space-y-3">
               <p className="text-base font-medium text-[var(--color-ink)]">
                 {message}
@@ -98,7 +101,7 @@ export default function BriefPage({
                 Visit CareSync
               </Link>
             </CardContent>
-          </Card>
+          </TintedCard>
         </main>
       </div>
     );

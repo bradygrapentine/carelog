@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -357,34 +358,35 @@ export function ShiftForm({
   // Mobile: collapsed by default behind a toggle
   // Desktop (lg+): always expanded
   return (
-    <Card className="gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 flex flex-row items-center justify-between space-y-0 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">
-          {isEditMode ? "Edit shift" : "Schedule a shift"}
-        </CardTitle>
-        {/* Mobile toggle — hidden in edit mode (always expanded) */}
-        {!isEditMode && !expanded && (
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            + New shift
-          </button>
-        )}
-        {!isEditMode && expanded && (
-          <button
-            type="button"
-            onClick={() => {
-              setExpanded(false);
-              setError(null);
-            }}
-            className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
-          >
-            Cancel
-          </button>
-        )}
-      </CardHeader>
+    <TintedCard>
+      {/* Mobile toggle — hidden in edit mode (always expanded) */}
+      <TintedCardHeader
+        title={isEditMode ? "Edit shift" : "Schedule a shift"}
+        action={
+          !isEditMode ? (
+            !expanded ? (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
+              >
+                + New shift
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setExpanded(false);
+                  setError(null);
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground/80 transition-colors"
+              >
+                Cancel
+              </button>
+            )
+          ) : undefined
+        }
+      />
 
       <CardContent className="pt-4">
         {/* Toggle button: mobile only, hidden in edit mode / when expanded */}
@@ -403,6 +405,6 @@ export function ShiftForm({
           {shiftForm}
         </div>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

@@ -65,6 +65,7 @@ export function TradeRequestList({
 
   const trades = data ?? [];
 
+  // pattern: TintedCard (custom layout — has dark-mode overrides not supported by TintedCard)
   return (
     <Card className="shadow-sm gap-2">
       <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] dark:bg-gray-700 border-b border-[var(--color-border)] dark:border-gray-600">

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -146,10 +147,8 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Shared expenses</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Shared expenses" />
 
       <CardContent className="pt-2 space-y-4">
         {isLoading && (
@@ -301,6 +300,6 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
           </form>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 
 type RequestData = {
   id: string;
@@ -197,6 +198,7 @@ export default function OuterCirclePage({
       `}</style>
       <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 page-content">
         <div className="max-w-4xl mx-auto px-4 space-y-4">
+          {/* pattern: TintedCard (custom layout — two-row header: type badge + title stacked) */}
           <Card className="shadow-sm gap-2">
             <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
@@ -224,10 +226,8 @@ export default function OuterCirclePage({
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm gap-2">
-            <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-              <CardTitle className="text-sm">Claim a slot</CardTitle>
-            </CardHeader>
+          <TintedCard>
+            <TintedCardHeader title="Claim a slot" />
             <CardContent className="pt-2">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -321,7 +321,7 @@ export default function OuterCirclePage({
                 </button>
               </form>
             </CardContent>
-          </Card>
+          </TintedCard>
         </div>
       </div>
     </>

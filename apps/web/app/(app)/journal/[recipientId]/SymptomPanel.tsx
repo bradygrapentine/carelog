@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent, CardTitle } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MOOD_CHIP_CLS, MOOD_BADGE_CLS } from "../../../../lib/mood";
@@ -334,20 +335,22 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
   ) : null;
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-sm">Symptom readings</CardTitle>
-          {readings.length > 0 && (
-            <span
-              className="text-xs bg-[var(--color-surface)] text-muted-foreground rounded-full px-2 py-0.5"
-              aria-label={readings.length + " recent readings"}
-            >
-              {readings.length}
-            </span>
-          )}
-        </div>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader
+        title={
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm">Symptom readings</CardTitle>
+            {readings.length > 0 && (
+              <span
+                className="text-xs bg-[var(--color-surface)] text-muted-foreground rounded-full px-2 py-0.5"
+                aria-label={readings.length + " recent readings"}
+              >
+                {readings.length}
+              </span>
+            )}
+          </div>
+        }
+      />
 
       <CardContent id="symptom-panel-body" className="pt-4">
         {isLoading && (
@@ -449,6 +452,6 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
           </>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }

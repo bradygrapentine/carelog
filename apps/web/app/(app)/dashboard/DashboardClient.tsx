@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Printer, ChevronRight } from "lucide-react";
 import { BriefHero } from "@/components/dashboard/BriefHero";
@@ -82,10 +83,8 @@ function ReferralCard({ org, userId }: ReferralCardProps) {
   }, [org, userId]);
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Refer a family</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Refer a family" />
       <CardContent className="pt-4 pb-4 px-4">
         <p className="text-sm text-muted-foreground mb-4">
           Know another family who could use coordination support? Share CareSync
@@ -100,7 +99,7 @@ function ReferralCard({ org, userId }: ReferralCardProps) {
           {copied ? "Copied!" : "Copy referral link"}
         </button>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
 
@@ -378,12 +377,14 @@ export function DashboardClient({ user }: Props) {
                 (() => {
                   const team = selectedTeam;
                   return (
-                    <Card className="shadow-sm gap-2">
-                      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-                        <CardTitle className="text-base">
-                          {team.org.name}
-                        </CardTitle>
-                      </CardHeader>
+                    <TintedCard>
+                      <TintedCardHeader
+                        title={
+                          <CardTitle className="text-base">
+                            {team.org.name}
+                          </CardTitle>
+                        }
+                      />
                       <CardContent className="pt-2 space-y-4">
                         <dl className="space-y-1 text-sm">
                           <div className="flex gap-2">
@@ -421,7 +422,7 @@ export function DashboardClient({ user }: Props) {
                           />
                         </Link>
                       </CardContent>
-                    </Card>
+                    </TintedCard>
                   );
                 })()}
             </div>

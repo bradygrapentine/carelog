@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -75,10 +76,8 @@ function ProfileSection() {
   }
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Profile</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Profile" />
       <CardContent className="pt-2">
         {isLoading ? (
           <p className="text-sm text-[var(--color-muted)] py-2">Loading…</p>
@@ -191,7 +190,7 @@ function ProfileSection() {
           </form>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
 
@@ -396,10 +395,8 @@ function NotificationsSection() {
   }
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Notification preferences</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Notification preferences" />
       <CardContent className="pt-2">
         {isLoading ? (
           <p className="text-sm text-[var(--color-muted)] py-2">Loading…</p>
@@ -482,7 +479,7 @@ function NotificationsSection() {
           </div>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
 
@@ -490,10 +487,8 @@ function NotificationsSection() {
 
 function AppearanceSection() {
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Appearance</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Appearance" />
       <CardContent className="pt-4">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-[var(--color-ink)]">
@@ -502,7 +497,7 @@ function AppearanceSection() {
           <ThemeToggle />
         </div>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
 
@@ -510,10 +505,8 @@ function AppearanceSection() {
 
 function LanguageSection() {
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Language</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Language" />
       <CardContent className="pt-2">
         <div className="flex flex-col gap-1">
           <label
@@ -538,7 +531,7 @@ function LanguageSection() {
           </p>
         </div>
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
 
@@ -547,6 +540,7 @@ function LanguageSection() {
 function DangerZoneSection() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
 
+  // pattern: TintedCard (custom layout — danger-zone uses danger-subtle bg, not primary-subtle)
   return (
     <Card className="shadow-sm gap-2 border-[var(--color-danger)]/30">
       <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-danger-subtle)] border-b border-[var(--color-danger)]/30">

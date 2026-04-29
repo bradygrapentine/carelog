@@ -1,7 +1,8 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ClipboardList } from "lucide-react";
 
@@ -21,10 +22,8 @@ export function MedicationRecentEvents({ medicationId, orgId }: Props) {
     return <p className="text-sm text-[var(--color-muted)] px-1">Loading…</p>;
 
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-        <CardTitle className="text-sm">Recent entries</CardTitle>
-      </CardHeader>
+    <TintedCard>
+      <TintedCardHeader title="Recent entries" />
       <CardContent className="pt-2">
         {events.length === 0 ? (
           <EmptyState
@@ -45,6 +44,6 @@ export function MedicationRecentEvents({ medicationId, orgId }: Props) {
           </ul>
         )}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
