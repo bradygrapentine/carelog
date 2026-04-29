@@ -100,7 +100,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                     "flex items-center gap-1.5 border-b-2 px-4 py-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
                     isActive
                       ? "border-[var(--color-tertiary)] text-white"
-                      : "border-transparent text-violet-300 hover:text-white",
+                      : "border-transparent text-[var(--color-app-shell-muted)] hover:text-white",
                   )}
                 >
                   {label}
@@ -115,7 +115,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
           <Link
             href="/settings"
             aria-label="Settings"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-violet-300 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
+            className="flex min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 sm:h-8 sm:w-8 items-center justify-center rounded-full text-[var(--color-app-shell-muted)] transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
           >
             <Settings size={18} aria-hidden="true" />
           </Link>
@@ -152,7 +152,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                   "flex min-w-[4.5rem] flex-col items-center gap-0.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-inset",
                   isActive
                     ? "border-[var(--color-tertiary)] text-white"
-                    : "border-transparent text-violet-300 hover:text-white",
+                    : "border-transparent text-[var(--color-app-shell-muted)] hover:text-white",
                 )}
               >
                 <span aria-hidden="true">{icon}</span>

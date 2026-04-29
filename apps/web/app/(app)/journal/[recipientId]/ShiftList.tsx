@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ShiftCalendar, type Shift } from "@/components/shifts/ShiftCalendar";
@@ -50,7 +50,13 @@ export function ShiftList({
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [calendarDate, setCalendarDate] = useState(new Date());
-  const { from, to } = getRangeForDate(calendarDate);
+  // Memoize date range to avoid recomputing ISO strings on every render.
+  const { from, to } = useMemo(
+    () => getRangeForDate(calendarDate),
+    // Use numeric timestamp as dep — Date objects are new references each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [calendarDate.getTime()],
+  );
 
   const { data: shifts = [] } = trpc.shifts.list.useQuery({
     org_id: orgId,
