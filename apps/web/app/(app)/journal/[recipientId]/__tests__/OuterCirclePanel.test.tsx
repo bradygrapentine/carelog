@@ -3,6 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { OuterCirclePanel } from "../OuterCirclePanel";
 
+const { mockToastError, mockToastSuccess } = vi.hoisted(() => ({
+  mockToastError: vi.fn(),
+  mockToastSuccess: vi.fn(),
+}));
+
+vi.mock("sonner", () => ({
+  toast: { error: mockToastError, success: mockToastSuccess },
+}));
+
 const {
   mockCreate,
   mockDeactivate,
@@ -69,6 +78,8 @@ beforeEach(() => {
     mutateAsync: mockDeactivate,
     isPending: false,
   });
+  mockToastError.mockClear();
+  mockToastSuccess.mockClear();
 });
 
 describe("OuterCirclePanel — renders expanded by default", () => {
@@ -103,6 +114,16 @@ describe("OuterCirclePanel — request list", () => {
     await waitFor(() => expect(mockDeactivate).toHaveBeenCalledOnce());
     expect(mockDeactivate).toHaveBeenCalledWith(
       expect.objectContaining({ id: "req-1", org_id: ORG_ID }),
+    );
+  });
+
+  it("shows toast.error when deactivate mutation rejects", async () => {
+    mockDeactivate.mockRejectedValue(new Error("network error"));
+    renderPanel();
+    fireEvent.click(screen.getByRole("button", { name: /deactivate/i }));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledOnce());
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Saved, but the list didn't refresh. Reload to see the latest.",
     );
   });
 });

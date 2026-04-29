@@ -3,12 +3,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { OcrReviewPanel } from '../OcrReviewPanel'
 
-const { mockAuthFetch } = vi.hoisted(() => ({
+const { mockAuthFetch, mockToastError } = vi.hoisted(() => ({
   mockAuthFetch: vi.fn(),
+  mockToastError: vi.fn(),
 }))
 
 vi.mock('@/lib/authenticatedFetch', () => ({
   authenticatedFetch: mockAuthFetch,
+}))
+
+vi.mock('sonner', () => ({
+  toast: { error: mockToastError, success: vi.fn() },
 }))
 
 const ORG_ID = '10000000-0000-0000-0000-000000000001'
@@ -41,6 +46,7 @@ function makeJsonResponse(body: unknown, ok = true) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockToastError.mockClear()
 })
 
 describe('OcrReviewPanel — initial state', () => {
@@ -84,6 +90,32 @@ describe('OcrReviewPanel — review card', () => {
     render(<OcrReviewPanel {...defaultProps} />)
     await waitFor(() => expect(screen.getByDisplayValue('500mg')).toBeInTheDocument())
     expect(screen.getByDisplayValue('Take with food')).toBeInTheDocument()
+  })
+})
+
+describe('OcrReviewPanel — upload error toast', () => {
+  it('fires toast.error with action when upload fetch throws', async () => {
+    // First call = initial loadJobs, second call = upload throws
+    mockAuthFetch
+      .mockResolvedValueOnce(makeJsonResponse({ jobs: [] }))
+      .mockRejectedValueOnce(new Error('network error'))
+
+    render(<OcrReviewPanel {...defaultProps} />)
+    await waitFor(() =>
+      expect(screen.getByText(/no scans pending review/i)).toBeInTheDocument()
+    )
+
+    // Simulate file upload by firing change on the hidden input
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
+    const file = new File(['dummy'], 'label.jpg', { type: 'image/jpeg' })
+    Object.defineProperty(fileInput, 'files', { value: [file] })
+    fireEvent.change(fileInput)
+
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledOnce())
+    const [message, opts] = mockToastError.mock.calls[0]
+    expect(message).toMatch(/upload failed/i)
+    expect(opts).toMatchObject({ action: { label: 'Try again' } })
+    expect(typeof opts.action.onClick).toBe('function')
   })
 })
 

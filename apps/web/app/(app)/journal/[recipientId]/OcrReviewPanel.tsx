@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,6 +86,12 @@ export function OcrReviewPanel({ orgId, recipientId }: Props) {
       }
     } catch {
       setUploadMsg("Upload failed.");
+      toast.error("Upload failed. Check your connection and try again.", {
+        action: {
+          label: "Try again",
+          onClick: () => fileInputRef.current?.click(),
+        },
+      });
     } finally {
       setUploading(false);
       // Reset input so same file can be re-selected

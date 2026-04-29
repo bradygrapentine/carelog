@@ -3,12 +3,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ExportButton } from '../ExportButton'
 
-const { mockAuthenticatedFetch } = vi.hoisted(() => ({
+const { mockAuthenticatedFetch, mockToastError } = vi.hoisted(() => ({
   mockAuthenticatedFetch: vi.fn(),
+  mockToastError: vi.fn(),
 }))
 
 vi.mock('@/lib/authenticatedFetch', () => ({
   authenticatedFetch: mockAuthenticatedFetch,
+}))
+
+vi.mock('sonner', () => ({
+  toast: { error: mockToastError, success: vi.fn() },
 }))
 
 global.URL.createObjectURL = vi.fn().mockReturnValue('blob:http://fake')
@@ -35,6 +40,7 @@ const okBlobResponse = {
 beforeEach(() => {
   vi.clearAllMocks()
   mockAuthenticatedFetch.mockResolvedValue(okBlobResponse)
+  mockToastError.mockClear()
 })
 
 describe('ExportButton — role gating', () => {
@@ -117,5 +123,20 @@ describe('ExportButton — submit behaviour', () => {
       const alert = screen.getByRole('alert')
       expect(alert).toHaveTextContent("The export didn't finish. Try again, or pick a smaller date range.")
     })
+  })
+
+  it('fires toast.error with retry action when blob() throws', async () => {
+    mockAuthenticatedFetch.mockResolvedValue({
+      ok: true,
+      blob: () => Promise.reject(new Error('blob parse failed')),
+    })
+    renderButton()
+    fireEvent.click(screen.getByRole('button', { name: /download export/i }))
+
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledOnce())
+    const [message, opts] = mockToastError.mock.calls[0]
+    expect(message).toMatch(/export didn't finish/i)
+    expect(opts).toMatchObject({ action: { label: 'Try again' } })
+    expect(typeof opts.action.onClick).toBe('function')
   })
 })
