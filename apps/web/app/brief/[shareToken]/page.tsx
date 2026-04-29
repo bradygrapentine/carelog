@@ -6,6 +6,7 @@ import posthog from "posthog-js";
 import { Heart } from "lucide-react";
 import { CardContent } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
+import { PostHogInit } from "@/components/PostHogInit";
 import { BriefEditorial, type Brief } from "./BriefEditorial";
 
 export default function BriefPage({
@@ -59,6 +60,7 @@ export default function BriefPage({
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center">
+        <PostHogInit />
         <div className="w-8 h-8 border-2 border-[var(--color-ink)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -71,6 +73,7 @@ export default function BriefPage({
         : (error ?? "This care brief link has expired or been revoked.");
     return (
       <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
+        <PostHogInit />
         <main className="w-full max-w-sm">
           <TintedCard>
             <TintedCardHeader
@@ -109,6 +112,7 @@ export default function BriefPage({
 
   return (
     <>
+      <PostHogInit />
       <style>{`
         @media print {
           body {

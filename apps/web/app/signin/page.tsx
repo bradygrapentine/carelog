@@ -1,5 +1,6 @@
 import { SignInForm } from "./SignInForm";
 import { ErrorBanner } from "../../components/ui/ErrorBanner";
+import { PostHogInit } from "../../components/PostHogInit";
 
 export default async function SignInPage({
   searchParams,
@@ -10,6 +11,7 @@ export default async function SignInPage({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-surface)] px-4 py-16">
+      <PostHogInit />
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-3">
         <span
