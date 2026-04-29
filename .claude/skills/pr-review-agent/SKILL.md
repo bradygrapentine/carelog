@@ -1,50 +1,116 @@
 ---
 name: pr-review-agent
-description: Tool-use Claude agent (Sonnet) that reviews a GitHub PR by chaining diff → RLS policies → pgTAP coverage → PHI sinks → backlog cross-check. Runs alongside /review for comparison; does NOT replace it. Output mirrors /review Critical/Medium/Low report shape. Invoke as `/pr-review-agent <pr-number>`. Local Supabase must be running for RLS lookups.
+description: Adversarial PR review walked by the orchestrating Claude Code session — fetches the diff, then chains tool calls (Bash, Grep, Read) across RLS policies, pgTAP coverage, PHI sinks, and the BACKLOG row to produce a Critical/Medium/Low report. Read-only. No external API key — runs under your existing subscription. Invoke as `/pr-review-agent <pr-number>`.
 ---
 
 # pr-review-agent
 
-Adversarial PR reviewer built on the Anthropic threat-intel cookbook pattern (tool-use loop + multi-source fan-out).
+This skill is a **workflow the current session executes itself** — there is NO separate script and NO Anthropic API call. The "tool-use loop" IS this Claude Code session walking the steps below.
 
 ## When to use
 
-- Comparison run alongside `/review` to validate the agentic-loop approach.
-- Quick sanity-check on a PR before it enters the queue.
+- Sanity-check a PR before adding the `queue` label.
+- Comparison run alongside `/review` to validate findings.
 
-Do NOT use as the sole gate — `/review` and `rls-reviewer` agent remain canonical for PHI/RLS-touching PRs.
+Do NOT use as the sole gate on PHI/RLS-touching PRs — `/review` and `rls-reviewer` remain canonical.
 
 ## Prerequisites
 
-- `ANTHROPIC_API_KEY` set
-- `gh` CLI authenticated (`gh auth status`)
-- Local Supabase running (`supabase start`) for RLS lookups
+- `gh` CLI authenticated
+- Local Supabase running (`supabase start`) — needed for the RLS lookups
 - Run from repo root
 
-## Invocation
+## Workflow — execute these steps verbatim, in order
+
+### 1. Fetch the diff
 
 ```sh
-node apps/web/scripts/agents/pr-review-agent.mjs <pr-number>
+gh pr diff <pr-number>
 ```
 
-The agent prints its final Critical/Medium/Low report to stdout; tool-call trace goes to stderr.
+Read it. Identify:
+- Which files changed
+- Whether the diff touches a Supabase migration (look for `supabase/migrations/*.sql`)
+- Which Postgres tables are referenced (especially PHI tables: `care_events`, `care_event_comments`, `recipients`, `identities`, `organizations`, `messages`, `medications`, `mar_records`)
+- Whether analytics / logging code is touched (search the diff for `posthog`, `Sentry.captureException`, `console.log`)
+- The story ID in the PR title (e.g. `TD-85`, `A11Y-012`)
 
-## Tools the agent has
+### 2. For each PHI table touched, dump RLS + pgTAP coverage
 
-1. `get_pr_diff(pr_number)` — `gh pr diff`, truncated at 200KB
-2. `get_rls_policies(table)` — `psql` against local Supabase
-3. `get_pgtap_coverage(table)` — grep `supabase/tests/`
-4. `find_phi_sinks(files?)` — grep for posthog.identify/capture, supabaseAdmin, console.log of PHI, Sentry.captureException
-5. `get_related_backlog(story_id)` — grep BACKLOG.md
+```sh
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
+SELECT polname, polcmd, pg_get_expr(polqual, polrelid) AS using_expr,
+       pg_get_expr(polwithcheck, polrelid) AS check_expr
+FROM pg_policy WHERE polrelid = '<TABLE>'::regclass;"
+```
 
-## Limits
+```sh
+grep -rln "<TABLE>" supabase/tests/ --include='*.sql'
+```
 
-- `MAX_TURNS = 12`, `max_tokens = 4096` per turn
-- Uses Sonnet 4-6
-- No write tools — read-only review
+If pgTAP returns nothing for a PHI table that the migration changed → **Critical** (no regression net).
 
-## Known gaps (v1)
+### 3. PHI-sink scan on changed files
 
-- Doesn't fetch PR comments / prior review history
-- Doesn't run tests or typecheck
-- Doesn't compare against the codex-runs/ history for repeat findings
+For each changed `apps/web/**/*.{ts,tsx}` file:
+
+```sh
+grep -nE "posthog\.(identify|capture)|supabaseAdmin|Sentry\.captureException|console\.log.*\b(email|name|phone|dob|address)\b" <files>
+```
+
+Failures:
+- `posthog.identify(<non-uuid>)` or `posthog.capture('event', { email | name | phone | … })` → **Critical**
+- `supabaseAdmin` outside `apps/web/server/` or `apps/web/app/api/` → **Critical**
+- `console.log` of user-shaped objects in client code → **Medium**
+- `Sentry.captureException` with potentially PHI-bearing context → **Medium** (verify the surrounding code scrubs it)
+
+### 4. RLS expression sanity check
+
+For each policy returned in step 2, verify the `using_expr` / `check_expr`:
+- Filters by `org_id`, `recipient_id`, or `auth.uid()` — never global
+- `INSERT` / `UPDATE` policies have a `WITH CHECK` not just `USING`
+- No `true` policies on PHI tables
+
+### 5. Backlog cross-check
+
+```sh
+grep "<STORY-ID>" BACKLOG.md
+```
+
+Read the row. Does the diff scope match what the row promises? Flag scope creep as **Medium** ("scope-check").
+
+### 6. Emit the report
+
+Write a single markdown report to stdout:
+
+```
+# PR <num> Review
+
+**Verdict:** APPROVE | REQUEST CHANGES | BLOCK
+
+## Critical
+- [file:line] <issue> — <suggested fix>
+(or "(none)")
+
+## Medium
+- ...
+
+## Low
+- ...
+
+## Scope check
+- Backlog row: <id> — <does diff match? yes / scope-creep / missing-row>
+
+## Tool calls made
+- N: <list>
+```
+
+## Hard rules during the walk
+
+- **No Edit/Write tools.** Read-only review. If you find yourself wanting to fix something, stop and write the finding.
+- **Stop calling tools when you have enough evidence.** Don't over-investigate.
+- **If local Supabase isn't running**, skip step 2/4 and note it as a Limitation in the report — don't block on it.
+
+## Why a skill, not a script
+
+Internal review tooling does not call the Anthropic API directly. The orchestrating session IS the agent — Bash/Grep/Read are its tools, this SKILL.md is its system prompt. No separate `ANTHROPIC_API_KEY`, no per-call billing. (See feedback memory `feedback_no_direct_anthropic_api.md`.)
