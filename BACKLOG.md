@@ -116,6 +116,15 @@ Surfaced by parallel pre-flight + test-gap audits (`docs/plans/WAVE5_DISCOVERY_R
 | TD-83 | 🧑 Needs human | **Verify `CI Summary` is in main branch protection** | Pre-flight audit couldn't read protection config (no PAT in shell). Manually verify via GitHub UI: Settings → Branches → main → required checks includes `CI Summary` (per TD-30). If missing, add via API. ~0.25 hr. |
 | TD-84 | 🟢 Ready | **Re-run Codex adversarial audit on apps/web/server + supabase/migrations + apps/web/inngest** | Wave 5 dispatch produced no output file (sandbox couldn't write `/tmp/wave5-codex-audit.md`). Re-dispatch via `/codex:rescue` with same prompt before LAUNCH-001 fires; route output to `.codex-runs/`. Synthesize new TD-* batch from results. ~0.5 hr (orchestration only — findings become a new batch). |
 
+### Agent tooling experiments (TD-85..86) — opened 2026-04-28
+
+Inspired by the Anthropic threat-intel cookbook (tool-use loop + multi-source fan-out + structured report). Both ship as standalone Node scripts under `scripts/agents/` with thin `/skill` wrappers — no production code paths affected. Goal: validate the agentic-loop pattern on review/triage workflows we already do manually, before deciding whether to replace `/review` or wire into CI.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-85 | 🟢 Ready | **Tool-use PR review agent (`scripts/agents/pr-review-agent.ts`)** | Sonnet-4-6 agent loop with 5 tools: `get_pr_diff`, `get_rls_policies`, `get_pgtap_coverage`, `find_phi_sinks`, `get_related_backlog`. Output matches `/review` Critical/Medium/Low shape. Runs alongside `/review` for comparison; does NOT replace it in v1. New skill `/pr-review-agent <pr#>`. ~3 hr. |
+| TD-86 | 🟢 Ready | **Sentry issue triage agent (`scripts/agents/sentry-triage-agent.ts`)** | Sonnet-4-6 agent loop. Tools: `get_sentry_issue` (REST via `SENTRY_AUTH_TOKEN`), `get_recent_events`, `git_blame`, `find_related_backlog`, `find_related_pr`. Output: structured JSON to stdout + draft `BACKLOG.md` row. No write-back to Sentry or backlog in v1 — human commits the draft row. New skill `/sentry-triage <issue-url>`. ~2.5 hr. |
+
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
 
 Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 files. These five close the highest-leverage PHI/auth/payment gaps. ~12 hr total. **Target after this batch ships:** web ≥78%, mobile ≥85%, RLS adds 2 dedicated PHI-table files.
