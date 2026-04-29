@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type UseAbortableReturn = {
   signal: AbortSignal;
@@ -15,32 +15,32 @@ type UseAbortableReturn = {
  * re-fetch triggered by a prop change).
  */
 export function useAbortable(): UseAbortableReturn {
-  const controllerRef = useRef<AbortController>(new AbortController());
-  const [, forceUpdate] = useState(0);
+  const [controller, setController] = useState<AbortController>(
+    () => new AbortController(),
+  );
+  const [aborted, setAborted] = useState(false);
 
-  // Abort on unmount
   useEffect(() => {
     return () => {
-      controllerRef.current.abort();
+      controller.abort();
     };
-  }, []);
+  }, [controller]);
 
   const abort = useCallback(() => {
-    controllerRef.current.abort();
-    forceUpdate((n) => n + 1);
-  }, []);
+    controller.abort();
+    setAborted(true);
+  }, [controller]);
 
   const reset = useCallback(() => {
-    // Abort any in-flight request on the old controller first
-    controllerRef.current.abort();
-    controllerRef.current = new AbortController();
-    forceUpdate((n) => n + 1);
-  }, []);
+    controller.abort();
+    setController(new AbortController());
+    setAborted(false);
+  }, [controller]);
 
   return {
-    signal: controllerRef.current.signal,
+    signal: controller.signal,
     abort,
     reset,
-    isAborted: controllerRef.current.signal.aborted,
+    isAborted: aborted,
   };
 }
