@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { authenticatedFetch } from "../../lib/authenticatedFetch";
 import posthog from "posthog-js";
+import { ErrorBanner } from "../../components/ui/ErrorBanner";
 
 export function OnboardingForm() {
   const router = useRouter();
@@ -130,11 +131,7 @@ export function OnboardingForm() {
         </p>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p className="text-sm text-[var(--color-danger)]">{error}</p>
-        </div>
-      )}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       <button
         type="submit"
