@@ -116,7 +116,7 @@ function BriefShell({
           data-testid="brief-headline"
           className={
             headlineClass ??
-            "headline-display text-[26px] leading-[1.2] text-[var(--color-ink)] sm:text-[28px]"
+            "headline-display text-2xl leading-[1.2] text-[var(--color-ink)] sm:text-[28px]"
           }
         >
           {headline}
@@ -207,7 +207,7 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
       <BriefShell
         eyebrow={eyebrowLabel}
         headline="Could not load brief — please refresh the page."
-        headlineClass="headline-display text-[26px] leading-[1.2] text-[var(--color-danger)] sm:text-[28px]"
+        headlineClass="headline-display text-2xl leading-[1.2] text-[var(--color-danger)] sm:text-[28px]"
       />
     );
   }
