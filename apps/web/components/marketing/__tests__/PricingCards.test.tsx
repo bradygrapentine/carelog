@@ -37,18 +37,18 @@ describe("PricingCards", () => {
     expect(screen.getByText(/most popular/i)).toBeInTheDocument();
   });
 
-  it("Subscribe button stores pendingPlan in sessionStorage and navigates to /signin", () => {
+  it("Start the family plan button stores pendingPlan in sessionStorage and navigates to /signin", () => {
     render(<PricingCards />);
-    fireEvent.click(screen.getByRole("button", { name: /subscribe/i }));
+    fireEvent.click(screen.getByRole("button", { name: /start the family plan/i }));
     const stored = JSON.parse(sessionStorage.getItem("pendingPlan") ?? "{}");
     expect(stored).toEqual({ plan: "family", interval: "month" });
     expect(mockPush).toHaveBeenCalledWith("/signin");
   });
 
-  it("Subscribe with annual interval stores correct interval", () => {
+  it("Start the family plan with annual interval stores correct interval", () => {
     render(<PricingCards />);
     fireEvent.click(screen.getByRole("button", { name: /annual/i }));
-    fireEvent.click(screen.getByRole("button", { name: /subscribe/i }));
+    fireEvent.click(screen.getByRole("button", { name: /start the family plan/i }));
     const stored = JSON.parse(sessionStorage.getItem("pendingPlan") ?? "{}");
     expect(stored).toEqual({ plan: "family", interval: "year" });
   });

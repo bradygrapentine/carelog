@@ -207,7 +207,7 @@ export function FeatureGrid() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-12 max-w-2xl">
           <h2 className="text-3xl font-bold tracking-tight text-[var(--color-ink)]">
-            Everything your care team needs
+            The things a group text can&apos;t do
           </h2>
           <p className="mt-3 text-[var(--color-muted)]">
             Built for families who coordinate care across multiple people.
