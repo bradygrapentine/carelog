@@ -23,7 +23,7 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-[var(--color-surface)]">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28">
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-xl ring-1 ring-black/5">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-border)]">
           <Image
             src="/images/hero-4.png"
             alt="A caregiver walking alongside an elderly man in a park on an autumn day"
@@ -34,10 +34,8 @@ export function HowItWorks() {
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
-            How it works
-          </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--color-ink)] md:text-4xl">
+          <p className="eyebrow-mono">How it works</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-ink)]">
             A shared rhythm, not another app to manage
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
@@ -50,7 +48,8 @@ export function HowItWorks() {
             {steps.map((s) => (
               <li key={s.n} className="flex gap-4">
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-[var(--color-app-shell-text)]"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-semibold text-[var(--color-app-shell-text)]"
+                  aria-hidden="true"
                 >
                   {s.n}
                 </span>
@@ -68,9 +67,9 @@ export function HowItWorks() {
 
           <Link
             href="/signin"
-            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
-            Start your family's log
+            Start your family&rsquo;s log
           </Link>
         </div>
       </div>

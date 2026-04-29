@@ -6,14 +6,15 @@ export function ProductPreview() {
       aria-labelledby="preview-heading"
     >
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-12 text-center">
+        <div className="mb-12 max-w-2xl">
+          <p className="eyebrow-mono">A glimpse inside</p>
           <h2
             id="preview-heading"
-            className="text-3xl font-bold tracking-tight text-[var(--color-ink)]"
+            className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-ink)]"
           >
             A shared journal your family will actually use
           </h2>
-          <p className="mt-3 text-[var(--color-muted)]">
+          <p className="mt-3 text-base leading-relaxed text-[var(--color-text-secondary)]">
             Small, warm moments. Logged once, visible to everyone who cares.
           </p>
         </div>
@@ -22,13 +23,11 @@ export function ProductPreview() {
           {/* Journal entry card */}
           <div
             role="presentation"
-            className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
+            className="rounded-2xl bg-card p-5 shadow-sm"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-              Journal entry
-            </p>
+            <p className="eyebrow-mono">Journal entry</p>
             <p className="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-              📋 Mom had a good night
+              Mom had a good night
             </p>
             <p className="mt-1 text-xs text-[var(--color-muted)]">
               Nurse Sarah · 8:30 AM
@@ -50,19 +49,24 @@ export function ProductPreview() {
           {/* Medication card */}
           <div
             role="presentation"
-            className="flex flex-col justify-between rounded-2xl bg-[var(--color-primary)] p-5 shadow-md"
+            className="flex flex-col justify-between rounded-2xl bg-[var(--color-primary)] p-5 shadow-sm"
           >
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-light)]">
+              <p className="eyebrow-mono text-[var(--color-primary-subtle)]">
                 Medication
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--color-app-shell-text)]">
-                💊 Lisinopril due at 9:00 AM
+                Lisinopril due at 9:00 AM
               </p>
-              <p className="mt-1 text-xs text-[var(--color-app-shell-text)]/80">10 mg · with food</p>
+              <p className="mt-1 text-xs text-[var(--color-app-shell-text)]/80">
+                10 mg · with food
+              </p>
             </div>
             <div className="mt-6 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[var(--color-secondary)]" />
+              <span
+                className="h-2 w-2 rounded-full bg-[var(--color-secondary)]"
+                aria-hidden="true"
+              />
               <p className="text-xs text-[var(--color-app-shell-text)]/90">
                 3 days of supply remaining, order refill soon
               </p>
@@ -72,13 +76,11 @@ export function ProductPreview() {
           {/* Team card */}
           <div
             role="presentation"
-            className="rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
+            className="rounded-2xl bg-card p-5 shadow-sm"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-              Care team
-            </p>
+            <p className="eyebrow-mono">Care team</p>
             <p className="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-              👥 5 people on your team
+              5 people on your team
             </p>
             <p className="mt-1 text-xs text-[var(--color-muted)]">
               2 coordinators · 2 caregivers · 1 supporter

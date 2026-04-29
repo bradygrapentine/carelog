@@ -10,16 +10,16 @@ import { Testimonials } from "../../components/marketing/Testimonials";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "CareSync — Family Caregiving Coordination",
+  title: "CareSync · Family Caregiving Coordination",
   description:
-    "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+    "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
   alternates: {
     canonical: BASE_URL,
   },
   openGraph: {
-    title: "CareSync — Family Caregiving Coordination",
+    title: "CareSync · Family Caregiving Coordination",
     description:
-      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
     url: BASE_URL,
     siteName: "CareSync",
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "CareSync — Family Caregiving Coordination",
+        alt: "CareSync · Family Caregiving Coordination",
       },
     ],
     type: "website",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CareSync — Family Caregiving Coordination",
+    title: "CareSync · Family Caregiving Coordination",
     description:
-      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };
