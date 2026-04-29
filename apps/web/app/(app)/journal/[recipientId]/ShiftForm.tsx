@@ -5,8 +5,8 @@ import { trpc } from "../../../../lib/trpc";
 import { CardContent } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { FormActionRow } from "@/components/ui/FormActionRow";
 
 // Duration options: value '0' means Custom (user provides end time directly)
 const DURATION_OPTIONS = [
@@ -326,22 +326,9 @@ export function ShiftForm({
 
       <Separator />
 
-      <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setExpanded(false);
-            setError(null);
-            onSuccess(); // collapse inline edit panel in parent
-          }}
-          className="text-muted-foreground"
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={!canSubmit}>
-          {isPending
+      <FormActionRow
+        submitLabel={
+          isPending
             ? isEditMode
               ? "Saving..."
               : "Scheduling..."
@@ -349,9 +336,16 @@ export function ShiftForm({
               ? "Save changes"
               : recurring
                 ? "Schedule " + weeks + " shifts"
-                : "Schedule shift"}
-        </Button>
-      </div>
+                : "Schedule shift"
+        }
+        loading={isPending}
+        disabled={!canSubmit}
+        onCancel={() => {
+          setExpanded(false);
+          setError(null);
+          onSuccess(); // collapse inline edit panel in parent
+        }}
+      />
     </form>
   );
 

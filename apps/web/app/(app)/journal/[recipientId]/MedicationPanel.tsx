@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { CardContent } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormActionRow } from "@/components/ui/FormActionRow";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ChevronDown, ChevronUp, Pill } from "lucide-react";
@@ -210,26 +210,16 @@ export function MedicationPanel({
 
       <Separator />
 
-      <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setShowForm(false);
-            setError(null);
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={!drugName || !dosage || createMutation.isPending}
-        >
-          {createMutation.isPending ? "Adding..." : "Add medication"}
-        </Button>
-      </div>
+      <FormActionRow
+        size="sm"
+        submitLabel={createMutation.isPending ? "Adding..." : "Add medication"}
+        loading={createMutation.isPending}
+        disabled={!drugName || !dosage}
+        onCancel={() => {
+          setShowForm(false);
+          setError(null);
+        }}
+      />
     </form>
   ) : null;
 
