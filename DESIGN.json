@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-04-29T04:35:00Z",
+  "generatedAt": "2026-04-29T17:50:00Z",
   "title": "Design System: CareSync",
   "extensions": {
     "colorMeta": {
@@ -144,19 +144,24 @@
     },
     "shadows": [
       {
-        "name": "rest",
+        "name": "rest-ring",
+        "value": "0 0 0 1px rgb(30 10 60 / 0.10)",
+        "purpose": "The default rest edge on Cards. A hairline ring of the ink hue at 10% opacity — reads as a soft inked border, not a drop shadow."
+      },
+      {
+        "name": "rest-shadow",
         "value": "0 1px 2px 0 rgb(30 10 60 / 0.05)",
-        "purpose": "Default rest shadow on Cards. Tinted toward Deep Plum Ink so it reads as part of the palette, not as gray drop-shadow."
+        "purpose": "Used on TintedCard to lift the panel a half-step above the page, paired with the rest ring."
       },
       {
         "name": "hover",
         "value": "0 4px 6px -1px rgb(30 10 60 / 0.10)",
-        "purpose": "Lift on hover for interactive cards only. Static cards stay at rest."
+        "purpose": "Lift on hover for interactive cards, paired with motion-safe -translate-y-0.5. Skipped under prefers-reduced-motion."
       },
       {
         "name": "focus-ring",
-        "value": "0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)",
-        "purpose": "Lamplight Violet ring with 2px Morning Violet offset. Applied to every focusable element."
+        "value": "0 0 0 3px rgb(124 58 237 / 0.50)",
+        "purpose": "ring-3 at 50% Lamplight Violet on every focusable element, with the element's own border shifting to ring color."
       }
     ],
     "motion": [
@@ -194,9 +199,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The single primary action per screen. Lamplight Violet on the app-shell-text foreground.",
+      "description": "The single primary action per screen. Lamplight Violet, rounded-lg (14px), 32px tall.",
       "html": "<button class=\"ds-btn ds-btn-primary\" type=\"button\">Save entry</button>",
-      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 75ms cubic-bezier(0.16,1,0.3,1), transform 75ms cubic-bezier(0.16,1,0.3,1), box-shadow 75ms; outline: none; } .ds-btn:focus-visible { box-shadow: 0 0 0 2px #faf5ff, 0 0 0 4px #7c3aed; border-color: #7c3aed; } .ds-btn-primary { background: #7c3aed; color: #f5f3ff; } .ds-btn-primary:hover { background: #6d28d9; } .ds-btn-primary:active { transform: translateY(1px) scale(0.97); }"
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid transparent; border-radius: 14px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 75ms cubic-bezier(0.16,1,0.3,1), transform 75ms cubic-bezier(0.16,1,0.3,1), box-shadow 75ms; outline: none; } .ds-btn:focus-visible { box-shadow: 0 0 0 3px rgb(124 58 237 / 0.50); border-color: #7c3aed; } .ds-btn-primary { background: #7c3aed; color: #f5f3ff; } .ds-btn-primary:hover { background: #6d28d9; } .ds-btn-primary:active { transform: translateY(1px) scale(0.97); }"
     },
     {
       "name": "Outline Button",
@@ -205,6 +210,14 @@
       "description": "Default secondary action. Mist border on Morning Violet surface.",
       "html": "<button class=\"ds-btn ds-btn-outline\" type=\"button\">Cancel</button>",
       "css": ".ds-btn-outline { background: #faf5ff; color: #1e0a3c; border-color: #ede9fe; } .ds-btn-outline:hover { background: #f9fafb; } .ds-btn-outline:active { transform: translateY(1px) scale(0.97); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Lavender Veil filled button. Used where outline is too quiet but primary is too loud.",
+      "html": "<button class=\"ds-btn ds-btn-secondary\" type=\"button\">Filter</button>",
+      "css": ".ds-btn-secondary { background: #ede9fe; color: #1e0a3c; } .ds-btn-secondary:hover { background: #ddd6fe; }"
     },
     {
       "name": "Ghost Button",
@@ -226,17 +239,17 @@
       "name": "Tinted-Header Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "The signature panel pattern. Lavender Veil header strip flush to the card edges, Mist border-bottom as the divider.",
+      "description": "The signature panel pattern (TintedCard + TintedCardHeader). Lavender Veil header strip flush to the card edges, Mist border-bottom as the divider, ring-1 ink edge at rest, motion-safe lift on hover.",
       "html": "<section class=\"ds-card\"><header class=\"ds-card-header\"><h3 class=\"ds-card-title\">Today</h3></header><div class=\"ds-card-body\"><p class=\"ds-card-text\">Mom slept poorly. Three med doses missed.</p></div></section>",
-      "css": ".ds-card { background: #faf5ff; border-radius: 14px; box-shadow: 0 1px 2px 0 rgb(30 10 60 / 0.05); overflow: hidden; transition: box-shadow 150ms cubic-bezier(0.16,1,0.3,1); } .ds-card:hover { box-shadow: 0 4px 6px -1px rgb(30 10 60 / 0.10); } .ds-card-header { background: #ede9fe; padding: 12px 16px; border-bottom: 1px solid #ede9fe; } .ds-card-title { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: #1e0a3c; line-height: 1.4; } .ds-card-body { padding: 16px; } .ds-card-text { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; color: #1e0a3c; line-height: 1.55; }"
+      "css": ".ds-card { background: #ffffff; border-radius: 20px; box-shadow: 0 0 0 1px rgb(30 10 60 / 0.10), 0 1px 2px 0 rgb(30 10 60 / 0.05); overflow: hidden; transition: box-shadow 150ms cubic-bezier(0.16,1,0.3,1), transform 150ms cubic-bezier(0.16,1,0.3,1); } .ds-card:hover { box-shadow: 0 0 0 1px rgb(30 10 60 / 0.10), 0 4px 6px -1px rgb(30 10 60 / 0.10); } @media (prefers-reduced-motion: no-preference) { .ds-card:hover { transform: translateY(-2px); } } .ds-card-header { background: #ede9fe; padding: 12px 16px; border-bottom: 1px solid #ede9fe; } .ds-card-title { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: #1e0a3c; line-height: 1.4; } .ds-card-body { padding: 16px; } .ds-card-text { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; color: #1e0a3c; line-height: 1.55; }"
     },
     {
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Single-line text field with label above, never a placeholder-as-label.",
+      "description": "Single-line text field with label above (never placeholder-as-label). h-8 (32px), rounded-lg (14px), transparent background, focus-visible swaps border to ring color and adds a 50% violet ring-3.",
       "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"recipient\">Recipient name</label><input class=\"ds-input\" id=\"recipient\" type=\"text\" value=\"Eleanor\" /></div>",
-      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-label { font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #1e0a3c; } .ds-input { height: 36px; padding: 0 12px; background: #faf5ff; color: #1e0a3c; border: 1px solid #ede9fe; border-radius: 10px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; outline: none; transition: border-color 150ms cubic-bezier(0.16,1,0.3,1), box-shadow 150ms; } .ds-input:focus-visible { border-color: #7c3aed; box-shadow: 0 0 0 2px #faf5ff, 0 0 0 4px #7c3aed; }"
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-label { font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #1e0a3c; } .ds-input { height: 32px; padding: 4px 10px; background: transparent; color: #1e0a3c; border: 1px solid #ede9fe; border-radius: 14px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; outline: none; transition: border-color 150ms cubic-bezier(0.16,1,0.3,1), box-shadow 150ms; } .ds-input:focus-visible { border-color: #7c3aed; box-shadow: 0 0 0 3px rgb(124 58 237 / 0.50); }"
     },
     {
       "name": "Mood Badge",
@@ -266,7 +279,7 @@
       "name": "App Shell Tab",
       "kind": "nav",
       "refersTo": "app-shell",
-      "description": "The bottom-tab and side-rail item. Stable Deep Plum Ink shell across light and dark modes.",
+      "description": "The bottom-tab and side-rail item. Stable Deep Plum Ink shell across light and dark modes — never inverts.",
       "html": "<a class=\"ds-tab ds-tab-active\" href=\"#\"><svg class=\"ds-tab-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 2 4 7v13h16V7Z\"/></svg><span>Today</span></a>",
       "css": ".ds-tab { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 10px; color: #c4b5fd; font-family: 'Geist', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-tab:hover { color: #f5f3ff; background: rgb(124 58 237 / 0.15); } .ds-tab-active { color: #f5f3ff; background: rgb(124 58 237 / 0.25); } .ds-tab-icon { width: 20px; height: 20px; }"
     }
@@ -295,14 +308,14 @@
       "Do keep Lamplight Violet on ≤15% of any screen. Its rarity is the point.",
       "Do tint every neutral toward violet. Page surface is #faf5ff; cards sit on #faf5ff; muted rows shift to #f9fafb. Never #fff, never #000.",
       "Do pair every mood/severity color with an icon or text label. Color alone is never the signal.",
-      "Do use the tinted CardHeader pattern (-mt-4 px-4 py-3 bg-primary-subtle border-b border-border) for every grouped panel. It is the signature.",
+      "Do use the TintedCard / TintedCardHeader components for every grouped panel. The signature pattern is a real component now, not a hand-rolled className recipe.",
       "Do reserve Fraunces for editorial surfaces (BriefHero, Daily Brief, marketing). Geist carries the rest.",
-      "Do set a single primary action per screen. Everything else is outline, ghost, or hidden until needed.",
-      "Do show a visible focus ring (Lamplight Violet 2px, 2px offset) on every interactive element.",
+      "Do set a single primary action per screen. Everything else is outline, ghost, secondary, or hidden until needed.",
+      "Do show a visible focus ring (focus-visible:ring-3 ring-ring/50, with the border itself shifting to ring color) on every interactive element.",
       "Do confirm 40×40px touch targets on mobile, no horizontal scroll at 320px, body line length ≤75ch."
     ],
     "donts": [
-      "Don't use side-stripe borders (border-left greater than 1px as a colored accent on cards or list items). The journal mood border is the only sanctioned use, and it stays at 4px paired with a text mood badge.",
+      "Don't use side-stripe borders (border-left greater than 1px as a colored accent on cards or list items). Two narrow exceptions are already in code: the journal mood border (4px, paired with a mood badge) and react-big-calendar shift-event status pills (3px, paired with status text). New accent stripes outside these surfaces are forbidden.",
       "Don't use gradient text (background-clip: text + gradient). Lamplight Violet solid carries every emphasis. Weight or size does the rest.",
       "Don't use glassmorphism / decorative blur. Flat-By-Default Rule — depth is tint, not blur.",
       "Don't ship the hero-metric template (big number, small label, supporting stats, gradient accent). The recipient is a person, not a chart.",

@@ -75,45 +75,45 @@ components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.app-shell-text}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
+    rounded: "{rounded.lg}"
+    padding: "0 10px"
     height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.primary-light}"
+    backgroundColor: "{colors.primary}"
     textColor: "{colors.app-shell-text}"
   button-outline:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
+    rounded: "{rounded.lg}"
+    padding: "0 10px"
     height: "32px"
   button-ghost:
     backgroundColor: "transparent"
     textColor: "{colors.text-secondary}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
+    rounded: "{rounded.lg}"
+    padding: "0 10px"
     height: "32px"
   button-destructive:
     backgroundColor: "{colors.danger-subtle}"
     textColor: "{colors.danger}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
+    rounded: "{rounded.lg}"
+    padding: "0 10px"
     height: "32px"
   card:
     backgroundColor: "{colors.surface}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.xl}"
     padding: "16px"
   card-header-tinted:
     backgroundColor: "{colors.primary-subtle}"
     textColor: "{colors.text-primary}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.xl}"
     padding: "12px 16px"
   input:
-    backgroundColor: "{colors.surface}"
+    backgroundColor: "transparent"
     textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
-    height: "36px"
+    rounded: "{rounded.lg}"
+    padding: "4px 10px"
+    height: "32px"
   badge-mood-good:
     backgroundColor: "{colors.success-subtle}"
     textColor: "{colors.mood-good}"
@@ -180,6 +180,12 @@ The journal entry borders and badges use a four-step mood spectrum. Pair every m
 
 **The Color-Plus-Text Rule.** Mood, severity, and status are never communicated by color alone. Every colored badge or border is paired with an icon or text label. Caregivers under stress and users with color-vision differences read the same UI.
 
+### Dark mode
+
+The system has a complete dark variant (toggle via `.dark` class or `prefers-color-scheme: dark`) — the Living Room at midnight rather than dusk. Lamplight lightens (`#a78bfa`), the page surface drops to a near-black plum (`#0f0a1a`), and the primary-subtle tint inverts to a deep aubergine (`#2e1065`) so tinted card headers still read as recessed rather than washed-out. Ink flips to `#f5f3ff`; the app shell does **not** flip — it stays Deep Plum Ink in both modes, anchoring the chrome.
+
+Marketing routes opt out via `.surface-light-only`, which re-declares the daylight tokens on a descendant — landing pages stay in the daylight palette regardless of system preference. Print mode follows the same opt-out path. Dark-mode `<em>` inside `.headline-display` lightens to `#a78bfa` to clear AA contrast on the dark ink.
+
 ## 3. Typography
 
 **Display Font:** Fraunces (variable, opsz 9–144), with Georgia serif fallback.
@@ -208,10 +214,11 @@ CareSync is **flat by default and lifts only on state**. Surfaces sit on the vio
 
 The app-shell rail and tab bar carry their own dark plum surface (Deep Plum Ink) which is its own elevation plane — separate from the document surface, anchored to the chrome.
 
-### Shadow Vocabulary
-- **shadow-sm** (`box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05)`): The default rest shadow on Cards. Subtle enough to pass as "paper resting on the page", not declarative.
-- **hover lift** (`hover:shadow-md`, `0 4px 6px -1px rgb(0 0 0 / 0.1)`): Card hover. Combined with `transition-shadow` (150ms, ease-out).
-- **focus ring** (2px Lamplight Violet, 2px offset): Every interactive element. Replaces shadow as the primary "this is alive" signal.
+### Edge & Shadow Vocabulary
+- **ring-1 / ring-foreground/10**: The default rest edge on Cards — a hairline ring of the ink hue at 10% opacity. Reads as a soft inked border, not a drop shadow. Stays present at rest in both light and dark mode.
+- **shadow-sm** (`0 1px 2px 0 rgb(0 0 0 / 0.05)`): Used on the `<TintedCard>` wrapper to lift it a half-step above the page, paired with the ring.
+- **hover lift** (`hover:shadow-md`, `0 4px 6px -1px rgb(0 0 0 / 0.1)`): Card hover. Combined with `motion-safe:hover:-translate-y-0.5` and a 150ms transition. Skipped under `prefers-reduced-motion`.
+- **focus ring** (`focus-visible:ring-3 ring-ring/50`, plus the element's own border shifting to ring color): Every interactive element. Replaces shadow as the primary "this is alive" signal.
 
 ### Named Rules
 **The Flat-By-Default Rule.** Surfaces are flat at rest. Shadows respond to state — hover, focus, popover. Decorative drop shadows on landing-page heroes or "feature cards" are forbidden.
@@ -223,42 +230,41 @@ The app-shell rail and tab bar carry their own dark plum surface (Deep Plum Ink)
 ### Buttons
 The Base UI primitive (`@base-ui/react/button`), wrapped via `class-variance-authority` in `apps/web/components/ui/button.tsx`.
 
-- **Shape:** Rounded-md (10px) radius — refined, not pillowy. Active state translates 1px down with a 0.97 scale (motion-safe only) for tactile press feedback.
-- **Primary:** Lamplight Violet (`#7c3aed`) background, `app-shell-text` (`#f5f3ff`) foreground. Hover dims to 80% opacity. Carries the single primary action per screen.
-- **Outline:** Mist (`#ede9fe`) border, transparent background. The default secondary action.
-- **Ghost:** Transparent at rest. Hover shows a Stone (`#f9fafb`) background. Lowest-emphasis affordance — toolbars, repeated row actions.
-- **Destructive:** `danger-subtle` (`#fef2f2`) background with `danger` (`#c41a1a`) text. Used for irreversible actions; never as the default action color.
-- **Sizes:** `xs/sm/default/lg` heights are `24/28/32/36`px. Icon variants are square equivalents. Default is 32px — comfortable on a phone, unobtrusive on desktop.
-- **Focus:** Lamplight Violet 3px ring at 50% opacity, with the border itself shifting to ring color. Visible on every variant.
+- **Shape:** Rounded-lg (14px) radius — refined, not pillowy. Active state translates 1px down with a 0.97 scale (motion-safe only) for tactile press feedback.
+- **Primary:** Lamplight Violet (`#7c3aed`) background, `primary-foreground` (`#fff` only inside the button — see the HSL bridge note in §4) foreground. Hover on anchor variants dims to 80% opacity. Carries the single primary action per screen.
+- **Outline:** Mist (`#ede9fe`) border, Morning Violet background. Hover shifts the surface to the muted token. The default secondary action.
+- **Secondary:** Lavender Veil (`#ede9fe`) background, ink foreground. Used where outline is too quiet but primary is too loud.
+- **Ghost:** Transparent at rest. Hover shows the muted surface. Lowest-emphasis affordance — toolbars, repeated row actions.
+- **Destructive:** `danger/10` background with `danger` (`#c41a1a`) text. Used for irreversible actions; never as the default action color.
+- **Sizes:** `xs/sm/default/lg` heights are `24/28/32/36`px. Icon variants are square equivalents; `icon-xs` and `icon-sm` enforce a 40×40px touch target on mobile. Default is 32px.
+- **Focus:** `focus-visible:ring-3 ring-ring/50` with the border itself shifting to ring color. Visible on every variant.
 - **Transition:** `duration-75` for state changes — snappy enough to feel responsive, never bouncy.
 
 ### Inputs / Fields
-- **Style:** Mist (`#ede9fe`) 1px border on Morning Violet (`#faf5ff`) background, rounded-md (10px), 36px height, 8px-12px padding.
-- **Focus:** Border shifts to Lamplight Violet, ring appears (2px violet, 2px offset). No background shift — the ring carries the signal.
+- **Style:** `border-input` 1px border on transparent background, rounded-lg (14px), 32px height (`h-8`), 4px / 10px padding. Disabled state shifts to `input/50` and drops pointer events.
+- **Focus:** Border shifts to ring color, `ring-3` at 50% opacity. No background shift — the ring carries the signal.
+- **Invalid:** `aria-invalid` swaps the border to `destructive` and the ring to `destructive/20`. No icon required — the ring is the signal.
 - **Label:** Always present and visible (the `<Label>` shadcn primitive sits above the field, never as a placeholder). Geist 500, 14px, ink color.
 - **Help text:** 12px Geist 400, muted color, `mt-1` below the field.
 
 ### Cards / Containers
 The shadcn Card stack, used for every grouped panel in the app.
-- **Corner Style:** Rounded-lg (14px). Refined and unhurried.
-- **Background:** Morning Violet (`#faf5ff`). Never `#fff`.
-- **Shadow Strategy:** `shadow-sm` at rest, `shadow-md` on hover (only when interactive). Static cards stay at `shadow-sm`.
-- **Border:** None by default. The shadow + tinted page contrast carries the edge.
-- **Internal Padding:** `p-4` (16px) for sections; `p-5` (20px) for headline cards. Never inflate beyond 24px — the panel should feel close, not echoey.
+- **Corner Style:** Rounded-xl (20px). Refined and unhurried.
+- **Background:** `bg-card` — the shadcn HSL bridge resolves this to `#fff` in light mode and a deep plum (`hsl(270 80% 10%)`) in dark mode. The bridge predates the No-Stark-White Rule; treat the white card surface as a known legacy artifact and lean on the tinted CardHeader to carry warmth into the panel.
+- **Edge Strategy:** `ring-1 ring-foreground/10` at rest carries the edge — a hairline ring of the ink hue at 10% opacity, not a drop shadow. On hover, `shadow-md` appears and the card translates `-0.5` (motion-safe only) for a small lift. Static / non-interactive cards still show the ring but don't lift.
+- **Internal Padding:** `py-4` vertical, `px-4` horizontal on sections; the `size="sm"` variant tightens to `py-3 / px-3`. Never inflate beyond 24px — the panel should feel close, not echoey.
 
 #### Tinted Card Header (signature pattern)
-The defining panel pattern in the app: a Lavender Veil (`#ede9fe`) tinted CardHeader strip, edge-to-edge with the card, separated from the body by a Mist border-bottom. No `<Separator />` after it — the border is the divider.
+The defining panel pattern in the app, encapsulated as `<TintedCard>` + `<TintedCardHeader>` in `apps/web/components/ui/tinted-card.tsx`. The component is the canonical entry point — hand-rolled `<Card className="shadow-sm gap-2">` recipes are legacy and should migrate.
 
 ```tsx
-<Card className="shadow-sm gap-2">
-  <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
-    <CardTitle className="text-sm">{title}</CardTitle>
-  </CardHeader>
+<TintedCard>
+  <TintedCardHeader title="Section name" action={<button>+ Add</button>} />
   <CardContent className="pt-2">…</CardContent>
-</Card>
+</TintedCard>
 ```
 
-The `-mt-4` cancels the Card's default top padding so the tint reaches the edge. The `gap-2` on Card tightens the header-body gap from 16 to 8px. This pattern carries hierarchy without elevation — the Tint-Over-Shadow Rule made concrete.
+Under the hood: `shadow-sm gap-2` on Card, `-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]` on the CardHeader. The `-mt-4` cancels the Card's default top padding so the tint reaches the edge; `gap-2` tightens the header-body gap from 16 to 8px. The `tone="dark"` variant adds dark-mode bypasses (`dark:bg-gray-700 dark:border-gray-600`) for surfaces that need to read against the dark theme without inverting. This pattern carries hierarchy without elevation — the Tint-Over-Shadow Rule made concrete.
 
 ### Chips / Badges
 - **Mood badge:** `rounded-sm` (6px), 11px Geist Mono uppercase, paired background-and-text colors from the mood palette. Sits inline next to journal entry text. Never appears alone — always accompanies an entry's text content.
@@ -284,7 +290,7 @@ The Daily Brief surface is where the Editorial Reserve Rule applies. Fraunces 40
 - **Do** confirm 40×40px touch targets on mobile, no horizontal scroll at 320px, body line length ≤75ch.
 
 ### Don't:
-- **Don't** use side-stripe borders (`border-left` greater than 1px as a colored accent on cards or list items). The journal mood border is the *only* sanctioned use, and it stays at 4px paired with a text mood badge. New accent stripes are forbidden.
+- **Don't** use side-stripe borders (`border-left` greater than 1px as a colored accent on cards or list items). Two narrow exceptions, both already in the codebase: (1) the journal mood border (4px, paired with a text mood badge); (2) react-big-calendar shift-event status pills (3px, paired with status text). New accent stripes outside these surfaces are forbidden.
 - **Don't** use gradient text (`background-clip: text` + gradient). Lamplight Violet solid carries every emphasis. Weight or size does the rest.
 - **Don't** use glassmorphism / decorative blur. Flat-By-Default Rule — depth is tint, not blur.
 - **Don't** ship the hero-metric template (big number, small label, supporting stats, gradient accent). The recipient is a person, not a chart.
