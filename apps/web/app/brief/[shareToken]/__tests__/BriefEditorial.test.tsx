@@ -5,6 +5,16 @@ import { BriefEditorial } from "../BriefEditorial";
 const fixtureBrief = {
   id: "brief-1",
   title: "Care brief",
+  // Structured editorial headline as written by lib/brief/headline.ts.
+  // Eleanor's first name is on the unemphasized side; the emphasis carries
+  // the *state* (rough, difficult), per the Italic-Emphasis Rule.
+  headline: [
+    { text: "Eleanor has had a " },
+    { text: "rough", em: true },
+    { text: " stretch. 1 " },
+    { text: "difficult", em: true },
+    { text: " day." },
+  ],
   created_at: "2026-04-26T07:02:00.000Z",
   includes: ["medications", "journal"],
   content: {

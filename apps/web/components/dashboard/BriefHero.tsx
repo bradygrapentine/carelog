@@ -1,6 +1,7 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
+import { BriefHeadline } from "@/components/brief/BriefHeadline";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,7 +62,8 @@ function derivePills(content: BriefContent): StatusPill[] {
 
   const moodEntry = content.recent_entries?.find((e) => e.mood);
   if (moodEntry?.mood) {
-    const label = moodEntry.mood.charAt(0).toUpperCase() + moodEntry.mood.slice(1);
+    const label =
+      moodEntry.mood.charAt(0).toUpperCase() + moodEntry.mood.slice(1);
     pills.push({ id: "mood", label: `Mood: ${label}`, tone: "primary" });
   }
 
@@ -183,7 +185,11 @@ type BriefHeroProps = {
 export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
   const ready = Boolean(recipientId && orgId);
 
-  const { data: brief, isLoading, isError } = trpc.briefs.latestForRecipient.useQuery(
+  const {
+    data: brief,
+    isLoading,
+    isError,
+  } = trpc.briefs.latestForRecipient.useQuery(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     { recipientId: recipientId!, orgId: orgId! },
     { enabled: ready, staleTime: 5 * 60 * 1_000 },
@@ -210,12 +216,17 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
 
   const content = (brief.content ?? {}) as BriefContent;
   const pills = derivePills(content);
-  const headlineText = brief.title ?? "Care brief";
+  const headlineNode = (
+    <BriefHeadline
+      headline={(brief as { headline?: unknown }).headline}
+      fallback={brief.title ?? "Care brief"}
+    />
+  );
 
   return (
     <BriefShell
       eyebrow={eyebrowLabel}
-      headline={headlineText}
+      headline={headlineNode}
       pills={
         pills.length > 0 ? (
           <ul className="flex flex-wrap gap-2">
