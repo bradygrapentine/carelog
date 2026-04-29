@@ -99,7 +99,7 @@ export function FeatureGrid() {
             >
               <span
                 className={
-                  "flex h-10 w-10 items-center justify-center rounded-xl text-xl " +
+                  "flex h-10 w-10 items-center justify-center rounded-xl text-xl text-[var(--color-ink)] " +
                   ICON_ACCENT_CYCLE[i % ICON_ACCENT_CYCLE.length]
                 }
                 aria-hidden="true"
@@ -109,7 +109,7 @@ export function FeatureGrid() {
               <h3 className="mt-3 text-base font-semibold text-[var(--color-ink)]">
                 {title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
+              <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
                 {description}
               </p>
             </li>

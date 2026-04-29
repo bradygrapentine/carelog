@@ -47,15 +47,10 @@ export function HowItWorks() {
           </p>
 
           <ol className="mt-8 flex flex-col gap-6">
-            {steps.map((s, i) => (
+            {steps.map((s) => (
               <li key={s.n} className="flex gap-4">
                 <span
-                  className={
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold " +
-                    (i === 1
-                      ? "bg-[var(--color-tertiary-subtle)] text-[var(--color-tertiary)]"
-                      : "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]")
-                  }
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-white"
                 >
                   {s.n}
                 </span>

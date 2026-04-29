@@ -75,7 +75,7 @@ export function Testimonials() {
                 <span className="text-sm font-semibold text-[var(--color-ink)]">
                   {q.name}
                 </span>
-                <span className="text-xs text-[var(--color-muted)]">
+                <span className="text-xs text-[var(--color-text-secondary)]">
                   {q.role}
                 </span>
               </span>
