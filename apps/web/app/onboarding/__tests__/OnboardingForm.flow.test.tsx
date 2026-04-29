@@ -94,7 +94,7 @@ describe("OnboardingForm", () => {
     });
   });
 
-  it("shows error message on API error response", async () => {
+  it("shows a generic error message on API error response (does not leak server detail)", async () => {
     mockAuthenticatedFetch.mockResolvedValue({
       ok: false,
       json: async () => ({ error: "Something went wrong creating the org" }),
@@ -110,9 +110,11 @@ describe("OnboardingForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create care team" }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Something went wrong creating the org"),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/that didn't save/i)).toBeInTheDocument();
     });
+    // The raw server error string must NOT leak to the user.
+    expect(
+      screen.queryByText("Something went wrong creating the org"),
+    ).not.toBeInTheDocument();
   });
 });

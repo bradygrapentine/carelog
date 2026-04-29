@@ -32,14 +32,7 @@ export function OnboardingForm() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // [TD-46 DIAGNOSTIC] revert after CI E2E mystery is resolved
-    console.error("[onboarding] user check:", {
-      hasUser: !!user,
-      userId: user?.id,
-    });
-
     if (!user) {
-      console.error("[onboarding] no user — replacing to /signin");
       router.replace("/signin");
       return;
     }
@@ -55,50 +48,38 @@ export function OnboardingForm() {
           orgName,
         }),
       });
-    } catch (err) {
-      console.error("[onboarding] fetch threw:", err);
+    } catch {
       setError(
-        "Network error: " + (err instanceof Error ? err.message : String(err)),
+        "We couldn't reach the server. Check your connection and try again.",
       );
       setLoading(false);
       return;
     }
 
-    console.error("[onboarding] API status:", res.status, res.statusText);
-
     let data: { orgId?: string; error?: string };
     try {
       data = await res.json();
-    } catch (err) {
-      console.error("[onboarding] json parse threw:", err);
-      const text = await res.text().catch(() => "<unreadable>");
-      console.error("[onboarding] raw body:", text.slice(0, 500));
-      setError("Invalid server response");
+    } catch {
+      setError("Something went wrong on our end. Please try again.");
       setLoading(false);
       return;
     }
-
-    console.error("[onboarding] API body:", JSON.stringify(data));
 
     if (!res.ok || data.error) {
-      console.error("[onboarding] not ok — setting error, no redirect");
-      setError(data.error ?? "Something went wrong.");
+      setError("That didn't save. Check your connection and try again.");
       setLoading(false);
       return;
     }
 
-    console.error("[onboarding] about to capture + redirect");
     try {
       posthog.capture("care_team_created", { org_id: data.orgId });
       posthog.identify(user.id, { org_id: data.orgId }); // UUID + org_id only — never email (PHI)
-    } catch (err) {
-      console.error("[onboarding] posthog threw (caught):", err);
+    } catch {
+      // PostHog failures are non-blocking — proceed to redirect.
     }
     const pendingInvite = sessionStorage.getItem("pending_invite");
     const target = pendingInvite ? "/invite/" + pendingInvite : "/dashboard";
-    console.error("[onboarding] router.replace ->", target);
     router.replace(target);
-    console.error("[onboarding] router.replace returned");
   }
 
   return (

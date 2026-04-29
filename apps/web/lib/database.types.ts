@@ -843,6 +843,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
+          invited_by_user_id: string | null
           membership_id: string
           token: string
         }
@@ -851,6 +852,7 @@ export type Database = {
           email: string
           expires_at?: string
           id?: string
+          invited_by_user_id?: string | null
           membership_id: string
           token?: string
         }
@@ -859,6 +861,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+          invited_by_user_id?: string | null
           membership_id?: string
           token?: string
         }
