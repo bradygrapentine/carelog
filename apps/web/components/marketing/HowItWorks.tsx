@@ -40,8 +40,7 @@ export function HowItWorks() {
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
             CareSync is designed to feel like a quiet family notebook, not a
-            hospital portal and not a chat app. Three small steps and your whole
-            circle is on the same page.
+            hospital portal and not a chat app.
           </p>
 
           <ol className="mt-8 flex flex-col gap-6">

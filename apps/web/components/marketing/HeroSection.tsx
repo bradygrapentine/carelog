@@ -35,10 +35,6 @@ export function HeroSection() {
           />
         </Link>
       </div>
-
-      <p className="mt-6 text-xs text-[var(--color-muted)]">
-        No credit card required. Cancel anytime.
-      </p>
     </section>
   );
 }
