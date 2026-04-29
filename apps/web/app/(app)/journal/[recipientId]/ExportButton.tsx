@@ -39,7 +39,7 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
     });
 
     if (!res.ok) {
-      setError("Export failed. Please try again.");
+      setError("The export didn't finish. Try again, or pick a smaller date range.");
       setLoading(false);
       return;
     }
@@ -59,7 +59,7 @@ export function ExportButton({ orgId, recipientId, currentUserRole }: Props) {
         has_date_filter: !!since,
       });
     } catch {
-      setError("Export failed. Please try again.");
+      setError("The export didn't finish. Try again, or pick a smaller date range.");
     } finally {
       setLoading(false);
     }

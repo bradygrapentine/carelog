@@ -37,7 +37,9 @@ export default function InvitePage({ params }: Props) {
         }
       })
       .catch(() => {
-        setError("Failed to load invite.");
+        setError(
+          "This invite link didn't load. Ask whoever sent it to share a fresh one.",
+        );
         setStatus("error");
       });
   }, [token]);
@@ -82,7 +84,10 @@ export default function InvitePage({ params }: Props) {
 
     const data = await res.json();
     if (!res.ok || data.error) {
-      setError(data.error ?? "Failed to accept.");
+      setError(
+        data.error ??
+          "Couldn't accept this invite. It may have already been used or expired.",
+      );
       setStatus("error");
       return;
     }

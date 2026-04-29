@@ -32,7 +32,7 @@ export default async function SignInPage({
             className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-[var(--color-danger)]"
           >
             {params.error === "auth_callback_failed"
-              ? "Something went wrong. Please try again."
+              ? "That sign-in link didn't work. Try sending a new code."
               : params.error}
           </div>
         )}

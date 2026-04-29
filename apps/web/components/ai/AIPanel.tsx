@@ -39,7 +39,9 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
       ]);
     },
     onError: () => {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(
+        "The assistant didn't reply. Try again, or check back in a minute.",
+      );
     },
   });
 

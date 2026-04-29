@@ -185,7 +185,7 @@ function ProfileSection() {
                   role="alert"
                   className="text-sm text-[var(--color-danger)]"
                 >
-                  Save failed — please try again.
+                  That didn&apos;t save. Try again.
                 </span>
               )}
             </div>
@@ -305,14 +305,20 @@ function NotificationsSection() {
 
           const registration = await registerServiceWorker();
           if (!registration) {
-            setWebPushError("Failed to register service worker.");
+            console.error("registerServiceWorker returned null");
+            setWebPushError(
+              "Push notifications didn't turn on. Try again, or check your browser's notification permissions.",
+            );
             setWebPushLoading(false);
             return;
           }
 
           const subscription = await subscribeToPush(registration);
           if (!subscription) {
-            setWebPushError("Failed to subscribe to push notifications.");
+            console.error("subscribeToPush returned null");
+            setWebPushError(
+              "Push notifications didn't turn on. Try again, or check your browser's notification permissions.",
+            );
             setWebPushLoading(false);
             return;
           }
@@ -339,7 +345,10 @@ function NotificationsSection() {
           });
 
           if (!response.ok) {
-            setWebPushError("Failed to subscribe on server.");
+            console.error("/api/push/web-subscribe failed", response.status);
+            setWebPushError(
+              "Push notifications didn't turn on. Try again, or check your browser's notification permissions.",
+            );
             setWebPushLoading(false);
             return;
           }
@@ -624,7 +633,7 @@ function DangerZoneSection() {
                 }}
                 className="flex-1 bg-[var(--color-danger)] text-white hover:opacity-90 focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
               >
-                Yes, leave
+                Leave team
               </Button>
             </div>
           </div>

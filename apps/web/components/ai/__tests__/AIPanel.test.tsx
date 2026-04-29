@@ -113,7 +113,7 @@ describe("AIPanel — error state", () => {
     capturedOnError?.(new Error("network failure"));
 
     expect(mockToastError).toHaveBeenCalledWith(
-      "Something went wrong. Please try again.",
+      "The assistant didn't reply. Try again, or check back in a minute.",
     );
   });
 });

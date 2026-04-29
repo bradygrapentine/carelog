@@ -105,7 +105,10 @@ export default function OuterCirclePage({
     if (res.status === 409) {
       setState({ status: "full" });
     } else if (!res.ok) {
-      setFormError(data.error ?? "Something went wrong. Please try again.");
+      setFormError(
+        data.error ??
+          "Couldn't claim that slot. Try again, or refresh the page.",
+      );
     } else {
       setState({ status: "claimed" });
     }

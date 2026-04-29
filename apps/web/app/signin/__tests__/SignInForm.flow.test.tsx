@@ -102,9 +102,13 @@ describe("SignInForm", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Token has expired or is invalid"),
+        screen.getByText("The code expired. Send a new one."),
       ).toBeInTheDocument();
     });
+    // The raw Supabase error string must NOT leak to the UI.
+    expect(
+      screen.queryByText("Token has expired or is invalid"),
+    ).not.toBeInTheDocument();
   });
 
   it("button is disabled while submitting email", async () => {
@@ -146,8 +150,14 @@ describe("SignInForm", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Email rate limit exceeded")).toBeInTheDocument();
+      expect(
+        screen.getByText("Too many attempts. Wait a minute and try again."),
+      ).toBeInTheDocument();
     });
+    // The raw Supabase error string must NOT leak to the UI.
+    expect(
+      screen.queryByText("Email rate limit exceeded"),
+    ).not.toBeInTheDocument();
     // Should stay on email step
     expect(screen.queryByText("Check your email")).not.toBeInTheDocument();
   });

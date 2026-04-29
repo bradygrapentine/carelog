@@ -20,11 +20,11 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
     );
   const add = trpc.careEvents.comments.add.useMutation({
     onSuccess: () => refetch(),
-    onError: () => toast.error("Could not add comment — please try again"),
+    onError: () => toast.error("That comment didn't post. Try again."),
   });
   const edit = trpc.careEvents.comments.edit.useMutation({
     onSuccess: () => refetch(),
-    onError: () => toast.error("Could not edit comment — please try again"),
+    onError: () => toast.error("That edit didn't save."),
   });
   const remove = trpc.careEvents.comments.remove.useMutation({
     onMutate: async ({ commentId }) => {
@@ -34,7 +34,7 @@ export function CommentThread({ careEventId, currentUserId }: Props) {
       );
     },
     onSettled: () => refetch(),
-    onError: () => toast.error("Could not delete comment — please try again"),
+    onError: () => toast.error("That comment didn't delete."),
   });
 
   useEffect(() => {

@@ -238,7 +238,7 @@ describe("ShiftForm — submission", () => {
     fillAndSubmit("1");
     fireEvent.click(screen.getByRole("button", { name: /schedule shift/i }));
     await waitFor(() =>
-      expect(screen.getByText(/something went wrong/i)).toBeInTheDocument(),
+      expect(screen.getByText(/the shift didn't save/i)).toBeInTheDocument(),
     );
   });
 });

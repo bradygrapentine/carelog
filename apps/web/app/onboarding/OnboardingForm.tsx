@@ -60,13 +60,13 @@ export function OnboardingForm() {
     try {
       data = await res.json();
     } catch {
-      setError("Something went wrong on our end. Please try again.");
+      setError("We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.");
       setLoading(false);
       return;
     }
 
     if (!res.ok || data.error) {
-      setError("That didn't save. Check your connection and try again.");
+      setError("We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.");
       setLoading(false);
       return;
     }

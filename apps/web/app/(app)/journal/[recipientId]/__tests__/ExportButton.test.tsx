@@ -115,7 +115,7 @@ describe('ExportButton — submit behaviour', () => {
 
     await waitFor(() => {
       const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent('Export failed. Please try again.')
+      expect(alert).toHaveTextContent("The export didn't finish. Try again, or pick a smaller date range.")
     })
   })
 })

@@ -135,7 +135,7 @@ export function ShiftForm({
       if (code === "CONFLICT") {
         setError("This person already has a shift at that time.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError("The shift didn't save. Try again.");
       }
     }
   }
