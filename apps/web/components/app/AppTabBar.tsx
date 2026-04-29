@@ -5,6 +5,17 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const TAB_PANELS: Record<string, string> = {
   journal: "journal",
@@ -119,15 +130,34 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
           >
             <Settings size={18} aria-hidden="true" />
           </Link>
-          <button
-            onClick={() => {
-              if (window.confirm("Sign out of CareSync?")) onSignOut?.();
-            }}
-            aria-label="Sign out"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
-          >
-            {userInitials}
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="Sign out"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
+                >
+                  {userInitials}
+                </button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sign out of CareSync?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You&apos;ll need to sign back in to see this team&apos;s
+                  journal, medications, and shifts.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onSignOut?.()}>
+                  Sign out
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 

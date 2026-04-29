@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Users } from "lucide-react";
 
 type Member = {
@@ -76,6 +86,10 @@ export function TeamPanel({
   const [sending, setSending] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<{
+    membershipId: string;
+    displayLabel: string;
+  } | null>(null);
 
   const utils = trpc.useUtils();
   const removeMutation = trpc.memberships.remove.useMutation({
@@ -87,9 +101,8 @@ export function TeamPanel({
     },
   });
 
-  async function handleRemove(membershipId: string, displayLabel: string) {
+  async function performRemove(membershipId: string) {
     if (!orgId) return;
-    if (!window.confirm(`Remove ${displayLabel} from the team?`)) return;
     setRemoveError(null);
     setRemovingId(membershipId);
     try {
@@ -283,10 +296,13 @@ export function TeamPanel({
                   <button
                     type="button"
                     onClick={() =>
-                      handleRemove(
-                        member.id,
-                        member.display_name ?? member.email ?? "this member",
-                      )
+                      setRemoveTarget({
+                        membershipId: member.id,
+                        displayLabel:
+                          member.display_name ??
+                          member.email ??
+                          "this member",
+                      })
                     }
                     disabled={removingId === member.id}
                     aria-label={
@@ -318,6 +334,38 @@ export function TeamPanel({
           )}
         </div>
       </CardContent>
+
+      <AlertDialog
+        open={removeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {removeTarget
+                ? `Remove ${removeTarget.displayLabel} from this team?`
+                : "Remove member from this team?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              They&apos;ll lose access to this recipient&apos;s journal,
+              medications, and shifts. You can re-invite them later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (removeTarget) performRemove(removeTarget.membershipId);
+                setRemoveTarget(null);
+              }}
+            >
+              Remove member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
