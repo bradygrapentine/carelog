@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { DashboardClient } from "../DashboardClient";
 
 // Mock Supabase client
@@ -32,6 +32,15 @@ vi.mock("@/components/dashboard/MedCard", () => ({
 // ReferralCard must NOT appear on the dashboard (moved to Settings in UX-039a)
 vi.mock("@/components/dashboard/ReferralCard", () => ({
   ReferralCard: () => <div data-testid="referral-card" />,
+}));
+
+// RecipientSummaryCard — rendered in layout B
+vi.mock("@/components/dashboard/RecipientSummaryCard", () => ({
+  RecipientSummaryCard: ({ firstName }: { firstName: string }) => (
+    <div data-testid={`recipient-summary-${firstName}`}>
+      Caring for {firstName}
+    </div>
+  ),
 }));
 
 const mockUser = {
@@ -76,6 +85,7 @@ const mockCareEventsEarliestChain = (createdAt: string | null) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
+  localStorage.clear();
 });
 
 describe("DashboardClient", () => {
@@ -232,5 +242,123 @@ describe("DashboardClient", () => {
         screen.getByLabelText("Open care journal for The Smith Family"),
       ).toBeInTheDocument(),
     );
+  });
+
+  // ── UX-039b: multi-recipient switcher + layout B + view toggle ─────────────
+
+  // Tracks how many times care_recipients has been called to return different IDs
+  function twoTeamMockFrom(nameForOrg1: string, nameForOrg2: string) {
+    let displayNamesCallCount = 0;
+    let recipientsCallCount = 0;
+    let careEventsCallCount = 0;
+    return (table: string) => {
+      if (table === "memberships") {
+        return mockMembershipsChain([
+          {
+            org_id: "org-1",
+            recipient_id: "rec-1",
+            role: "caregiver",
+            organizations: { id: "org-1", name: "Johnson Family" },
+          },
+          {
+            org_id: "org-2",
+            recipient_id: "rec-2",
+            role: "caregiver",
+            organizations: { id: "org-2", name: "Williams Family" },
+          },
+        ]);
+      }
+      if (table === "care_recipients") {
+        recipientsCallCount++;
+        const id = recipientsCallCount === 1 ? "rec-1" : "rec-2";
+        return mockRecipientsChain([{ id }]);
+      }
+      if (table === "display_names") {
+        displayNamesCallCount++;
+        const name = displayNamesCallCount === 1 ? nameForOrg1 : nameForOrg2;
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi
+            .fn()
+            .mockResolvedValue({ data: { full_name: name } }),
+        };
+      }
+      if (table === "care_events") {
+        // Alternate: even calls = count query, odd calls = earliest query
+        // Promise.all calls from("care_events") twice (synchronously), then both resolve.
+        careEventsCallCount++;
+        return careEventsCallCount % 2 === 1
+          ? mockCareEventsCountChain()
+          : mockCareEventsEarliestChain(null);
+      }
+      return mockCareEventsEarliestChain(null);
+    };
+  }
+
+  it("shows view toggle when N > 1 teams", async () => {
+    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+
+    render(<DashboardClient user={mockUser} />);
+
+    // Wait for teams to load, then view toggle should appear
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText("Show all recipients"),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("switching to stacked view renders layout B with recipient summary cards", async () => {
+    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+
+    render(<DashboardClient user={mockUser} />);
+
+    // Wait for the toggle to appear, then click it
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText("Show all recipients"),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByLabelText("Show all recipients"));
+
+    // Layout B heading
+    await waitFor(() =>
+      expect(screen.getByText("Your care recipients")).toBeInTheDocument(),
+    );
+
+    // Toggle now shows "Single view" (aria-pressed=true on stacked)
+    expect(
+      screen.getByLabelText("Switch to single-recipient view"),
+    ).toBeInTheDocument();
+
+    // RecipientSummaryCard rendered for both recipients
+    expect(screen.getByTestId("recipient-summary-Margaret")).toBeInTheDocument();
+  });
+
+  it("clicking a switcher chip in layout A updates the page heading to the selected recipient", { timeout: 10000 }, async () => {
+    // Mock two teams with distinct names to verify switcher wiring
+    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+
+    render(<DashboardClient user={mockUser} />);
+
+    // Wait for initial heading: "Caring for Margaret"
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toHaveTextContent("Caring for Margaret");
+    }, { timeout: 3000 });
+
+    // Click the "Robert" chip — it should be labeled with first name
+    const robertChip = await waitFor(() =>
+      screen.getByRole("button", { name: /robert/i }),
+    );
+    fireEvent.click(robertChip);
+
+    // Heading should update to "Caring for Robert"
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toHaveTextContent("Caring for Robert");
+    });
   });
 });
