@@ -36,3 +36,12 @@ apps/mobile/package-lock.json
 # Vitest browser-mode test artifacts (screenshots + DOM snapshots)
 **/.vitest-attachments/
 **/__tests__/**/__screenshots__/
+
+# Playwright runtime artifacts (re-generated each run)
+test-results/
+
+# Lighthouse CI runtime artifacts
+.lighthouseci/
+
+# Subagent heartbeat logs (per-session, ephemeral)
+.claude/agent-status/
