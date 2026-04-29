@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { TradeRequestCard } from "./TradeRequestCard";
@@ -65,13 +66,13 @@ export function TradeRequestList({
 
   const trades = data ?? [];
 
-  // pattern: TintedCard (custom layout — has dark-mode overrides not supported by TintedCard)
   return (
-    <Card className="shadow-sm gap-2">
-      <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] dark:bg-gray-700 border-b border-[var(--color-border)] dark:border-gray-600">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">Trade Requests</CardTitle>
-          {!showForm && (
+    <TintedCard>
+      <TintedCardHeader
+        tone="dark"
+        title="Trade Requests"
+        action={
+          !showForm && (
             <Button
               variant="ghost"
               size="sm"
@@ -81,9 +82,9 @@ export function TradeRequestList({
               <Plus className="h-3 w-3 mr-1" aria-hidden="true" />
               Request Trade
             </Button>
-          )}
-        </div>
-      </CardHeader>
+          )
+        }
+      />
 
       <CardContent className="pt-2 space-y-3">
         {/* Inline form */}
@@ -125,6 +126,6 @@ export function TradeRequestList({
             />
           ))}
       </CardContent>
-    </Card>
+    </TintedCard>
   );
 }
