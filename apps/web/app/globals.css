@@ -127,6 +127,15 @@ body {
     color: var(--color-primary);
   }
 
+  /* Dark-mode + print contrast guard (WCAG AA — #7c3aed fails on dark ink bg) */
+  @media (prefers-color-scheme: dark) {
+    .headline-display em { color: var(--color-primary-light); }
+  }
+  .dark .headline-display em { color: var(--color-primary-light); }
+  @media print {
+    .headline-display em { color: #7c3aed; }
+  }
+
   .eyebrow-mono {
     font-family: var(--font-mono);
     font-size: 11px;

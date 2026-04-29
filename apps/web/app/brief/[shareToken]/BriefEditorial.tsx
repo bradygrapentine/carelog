@@ -102,7 +102,7 @@ export function BriefEditorial({ brief }: { brief: Brief }) {
 
         <header className="space-y-3">
           <p className="eyebrow-mono">{dateline}</p>
-          <h1 className="headline-display text-5xl text-[var(--color-ink)] leading-[1.05]">
+          <h1 className="headline-display text-3xl leading-[1.05] text-[var(--color-ink)] sm:text-4xl md:text-5xl">
             <BriefHeadline
               headline={(brief as { headline?: unknown }).headline}
               fallback={
