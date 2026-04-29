@@ -44,12 +44,6 @@ export function Testimonials() {
             className="flex h-full flex-col justify-between rounded-2xl bg-card p-6 shadow-sm"
           >
             <blockquote className="text-sm leading-relaxed text-[var(--color-text-primary)]">
-              <span
-                aria-hidden="true"
-                className="mr-1 text-2xl leading-none text-[var(--color-primary)]"
-              >
-                &ldquo;
-              </span>
               {q.quote}
             </blockquote>
             <figcaption className="mt-5 flex items-center gap-3">
