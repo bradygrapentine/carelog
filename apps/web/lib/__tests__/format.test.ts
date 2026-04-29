@@ -46,6 +46,35 @@ describe("format helpers (en-US, locale-stable)", () => {
   });
 });
 
+// ─── TD-95 snapshot assertions ───────────────────────────────────────────────
+// These lock the en-US Intl.DateTimeFormat output to be byte-identical with
+// the TD-88 toLocaleDateString / toLocaleTimeString output for en-US.
+// The fixture is chosen at 15:42 UTC so it remains Apr 29 in UTC±12h windows.
+//
+// Note: formatTimeShort depends on the host timezone; we assert shape here
+// instead of an exact string (same as the legacy test above).
+
+describe("TD-95: en-US Intl.DateTimeFormat snapshot — byte-identical to TD-88 output", () => {
+  const FIXTURE = new Date("2026-04-29T15:42:00Z");
+
+  it("formatLongDate matches expected en-US long format", () => {
+    expect(formatLongDate(FIXTURE)).toBe("April 29, 2026");
+  });
+
+  it("formatShortDate matches expected en-US short format", () => {
+    expect(formatShortDate(FIXTURE)).toBe("Apr 29, 2026");
+  });
+
+  it("formatMonthDay matches expected en-US month+day format", () => {
+    expect(formatMonthDay(FIXTURE)).toBe("Apr 29");
+  });
+
+  it("formatTimeShort matches numeric-hour AM/PM pattern (en-US, TZ-aware)", () => {
+    // Shape assertion: <1-2 digit hour>:<2 digit minute> AM/PM
+    expect(formatTimeShort(FIXTURE)).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)$/i);
+  });
+});
+
 describe("format helpers (browser-default locale)", () => {
   // These use `[]` locale, so exact output depends on the runtime ICU locale.
   // We assert shape, not exact strings, to keep tests stable across CI hosts.
