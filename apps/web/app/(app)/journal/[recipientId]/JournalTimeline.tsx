@@ -11,35 +11,13 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen } from "lucide-react";
 import { CommentThread } from "@/components/care-events/CommentThread";
-
-const MOOD_DOT: Record<string, string> = {
-  good: "bg-[var(--color-mood-good)]",
-  okay: "bg-[var(--color-mood-okay)]",
-  difficult: "bg-[var(--color-mood-difficult)]",
-  crisis: "bg-[var(--color-mood-crisis)]",
-};
-
-// Mood-tinted left border on the card — gives each entry a visually distinct
-// edge so the timeline reads as varied instead of monotonic. Falls back to a
-// neutral border when no mood is recorded.
-const MOOD_BORDER: Record<string, string> = {
-  good: "border-l-[var(--color-mood-good)]",
-  okay: "border-l-[var(--color-mood-okay)]",
-  difficult: "border-l-[var(--color-mood-difficult)]",
-  crisis: "border-l-[var(--color-mood-crisis)]",
-};
-
-// Badge tints — use the mood token for border + text, soft tinted background
-// derived via color-mix. Keeps a single source of truth in globals.css and
-// removes the raw bg-green-50 / bg-yellow-50 / bg-orange-50 / bg-red-50 classes.
-const MOOD_BADGE: Record<string, string> = {
-  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_12%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_35%,white)]",
-  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_15%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_40%,white)]",
-  difficult:
-    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_15%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_40%,white)]",
-  crisis:
-    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_15%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_40%,white)]",
-};
+import {
+  moodDotClass,
+  moodBorderClass,
+  moodBgClass,
+  moodChipClass,
+  type Mood,
+} from "../../../../lib/mood";
 
 const REACTIONS = [
   { key: "heart", title: "Heart", emoji: "❤️" },
@@ -178,7 +156,8 @@ function JournalCard({
         className={
           "hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2 border-l-4 " +
           (payload.mood
-            ? (MOOD_BORDER[payload.mood] ?? "border-l-[var(--color-border)]")
+            ? (moodBorderClass(payload.mood as Mood) ||
+              "border-l-[var(--color-border)]")
             : "border-l-[var(--color-border)]")
         }
       >
@@ -203,7 +182,7 @@ function JournalCard({
               <span
                 className={
                   "mt-1 w-2 h-2 rounded-full shrink-0 " +
-                  (MOOD_DOT[payload.mood] ?? "bg-slate-300")
+                  (moodDotClass(payload.mood as Mood) || "bg-slate-300")
                 }
               />
             )}
@@ -216,7 +195,7 @@ function JournalCard({
                 data-testid="mood-badge"
                 className={
                   "shrink-0 capitalize text-xs " +
-                  (MOOD_BADGE[payload.mood] ?? "")
+                  moodBgClass(payload.mood as Mood)
                 }
               >
                 {payload.mood}
@@ -325,17 +304,8 @@ function dateKey(iso: string) {
   return new Date(iso).toDateString();
 }
 
-type MoodFilter = "good" | "okay" | "difficult" | "crisis";
+type MoodFilter = Mood;
 type KindFilter = "human" | "system";
-
-const MOOD_CHIP_CLS: Record<MoodFilter, string> = {
-  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_18%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_45%,white)]",
-  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_22%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_50%,white)]",
-  difficult:
-    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_22%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_50%,white)]",
-  crisis:
-    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_22%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_50%,white)]",
-};
 
 function Chip({
   label,
@@ -522,7 +492,7 @@ export function JournalTimeline({
                 key={m}
                 label={m.charAt(0).toUpperCase() + m.slice(1)}
                 active={moodFilters.has(m)}
-                activeCls={MOOD_CHIP_CLS[m]}
+                activeCls={moodChipClass(m, { selected: true })}
                 onClick={() => toggleMood(m)}
               />
             ),

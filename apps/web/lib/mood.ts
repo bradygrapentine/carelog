@@ -1,7 +1,14 @@
 /**
  * Shared mood colour utilities — backed by design tokens from globals.css.
  * All components should import from here rather than hardcoding Tailwind palette classes.
+ *
+ * NOTE: there are intentionally several alpha tiers across helpers — chip-resting
+ * is lighter than chip-selected which is lighter than border tints. Don't unify
+ * them without a UX-* row that explicitly green-lights the visual change.
  */
+
+/** The four mood keys used across the journal/symptom UI. */
+export type Mood = "good" | "okay" | "difficult" | "crisis";
 
 /** Solid dot / indicator colour per mood key */
 export const MOOD_DOT_CLS: Record<string, string> = {
@@ -35,3 +42,76 @@ export const MOOD_CHIP_CLS: Record<string, string> = {
   crisis:
     "bg-[var(--color-mood-crisis)]/20 text-[var(--color-mood-crisis)] border-[var(--color-mood-crisis)]/40",
 };
+
+// ---------------------------------------------------------------------------
+// TD-91 helpers — class lookup functions for call sites that previously
+// inlined their own mood→className map. Each helper returns the exact string
+// the original inline map produced; alpha/color-mix tiers are intentionally
+// preserved verbatim so the visual output is byte-identical to the pre-TD-91
+// rendering.
+// ---------------------------------------------------------------------------
+
+/** Border-left colour for a journal card edge (no alpha, solid token). */
+const MOOD_BORDER_CLS: Record<Mood, string> = {
+  good: "border-l-[var(--color-mood-good)]",
+  okay: "border-l-[var(--color-mood-okay)]",
+  difficult: "border-l-[var(--color-mood-difficult)]",
+  crisis: "border-l-[var(--color-mood-crisis)]",
+};
+
+/**
+ * Outline-style badge using color-mix. Tighter `good` tier (12%/35%) reflects
+ * the higher perceived saturation of the green token; the other moods use
+ * 15%/40%. These specific percentages are what JournalTimeline shipped with —
+ * preserved verbatim under TD-91.
+ */
+const MOOD_OUTLINE_BADGE_CLS: Record<Mood, string> = {
+  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_12%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_35%,white)]",
+  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_15%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_40%,white)]",
+  difficult:
+    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_15%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_40%,white)]",
+  crisis:
+    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_15%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_40%,white)]",
+};
+
+/**
+ * Selected-chip variant — stronger tint than `MOOD_OUTLINE_BADGE_CLS` to read
+ * as "active". `good` uses 18%/45%, the others use 22%/50%. Preserved verbatim
+ * from JournalTimeline's filter-chip implementation.
+ */
+const MOOD_SELECTED_CHIP_CLS: Record<Mood, string> = {
+  good: "bg-[color-mix(in_oklab,var(--color-mood-good)_18%,white)] text-[var(--color-mood-good)] border-[color-mix(in_oklab,var(--color-mood-good)_45%,white)]",
+  okay: "bg-[color-mix(in_oklab,var(--color-mood-okay)_22%,white)] text-[var(--color-mood-okay)] border-[color-mix(in_oklab,var(--color-mood-okay)_50%,white)]",
+  difficult:
+    "bg-[color-mix(in_oklab,var(--color-mood-difficult)_22%,white)] text-[var(--color-mood-difficult)] border-[color-mix(in_oklab,var(--color-mood-difficult)_50%,white)]",
+  crisis:
+    "bg-[color-mix(in_oklab,var(--color-mood-crisis)_22%,white)] text-[var(--color-mood-crisis)] border-[color-mix(in_oklab,var(--color-mood-crisis)_50%,white)]",
+};
+
+/** Small bg dot colour (e.g. timeline entry indicator). */
+export function moodDotClass(mood: Mood): string {
+  return MOOD_DOT_CLS[mood] ?? "";
+}
+
+/** Border-left tint for a journal card edge. */
+export function moodBorderClass(mood: Mood): string {
+  return MOOD_BORDER_CLS[mood] ?? "";
+}
+
+/** Outline badge tint (chip-resting / read-only badge). */
+export function moodBgClass(mood: Mood): string {
+  return MOOD_OUTLINE_BADGE_CLS[mood] ?? "";
+}
+
+/**
+ * Filter-chip class. With `selected: true`, returns the stronger active tint;
+ * otherwise returns the resting outline-badge tint. Both branches preserve
+ * the exact `color-mix` percentages from the call site they replace.
+ */
+export function moodChipClass(
+  mood: Mood,
+  opts?: { selected?: boolean },
+): string {
+  if (opts?.selected) return MOOD_SELECTED_CHIP_CLS[mood] ?? "";
+  return MOOD_OUTLINE_BADGE_CLS[mood] ?? "";
+}
