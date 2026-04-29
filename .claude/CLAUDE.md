@@ -3,6 +3,14 @@
 Family caregiving coordination platform. $14/mo family plan. Bootstrapped.
 Monorepo: `apps/`, `packages/`, `supabase/`.
 
+## Design context
+
+- `PRODUCT.md` (repo root) — register, users, brand personality, anti-references, design principles. Read before any UI/UX work.
+- `DESIGN.md` (repo root, when present) — visual system: colors, typography, components, motion. Pairs with `PRODUCT.md`.
+- `.claude/rules/ui-standards.md` — hard UI rules (tokens, WCAG AA, panel/form patterns). Load before touching `apps/web/app/` or `apps/web/components/`.
+
+The `/impeccable` command suite reads these. Run `/impeccable teach` to refresh, `/impeccable document` to regenerate `DESIGN.md` from current code.
+
 ## READ FIRST — the backlog is the single source of truth
 
 **Before any task**, read `BACKLOG.md` at the repo root. Every planned feature, bug fix, tech-debt item, a11y task, and polish story lives there with a lifecycle status (`Ready` / `In progress` / `In review` / `Blocked` / `Shipped`).

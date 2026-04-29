@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-29T04:35:00Z",
+  "title": "Design System: CareSync",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Lamplight Violet",
+        "canonical": "oklch(56% 0.24 296)",
+        "tonalRamp": [
+          "oklch(20% 0.10 296)",
+          "oklch(30% 0.15 296)",
+          "oklch(40% 0.20 296)",
+          "oklch(50% 0.24 296)",
+          "oklch(60% 0.22 296)",
+          "oklch(70% 0.18 296)",
+          "oklch(82% 0.10 296)",
+          "oklch(95% 0.03 296)"
+        ]
+      },
+      "primary-light": {
+        "role": "primary",
+        "displayName": "Lamplight Violet, Soft",
+        "canonical": "oklch(72% 0.16 296)"
+      },
+      "primary-subtle": {
+        "role": "primary",
+        "displayName": "Lavender Veil",
+        "canonical": "oklch(95% 0.025 296)"
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Late Afternoon Amber",
+        "canonical": "oklch(63% 0.16 50)",
+        "tonalRamp": [
+          "oklch(25% 0.08 50)",
+          "oklch(35% 0.12 50)",
+          "oklch(45% 0.14 50)",
+          "oklch(55% 0.16 50)",
+          "oklch(65% 0.16 50)",
+          "oklch(75% 0.13 50)",
+          "oklch(88% 0.08 50)",
+          "oklch(96% 0.025 50)"
+        ]
+      },
+      "secondary-subtle": {
+        "role": "secondary",
+        "displayName": "Soft Custard",
+        "canonical": "oklch(96% 0.04 80)"
+      },
+      "tertiary": {
+        "role": "tertiary",
+        "displayName": "Hearth Coral",
+        "canonical": "oklch(67% 0.14 35)",
+        "tonalRamp": [
+          "oklch(28% 0.08 35)",
+          "oklch(38% 0.11 35)",
+          "oklch(48% 0.13 35)",
+          "oklch(58% 0.15 35)",
+          "oklch(68% 0.14 35)",
+          "oklch(78% 0.11 35)",
+          "oklch(88% 0.06 35)",
+          "oklch(96% 0.02 35)"
+        ]
+      },
+      "tertiary-subtle": {
+        "role": "tertiary",
+        "displayName": "Faded Coral",
+        "canonical": "oklch(91% 0.04 35)"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Deep Plum Ink",
+        "canonical": "oklch(20% 0.08 295)"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Morning Violet",
+        "canonical": "oklch(98% 0.012 295)"
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Stone",
+        "canonical": "oklch(98% 0.003 280)"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "oklch(95% 0.025 296)"
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Body",
+        "canonical": "oklch(45% 0.02 280)"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "oklch(55% 0.015 280)"
+      },
+      "mood-good": {
+        "role": "semantic",
+        "displayName": "Mood · Good",
+        "canonical": "oklch(72% 0.18 145)"
+      },
+      "mood-okay": {
+        "role": "semantic",
+        "displayName": "Mood · Okay",
+        "canonical": "oklch(72% 0.16 75)"
+      },
+      "mood-difficult": {
+        "role": "semantic",
+        "displayName": "Mood · Difficult",
+        "canonical": "oklch(68% 0.18 50)"
+      },
+      "mood-crisis": {
+        "role": "semantic",
+        "displayName": "Mood · Crisis",
+        "canonical": "oklch(63% 0.22 28)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Fraunces)",
+        "purpose": "Editorial headlines on BriefHero, Daily Brief, marketing pages only. Adoption is incremental — never mass-refactor existing app UI to Fraunces."
+      },
+      "headline": {
+        "displayName": "Headline (Geist 600)",
+        "purpose": "Page titles in the app, section headers in long content."
+      },
+      "title": {
+        "displayName": "Title (Geist 600)",
+        "purpose": "Card titles, panel headers."
+      },
+      "body": {
+        "displayName": "Body (Geist 400)",
+        "purpose": "Default body, journal entries, form help text. Cap line length at 65–75ch."
+      },
+      "label": {
+        "displayName": "Label (Geist Mono uppercase)",
+        "purpose": "Eyebrow labels, timestamps, machine-generated metadata. The .eyebrow-mono class."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px 0 rgb(30 10 60 / 0.05)",
+        "purpose": "Default rest shadow on Cards. Tinted toward Deep Plum Ink so it reads as part of the palette, not as gray drop-shadow."
+      },
+      {
+        "name": "hover",
+        "value": "0 4px 6px -1px rgb(30 10 60 / 0.10)",
+        "purpose": "Lift on hover for interactive cards only. Static cards stay at rest."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)",
+        "purpose": "Lamplight Violet ring with 2px Morning Violet offset. Applied to every focusable element."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-state",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Default ease-out-quart for state transitions. No bounce, no elastic."
+      },
+      {
+        "name": "duration-snap",
+        "value": "75ms",
+        "purpose": "Button hover/press transitions. Snappy enough to feel responsive."
+      },
+      {
+        "name": "duration-lift",
+        "value": "150ms",
+        "purpose": "Card hover lift, panel reveal, default state changes."
+      },
+      {
+        "name": "respect-reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) { transition-duration: 0ms; transform: none; }",
+        "purpose": "Every motion respects the OS reduced-motion preference."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary action per screen. Lamplight Violet on the app-shell-text foreground.",
+      "html": "<button class=\"ds-btn ds-btn-primary\" type=\"button\">Save entry</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 75ms cubic-bezier(0.16,1,0.3,1), transform 75ms cubic-bezier(0.16,1,0.3,1), box-shadow 75ms; outline: none; } .ds-btn:focus-visible { box-shadow: 0 0 0 2px #faf5ff, 0 0 0 4px #7c3aed; border-color: #7c3aed; } .ds-btn-primary { background: #7c3aed; color: #f5f3ff; } .ds-btn-primary:hover { background: #6d28d9; } .ds-btn-primary:active { transform: translateY(1px) scale(0.97); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Default secondary action. Mist border on Morning Violet surface.",
+      "html": "<button class=\"ds-btn ds-btn-outline\" type=\"button\">Cancel</button>",
+      "css": ".ds-btn-outline { background: #faf5ff; color: #1e0a3c; border-color: #ede9fe; } .ds-btn-outline:hover { background: #f9fafb; } .ds-btn-outline:active { transform: translateY(1px) scale(0.97); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Lowest-emphasis affordance. Used in toolbars and repeated row actions.",
+      "html": "<button class=\"ds-btn ds-btn-ghost\" type=\"button\">Skip</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #4b5563; } .ds-btn-ghost:hover { background: #f9fafb; color: #1e0a3c; }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Irreversible actions (delete, remove member). Never the default action.",
+      "html": "<button class=\"ds-btn ds-btn-destructive\" type=\"button\">Remove from team</button>",
+      "css": ".ds-btn-destructive { background: #fef2f2; color: #c41a1a; } .ds-btn-destructive:hover { background: #fee2e2; }"
+    },
+    {
+      "name": "Tinted-Header Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The signature panel pattern. Lavender Veil header strip flush to the card edges, Mist border-bottom as the divider.",
+      "html": "<section class=\"ds-card\"><header class=\"ds-card-header\"><h3 class=\"ds-card-title\">Today</h3></header><div class=\"ds-card-body\"><p class=\"ds-card-text\">Mom slept poorly. Three med doses missed.</p></div></section>",
+      "css": ".ds-card { background: #faf5ff; border-radius: 14px; box-shadow: 0 1px 2px 0 rgb(30 10 60 / 0.05); overflow: hidden; transition: box-shadow 150ms cubic-bezier(0.16,1,0.3,1); } .ds-card:hover { box-shadow: 0 4px 6px -1px rgb(30 10 60 / 0.10); } .ds-card-header { background: #ede9fe; padding: 12px 16px; border-bottom: 1px solid #ede9fe; } .ds-card-title { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: #1e0a3c; line-height: 1.4; } .ds-card-body { padding: 16px; } .ds-card-text { margin: 0; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; color: #1e0a3c; line-height: 1.55; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Single-line text field with label above, never a placeholder-as-label.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"recipient\">Recipient name</label><input class=\"ds-input\" id=\"recipient\" type=\"text\" value=\"Eleanor\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-label { font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #1e0a3c; } .ds-input { height: 36px; padding: 0 12px; background: #faf5ff; color: #1e0a3c; border: 1px solid #ede9fe; border-radius: 10px; font-family: 'Geist', system-ui, sans-serif; font-size: 0.875rem; outline: none; transition: border-color 150ms cubic-bezier(0.16,1,0.3,1), box-shadow 150ms; } .ds-input:focus-visible { border-color: #7c3aed; box-shadow: 0 0 0 2px #faf5ff, 0 0 0 4px #7c3aed; }"
+    },
+    {
+      "name": "Mood Badge",
+      "kind": "chip",
+      "refersTo": "badge-mood-difficult",
+      "description": "Journal-entry mood tag. Color is paired with text, never alone. Sized for inline use next to the entry body.",
+      "html": "<span class=\"ds-badge ds-badge-difficult\">Difficult</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 6px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; } .ds-badge-difficult { background: #fffbeb; color: #f97316; }"
+    },
+    {
+      "name": "Eyebrow Label",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "The .eyebrow-mono pattern. Sits above editorial headlines and timestamps.",
+      "html": "<p class=\"ds-eyebrow\">TODAY'S BRIEF · auto-generated 7:02a</p>",
+      "css": ".ds-eyebrow { margin: 0; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: #6b7280; line-height: 1.2; }"
+    },
+    {
+      "name": "Editorial Headline",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "BriefHero / Daily Brief signature. Fraunces with weight-300 violet italic emphasis on <em>.",
+      "html": "<h1 class=\"ds-headline\">Mom slept <em>poorly</em>. Three med doses <em>missed</em>.</h1>",
+      "css": ".ds-headline { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(1.75rem, 3vw + 1rem, 3rem); font-weight: 400; line-height: 1.1; letter-spacing: -0.025em; color: #1e0a3c; } .ds-headline em { font-style: italic; font-weight: 300; color: #7c3aed; }"
+    },
+    {
+      "name": "App Shell Tab",
+      "kind": "nav",
+      "refersTo": "app-shell",
+      "description": "The bottom-tab and side-rail item. Stable Deep Plum Ink shell across light and dark modes.",
+      "html": "<a class=\"ds-tab ds-tab-active\" href=\"#\"><svg class=\"ds-tab-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 2 4 7v13h16V7Z\"/></svg><span>Today</span></a>",
+      "css": ".ds-tab { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 10px; color: #c4b5fd; font-family: 'Geist', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-tab:hover { color: #f5f3ff; background: rgb(124 58 237 / 0.15); } .ds-tab-active { color: #f5f3ff; background: rgb(124 58 237 / 0.25); } .ds-tab-icon { width: 20px; height: 20px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Living Room",
+    "overview": "CareSync is the family room at 11pm, not the hospital corridor at 7am. The system reads as domestic and lived-in: violet plum plays the role of evening lamplight; coral and amber are throw pillows on a sofa, not status pills on a dashboard; Fraunces headlines feel like the cover of a thoughtful magazine on the coffee table. Everything is set on a soft violet-tinted surface, never on stark white.\n\nIt is, however, still a tool. The Living Room is calm, but it is not a wellness app and not an EHR. The product has a job to do: log what happened, surface what's next, hand off to the next caregiver. So the system is editorial in feel and unhurried in pacing, but it is not decorative. Every visual choice subtracts cognitive load from someone whose parent is in the hospital. Personality earns its keep or it goes.\n\nIt explicitly rejects the four neighbor-failures named in PRODUCT.md: clinical/EHR coldness, sentimental wellness softness, generic-SaaS gradient hero clichés, and maximalist consumer-app loudness. If a screen could be mistaken for any of them, redo it.",
+    "keyCharacteristics": [
+      "Domestic, not corporate. Lamplight violet, never enterprise blue.",
+      "Editorial typography (Fraunces) reserved for hero moments; Geist carries the workhorse load.",
+      "Flat surfaces, lift only on state. No decorative shadows, no glassmorphism.",
+      "Tinted card headers (primary-subtle) carry hierarchy without elevation.",
+      "One thing per screen. The rest hides until needed."
+    ],
+    "rules": [
+      { "name": "The Lamplight Rule", "body": "Lamplight Violet is the brand voice. Use it for the single primary action on a screen, focus rings, and active states. Anything more dilutes it into corporate purple.", "section": "colors" },
+      { "name": "The No-Stark-White Rule", "body": "Never #fff. Every neutral tints toward Lamplight Violet. Page surface is #faf5ff; cards sit on the same surface and lift via tint, not contrast.", "section": "colors" },
+      { "name": "The Color-Plus-Text Rule", "body": "Mood, severity, and status are never communicated by color alone. Every colored badge or border is paired with an icon or text label.", "section": "colors" },
+      { "name": "The Editorial Reserve Rule", "body": "Fraunces appears on editorial surfaces only — BriefHero, Daily Brief, marketing pages. Do not refactor existing app UI to Fraunces. Adoption is incremental and deliberate.", "section": "typography" },
+      { "name": "The Italic-Emphasis Rule", "body": "Bare <em> keeps default browser styling. Only .headline-display em triggers the weight-300 violet italic emphasis. The pattern is scoped on purpose.", "section": "typography" },
+      { "name": "The Mono-Means-Data Rule", "body": "Geist Mono is reserved for eyebrow labels, timestamps, and machine-generated metadata. Do not use mono for body or interactive copy.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows respond to state — hover, focus, popover. Decorative drop shadows on landing-page heroes or feature cards are forbidden.", "section": "elevation" },
+      { "name": "The Tint-Over-Shadow Rule", "body": "When two adjacent surfaces need separation, change the background tint (surface → primary-subtle) before reaching for a shadow. Tinted card headers carry every panel in the app and use no shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Lamplight Violet on ≤15% of any screen. Its rarity is the point.",
+      "Do tint every neutral toward violet. Page surface is #faf5ff; cards sit on #faf5ff; muted rows shift to #f9fafb. Never #fff, never #000.",
+      "Do pair every mood/severity color with an icon or text label. Color alone is never the signal.",
+      "Do use the tinted CardHeader pattern (-mt-4 px-4 py-3 bg-primary-subtle border-b border-border) for every grouped panel. It is the signature.",
+      "Do reserve Fraunces for editorial surfaces (BriefHero, Daily Brief, marketing). Geist carries the rest.",
+      "Do set a single primary action per screen. Everything else is outline, ghost, or hidden until needed.",
+      "Do show a visible focus ring (Lamplight Violet 2px, 2px offset) on every interactive element.",
+      "Do confirm 40×40px touch targets on mobile, no horizontal scroll at 320px, body line length ≤75ch."
+    ],
+    "donts": [
+      "Don't use side-stripe borders (border-left greater than 1px as a colored accent on cards or list items). The journal mood border is the only sanctioned use, and it stays at 4px paired with a text mood badge.",
+      "Don't use gradient text (background-clip: text + gradient). Lamplight Violet solid carries every emphasis. Weight or size does the rest.",
+      "Don't use glassmorphism / decorative blur. Flat-By-Default Rule — depth is tint, not blur.",
+      "Don't ship the hero-metric template (big number, small label, supporting stats, gradient accent). The recipient is a person, not a chart.",
+      "Don't ship identical card grids (same-sized cards with icon + heading + text, repeated). Vary card size and content shape with the actual content.",
+      "Don't reach for a modal as the first thought. Inline disclosure, panel, drawer, or dedicated route comes first.",
+      "Don't look like Epic MyChart, Athenahealth, or any clinical/EHR tool. Color-by-status and dense data tables are the failure mode.",
+      "Don't look like a sentimental wellness app. No pastel gradients, no hand-lettered fonts, no butterfly-and-sunset imagery, no self-care emoji copy. Worst-fit register.",
+      "Don't look like generic SaaS. No Stripe-clone gradients, no AI-powered badges, no illustration-heavy landing pages.",
+      "Don't look like a maximalist consumer app. No bouncy emoji, no gamified streaks, no confetti. Confetti is never appropriate here.",
+      "Don't use em dashes in copy. Commas, colons, semicolons, periods, parentheses.",
+      "Don't decorate. Every element earns its keep or it goes."
+    ]
+  }
+}

@@ -234,6 +234,32 @@ body {
   }
 }
 
+/* ── Light-only surfaces ──────────────────────────────────────────────────
+   Marketing pages stay in the Living Room daylight palette regardless of
+   system preference. Re-declaring the light tokens on a descendant beats
+   the `:root` overrides below in cascade order. */
+.surface-light-only {
+  --color-primary:        #7c3aed;
+  --color-primary-light:  #a78bfa;
+  --color-primary-subtle: #ede9fe;
+  --color-secondary:        #d97706;
+  --color-secondary-light:  #f59e0b;
+  --color-secondary-subtle: #fef3c7;
+  --color-tertiary:         #e76f51;
+  --color-tertiary-light:   #f08e76;
+  --color-tertiary-subtle:  #fbe0d6;
+  --color-ink:     #1e0a3c;
+  --color-surface: #faf5ff;
+  --color-text-primary:   #1e0a3c;
+  --color-text-secondary: #4b5563;
+  --color-muted:          #6b7280;
+  --color-border: #ede9fe;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
+  --color-danger:  #c41a1a;
+  color-scheme: light;
+}
+
 /* ── Dark mode token overrides ────────────────────────────────────────── */
 
 /* System preference */

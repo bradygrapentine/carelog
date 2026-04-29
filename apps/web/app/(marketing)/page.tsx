@@ -9,24 +9,24 @@ import { Testimonials } from "../../components/marketing/Testimonials";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "Carelog — Family Caregiving Coordination",
+  title: "CareSync — Family Caregiving Coordination",
   description:
-    "Carelog helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+    "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
   alternates: {
     canonical: BASE_URL,
   },
   openGraph: {
-    title: "Carelog — Family Caregiving Coordination",
+    title: "CareSync — Family Caregiving Coordination",
     description:
-      "Carelog helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
     url: BASE_URL,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog — Family Caregiving Coordination",
+        alt: "CareSync — Family Caregiving Coordination",
       },
     ],
     type: "website",
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Carelog — Family Caregiving Coordination",
+    title: "CareSync — Family Caregiving Coordination",
     description:
-      "Carelog helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
+      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, share updates with the whole care team — all in one place.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Carelog",
+  name: "CareSync",
   url: BASE_URL,
   logo: `${BASE_URL}/og-image.png`,
   contactPoint: {
@@ -57,7 +57,7 @@ const organizationJsonLd = {
 const softwareApplicationJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Carelog",
+  name: "CareSync",
   applicationCategory: "HealthApplication",
   operatingSystem: "Web, iOS, Android",
   url: BASE_URL,

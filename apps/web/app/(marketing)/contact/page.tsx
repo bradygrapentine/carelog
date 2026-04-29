@@ -4,20 +4,20 @@ import { ContactForm } from "../../../components/marketing/ContactForm";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "Contact — Carelog",
-  description: "Get in touch with Carelog. We reply within 24 hours.",
+  title: "Contact — CareSync",
+  description: "Get in touch with CareSync. We reply within 24 hours.",
   alternates: { canonical: `${BASE_URL}/contact` },
   openGraph: {
-    title: "Contact — Carelog",
-    description: "Get in touch with Carelog. We reply within 24 hours.",
+    title: "Contact — CareSync",
+    description: "Get in touch with CareSync. We reply within 24 hours.",
     url: `${BASE_URL}/contact`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Contact Carelog",
+        alt: "Contact CareSync",
       },
     ],
     type: "website",
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact — Carelog",
-    description: "Get in touch with Carelog. We reply within 24 hours.",
+    title: "Contact — CareSync",
+    description: "Get in touch with CareSync. We reply within 24 hours.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };

@@ -128,7 +128,7 @@ export function CompareTable() {
                 scope="col"
                 className="px-6 py-4 text-left font-semibold text-white bg-[var(--color-primary)] w-1/4"
               >
-                Carelog
+                CareSync
               </th>
               <th
                 scope="col"
@@ -186,7 +186,7 @@ export function CompareTable() {
             <div className="divide-y divide-[var(--color-border)]">
               <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-primary-subtle)]/30">
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-                  Carelog
+                  CareSync
                 </span>
                 <SymbolBadge symbol={row.carelog.symbol} value={row.carelog.value} />
               </div>

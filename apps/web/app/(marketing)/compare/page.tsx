@@ -6,23 +6,23 @@ const BASE_URL = "https://carelog.app";
 
 export const metadata: Metadata = {
   title:
-    "Carelog vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
+    "CareSync vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
   description:
-    "Side-by-side comparison of Carelog, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
+    "Side-by-side comparison of CareSync, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
   alternates: { canonical: `${BASE_URL}/compare` },
   openGraph: {
     title:
-      "Carelog vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
+      "CareSync vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
     description:
-      "Side-by-side comparison of Carelog, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
+      "Side-by-side comparison of CareSync, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
     url: `${BASE_URL}/compare`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog vs CaringBridge vs Lotsa Helping Hands",
+        alt: "CareSync vs CaringBridge vs Lotsa Helping Hands",
       },
     ],
     type: "website",
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "Carelog vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
+      "CareSync vs CaringBridge vs Lotsa Helping Hands — Family Caregiving Compared",
     description:
-      "Side-by-side comparison of Carelog, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
+      "Side-by-side comparison of CareSync, CaringBridge, and Lotsa Helping Hands. Find the right tool for your family's caregiving situation.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };
@@ -56,9 +56,9 @@ const pickCards = [
     labelClass: "text-[var(--color-muted)]",
   },
   {
-    product: "Carelog",
+    product: "CareSync",
     description:
-      "Pick Carelog if you're managing the day-to-day across medications, shifts, journal, and a multi-role care team.",
+      "Pick CareSync if you're managing the day-to-day across medications, shifts, journal, and a multi-role care team.",
     colorClass:
       "bg-[var(--color-primary-subtle)] border-[var(--color-primary)]/30",
     labelClass: "text-[var(--color-primary)]",
@@ -75,7 +75,7 @@ export default function ComparePage() {
           Compare
         </p>
         <h1 className="text-4xl font-extrabold tracking-tight text-[var(--color-ink)]">
-          Carelog vs. CaringBridge vs. Lotsa Helping Hands
+          CareSync vs. CaringBridge vs. Lotsa Helping Hands
         </h1>
         <p className="mt-4 text-[var(--color-muted)]">
           Which one fits your family?

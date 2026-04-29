@@ -4,22 +4,22 @@ import { PricingCards } from "../../../components/marketing/PricingCards";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "Pricing — Carelog",
+  title: "Pricing — CareSync",
   description:
     "Simple pricing for families. $14/mo covers everyone on your care team.",
   alternates: { canonical: `${BASE_URL}/pricing` },
   openGraph: {
-    title: "Pricing — Carelog",
+    title: "Pricing — CareSync",
     description:
       "Simple pricing for families. $14/mo covers everyone on your care team.",
     url: `${BASE_URL}/pricing`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog Pricing",
+        alt: "CareSync Pricing",
       },
     ],
     type: "website",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pricing — Carelog",
+    title: "Pricing — CareSync",
     description:
       "Simple pricing for families. $14/mo covers everyone on your care team.",
     images: [`${BASE_URL}/og-image.png`],
