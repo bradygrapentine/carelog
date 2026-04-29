@@ -1,8 +1,10 @@
 import { OnboardingForm } from "./OnboardingForm";
+import { PostHogInit } from "../../components/PostHogInit";
 
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[var(--color-surface)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <PostHogInit />
       <div className="sm:mx-auto sm:w-full sm:max-w-lg">
         <h1 className="text-center text-2xl font-semibold text-foreground mb-2">
           Set up your care team

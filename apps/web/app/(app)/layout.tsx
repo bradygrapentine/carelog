@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabaseServer";
 import { AppShellClient } from "../../components/app/AppShellClient";
 import { AIAssistantProvider } from "@/components/ai/AIAssistantProvider";
+import { PostHogInit } from "@/components/PostHogInit";
 import { Toaster } from "sonner";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -24,9 +25,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <PostHogInit />
       <Toaster position="top-right" richColors />
       <AppShellClient userInitials={userInitials}>
-        <AIAssistantProvider orgId={orgId ?? ""}>{children}</AIAssistantProvider>
+        <AIAssistantProvider orgId={orgId ?? ""}>
+          {children}
+        </AIAssistantProvider>
       </AppShellClient>
     </>
   );

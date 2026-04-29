@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 import { TrpcProvider } from "../components/providers/TrpcProvider";
-import { PostHogProvider } from "../components/providers/PostHogProvider";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -50,9 +49,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <PostHogProvider>
-          <TrpcProvider>{children}</TrpcProvider>
-        </PostHogProvider>
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );
