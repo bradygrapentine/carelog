@@ -11,6 +11,12 @@ import { Printer, ChevronRight } from "lucide-react";
 import { BriefHero } from "@/components/dashboard/BriefHero";
 import { MedCard } from "@/components/dashboard/MedCard";
 import { MoodCard } from "@/components/dashboard/MoodCard";
+import {
+  DashboardViewToggle,
+  loadDashboardView,
+  type DashboardView,
+} from "@/components/dashboard/DashboardViewToggle";
+import { RecipientSummaryCard } from "@/components/dashboard/RecipientSummaryCard";
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -40,6 +46,13 @@ export function DashboardClient({ user }: Props) {
   const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(
     null,
   );
+  // View toggle state — hydrated from localStorage on mount (single is default)
+  const [dashboardView, setDashboardView] = useState<DashboardView>("single");
+
+  // Hydrate view preference from localStorage after mount (avoids SSR mismatch)
+  useEffect(() => {
+    setDashboardView(loadDashboardView());
+  }, []);
 
   // Default the chip selection to the first team once data loads.
   useEffect(() => {
@@ -200,20 +213,31 @@ export function DashboardClient({ user }: Props) {
     );
   }
 
-  // Derive recipient first name for heading (fall back to org name if no display name cached yet)
-  const focusedTeam = teams[0] ?? null;
+  // Derive focused team: use selectedRecipientId when set (handles multi-team
+  // switcher); fall back to first team for N=1 or before the chip has been clicked.
+  const focusedTeam =
+    teams.find((t) => t.recipientId === selectedRecipientId) ??
+    teams[0] ??
+    null;
   const recipientFullName = focusedTeam?.recipientName ?? null;
   const recipientFirstName = recipientFullName
     ? recipientFullName.split(" ")[0] ?? recipientFullName
     : null;
 
+  // Whether to show layout B (stacked) — only possible when N > 1
+  const isStackedView = teams.length > 1 && dashboardView === "stacked";
+
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
       <div className="max-w-5xl mx-auto py-12 px-4">
-        {/* Recipient-led heading (UX-039a) */}
+        {/* Heading row: recipient name (layout A) or "Your care recipients" (layout B) */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            {recipientFirstName ? (
+            {isStackedView ? (
+              <h1 className="text-2xl font-semibold text-[var(--color-ink)]">
+                Your care recipients
+              </h1>
+            ) : recipientFirstName ? (
               <h1 className="headline-display text-[clamp(2rem,4vw,2.5rem)]">
                 Caring for <em>{recipientFirstName}</em>
               </h1>
@@ -223,16 +247,25 @@ export function DashboardClient({ user }: Props) {
               </h1>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => router.push("/visit-summary")}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[40px] shrink-0"
-            aria-label="Generate visit summary"
-          >
-            <Printer className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Generate visit summary</span>
-            <span className="sm:hidden">Visit summary</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* View toggle — visible only when N > 1 */}
+            {teams.length > 1 && (
+              <DashboardViewToggle
+                view={dashboardView}
+                onChange={setDashboardView}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => router.push("/visit-summary")}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[40px]"
+              aria-label="Generate visit summary"
+            >
+              <Printer className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Generate visit summary</span>
+              <span className="sm:hidden">Visit summary</span>
+            </button>
+          </div>
         </div>
 
         {teams.length === 0 ? (
@@ -249,15 +282,45 @@ export function DashboardClient({ user }: Props) {
               </Link>
             </CardContent>
           </Card>
+        ) : isStackedView ? (
+          /*
+            Layout B (UX-039b): stacked-by-recipient view.
+            Each recipient gets a summary card with a brief excerpt and CTA.
+            Shown only when N > 1 AND the user has toggled to "stacked".
+          */
+          <>
+            <div className="space-y-4 mb-6">
+              {teams.map((team) => {
+                const firstName =
+                  team.recipientName?.split(" ")[0] ?? team.org.name;
+                return (
+                  <RecipientSummaryCard
+                    key={team.recipientId}
+                    recipientId={team.recipientId}
+                    orgId={team.org.id}
+                    firstName={firstName}
+                    fullName={team.recipientName}
+                  />
+                );
+              })}
+            </div>
+            <Link
+              href="/onboarding"
+              className="text-sm text-muted-foreground hover:text-foreground/80 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            >
+              Add another care team
+            </Link>
+          </>
         ) : (
           /*
-            Layout A (UX-039a): BriefHero is the first content block below the
-            recipient heading. Team selector becomes secondary chrome below.
-            Multi-team: compact chip list below BriefHero. Single-team: hidden.
+            Layout A (UX-039a + UX-039b): single-focused view.
+            BriefHero + MedCard + MoodCard wired to the focused (selected) team.
+            Multi-team: chip strip below for switching — clicking a chip now
+            rewires BriefHero/MedCard/MoodCard to the selected recipient (UX-039b).
             ReferralCard moved to Settings (UX-039a).
           */
           <>
-            {/* BriefHero promoted to top — scoped to focused (first) team */}
+            {/* BriefHero + side cards — wired to focusedTeam (selectedRecipientId-driven) */}
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
               <BriefHero
                 recipientId={focusedTeam?.recipientId}
@@ -275,21 +338,31 @@ export function DashboardClient({ user }: Props) {
               </div>
             </div>
 
-            {/* Secondary chrome: team selector — hidden when N=1 */}
+            {/* Secondary chrome: recipient switcher chips — hidden when N=1 */}
             {teams.length >= 2 && (
               <div className="mb-6">
                 <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                  Your care teams
+                  Your care recipients
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {teams.map((team) => {
                     const isSelected = team.recipientId === selectedRecipientId;
+                    const firstName =
+                      team.recipientName?.split(" ")[0] ?? team.org.name;
+                    const initials = (team.recipientName ?? team.org.name)
+                      .split(" ")
+                      .map((w) => w[0] ?? "")
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase();
                     return (
                       <button
                         key={team.org.id}
                         type="button"
                         aria-pressed={isSelected}
-                        onClick={() => setSelectedRecipientId(team.recipientId)}
+                        onClick={() =>
+                          setSelectedRecipientId(team.recipientId)
+                        }
                         className={
                           "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
                           (isSelected
@@ -301,9 +374,9 @@ export function DashboardClient({ user }: Props) {
                           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-tertiary-subtle)] text-[10px] font-semibold text-[var(--color-tertiary)]"
                           aria-hidden="true"
                         >
-                          {team.org.name.slice(0, 2).toUpperCase()}
+                          {initials}
                         </span>
-                        {team.org.name}
+                        {firstName}
                       </button>
                     );
                   })}
