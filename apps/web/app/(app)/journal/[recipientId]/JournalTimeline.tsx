@@ -18,6 +18,11 @@ import {
   moodChipClass,
   type Mood,
 } from "../../../../lib/mood";
+import {
+  formatTimeOfDay,
+  formatMonthDayLocale,
+  formatWeekdayMonthDay,
+} from "../../../../lib/format";
 
 const REACTIONS = [
   { key: "heart", title: "Heart", emoji: "❤️" },
@@ -36,18 +41,11 @@ function formatTime(iso: string) {
   );
 
   if (diffDays === 0) {
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return formatTimeOfDay(d);
   } else if (diffDays === 1) {
-    return (
-      "Yesterday " +
-      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    return "Yesterday " + formatTimeOfDay(d);
   } else {
-    return (
-      d.toLocaleDateString([], { month: "short", day: "numeric" }) +
-      " " +
-      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    return formatMonthDayLocale(d) + " " + formatTimeOfDay(d);
   }
 }
 
@@ -293,11 +291,7 @@ function formatDateHeader(iso: string) {
 
   if (d.toDateString() === todayStr) return "Today";
   if (d.toDateString() === yest.toDateString()) return "Yesterday";
-  return d.toLocaleDateString([], {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  return formatWeekdayMonthDay(d);
 }
 
 function dateKey(iso: string) {

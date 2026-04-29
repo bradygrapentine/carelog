@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { EventType } from "@carelog/types";
 import { pdfTokens } from "@/lib/pdfTokens";
+import { formatShortDate } from "@/lib/format";
 
 // NOTE: @react-pdf/renderer does NOT support CSS variables — values come from
 // lib/pdfTokens.ts, which mirrors the globals.css design tokens.
@@ -92,14 +93,6 @@ type ExportData = {
   shifts: ShiftRow[];
 };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function ExportDocument({ data }: { data: ExportData }) {
   return (
     <Document>
@@ -108,9 +101,9 @@ export function ExportDocument({ data }: { data: ExportData }) {
         <Text style={s.title}>{"Care History — " + data.recipient_name}</Text>
         <Text style={s.subtitle}>
           {"Exported " +
-            formatDate(data.exported_at) +
+            formatShortDate(data.exported_at) +
             (data.dob ? " · DOB: " + data.dob : "") +
-            (data.since ? " · Since: " + formatDate(data.since) : "")}
+            (data.since ? " · Since: " + formatShortDate(data.since) : "")}
         </Text>
 
         {/* Medications */}
@@ -163,7 +156,7 @@ export function ExportDocument({ data }: { data: ExportData }) {
             <View key={i} style={s.item}>
               <View style={s.row}>
                 <Text style={s.label}>Date</Text>
-                <Text style={s.value}>{formatDate(r.recorded_at)}</Text>
+                <Text style={s.value}>{formatShortDate(r.recorded_at)}</Text>
               </View>
               {r.pain_level !== null && (
                 <View style={s.row}>
@@ -211,12 +204,12 @@ export function ExportDocument({ data }: { data: ExportData }) {
             <View key={i} style={s.item}>
               <View style={s.row}>
                 <Text style={s.label}>Start</Text>
-                <Text style={s.value}>{formatDate(sh.start_at)}</Text>
+                <Text style={s.value}>{formatShortDate(sh.start_at)}</Text>
               </View>
               {sh.end_at && (
                 <View style={s.row}>
                   <Text style={s.label}>End</Text>
-                  <Text style={s.value}>{formatDate(sh.end_at)}</Text>
+                  <Text style={s.value}>{formatShortDate(sh.end_at)}</Text>
                 </View>
               )}
               <View style={s.row}>
@@ -247,7 +240,7 @@ export function ExportDocument({ data }: { data: ExportData }) {
             .map((e, i) => (
               <View key={i} style={s.item}>
                 <View style={s.row}>
-                  <Text style={s.label}>{formatDate(e.occurred_at)}</Text>
+                  <Text style={s.label}>{formatShortDate(e.occurred_at)}</Text>
                   <Text style={s.value}>{String(e.payload?.text ?? "")}</Text>
                 </View>
                 {e.payload?.mood ? (

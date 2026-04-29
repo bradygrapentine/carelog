@@ -3,6 +3,7 @@
 import { Mail, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BriefHeadline } from "@/components/brief/BriefHeadline";
+import { formatLongDate, formatTimeShort } from "@/lib/format";
 
 type Medication = {
   drug_name: string;
@@ -33,24 +34,9 @@ export type Brief = {
   created_at: string;
 };
 
-function formatLongDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatShortTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export function BriefEditorial({ brief }: { brief: Brief }) {
   const { content } = brief;
-  const dateline = `Today's brief · ${formatLongDate(brief.created_at)} ${formatShortTime(brief.created_at)}`;
+  const dateline = `Today's brief · ${formatLongDate(brief.created_at)} ${formatTimeShort(brief.created_at)}`;
 
   // Body paragraphs are sourced from recent_entries — each entry becomes one
   // paragraph. The viewer was already a snapshot, so we surface the human

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
+import { formatLongDate } from "@/lib/format";
 
 type RequestData = {
   id: string;
@@ -29,14 +30,6 @@ const TYPE_LABELS: Record<string, string> = {
   visit: "Visit",
   other: "Other",
 };
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default function OuterCirclePage({
   params,
@@ -223,7 +216,7 @@ export default function OuterCirclePage({
                   {data.slots_total === 1 ? "slot" : "slots"} remaining
                 </span>
                 {data.needed_by && (
-                  <span>Needed by {formatDate(data.needed_by)}</span>
+                  <span>Needed by {formatLongDate(data.needed_by)}</span>
                 )}
               </div>
             </CardContent>

@@ -5,6 +5,7 @@ import { authenticatedFetch } from "../../../../lib/authenticatedFetch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatLocaleDate } from "@/lib/format";
 
 type ParsedPayload = {
   drug_name: string;
@@ -184,7 +185,7 @@ export function OcrReviewPanel({ orgId, recipientId }: Props) {
               className="mb-4 pb-4 border-b border-border last:border-0"
             >
               <p className="text-xs text-muted-foreground mb-2">
-                Scanned {new Date(job.created_at).toLocaleDateString()}
+                Scanned {formatLocaleDate(job.created_at)}
               </p>
 
               <div className="space-y-2">

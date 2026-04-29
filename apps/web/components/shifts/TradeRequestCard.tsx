@@ -2,6 +2,7 @@
 
 import { CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatLocaleDate } from "@/lib/format";
 
 type TradeStatus = "open" | "accepted" | "declined" | "expired" | "cancelled";
 
@@ -104,7 +105,7 @@ export function TradeRequestCard({
           dateTime={trade.created_at}
           className="text-xs text-[var(--color-muted)] dark:text-gray-400"
         >
-          {new Date(trade.created_at).toLocaleDateString()}
+          {formatLocaleDate(trade.created_at)}
         </time>
       </div>
 

@@ -1,17 +1,12 @@
 import type { CalendarEvent } from "./ShiftCalendar";
+import { formatTimeShortLocale } from "@/lib/format";
 
 type Props = { event: CalendarEvent };
 
 export function ShiftEventCard({ event }: Props) {
   const { title, resource } = event;
-  const start = new Date(resource.start_at).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const end = new Date(resource.end_at).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const start = formatTimeShortLocale(resource.start_at);
+  const end = formatTimeShortLocale(resource.end_at);
   return (
     <div className="leading-tight">
       <div className="font-semibold truncate">{title}</div>

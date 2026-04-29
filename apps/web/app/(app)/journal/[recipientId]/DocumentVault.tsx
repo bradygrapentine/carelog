@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FolderOpen } from "lucide-react";
 import { MedicationChipBar } from "@/components/medications/MedicationChipBar";
+import { formatLocaleDate } from "@/lib/format";
 
 type Props = {
   orgId: string;
@@ -250,7 +251,7 @@ export function DocumentVault({
                 DOC_TYPE_COLORS[doc.doc_type] ??
                 "bg-[var(--color-surface)] text-foreground/80";
               const sizeLabel = formatBytes(doc.file_size);
-              const dateLabel = new Date(doc.created_at).toLocaleDateString();
+              const dateLabel = formatLocaleDate(doc.created_at);
               const metaLabel = sizeLabel
                 ? dateLabel + " · " + sizeLabel
                 : dateLabel;

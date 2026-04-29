@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { trpc } from "../../../lib/trpc";
 import { MessageComposer } from "./MessageComposer";
+import { formatLocaleDate } from "@/lib/format";
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -13,7 +14,7 @@ function relativeTime(iso: string): string {
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  return new Date(iso).toLocaleDateString();
+  return formatLocaleDate(iso);
 }
 
 type MessageRow = {
