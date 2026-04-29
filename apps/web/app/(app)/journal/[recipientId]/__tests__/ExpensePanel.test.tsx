@@ -79,6 +79,17 @@ describe("ExpensePanel — empty state", () => {
     renderPanel();
     expect(screen.getByText(/no expenses logged yet/i)).toBeInTheDocument();
   });
+
+  it("does not crash when tRPC returns data: null (Sentry CARELOG-WEB-5)", () => {
+    mockListUseQuery.mockReturnValue({ data: null, isLoading: false });
+    expect(() => renderPanel()).not.toThrow();
+    expect(screen.getByText(/no expenses logged yet/i)).toBeInTheDocument();
+  });
+
+  it("does not crash when tRPC returns data: undefined", () => {
+    mockListUseQuery.mockReturnValue({ data: undefined, isLoading: true });
+    expect(() => renderPanel()).not.toThrow();
+  });
 });
 
 describe("ExpensePanel — with data", () => {

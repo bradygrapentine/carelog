@@ -67,10 +67,11 @@ export function ExpensePanel({ orgId, recipientId, currentUserRole }: Props) {
 
   const utils = trpc.useUtils();
 
-  const { data: expenses = [], isLoading } = trpc.expenses.list.useQuery({
+  const { data, isLoading } = trpc.expenses.list.useQuery({
     org_id: orgId,
     recipient_id: recipientId,
   });
+  const expenses = Array.isArray(data) ? data : [];
 
   const createMutation = trpc.expenses.create.useMutation({
     onSuccess: () => {
