@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "../../../lib/supabase";
@@ -126,6 +126,12 @@ export function DashboardClient({ user }: Props) {
       setSelectedRecipientId(teams[0]!.recipientId);
     }
   }, [teams, selectedRecipientId]);
+
+  // Memoize the selected team lookup — avoids re-scanning teams[] on every render.
+  const selectedTeam = useMemo(
+    () => teams.find((t) => t.recipientId === selectedRecipientId) ?? teams[0] ?? null,
+    [teams, selectedRecipientId],
+  );
 
   useEffect(() => {
     const supabase = createClient();
@@ -368,11 +374,9 @@ export function DashboardClient({ user }: Props) {
                 })}
               </ul>
 
-              {selectedRecipientId &&
+              {selectedRecipientId && selectedTeam &&
                 (() => {
-                  const team =
-                    teams.find((t) => t.recipientId === selectedRecipientId) ??
-                    teams[0]!;
+                  const team = selectedTeam;
                   return (
                     <Card className="shadow-sm gap-2">
                       <CardHeader className="-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]">
