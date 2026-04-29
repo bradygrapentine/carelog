@@ -125,6 +125,14 @@ Inspired by the Anthropic threat-intel cookbook (tool-use loop + multi-source fa
 | TD-85 | 🟢 Ready | **Tool-use PR review agent (`scripts/agents/pr-review-agent.ts`)** | Sonnet-4-6 agent loop with 5 tools: `get_pr_diff`, `get_rls_policies`, `get_pgtap_coverage`, `find_phi_sinks`, `get_related_backlog`. Output matches `/review` Critical/Medium/Low shape. Runs alongside `/review` for comparison; does NOT replace it in v1. New skill `/pr-review-agent <pr#>`. ~3 hr. |
 | TD-86 | 🟢 Ready | **Sentry issue triage agent (`scripts/agents/sentry-triage-agent.ts`)** | Sonnet-4-6 agent loop. Tools: `get_sentry_issue` (REST via `SENTRY_AUTH_TOKEN`), `get_recent_events`, `git_blame`, `find_related_backlog`, `find_related_pr`. Output: structured JSON to stdout + draft `BACKLOG.md` row. No write-back to Sentry or backlog in v1 — human commits the draft row. New skill `/sentry-triage <issue-url>`. ~2.5 hr. |
 
+### Lighthouse a11y CI gating gap (TD-87) — opened 2026-04-29
+
+Discovered during `/impeccable critique` post-merge verification of PR #269. The CI Lighthouse a11y workflow ran on the merged main but reported "success" without auditing anything — Vercel preview deployments are auth-gated (HTTP 401), and `scripts/lighthouse-a11y.mjs:27-33` treats 401/403 as a non-blocking skip. Net effect: the a11y score gate has been silently inactive on every preview-driven CI run. Local Lighthouse on the actual marketing routes still passed (96 / 100 / 94 on /, /about, /pricing) so no regression slipped through this time, but the gate is not protecting us.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-87 | 🟢 Ready | **Restore Lighthouse a11y gating in CI** | The 401/403 skip path was added intentionally to handle Vercel preview auth, but it left no working enforcement path. Three possible fixes: (a) configure Vercel project to disable password protection on preview deployments for marketing routes (simplest, but exposes pre-merge marketing builds); (b) run Lighthouse against a Playwright-served local build inside the CI job (slower but airtight); (c) skip on auth and run a separate post-deploy job against production after the merge lands. Pick one, implement, and verify by intentionally introducing a low-contrast element on a feature branch and confirming the workflow now fails. ~2 hr. |
+
 ### Test gap stories (TD-24..28) — opened 2026-04-25 from coverage analysis
 
 Snapshot at filing time: web 66.74% / mobile 78.53% / RLS 211 tests across 26 files. These five close the highest-leverage PHI/auth/payment gaps. ~12 hr total. **Target after this batch ships:** web ≥78%, mobile ≥85%, RLS adds 2 dedicated PHI-table files.
