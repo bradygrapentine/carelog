@@ -51,7 +51,7 @@ export function PricingCards() {
           }
         >
           Annual
-          <span className="ml-1.5 rounded-full bg-[var(--color-tertiary-subtle)] px-2 py-0.5 text-xs font-bold text-[var(--color-tertiary)]">
+          <span className="ml-1.5 rounded-full bg-[var(--color-primary-subtle)] px-2 py-0.5 text-xs font-bold text-[var(--color-primary)]">
             Save 29%
           </span>
         </button>
@@ -61,7 +61,7 @@ export function PricingCards() {
         {/* Free tier */}
         <div className="flex flex-1 flex-col rounded-2xl border border-[var(--color-muted)] bg-card p-8">
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-[var(--color-ink)]">Free</h3>
+            <h2 className="text-lg font-bold text-[var(--color-ink)]">Free</h2>
             <div className="mt-2 flex items-end gap-1">
               <span className="text-4xl font-extrabold text-[var(--color-muted)]">
                 $0
@@ -104,9 +104,9 @@ export function PricingCards() {
             Most popular
           </span>
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-[var(--color-ink)]">
+            <h2 className="text-lg font-bold text-[var(--color-ink)]">
               Family Plan
-            </h3>
+            </h2>
             <div className="mt-2 flex items-end gap-1">
               <span className="text-4xl font-extrabold text-[var(--color-primary)]">
                 {interval === "month" ? "$14" : "$120"}
