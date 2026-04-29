@@ -50,7 +50,7 @@
           },
           {
             "type": "command",
-            "command": "cmd=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\"); if echo \"$cmd\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit([[:space:]]|$)'; then web_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(ts|tsx|js|jsx|mjs|cjs)$' | grep '^apps/web/' | wc -l | tr -d ' '); if [ \"$web_files\" -gt 0 ]; then MAIN_ROOT=$(python3 -c \"import subprocess; r=subprocess.run(['git','rev-parse','--absolute-git-dir'],capture_output=True,text=True); s=r.stdout.strip(); print(s.split('/.git')[0] if '/.git' in s else s)\"); pnpm -C \"$MAIN_ROOT/apps/web\" exec vitest run; ec=$?; else ec=0; fi; if [ $ec -ne 0 ]; then echo '[blocked] Pre-commit test failures - fix tests before committing' >&2; exit 2; fi; fi; exit 0"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-vitest.sh"
           },
           {
             "type": "command",
