@@ -73,7 +73,7 @@ export function CompareStrip() {
   return (
     <section
       aria-labelledby="compare-strip-heading"
-      className="mx-auto max-w-6xl px-6 py-16"
+      className="mx-auto max-w-6xl px-6 py-20"
     >
       {/* Eyebrow + heading */}
       <div className="mb-10">

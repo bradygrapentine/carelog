@@ -29,12 +29,10 @@ const quotes = [
 
 export function Testimonials() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-20 md:py-28">
+    <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
       <div className="mx-auto mb-14 max-w-2xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
-          From the families who show up
-        </p>
-        <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--color-ink)] md:text-4xl">
+        <p className="eyebrow-mono">From the families who show up</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-ink)]">
           Calmer days, fewer dropped threads
         </h2>
       </div>
@@ -43,7 +41,7 @@ export function Testimonials() {
         {quotes.map((q) => (
           <figure
             key={q.name}
-            className="flex h-full flex-col justify-between rounded-3xl border border-[var(--color-border)] bg-card p-6 shadow-sm"
+            className="flex h-full flex-col justify-between rounded-2xl bg-card p-6 shadow-sm"
           >
             <blockquote className="text-sm leading-relaxed text-[var(--color-text-primary)]">
               <span

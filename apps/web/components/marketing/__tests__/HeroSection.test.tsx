@@ -18,7 +18,7 @@ describe("HeroSection", () => {
 
   it("renders primary CTA with correct href", () => {
     render(<HeroSection />);
-    const cta = screen.getByRole("link", { name: /start free trial/i });
+    const cta = screen.getByRole("link", { name: /start your family.s log/i });
     expect(cta).toHaveAttribute("href", "/signin");
   });
 

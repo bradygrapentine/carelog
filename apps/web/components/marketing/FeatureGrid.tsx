@@ -142,7 +142,7 @@ function SpotlightGroup({
         {features.map(({ Icon, title, description }) => (
           <li
             key={title}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-7"
+            className="rounded-2xl bg-[var(--color-surface)] p-7 shadow-sm"
           >
             <span
               className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg}`}
@@ -163,7 +163,7 @@ function SpotlightGroup({
   );
 }
 
-function TileGroup({
+function ListGroup({
   eyebrow,
   features,
   tone,
@@ -176,27 +176,26 @@ function TileGroup({
   return (
     <section className="mt-16">
       <p className="eyebrow-mono mb-6">{eyebrow}</p>
-      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" role="list">
+      <dl className="grid gap-x-12 gap-y-7 md:grid-cols-2">
         {features.map(({ Icon, title, description }) => (
-          <li
-            key={title}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
-          >
+          <div key={title} className="flex gap-4">
             <span
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg}`}
+              className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${bg}`}
               aria-hidden="true"
             >
-              <Icon className={`h-5 w-5 ${fg}`} strokeWidth={1.75} />
+              <Icon className={`h-[18px] w-[18px] ${fg}`} strokeWidth={1.75} />
             </span>
-            <h3 className="mt-4 text-base font-semibold text-[var(--color-ink)]">
-              {title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-              {description}
-            </p>
-          </li>
+            <div>
+              <dt className="text-base font-semibold text-[var(--color-ink)]">
+                {title}
+              </dt>
+              <dd className="mt-1 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                {description}
+              </dd>
+            </div>
+          </div>
         ))}
-      </ul>
+      </dl>
     </section>
   );
 }
@@ -206,10 +205,10 @@ export function FeatureGrid() {
     <section id="features" className="bg-card py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-12 max-w-2xl">
-          <h2 className="text-3xl font-bold tracking-tight text-[var(--color-ink)]">
+          <h2 className="text-3xl font-semibold tracking-tight text-[var(--color-ink)]">
             The things a group text can&apos;t do
           </h2>
-          <p className="mt-3 text-[var(--color-muted)]">
+          <p className="mt-3 text-[var(--color-text-secondary)]">
             Built for families who coordinate care across multiple people.
           </p>
         </div>
@@ -221,13 +220,13 @@ export function FeatureGrid() {
           tone="primary"
         />
 
-        <TileGroup
+        <ListGroup
           eyebrow="Stay in the loop"
           features={PASSIVE}
           tone="secondary"
         />
 
-        <TileGroup
+        <ListGroup
           eyebrow="When it's more than the family"
           features={EXTENDED}
           tone="tertiary"

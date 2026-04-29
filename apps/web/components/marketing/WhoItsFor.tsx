@@ -25,10 +25,8 @@ export function WhoItsFor() {
   return (
     <section id="who-its-for" className="mx-auto max-w-7xl px-6 py-20 md:py-28">
       <div className="mx-auto mb-14 max-w-2xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
-          Who CareSync is for
-        </p>
-        <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--color-ink)] md:text-4xl">
+        <p className="eyebrow-mono">Who CareSync is for</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-ink)]">
           Built for the people holding it all together
         </h2>
         <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
@@ -43,7 +41,7 @@ export function WhoItsFor() {
         {personas.map((p) => (
           <article
             key={p.title}
-            className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+            className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm transition-shadow duration-200 hover:shadow-md"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden">
               <Image
