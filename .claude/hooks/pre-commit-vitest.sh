@@ -40,9 +40,10 @@ print(s.split('/.git')[0] if '/.git' in s else s)
 
 cd "$MAIN_ROOT/apps/web" || exit 0
 
-# Word-split $staged on newlines/spaces (intentional — vitest --related accepts multiple paths).
+# Word-split $staged on newlines/spaces (intentional — vitest related accepts multiple paths).
+# Vitest 4.x moved --related to a `related` subcommand and dropped the flag form.
 # shellcheck disable=SC2086
-output=$(npx vitest run --reporter=dot --bail=1 --related $staged 2>&1)
+output=$(npx vitest related $staged --run --reporter=dot --bail=1 2>&1)
 ec=$?
 
 echo "$output" | tail -5
