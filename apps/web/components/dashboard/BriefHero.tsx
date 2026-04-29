@@ -24,9 +24,9 @@ type BriefContent = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const PILL_TONE_CLASS: Record<Tone, string> = {
-  primary: "bg-[var(--color-primary-subtle)] text-[var(--color-ink)]",
-  success: "bg-[var(--color-success-subtle)] text-[var(--color-ink)]",
-  warning: "bg-[var(--color-warning-subtle)] text-[var(--color-ink)]",
+  primary: "bg-[var(--color-primary-subtle)] text-[var(--color-text-secondary)]",
+  success: "bg-[var(--color-success-subtle)] text-[var(--color-text-secondary)]",
+  warning: "bg-[var(--color-warning-subtle)] text-[var(--color-text-secondary)]",
 };
 
 /** Format a UTC ISO timestamp as "7:02a" / "10:45p" in local time. */
@@ -55,23 +55,22 @@ function derivePills(content: BriefContent): StatusPill[] {
   if (medCount > 0) {
     pills.push({
       id: "meds",
-      label: `${medCount} med${medCount === 1 ? "" : "s"} on record`,
+      label: `${medCount} ${medCount === 1 ? "medication" : "medications"} tracked`,
       tone: "success",
     });
   }
 
   const moodEntry = content.recent_entries?.find((e) => e.mood);
   if (moodEntry?.mood) {
-    const label =
-      moodEntry.mood.charAt(0).toUpperCase() + moodEntry.mood.slice(1);
-    pills.push({ id: "mood", label: `Mood: ${label}`, tone: "primary" });
+    const label = moodEntry.mood.toLowerCase();
+    pills.push({ id: "mood", label: `feeling ${label}`, tone: "primary" });
   }
 
   const entryCount = content.recent_entries?.length ?? 0;
   if (entryCount > 0) {
     pills.push({
       id: "entries",
-      label: `${entryCount} recent journal entr${entryCount === 1 ? "y" : "ies"}`,
+      label: `${entryCount} ${entryCount === 1 ? "note" : "notes"} logged`,
       tone: "warning",
     });
   }
@@ -103,21 +102,18 @@ function BriefShell({
       <div
         data-testid="brief-blob"
         aria-hidden="true"
-        className="pointer-events-none absolute -top-20 -right-16 h-64 w-64 rounded-full bg-[var(--color-primary-subtle)] opacity-70 blur-3xl"
+        className="pointer-events-none absolute -top-20 -right-16 h-64 w-64 rounded-full bg-[var(--color-primary-subtle)] opacity-50"
       />
       <div className="relative space-y-5">
         <span
           data-testid="brief-eyebrow"
-          className="eyebrow-mono inline-flex rounded-full border border-[var(--color-border)] bg-white/80 px-2.5 py-1"
+          className="eyebrow-mono inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1"
         >
           {eyebrow}
         </span>
         <div
           data-testid="brief-headline"
-          className={
-            headlineClass ??
-            "headline-display text-2xl leading-[1.2] text-[var(--color-ink)] sm:text-[28px]"
-          }
+          className={headlineClass ?? "headline-display text-[var(--color-ink)]"}
         >
           {headline}
         </div>
@@ -163,7 +159,8 @@ function BriefHeroEmpty() {
       eyebrow={"Today’s brief"}
       headline={
         <>
-          No brief yet &mdash; generate one from the <em>journal page</em>.
+          Nothing logged yet. Add a note from the <em>journal</em> to get
+          started.
         </>
       }
     />
@@ -206,8 +203,8 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
     return (
       <BriefShell
         eyebrow={eyebrowLabel}
-        headline="Could not load brief — please refresh the page."
-        headlineClass="headline-display text-2xl leading-[1.2] text-[var(--color-danger)] sm:text-[28px]"
+        headline="Could not load the brief. Try refreshing."
+        headlineClass="headline-display text-[var(--color-muted)]"
       />
     );
   }

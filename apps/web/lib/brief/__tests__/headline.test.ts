@@ -26,8 +26,8 @@ describe("classifyBrief", () => {
       entries: [],
     });
     expect(state).toBe("empty");
-    expect(joinHeadline(headline)).toMatch(/log your first note/i);
-    expect(emphasized(headline)).toEqual(["Welcome"]);
+    expect(joinHeadline(headline)).toMatch(/no notes for/i);
+    expect(emphasized(headline)).toEqual(["Eleanor"]);
   });
 
   it("classifies any crisis-mood entry as crisis (singular)", () => {
@@ -37,7 +37,7 @@ describe("classifyBrief", () => {
     });
     expect(state).toBe("crisis");
     expect(joinHeadline(headline)).toContain("Eleanor");
-    expect(emphasized(headline)).toEqual(["hard", "flagged"]);
+    expect(emphasized(headline)).toEqual(["crisis moment"]);
   });
 
   it("classifies multiple crises as crisis (plural)", () => {
@@ -50,7 +50,7 @@ describe("classifyBrief", () => {
     });
     expect(state).toBe("crisis");
     expect(joinHeadline(headline)).toContain("2");
-    expect(emphasized(headline)).toEqual(["hard", "flagged"]);
+    expect(emphasized(headline)).toEqual(["hard stretch"]);
   });
 
   it("classifies flagged-but-not-crisis entries as flagged", () => {
@@ -94,7 +94,7 @@ describe("classifyBrief", () => {
       entries: [entry({ occurred_at: "2026-04-29T03:00:00Z", mood: "okay" })],
     });
     expect(state).toBe("single_entry");
-    expect(emphasized(headline)).toEqual(["last brief"]);
+    expect(emphasized(headline)).toEqual(["Quiet"]);
   });
 
   it("classifies a single difficult entry as single_entry with difficult emphasis", () => {

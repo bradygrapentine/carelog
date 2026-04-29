@@ -80,8 +80,9 @@ export function classifyBrief(input: HeadlineInput): ClassifiedHeadline {
     return {
       state: "empty",
       headline: [
-        { text: "Welcome", em: true },
-        { text: ". Log your first note when you're ready." },
+        { text: "No notes for " },
+        { text: name, em: true },
+        { text: " yet. Start with whatever happened today." },
       ],
     };
   }
@@ -93,11 +94,9 @@ export function classifyBrief(input: HeadlineInput): ClassifiedHeadline {
       return {
         state: "crisis",
         headline: [
-          { text: "A " },
-          { text: "hard", em: true },
-          { text: ` night for ${name}. One note ` },
-          { text: "flagged", em: true },
-          { text: "." },
+          { text: `${name} had a ` },
+          { text: "crisis moment", em: true },
+          { text: ". One note flagged for the team." },
         ],
       };
     }
@@ -105,10 +104,8 @@ export function classifyBrief(input: HeadlineInput): ClassifiedHeadline {
       state: "crisis",
       headline: [
         { text: `${name} had a ` },
-        { text: "hard", em: true },
-        { text: ` stretch. ${crisisCount} ` },
-        { text: "flagged", em: true },
-        { text: " notes." },
+        { text: "hard stretch", em: true },
+        { text: `. ${crisisCount} flagged notes.` },
       ],
     };
   }
@@ -150,18 +147,18 @@ export function classifyBrief(input: HeadlineInput): ClassifiedHeadline {
       return {
         state: "single_entry",
         headline: [
-          { text: "One " },
+          { text: `${name} had a ` },
           { text: "difficult", em: true },
-          { text: ` day for ${name} since the last brief.` },
+          { text: " day. One note on file." },
         ],
       };
     }
     return {
       state: "single_entry",
       headline: [
-        { text: `One note from ${name} since the ` },
-        { text: "last brief", em: true },
-        { text: "." },
+        { text: `One note logged for ${name}. ` },
+        { text: "Quiet", em: true },
+        { text: " since." },
       ],
     };
   }
