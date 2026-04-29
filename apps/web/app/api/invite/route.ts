@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       .insert({
         membership_id: membership.id,
         email: normalizedEmail,
+        invited_by_user_id: user.id,
       })
       .select("token")
       .single();

@@ -19,6 +19,7 @@ export default function InvitePage({ params }: Props) {
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
   const [role, setRole] = useState("");
+  const [inviterName, setInviterName] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/invite/" + token)
@@ -31,6 +32,7 @@ export default function InvitePage({ params }: Props) {
           setEmail(data.email);
           setOrgName(data.orgName);
           setRole(data.role);
+          setInviterName(data.inviterName ?? null);
           setStatus("ready");
         }
       })
@@ -156,8 +158,19 @@ export default function InvitePage({ params }: Props) {
     <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center px-4">
       <div className="bg-card border border-border rounded-xl p-8 shadow-sm max-w-md w-full">
         <h1 className="text-xl font-semibold text-foreground mb-2">
-          You have been invited to join a care team
+          {inviterName
+            ? inviterName + " invited you to help coordinate care."
+            : "You have been invited to join a care team."}
         </h1>
+        {inviterName && (
+          <p className="text-sm text-muted-foreground mb-4">
+            They added you to <span className="font-medium">{orgName}</span> as{" "}
+            <span className="font-medium">
+              {(roleLabels[role] ?? role).toLowerCase()}
+            </span>
+            .
+          </p>
+        )}
         <div className="bg-[var(--color-surface)] rounded-lg p-4 my-6 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Team</span>
