@@ -14,7 +14,7 @@ export function ProductPreview() {
             A shared journal your family will actually use
           </h2>
           <p className="mt-3 text-[var(--color-muted)]">
-            Small, warm moments, logged once, visible to everyone who cares.
+            Small, warm moments. Logged once, visible to everyone who cares.
           </p>
         </div>
 
