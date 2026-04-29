@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { MedicationChipBar } from "@/components/medications/MedicationChipBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen } from "lucide-react";
 import { CommentThread } from "@/components/care-events/CommentThread";
+import { useAbortable } from "../../../../hooks/useAbortable";
 import {
   moodDotClass,
   moodBorderClass,
@@ -52,16 +54,23 @@ function formatTime(iso: string) {
 function useReactions(eventId: string, userId: string | null) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [myReaction, setMyReaction] = useState<string | null>(null);
+  const { signal, reset } = useAbortable();
 
   useEffect(() => {
     if (!userId) return;
+    reset();
     const url = "/api/journal/" + eventId + "/reactions?userId=" + userId;
-    fetch(url)
+    fetch(url, { signal })
       .then((r) => r.json())
       .then((data) => {
         if (data.counts) setCounts(data.counts);
         setMyReaction(data.myReaction ?? null);
+      })
+      .catch((err: unknown) => {
+        // Ignore AbortError — component unmounted or eventId changed
+        if (err instanceof Error && err.name === "AbortError") return;
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, userId]);
 
   async function toggle(reaction: ReactionKey) {
@@ -86,6 +95,8 @@ function useReactions(eventId: string, userId: string | null) {
       setMyReaction(reaction);
     }
 
+    const retryFn = () => toggle(reaction);
+
     try {
       const url = "/api/journal/" + eventId + "/reactions";
       if (isToggleOff) {
@@ -105,6 +116,9 @@ function useReactions(eventId: string, userId: string | null) {
       // Rollback on network error
       setCounts(prevCounts);
       setMyReaction(prevMyReaction);
+      toast.error("That didn't save. Try again.", {
+        action: { label: "Try again", onClick: retryFn },
+      });
     }
   }
 

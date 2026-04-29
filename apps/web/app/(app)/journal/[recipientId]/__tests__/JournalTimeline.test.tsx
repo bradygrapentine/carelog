@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { JournalTimeline } from "../JournalTimeline";
+import { toast } from "sonner";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -12,6 +13,12 @@ vi.mock("next/navigation", () => ({
 // (H-2 / a11y), so the literal-string assertion no longer works.
 const byNamePrefix = (prefix: string) =>
   new RegExp("^" + prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+vi.mock("sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}));
 vi.mock("@/components/care-events/CommentThread", () => ({
   CommentThread: () => null,
 }));
@@ -273,5 +280,117 @@ describe("JournalTimeline — system events", () => {
     expect(
       screen.queryByRole("button", { name: "Flag for doctor" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("JournalTimeline — abort on rapid recipient switch", () => {
+  it("first fetch does not update state after abort (rapid recipientId change)", async () => {
+    // Controlled fetch: first call resolves after a delay; second is instant
+    let resolveFirst!: (v: unknown) => void;
+    const firstFetchPromise = new Promise((res) => {
+      resolveFirst = res;
+    });
+
+    let callCount = 0;
+    const controlledFetch = vi.fn().mockImplementation((_url: string, opts?: { signal?: AbortSignal }) => {
+      callCount++;
+      if (callCount === 1) {
+        // Slow first fetch — will be aborted
+        return new Promise((_res, rej) => {
+          opts?.signal?.addEventListener("abort", () =>
+            rej(Object.assign(new Error("AbortError"), { name: "AbortError" })),
+          );
+          firstFetchPromise.then(_res);
+        });
+      }
+      // Instant second fetch
+      return Promise.resolve({
+        json: () => Promise.resolve({ counts: { heart: 2 }, myReaction: null }),
+      });
+    });
+
+    vi.stubGlobal("fetch", controlledFetch);
+
+    const { rerender } = render(
+      <JournalTimeline
+        events={[makeEvent({ id: "evt-a" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+      />,
+    );
+
+    // Switch recipient before first fetch resolves
+    rerender(
+      <JournalTimeline
+        events={[makeEvent({ id: "evt-b" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r2"
+        onFlag={vi.fn()}
+      />,
+    );
+
+    // Resolve the first (now-aborted) fetch — state should NOT reflect heart:2
+    await act(async () => {
+      resolveFirst({
+        json: () => Promise.resolve({ counts: { heart: 99 }, myReaction: "heart" }),
+      });
+      // Let microtasks drain
+      await Promise.resolve();
+    });
+
+    // heart:99 from the stale first fetch must not appear
+    expect(screen.queryByText("99")).not.toBeInTheDocument();
+  });
+});
+
+describe("JournalTimeline — toast on rollback", () => {
+  it("calls toast.error when reaction toggle network request fails", async () => {
+    const toastError = vi.mocked(toast.error);
+    toastError.mockClear();
+
+    // Initial fetch resolves normally; toggle fetch rejects
+    let toggleCallCount = 0;
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if ((url as string).includes("reactions") && !String(url).includes("?")) {
+        // Mutation endpoint — fail after first (initial GET)
+        toggleCallCount++;
+        if (toggleCallCount > 0) {
+          return Promise.reject(new Error("Network error"));
+        }
+      }
+      return Promise.resolve({
+        json: () => Promise.resolve({ counts: {}, myReaction: null }),
+      });
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <JournalTimeline
+        events={[makeEvent({ id: "evt-toast" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+      />,
+    );
+
+    // Wait for initial fetch to complete
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Trigger a reaction toggle (POST)
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Heart" }));
+    });
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        "That didn't save. Try again.",
+        expect.objectContaining({ action: expect.objectContaining({ label: "Try again" }) }),
+      );
+    });
   });
 });
