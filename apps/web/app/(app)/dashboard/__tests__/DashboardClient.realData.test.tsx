@@ -93,6 +93,14 @@ const mockRecipientsChain = (data: unknown) => ({
   limit: vi.fn().mockResolvedValue({ data }),
 });
 
+const mockDisplayNamesChain = (fullName: string | null) => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({
+    data: fullName ? { full_name: fullName } : null,
+  }),
+});
+
 const mockCareEventsCountChain = () => ({
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockResolvedValue({ count: 5 }),
@@ -113,7 +121,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
 
-  // Single-team membership — single-team layout renders cards inline.
+  // Single-team membership — Layout A renders BriefHero/MedCard/MoodCard inline.
   let careEventsCallCount = 0;
   mockFrom.mockImplementation((table: string) => {
     if (table === "memberships") {
@@ -125,6 +133,9 @@ beforeEach(() => {
           organizations: { id: ORG_ID, name: "The Smith Family" },
         },
       ]);
+    }
+    if (table === "display_names") {
+      return mockDisplayNamesChain("Eleanor Smith");
     }
     if (table === "care_events") {
       careEventsCallCount += 1;
@@ -190,10 +201,11 @@ describe("DashboardClient — real-data integration", () => {
   it("renders BriefHero, MedCard, MoodCard with their tRPC content for the primary team", async () => {
     render(<DashboardClient user={mockUser} />);
 
-    // Wait for memberships to load and the single-team layout to mount.
-    await waitFor(() =>
-      expect(screen.getByText("The Smith Family")).toBeInTheDocument(),
-    );
+    // Wait for Layout A heading to appear — recipient name in .headline-display h1.
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toHaveTextContent("Caring for Eleanor");
+    });
 
     // BriefHero — real headline (not the empty/skeleton fallback).
     await waitFor(() =>

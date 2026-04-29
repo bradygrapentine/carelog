@@ -44,6 +44,21 @@ vi.mock("@/components/theme/ThemeToggle", () => ({
   ThemeToggle: () => <div>ThemeToggle</div>,
 }));
 
+// GrowCareSyncSection (UX-039a) calls createClient — mock to avoid supabase env requirement
+vi.mock("@/lib/supabase", () => ({
+  createClient: () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockResolvedValue({ data: [] }),
+      limit: vi.fn().mockResolvedValue({ data: [] }),
+    }),
+  }),
+}));
+
 // Mock fetch globally
 global.fetch = vi.fn();
 

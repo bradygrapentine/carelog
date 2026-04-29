@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { trpc } from "../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from "@/lib/webPush";
+import { createClient } from "@/lib/supabase";
+import { ReferralCard } from "@/components/dashboard/ReferralCard";
 
 // IANA timezone list (abbreviated — common zones). Full list can be sourced from
 // Intl.supportedValuesOf('timeZone') at runtime but we keep this static for SSR.
@@ -632,6 +634,61 @@ function DangerZoneSection() {
   );
 }
 
+// ─── Grow CareSync Section (coordinator-only) ────────────────────────────────
+
+function GrowCareSyncSection() {
+  const [coordinatorOrg, setCoordinatorOrg] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setChecked(true);
+        return;
+      }
+      setUserId(user.id);
+
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("role, org_id, organizations(id, name)")
+        .eq("user_id", user.id)
+        .eq("role", "coordinator")
+        .not("accepted_at", "is", null)
+        .limit(1);
+
+      type MemberRow = {
+        role: string;
+        org_id: string;
+        organizations: { id: string; name: string } | null;
+      };
+
+      if (memberships && memberships[0]) {
+        const m = memberships[0] as unknown as MemberRow;
+        if (m.organizations) {
+          setCoordinatorOrg(m.organizations);
+        }
+      }
+      setChecked(true);
+    })();
+  }, []);
+
+  if (!checked || !coordinatorOrg || !userId) return null;
+
+  return (
+    <div>
+      <ReferralCard org={coordinatorOrg} userId={userId} />
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -647,6 +704,7 @@ export default function SettingsPage() {
         <NotificationsSection />
         <AppearanceSection />
         <LanguageSection />
+        <GrowCareSyncSection />
         <DangerZoneSection />
         {/* History export — coordinator-only, rendered as a link card */}
         <a
