@@ -224,9 +224,9 @@ function JournalCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between mb-2 relative">
-            <p className="eyebrow-mono pointer-events-none">{entryTime}</p>
-            <div className="flex items-center gap-2 relative z-10">
+          <div className="flex items-center justify-between mb-2 relative pointer-events-none">
+            <p className="eyebrow-mono">{entryTime}</p>
+            <div className="flex items-center gap-2">
               {event.flagged && (
                 <span className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-0.5 rounded-full">
                   Flagged for doctor
@@ -246,7 +246,7 @@ function JournalCard({
                   }
                   className={
                     flagBtnClass +
-                    " focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+                    " pointer-events-auto relative z-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
                   }
                 >
                   {event.flagged ? "Unflag" : "Flag for doctor"}
@@ -255,12 +255,12 @@ function JournalCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)] relative z-10">
+          <div className="flex items-center gap-1 pt-2 border-t border-[var(--color-border)] relative pointer-events-none">
             {REACTIONS.map((r) => {
               const count = counts[r.key] ?? 0;
               const isActive = myReaction === r.key;
               const btnClass =
-                "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 " +
+                "flex items-center gap-1 text-sm px-2 py-0.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 pointer-events-auto relative z-10 " +
                 (isActive
                   ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]"
                   : "text-[var(--color-muted)] hover:text-[var(--color-text-secondary)]");
@@ -268,6 +268,7 @@ function JournalCard({
                 <button
                   key={r.key}
                   type="button"
+                  title={r.title}
                   aria-label={r.title}
                   aria-pressed={isActive}
                   onClick={(e) => {
