@@ -366,7 +366,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **TD-73/74/75** Rate-limit dashboard + digest delivery monitoring + E2E green-streak gate (PR #227)
 
 ### 2026-04-26 — E2E unblock + product polish wave (PRs #175–#205)
-✅ **TD-38** Update dispatch skills for Mergify queue trigger — drop `--auto --squash`, reach for the `queue` label (PR #175)
+✅ **TD-38** Update dispatch skills for ~~Mergify~~ queue trigger — drop `--auto --squash`, reach for the `queue` label (PR #175)
 ✅ **TD-39** Harden `e2e/helpers.ts` — selector ambiguity, OTP regex, auth-callback timeout (PR #176)
 ✅ **TD-40** E2E AI Assistant FAB needs `ensureCareTeam` fixture — pre-create team in beforeEach (PR #177)
 ✅ **TD-41** Guard PostHog calls when key is unset — server stub + client `opt_out_capturing()`; bundles Next 16 hydration fix (PR #178)
@@ -401,7 +401,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **UX-21** Daily Brief magazine view — extracted `BriefEditorial.tsx` from `app/brief/[shareToken]/page.tsx`; `max-w-[720px]` article with `.headline-display` Fraunces 48 + `.eyebrow-mono` dateline + 5–8 body paragraphs sourced from `recent_entries` + doctor-bullet section + Email family / Print for visit actions; re-uses brief snapshot, no API change (PR #211).
 ✅ **ON-68** Document share-with-aide signed-URL workflow — `documents.createShareLink` mutation (coordinator-only, 1–168 hour expiry) wraps Supabase Storage `createSignedUrl`; per-row Share button + inline hours-selector + Copy link panel in `DocumentVault.tsx`; no schema change (PR #212).
 ✅ **Skills** `/live-test` skill — interactive flow investigation + E2E runbook (PR #188); hot-reload + capture-replay + screenshot modes (PR #195)
-✅ **CI infra** Mergify `batch_max_wait_time` 5 min → 150 s for faster queue cycles (PR #184)
+✅ **CI infra** ~~Mergify~~ `batch_max_wait_time` 5 min → 150 s for faster queue cycles (PR #184)
 
 
 ### 2026-04-25 PM — security + CI hardening + harness consolidation (PRs #158–#173)
@@ -410,8 +410,8 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ✅ **TD-29** Long-tail transitive vuln triage — `vite` → 8.0.10, `dompurify` → 3.4.1, `follow-redirects` → 1.16.0, `postcss` → 8.5.10, `hono` → 4.12.14, `uuid` → 14.0.0, `@tootallnate/once` → 3.x; deleted stale `apps/web/pnpm-lock.yaml` (root lockfile is canonical); `apps/mobile/package-lock.json` hand-patched (`workspace:*` blocks `npm install`); OSV/Trivy/pnpm-audit flipped to blocking (PR #165)
 ✅ **TD-32** Run E2E on PR pushes (PR #154)
 ✅ **TD-36** Migrated `apps/mobile` to pnpm workspace — deleted stale `package-lock.json`, added `.gitignore` rule, documented in `apps/mobile/CLAUDE.md` (PR #173)
-✅ **CI infra** Mergify config: drop phantom `audit` check, switch to `CI Summary` aggregate, upgrade to current format, enable merge queue (PRs #166, #168, #171, #172)
-✅ **Docs** CLAUDE.md auto-merge → Mergify queue workflow rewrite (PR #167)
+✅ **CI infra** ~~Mergify~~ config: drop phantom `audit` check, switch to `CI Summary` aggregate, upgrade to current format, enable merge queue (PRs #166, #168, #171, #172)
+✅ **Docs** CLAUDE.md auto-merge → ~~Mergify~~ queue workflow rewrite (PR #167)
 
 
 ### 2026-04-25 backlog burndown + harness consolidation (PRs #145–#161)

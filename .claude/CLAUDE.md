@@ -91,9 +91,9 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Pour energy into the plan → 1-shot implementation
 - When something goes sideways, re-plan — don't keep pushing
 
-## Merge Queue (Mergify)
+## Merge Queue (~~Mergify~~)
 
-Repo uses **Mergify merge queue** (as of 2026-04-25, replacing GitHub native auto-merge — see #163, #166). Config lives at `.mergify.yml`. Mergify batches up to 5 PRs into one CI run on a synthetic merge SHA, eliminating the rebase-storm tax that armed auto-merge incurred when multiple PRs targeted main concurrently (O(N²) → O(N)).
+Repo uses **~~Mergify~~ merge queue** (as of 2026-04-25, replacing GitHub native auto-merge — see #163, #166). Config lives at ~~`.mergify.yml`~~. ~~Mergify~~ batches up to 5 PRs into one CI run on a synthetic merge SHA, eliminating the rebase-storm tax that armed auto-merge incurred when multiple PRs targeted main concurrently (O(N²) → O(N)).
 
 ### How to merge a PR
 
@@ -101,11 +101,11 @@ Repo uses **Mergify merge queue** (as of 2026-04-25, replacing GitHub native aut
 gh pr edit <num> --add-label queue
 ```
 
-Mergify watches for the `queue` label and routes the PR into the default queue. Don't use `gh pr merge --auto --squash` — GitHub native auto-merge races Mergify (auto-merge rebases the PR head; Mergify queues a synthetic merge SHA).
+~~Mergify~~ watches for the `queue` label and routes the PR into the default queue. Don't use `gh pr merge --auto --squash` — GitHub native auto-merge races ~~Mergify~~ (auto-merge rebases the PR head; ~~Mergify~~ queues a synthetic merge SHA).
 
 ### Pre-queue validation (run BEFORE `--add-label queue`)
 
-Mergify won't queue a PR with failing required checks or conflicts. Quick check:
+~~Mergify~~ won't queue a PR with failing required checks or conflicts. Quick check:
 
 ```sh
 PR=<num>
@@ -118,14 +118,14 @@ gh pr checks "$PR" 2>&1 | grep -E "fail" | head -5
 
 ### Wakeup-on-label
 
-When you add the `queue` label, **always schedule a wakeup** (10-15 min) to verify the PR landed. Mergify will comment on the PR if it can't queue (config issue, missing checks, conflicts). Silent stalls are the worst failure mode — the wakeup converts them into actionable signal.
+When you add the `queue` label, **always schedule a wakeup** (10-15 min) to verify the PR landed. ~~Mergify~~ will comment on the PR if it can't queue (config issue, missing checks, conflicts). Silent stalls are the worst failure mode — the wakeup converts them into actionable signal.
 
 ### Failure-mode shortlist
-- **Mergify won't queue** → check the PR for a Mergify comment explaining why; usually a missing required check or a conflict.
-- **Batch fails CI on the merge SHA** → Mergify bisects to find the bad PR and ejects it; sibling PRs continue.
-- **`Configuration changed` check fails** → `.mergify.yml` syntax error; Mergify dashboard link in the check details has the parse error.
-- **Conflict appears while queued** → Mergify ejects + comments; rebase (`git rebase origin/main`) + re-add label.
-- **Required-check name drift** → if a workflow renames a check, update both `.mergify.yml` queue_conditions AND branch protection required-checks; otherwise Mergify never finds the check.
+- **~~Mergify~~ won't queue** → check the PR for a ~~Mergify~~ comment explaining why; usually a missing required check or a conflict.
+- **Batch fails CI on the merge SHA** → ~~Mergify~~ bisects to find the bad PR and ejects it; sibling PRs continue.
+- **`Configuration changed` check fails** → ~~`.mergify.yml`~~ syntax error; ~~Mergify~~ dashboard link in the check details has the parse error.
+- **Conflict appears while queued** → ~~Mergify~~ ejects + comments; rebase (`git rebase origin/main`) + re-add label.
+- **Required-check name drift** → if a workflow renames a check, update both ~~`.mergify.yml`~~ queue_conditions AND branch protection required-checks; otherwise ~~Mergify~~ never finds the check.
 
 ## Branch Hygiene
 
@@ -353,7 +353,7 @@ Local skills in `.claude/skills/` — invoke with `/skill-name`:
 | `/session-end` | End-of-session cleanup: revise CLAUDE.md, save memory, check git status |
 | `/supabase-types` | Regenerate TypeScript types from local Supabase after migrations |
 | `/backlog-sync` | Reconcile BACKLOG.md against git log + open PRs; rewrite §0 status board; flag stale/unblocked rows. Run at session start, end, and daily. |
-| `/dispatch` | **Canonical parallel-dispatch skill.** Two input modes: ad-hoc task list/table OR `--from-backlog` (reads `BACKLOG.md` §1 Ready rows). Picks the right execution mode (plain implementation vs. `/tdd-ship` discipline) per input. Sets up worktrees with symlinked node_modules, scope contracts, model routing, and applies the Mergify `queue` label by default (Mergify owns the queue — `gh pr merge --auto` is a no-op here). Mirrors `/wave`'s "one skill, picks the right mode" shape. |
+| `/dispatch` | **Canonical parallel-dispatch skill.** Two input modes: ad-hoc task list/table OR `--from-backlog` (reads `BACKLOG.md` §1 Ready rows). Picks the right execution mode (plain implementation vs. `/tdd-ship` discipline) per input. Sets up worktrees with symlinked node_modules, scope contracts, model routing, and applies the ~~Mergify~~ `queue` label by default (~~Mergify~~ owns the queue — `gh pr merge --auto` is a no-op here). Mirrors `/wave`'s "one skill, picks the right mode" shape. |
 | `/backlog-dispatch` | Thin alias for `/dispatch --from-backlog`. Kept for muscle memory; new work should reach for `/dispatch` directly. |
 | `/ship-story` | Single-story end-to-end (N=1 case of `/dispatch`): read BACKLOG row → branch → tests-first implement → push → PR → mark In review. |
 | `/schema-dump` | Dump schema of named Postgres tables (columns, indexes, RLS policies) **before** writing any migration or seed SQL. Prevents the ON CONFLICT / renamed-column iteration thrash. |
