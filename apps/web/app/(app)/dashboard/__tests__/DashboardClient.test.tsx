@@ -29,6 +29,11 @@ vi.mock("@/components/dashboard/MedCard", () => ({
   MedCard: () => null,
 }));
 
+// ReferralCard must NOT appear on the dashboard (moved to Settings in UX-039a)
+vi.mock("@/components/dashboard/ReferralCard", () => ({
+  ReferralCard: () => <div data-testid="referral-card" />,
+}));
+
 const mockUser = {
   id: "user-123",
   email: "test@example.com",
@@ -44,6 +49,14 @@ const mockRecipientsChain = (data: unknown) => ({
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   limit: vi.fn().mockResolvedValue({ data }),
+});
+
+const mockDisplayNamesChain = (fullName: string | null) => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({
+    data: fullName ? { full_name: fullName } : null,
+  }),
 });
 
 const mockCareEventsCountChain = () => ({
@@ -78,16 +91,19 @@ describe("DashboardClient", () => {
     expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
-  it("renders 'Your care teams' heading when user is authenticated", async () => {
+  it("renders recipient-led heading (UX-039a) when no teams exist", async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === "memberships") return mockMembershipsChain([]);
       return mockRecipientsChain([]);
     });
 
     render(<DashboardClient user={mockUser} />);
+    // With no teams, shows the fallback heading (no recipient name)
     await waitFor(() =>
-      expect(screen.getByText("Your care teams")).toBeInTheDocument(),
+      expect(screen.getByText("Your care dashboard")).toBeInTheDocument(),
     );
+    // Old "Your care teams" heading must not appear
+    expect(screen.queryByText("Your care teams")).not.toBeInTheDocument();
   });
 
   it("shows empty state when no teams exist", async () => {
@@ -108,7 +124,7 @@ describe("DashboardClient", () => {
     );
   });
 
-  it("shows care team cards when teams exist", async () => {
+  it("renders 'Caring for {firstName}' h1 with .headline-display when recipient name is known", async () => {
     let careEventsCallCount = 0;
     mockFrom.mockImplementation((table: string) => {
       if (table === "memberships") {
@@ -116,30 +132,105 @@ describe("DashboardClient", () => {
           {
             org_id: "org-1",
             recipient_id: "rec-1",
+            role: "caregiver",
             organizations: { id: "org-1", name: "The Smith Family" },
           },
         ]);
       }
+      if (table === "display_names") {
+        return mockDisplayNamesChain("Margaret Smith");
+      }
       if (table === "care_events") {
         careEventsCallCount++;
-        // First call is for count (with head: true)
-        // Second call is for earliest date (with order)
         return careEventsCallCount === 1
           ? mockCareEventsCountChain()
           : mockCareEventsEarliestChain("2025-01-01T00:00:00Z");
       }
       if (table === "care_recipients")
         return mockRecipientsChain([{ id: "rec-1" }]);
-      // Fallback
+      return mockCareEventsEarliestChain(null);
+    });
+
+    render(<DashboardClient user={mockUser} />);
+    // Heading must use .headline-display and contain the firstName in <em>
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toHaveClass("headline-display");
+      expect(h1).toHaveTextContent("Caring for Margaret");
+      const em = h1.querySelector("em");
+      expect(em).toBeInTheDocument();
+      expect(em).toHaveTextContent("Margaret");
+    });
+  });
+
+  it("does not render ReferralCard on the dashboard (moved to Settings)", async () => {
+    let careEventsCallCount = 0;
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return mockMembershipsChain([
+          {
+            org_id: "org-1",
+            recipient_id: "rec-1",
+            role: "coordinator",
+            organizations: { id: "org-1", name: "The Smith Family" },
+          },
+        ]);
+      }
+      if (table === "display_names") {
+        return mockDisplayNamesChain("Margaret Smith");
+      }
+      if (table === "care_events") {
+        careEventsCallCount++;
+        return careEventsCallCount === 1
+          ? mockCareEventsCountChain()
+          : mockCareEventsEarliestChain("2025-01-01T00:00:00Z");
+      }
+      if (table === "care_recipients")
+        return mockRecipientsChain([{ id: "rec-1" }]);
+      return mockCareEventsEarliestChain(null);
+    });
+
+    render(<DashboardClient user={mockUser} />);
+    await waitFor(() => {
+      const h1 = screen.getByRole("heading", { level: 1 });
+      expect(h1).toHaveTextContent("Caring for");
+    });
+    // ReferralCard must not be mounted on the dashboard
+    expect(screen.queryByTestId("referral-card")).not.toBeInTheDocument();
+  });
+
+  it("shows open care journal link when a team exists", async () => {
+    let careEventsCallCount = 0;
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return mockMembershipsChain([
+          {
+            org_id: "org-1",
+            recipient_id: "rec-1",
+            role: "caregiver",
+            organizations: { id: "org-1", name: "The Smith Family" },
+          },
+        ]);
+      }
+      if (table === "display_names") {
+        return mockDisplayNamesChain("Margaret Smith");
+      }
+      if (table === "care_events") {
+        careEventsCallCount++;
+        return careEventsCallCount === 1
+          ? mockCareEventsCountChain()
+          : mockCareEventsEarliestChain("2025-01-01T00:00:00Z");
+      }
+      if (table === "care_recipients")
+        return mockRecipientsChain([{ id: "rec-1" }]);
       return mockCareEventsEarliestChain(null);
     });
 
     render(<DashboardClient user={mockUser} />);
     await waitFor(() =>
-      expect(screen.getByText("The Smith Family")).toBeInTheDocument(),
+      expect(
+        screen.getByLabelText("Open care journal for The Smith Family"),
+      ).toBeInTheDocument(),
     );
-    expect(
-      screen.getByLabelText("Open care journal for The Smith Family"),
-    ).toBeInTheDocument();
   });
 });
