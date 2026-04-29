@@ -1,4 +1,5 @@
 import { SignInForm } from "./SignInForm";
+import { ErrorBanner } from "../../components/ui/ErrorBanner";
 
 export default async function SignInPage({
   searchParams,
@@ -27,14 +28,11 @@ export default async function SignInPage({
         </h1>
 
         {params.error && (
-          <div
-            role="alert"
-            className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-[var(--color-danger)]"
-          >
+          <ErrorBanner className="mb-4">
             {params.error === "auth_callback_failed"
               ? "That sign-in link didn't work. Try sending a new code."
               : params.error}
-          </div>
+          </ErrorBanner>
         )}
 
         {params.message && (

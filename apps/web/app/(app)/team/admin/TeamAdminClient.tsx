@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoleBadge } from "../../../../components/ui/RoleBadge";
+import { ErrorBanner } from "../../../../components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -72,14 +73,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
         Manage your care team members and organization settings.
       </p>
 
-      {error && (
-        <div
-          role="alert"
-          className="mt-4 rounded-xl bg-[var(--color-danger-subtle)] px-4 py-3 text-sm text-[var(--color-danger)]"
-        >
-          {error}
-        </div>
-      )}
+      {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
 
       <section className="mt-8">
         <h2 className="mb-4 text-lg font-semibold text-[var(--color-ink)]">
