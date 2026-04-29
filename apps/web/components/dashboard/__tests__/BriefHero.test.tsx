@@ -101,10 +101,10 @@ describe("BriefHero — empty state (no brief yet)", () => {
     expect(screen.getByTestId("brief-eyebrow")).toBeInTheDocument();
   });
 
-  it("shows a helpful 'no brief yet' message pointing to the journal page", () => {
+  it("shows a helpful message pointing to the journal page", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
     const headline = screen.getByTestId("brief-headline");
-    expect(headline.textContent?.toLowerCase()).toMatch(/no brief yet/i);
+    expect(headline.textContent?.toLowerCase()).toMatch(/nothing logged yet/i);
     expect(headline.textContent?.toLowerCase()).toMatch(/journal/i);
   });
 
@@ -162,21 +162,20 @@ describe("BriefHero — loaded state", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
     const pills = screen.getAllByTestId("brief-status-pill");
     const joined = pills.map((p) => p.textContent?.toLowerCase()).join(" ");
-    expect(joined).toMatch(/2 meds/i);
+    expect(joined).toMatch(/2 medications tracked/i);
   });
 
   it("pill labels reflect mood from most recent entry", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
     const pills = screen.getAllByTestId("brief-status-pill");
     const joined = pills.map((p) => p.textContent?.toLowerCase()).join(" ");
-    expect(joined).toMatch(/mood/i);
+    expect(joined).toMatch(/feeling/i);
   });
 
-  it("renders a primary-subtle blurred decorative blob", () => {
+  it("renders a primary-subtle decorative blob (aria-hidden, no blur per Flat-By-Default)", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
     const blob = screen.getByTestId("brief-blob");
     expect(blob.className).toContain("bg-[var(--color-primary-subtle)]");
-    expect(blob.className).toContain("blur");
     expect(blob.getAttribute("aria-hidden")).toBe("true");
   });
 
