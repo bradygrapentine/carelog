@@ -220,3 +220,80 @@ describe("SettingsPage - Browser Push Notifications", () => {
     }).not.toThrow();
   });
 });
+
+describe("SettingsPage — rapid-click protection (TD-97)", () => {
+  it("ProfileSection: save button disabled and shows Saving… while updateProfile isPending", async () => {
+    const mockMutateAsync = vi.fn(() => new Promise(() => {})); // never resolves
+    vi.mocked(trpc.user.updateProfile.useMutation).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: true,
+      isError: false,
+      error: null,
+    } as any);
+
+    vi.mocked(trpc.user.getProfile.useQuery).mockReturnValue({
+      data: mockProfile,
+      isLoading: false,
+      error: null,
+      status: "success",
+      fetchStatus: "idle",
+      isPending: false,
+      isFetching: false,
+      isSuccess: true,
+      isError: false,
+    } as any);
+    vi.mocked(trpc.user.updateNotifications.useMutation).mockReturnValue({
+      mutateAsync: vi.fn().mockResolvedValue({ ok: true }),
+      isPending: false,
+      isError: false,
+      error: null,
+      data: { ok: true },
+    } as any);
+    vi.mocked(trpc.useUtils).mockReturnValue({
+      user: { getProfile: { invalidate: vi.fn() } },
+    } as any);
+
+    render(<SettingsPage />);
+    // When isPending=true the button text changes to "Saving…" and becomes disabled
+    const saveBtn = screen.getByRole("button", { name: /saving/i });
+    expect(saveBtn).toBeDisabled();
+    // Rapid clicks should not call mutateAsync (button is already disabled)
+    for (let i = 0; i < 5; i++) fireEvent.click(saveBtn);
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("NotificationsSection: email toggle disabled while updateNotifications.isPending", async () => {
+    const mockMutateAsync = vi.fn(() => new Promise(() => {})); // never resolves
+    vi.mocked(trpc.user.updateNotifications.useMutation).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: true,
+      isError: false,
+      error: null,
+      data: undefined,
+    } as any);
+    vi.mocked(trpc.user.getProfile.useQuery).mockReturnValue({
+      data: mockProfile,
+      isLoading: false,
+      error: null,
+      status: "success",
+      fetchStatus: "idle",
+      isPending: false,
+      isFetching: false,
+      isSuccess: true,
+      isError: false,
+    } as any);
+    vi.mocked(trpc.useUtils).mockReturnValue({
+      user: { getProfile: { invalidate: vi.fn() } },
+    } as any);
+
+    render(<SettingsPage />);
+    const digestToggle = screen.getByRole("switch", {
+      name: /weekly digest email/i,
+    });
+    // All email toggles should be disabled while mutation is pending
+    expect(digestToggle).toBeDisabled();
+    // Rapid clicks should not fire additional calls
+    for (let i = 0; i < 5; i++) fireEvent.click(digestToggle);
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+});

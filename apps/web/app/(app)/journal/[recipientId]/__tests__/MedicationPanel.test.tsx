@@ -223,3 +223,35 @@ describe("MedicationPanel — coordinator controls", () => {
     expect(mockDelete).toHaveBeenCalledWith({ id: "med-1", org_id: ORG_ID });
   });
 });
+
+// ─── rapid-click protection (TD-97) ───────────────────────────────────────────
+
+describe("MedicationPanel — rapid-click protection (TD-97)", () => {
+  it("submit button is disabled while createMutation isPending; rapid clicks do not fire mutation", () => {
+    vi.mocked(trpc.medications.list.useQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as any);
+
+    // Render with isPending=true from the start
+    vi.mocked(trpc.medications.create.useMutation).mockReturnValue({
+      mutate: mockCreate,
+      isPending: true,
+    } as any);
+
+    render(<MedicationPanel {...coordinatorProps} />);
+
+    // Open the form
+    fireEvent.click(
+      screen.getByRole("button", { name: /\+ add medication/i }),
+    );
+
+    // The submit button shows "Adding..." and is disabled when isPending=true
+    const submitBtn = screen.getByRole("button", { name: /adding/i });
+    expect(submitBtn).toBeDisabled();
+
+    // Rapid clicks 5 times must not fire the mutation
+    for (let i = 0; i < 5; i++) fireEvent.click(submitBtn);
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+});
