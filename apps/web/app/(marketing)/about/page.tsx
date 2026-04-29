@@ -4,22 +4,22 @@ import type { Metadata } from "next";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "About — Carelog",
+  title: "About — CareSync",
   description:
-    "Carelog — built by a caregiver, for caregivers. Our story and values.",
+    "CareSync — built by a caregiver, for caregivers. Our story and values.",
   alternates: { canonical: `${BASE_URL}/about` },
   openGraph: {
-    title: "About — Carelog",
+    title: "About — CareSync",
     description:
-      "Carelog — built by a caregiver, for caregivers. Our story and values.",
+      "CareSync — built by a caregiver, for caregivers. Our story and values.",
     url: `${BASE_URL}/about`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "About Carelog",
+        alt: "About CareSync",
       },
     ],
     type: "website",
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About — Carelog",
+    title: "About — CareSync",
     description:
-      "Carelog — built by a caregiver, for caregivers. Our story and values.",
+      "CareSync — built by a caregiver, for caregivers. Our story and values.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };

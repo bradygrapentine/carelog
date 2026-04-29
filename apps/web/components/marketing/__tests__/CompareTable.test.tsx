@@ -5,7 +5,7 @@ describe("CompareTable", () => {
   it("renders all three product column headers", () => {
     render(<CompareTable />);
     // Desktop table headers
-    const carelogHeaders = screen.getAllByText("Carelog");
+    const carelogHeaders = screen.getAllByText("CareSync");
     expect(carelogHeaders.length).toBeGreaterThan(0);
     const caringBridgeHeaders = screen.getAllByText("CaringBridge");
     expect(caringBridgeHeaders.length).toBeGreaterThan(0);
@@ -31,7 +31,7 @@ describe("CompareTable", () => {
     expect(docsLabels.length).toBeGreaterThan(0);
   });
 
-  it("shows $14/mo family as the Carelog pricing value", () => {
+  it("shows $14/mo family as the CareSync pricing value", () => {
     render(<CompareTable />);
     expect(screen.getAllByText("$14/mo family").length).toBeGreaterThan(0);
   });

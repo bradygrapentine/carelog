@@ -4,22 +4,22 @@ import type { Metadata } from "next";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "Data Commitment — Carelog",
+  title: "Data Commitment — CareSync",
   description:
     "Our data stewardship commitment. Your family's health data is protected and never sold.",
   alternates: { canonical: `${BASE_URL}/trust` },
   openGraph: {
-    title: "Data Commitment — Carelog",
+    title: "Data Commitment — CareSync",
     description:
       "Our data stewardship commitment. Your family's health data is protected and never sold.",
     url: `${BASE_URL}/trust`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog Data Commitment",
+        alt: "CareSync Data Commitment",
       },
     ],
     type: "website",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Data Commitment — Carelog",
+    title: "Data Commitment — CareSync",
     description:
       "Our data stewardship commitment. Your family's health data is protected and never sold.",
     images: [`${BASE_URL}/og-image.png`],

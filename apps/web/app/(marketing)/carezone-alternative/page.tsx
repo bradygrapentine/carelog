@@ -5,22 +5,22 @@ import { CareZoneMedicationImport } from "../../../components/marketing/CareZone
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "CareZone Alternative — Carelog",
+  title: "CareZone Alternative — CareSync",
   description:
-    "Looking for a CareZone alternative? Carelog offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
+    "Looking for a CareZone alternative? CareSync offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
   alternates: { canonical: `${BASE_URL}/carezone-alternative` },
   openGraph: {
-    title: "CareZone Alternative — Carelog",
+    title: "CareZone Alternative — CareSync",
     description:
-      "Looking for a CareZone alternative? Carelog offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
+      "Looking for a CareZone alternative? CareSync offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
     url: `${BASE_URL}/carezone-alternative`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog — CareZone Alternative",
+        alt: "CareSync — CareZone Alternative",
       },
     ],
     type: "website",
@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CareZone Alternative — Carelog",
+    title: "CareZone Alternative — CareSync",
     description:
-      "Looking for a CareZone alternative? Carelog offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
+      "Looking for a CareZone alternative? CareSync offers everything CareZone had — plus a full care team, shift scheduling, and caregiver burnout support. Start free.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };

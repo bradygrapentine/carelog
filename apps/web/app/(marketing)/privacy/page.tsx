@@ -4,22 +4,22 @@ import { LegalPageLayout } from "../../../components/marketing/LegalPageLayout";
 const BASE_URL = "https://care-log.org";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Carelog",
+  title: "Privacy Policy — CareSync",
   description:
-    "How Carelog collects, uses, and protects your family's health information.",
+    "How CareSync collects, uses, and protects your family's health information.",
   alternates: { canonical: `${BASE_URL}/privacy` },
   openGraph: {
-    title: "Privacy Policy — Carelog",
+    title: "Privacy Policy — CareSync",
     description:
-      "How Carelog collects, uses, and protects your family's health information.",
+      "How CareSync collects, uses, and protects your family's health information.",
     url: `${BASE_URL}/privacy`,
-    siteName: "Carelog",
+    siteName: "CareSync",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Carelog Privacy Policy",
+        alt: "CareSync Privacy Policy",
       },
     ],
     type: "website",
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Privacy Policy — Carelog",
+    title: "Privacy Policy — CareSync",
     description:
-      "How Carelog collects, uses, and protects your family's health information.",
+      "How CareSync collects, uses, and protects your family's health information.",
     images: [`${BASE_URL}/og-image.png`],
   },
 };
