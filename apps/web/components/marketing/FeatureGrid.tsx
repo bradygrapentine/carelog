@@ -1,89 +1,211 @@
-const ICON_ACCENT_CYCLE = [
-  "bg-[var(--color-primary-subtle)]",
-  "bg-[var(--color-tertiary-subtle)]",
-  "bg-[var(--color-secondary-subtle)]",
-] as const;
+import {
+  BookOpen,
+  Pill,
+  CalendarDays,
+  Users,
+  Activity,
+  BatteryLow,
+  Mail,
+  FolderOpen,
+  Landmark,
+  HandHelping,
+  Receipt,
+  ScrollText,
+  type LucideIcon,
+} from "lucide-react";
 
-const FEATURES = [
+type Feature = {
+  Icon: LucideIcon;
+  title: string;
+  description: string;
+};
+
+const DAILY: Feature[] = [
   {
-    icon: "📋",
+    Icon: BookOpen,
     title: "Care Journal",
     description:
       "Log entries with mood tags, flag important moments for the doctor, and let family react with a heart.",
   },
   {
-    icon: "💊",
+    Icon: Pill,
     title: "Medications",
     description:
       "Track medications with dosage, schedule, and administration history. Scan prescriptions with OCR.",
   },
   {
-    icon: "👥",
-    title: "Care Team",
-    description:
-      "Invite coordinators, caregivers, aides, and family supporters. Each role sees exactly what they need.",
-  },
-  {
-    icon: "📅",
+    Icon: CalendarDays,
     title: "Shifts",
     description:
       "Schedule and log caregiver shifts. Know who was there, when, and what happened.",
   },
   {
-    icon: "📁",
-    title: "Documents",
+    Icon: Users,
+    title: "Care Team",
     description:
-      "Upload insurance cards, discharge summaries, and advance directives, always accessible to your team.",
+      "Invite coordinators, caregivers, aides, and family supporters. Each role sees exactly what they need.",
   },
+];
+
+const PASSIVE: Feature[] = [
   {
-    icon: "📬",
-    title: "Weekly Digest",
-    description:
-      "Every Monday, your team gets a digest of the week's entries, medications, and shifts by email.",
-  },
-  {
-    icon: "🩺",
+    Icon: Activity,
     title: "Symptom tracking",
     description:
       "Log pain, mood, appetite, and mobility. Spot trends and share them with the doctor at the next visit.",
   },
   {
-    icon: "🔋",
+    Icon: BatteryLow,
     title: "Burnout check-ins",
     description:
       "Weekly private check-ins for every caregiver. Coordinators see a team summary when someone's running low.",
   },
   {
-    icon: "💰",
-    title: "Shared expense log",
+    Icon: Mail,
+    title: "Weekly Digest",
     description:
-      "Track out-of-pocket costs across the team. Categorized, searchable, and ready for tax season.",
+      "Every Monday, your team gets a digest of the week's entries, medications, and shifts by email.",
   },
   {
-    icon: "🏥",
+    Icon: FolderOpen,
+    title: "Documents",
+    description:
+      "Upload insurance cards, discharge summaries, and advance directives, always accessible to your team.",
+  },
+];
+
+const EXTENDED: Feature[] = [
+  {
+    Icon: Landmark,
     title: "Benefits navigator",
     description:
       "Screen your recipient against Medicare, Medicaid, SNAP, VA, and hospice programs in a few minutes.",
   },
   {
-    icon: "🤝",
+    Icon: HandHelping,
     title: "Volunteer requests",
     description:
       "A shareable link for neighbors, friends, and faith communities to sign up for meals, rides, and visits.",
   },
   {
-    icon: "📝",
+    Icon: Receipt,
+    title: "Shared expense log",
+    description:
+      "Track out-of-pocket costs across the team. Categorized, searchable, and ready for tax season.",
+  },
+  {
+    Icon: ScrollText,
     title: "End-of-life planner",
     description:
       "A private, coordinator-only space for advance directives, preferences, and the hardest conversations.",
   },
-] as const;
+];
+
+type GroupTone = "primary" | "secondary" | "tertiary";
+
+const TONE_CLASSES: Record<GroupTone, { bg: string; fg: string }> = {
+  primary: {
+    bg: "bg-[var(--color-primary-subtle)]",
+    fg: "text-[var(--color-primary)]",
+  },
+  secondary: {
+    bg: "bg-[var(--color-secondary-subtle)]",
+    fg: "text-[var(--color-secondary)]",
+  },
+  tertiary: {
+    bg: "bg-[var(--color-tertiary-subtle)]",
+    fg: "text-[var(--color-tertiary)]",
+  },
+};
+
+function SpotlightGroup({
+  eyebrow,
+  intro,
+  features,
+  tone,
+}: {
+  eyebrow: string;
+  intro: string;
+  features: Feature[];
+  tone: GroupTone;
+}) {
+  const { bg, fg } = TONE_CLASSES[tone];
+  return (
+    <section className="mt-16 first:mt-0">
+      <div className="mb-6 max-w-2xl">
+        <p className="eyebrow-mono">{eyebrow}</p>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+          {intro}
+        </p>
+      </div>
+      <ul className="grid gap-5 sm:grid-cols-2" role="list">
+        {features.map(({ Icon, title, description }) => (
+          <li
+            key={title}
+            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-7"
+          >
+            <span
+              className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg}`}
+              aria-hidden="true"
+            >
+              <Icon className={`h-6 w-6 ${fg}`} strokeWidth={1.75} />
+            </span>
+            <h3 className="mt-4 text-lg font-semibold text-[var(--color-ink)]">
+              {title}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              {description}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TileGroup({
+  eyebrow,
+  features,
+  tone,
+}: {
+  eyebrow: string;
+  features: Feature[];
+  tone: GroupTone;
+}) {
+  const { bg, fg } = TONE_CLASSES[tone];
+  return (
+    <section className="mt-16">
+      <p className="eyebrow-mono mb-6">{eyebrow}</p>
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" role="list">
+        {features.map(({ Icon, title, description }) => (
+          <li
+            key={title}
+            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+          >
+            <span
+              className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg}`}
+              aria-hidden="true"
+            >
+              <Icon className={`h-5 w-5 ${fg}`} strokeWidth={1.75} />
+            </span>
+            <h3 className="mt-4 text-base font-semibold text-[var(--color-ink)]">
+              {title}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              {description}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 export function FeatureGrid() {
   return (
     <section id="features" className="bg-card py-20">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-12 text-center">
+        <div className="mb-12 max-w-2xl">
           <h2 className="text-3xl font-bold tracking-tight text-[var(--color-ink)]">
             Everything your care team needs
           </h2>
@@ -91,30 +213,25 @@ export function FeatureGrid() {
             Built for families who coordinate care across multiple people.
           </p>
         </div>
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
-          {FEATURES.map(({ icon, title, description }, i) => (
-            <li
-              key={title}
-              className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
-            >
-              <span
-                className={
-                  "flex h-10 w-10 items-center justify-center rounded-xl text-xl text-[var(--color-ink)] " +
-                  ICON_ACCENT_CYCLE[i % ICON_ACCENT_CYCLE.length]
-                }
-                aria-hidden="true"
-              >
-                {icon}
-              </span>
-              <h3 className="mt-3 text-base font-semibold text-[var(--color-ink)]">
-                {title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-                {description}
-              </p>
-            </li>
-          ))}
-        </ul>
+
+        <SpotlightGroup
+          eyebrow="Day to day"
+          intro="The four surfaces caregivers open every day, often one-handed at 11pm."
+          features={DAILY}
+          tone="primary"
+        />
+
+        <TileGroup
+          eyebrow="Stay in the loop"
+          features={PASSIVE}
+          tone="secondary"
+        />
+
+        <TileGroup
+          eyebrow="When it's more than the family"
+          features={EXTENDED}
+          tone="tertiary"
+        />
       </div>
     </section>
   );
