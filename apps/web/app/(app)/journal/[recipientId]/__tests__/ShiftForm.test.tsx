@@ -242,3 +242,26 @@ describe("ShiftForm — submission", () => {
     );
   });
 });
+
+// ─── rapid-click protection (TD-97) ───────────────────────────────────────────
+
+describe("ShiftForm — rapid-click protection (TD-97)", () => {
+  it("submit button is disabled while mutation isPending; rapid clicks do not fire mutation", () => {
+    // Render with isPending=true from the start — canSubmit = !isPending = false
+    mockUseMutation.mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: true,
+    });
+
+    renderForm();
+    fireEvent.click(screen.getByRole("button", { name: /schedule a shift/i }));
+
+    // The submit button label changes to "Scheduling..." when isPending=true
+    const submitBtn = screen.getByRole("button", { name: /scheduling/i });
+    expect(submitBtn).toBeDisabled();
+
+    // Rapid clicks 5 times must not fire the mutation
+    for (let i = 0; i < 5; i++) fireEvent.click(submitBtn);
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+});

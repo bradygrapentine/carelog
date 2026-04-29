@@ -170,4 +170,19 @@ describe("HistoryExportClient", () => {
       screen.getByRole("button", { name: /download pdf/i }),
     ).toBeInTheDocument();
   });
+
+  it("TD-97: JSON button disabled while generateMutation isPending; rapid clicks fire mutation exactly once", async () => {
+    // Set isPending = true to simulate in-flight state
+    mockGenerateIsPending.value = true;
+    mockMutateAsync.mockReturnValue(new Promise(() => {})); // never resolves
+
+    render(<HistoryExportClient orgId={ORG_ID} recipientId={REC_ID} />);
+
+    const jsonBtn = screen.getByRole("button", { name: /download json/i });
+    expect(jsonBtn).toBeDisabled();
+
+    // Rapid clicks 5 times should not fire the mutation
+    for (let i = 0; i < 5; i++) fireEvent.click(jsonBtn);
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
 });

@@ -204,6 +204,7 @@ type NotifToggleProps = {
   description: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 };
 
 function NotifToggle({
@@ -212,6 +213,7 @@ function NotifToggle({
   description,
   checked,
   onChange,
+  disabled = false,
 }: NotifToggleProps) {
   return (
     <div className="flex items-start justify-between gap-4 py-2">
@@ -231,10 +233,12 @@ function NotifToggle({
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
+        disabled={disabled}
         aria-label={label}
         className={[
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
           checked ? "bg-[var(--color-primary)]" : "bg-[var(--color-muted)]",
         ].join(" ")}
       >
@@ -423,6 +427,7 @@ function NotificationsSection() {
               description="A summary of your care team's activity sent every Monday."
               checked={prefs.emailDigest}
               onChange={(v) => handleToggle("emailDigest", v)}
+              disabled={updateNotifications.isPending}
             />
             <NotifToggle
               id="notif-mentions"
@@ -430,6 +435,7 @@ function NotificationsSection() {
               description="Email when someone @-mentions you in a journal entry."
               checked={prefs.emailMentions}
               onChange={(v) => handleToggle("emailMentions", v)}
+              disabled={updateNotifications.isPending}
             />
             <NotifToggle
               id="notif-shifts"
@@ -437,6 +443,7 @@ function NotificationsSection() {
               description="Email reminders before your scheduled shifts."
               checked={prefs.emailShiftReminders}
               onChange={(v) => handleToggle("emailShiftReminders", v)}
+              disabled={updateNotifications.isPending}
             />
             <div className="flex items-start justify-between gap-4 py-2">
               <div className="flex flex-col gap-0.5">
