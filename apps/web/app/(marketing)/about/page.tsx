@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { CompareTable } from "../../../components/marketing/CompareTable";
 
 const BASE_URL = "https://care-log.org";
 
@@ -105,6 +106,25 @@ export default function AboutPage() {
           ))}
         </ul>
       </div>
+
+      {/* How CareSync compares */}
+      <section
+        id="compare"
+        aria-labelledby="compare-heading"
+        className="mb-16 scroll-mt-20"
+      >
+        <h2
+          id="compare-heading"
+          className="mb-3 text-2xl font-bold text-[var(--color-ink)]"
+        >
+          How CareSync compares
+        </h2>
+        <p className="mb-8 text-[var(--color-muted)]">
+          Most caregiving tools are built for broadcasting updates or rallying
+          volunteers. CareSync is built for the people doing the daily work.
+        </p>
+        <CompareTable />
+      </section>
 
       {/* CTA */}
       <div className="text-center">

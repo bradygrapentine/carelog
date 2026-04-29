@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { PricingCards } from "../../../components/marketing/PricingCards";
 
@@ -50,6 +51,15 @@ export default function PricingPage() {
         </p>
       </div>
       <PricingCards />
+      <div className="mt-12 text-center text-sm text-[var(--color-muted)]">
+        Comparing alternatives?{" "}
+        <Link
+          href="/about#compare"
+          className="font-medium text-[var(--color-primary)] underline underline-offset-4 hover:text-[var(--color-primary)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded-sm"
+        >
+          See how CareSync measures up &rarr;
+        </Link>
+      </div>
     </div>
   );
 }
