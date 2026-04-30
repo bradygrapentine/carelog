@@ -27,7 +27,6 @@ export function MarketingNav() {
           {[
             { label: "Features", href: "/#features" },
             { label: "Pricing", href: "/pricing" },
-            { label: "Compare", href: "/about#compare" },
             { label: "About", href: "/about" },
             { label: "Contact", href: "/contact" },
           ].map(({ label, href }) => (
