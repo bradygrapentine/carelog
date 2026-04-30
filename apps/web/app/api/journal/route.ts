@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const recipientId = searchParams.get("recipientId");
+    const beforeRaw = searchParams.get("before");
+    const limitRaw = searchParams.get("limit");
 
     const parsed = z.string().uuid().safeParse(recipientId);
     if (!parsed.success) {
@@ -35,16 +37,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: events, error } = await supabase
+    const before = beforeRaw
+      ? z.string().datetime().safeParse(beforeRaw)
+      : null;
+    if (before && !before.success) {
+      return NextResponse.json(
+        { error: "Invalid before cursor (must be ISO 8601 datetime)" },
+        { status: 400 },
+      );
+    }
+    const limit = limitRaw
+      ? Math.min(100, Math.max(1, parseInt(limitRaw, 10) || 50))
+      : 50;
+
+    let query = supabase
       .from("care_events")
       .select("*")
       .eq("recipient_id", parsed.data)
       .order("occurred_at", { ascending: false })
-      .limit(50);
+      .limit(limit);
+
+    if (before?.success) {
+      query = query.lt("occurred_at", before.data);
+    }
+
+    const { data: events, error } = await query;
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ events: events ?? [] });
+
+    const list = events ?? [];
+    return NextResponse.json({
+      events: list,
+      hasMore: list.length === limit,
+    });
   } catch (e: unknown) {
     const errorMessage =
       e instanceof Error ? e.message : "An unknown error occurred";

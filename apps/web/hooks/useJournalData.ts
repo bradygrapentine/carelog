@@ -39,7 +39,12 @@ type UseJournalDataReturn = {
   currentUserRole: string;
   loading: boolean;
   loadEvents: () => Promise<void>;
+  loadMore: () => Promise<void>;
+  hasMore: boolean;
+  loadingMore: boolean;
 };
+
+const PAGE_LIMIT = 50;
 
 export function useJournalData(
   recipientId: string,
@@ -51,13 +56,38 @@ export function useJournalData(
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>("supporter");
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   async function loadEvents() {
     const res = await authenticatedFetch(
-      "/api/journal?recipientId=" + recipientId,
+      `/api/journal?recipientId=${recipientId}&limit=${PAGE_LIMIT}`,
     );
     const data = await res.json();
-    if (data.events) setEvents(data.events);
+    if (data.events) {
+      setEvents(data.events);
+      setHasMore(Boolean(data.hasMore));
+    }
+  }
+
+  async function loadMore() {
+    if (loadingMore || !hasMore || events.length === 0) return;
+    setLoadingMore(true);
+    try {
+      const oldest = events[events.length - 1];
+      const res = await authenticatedFetch(
+        `/api/journal?recipientId=${recipientId}&before=${encodeURIComponent(
+          oldest.occurred_at,
+        )}&limit=${PAGE_LIMIT}`,
+      );
+      const data = await res.json();
+      if (data.events) {
+        setEvents((prev) => [...prev, ...data.events]);
+        setHasMore(Boolean(data.hasMore));
+      }
+    } finally {
+      setLoadingMore(false);
+    }
   }
 
   async function loadMembers(orgId: string, userId: string) {
@@ -81,7 +111,10 @@ export function useJournalData(
       .order("full_name", { ascending: true });
     if (data) {
       setRecipients(
-        data.map((row) => ({ id: row.recipient_id, display_name: row.full_name })),
+        data.map((row) => ({
+          id: row.recipient_id,
+          display_name: row.full_name,
+        })),
       );
     }
   }
@@ -119,5 +152,8 @@ export function useJournalData(
     currentUserRole,
     loading,
     loadEvents,
+    loadMore,
+    hasMore,
+    loadingMore,
   };
 }

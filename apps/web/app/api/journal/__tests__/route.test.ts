@@ -136,6 +136,78 @@ describe("GET /api/journal", () => {
     const body = await res.json();
     expect(body.events).toHaveLength(1);
   });
+
+  it("returns 400 when before cursor is not a valid ISO datetime", async () => {
+    vi.mocked(createRequestSupabase).mockResolvedValue({
+      from: vi.fn().mockReturnValue(makeChain({ data: null, error: null })),
+    } as any);
+    vi.mocked(getRequestUser).mockResolvedValue({ id: USER_ID } as any);
+
+    const res = await GET(
+      getRequest(`recipientId=${RECIP_ID}&before=not-a-date`),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("applies before cursor (lt occurred_at) when supplied", async () => {
+    const lt = vi.fn().mockResolvedValue({ data: [], error: null });
+    const limit = vi.fn().mockReturnValue({ lt });
+    const order = vi.fn().mockReturnValue({ limit });
+    const eq = vi.fn().mockReturnValue({ order });
+    const select = vi.fn().mockReturnValue({ eq });
+    const supabase = {
+      from: vi.fn().mockReturnValue({ select, eq, order, limit, lt }),
+    };
+    // Re-wire so the chain returns the lt-bearing builder for .lt()
+    select.mockReturnValue({
+      eq: () => ({ order: () => ({ limit: () => ({ lt }) }) }),
+    });
+    vi.mocked(createRequestSupabase).mockResolvedValue(supabase as any);
+    vi.mocked(getRequestUser).mockResolvedValue({ id: USER_ID } as any);
+
+    const cursor = "2026-04-30T00:00:00.000Z";
+    const res = await GET(
+      getRequest(
+        `recipientId=${RECIP_ID}&before=${encodeURIComponent(cursor)}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(lt).toHaveBeenCalledWith("occurred_at", cursor);
+  });
+
+  it("returns hasMore=true when page is full, hasMore=false when partial", async () => {
+    const fullPage = Array.from({ length: 50 }, (_, i) => ({
+      id: `e${i}`,
+      occurred_at: "2026-04-30T00:00:00Z",
+    }));
+    const supabase = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({ data: fullPage, error: null }),
+      }),
+    };
+    vi.mocked(createRequestSupabase).mockResolvedValue(supabase as any);
+    vi.mocked(getRequestUser).mockResolvedValue({ id: USER_ID } as any);
+
+    const full = await GET(getRequest(`recipientId=${RECIP_ID}`));
+    expect((await full.json()).hasMore).toBe(true);
+
+    const supabasePartial = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi
+          .fn()
+          .mockResolvedValue({ data: fullPage.slice(0, 3), error: null }),
+      }),
+    };
+    vi.mocked(createRequestSupabase).mockResolvedValue(supabasePartial as any);
+    const partial = await GET(getRequest(`recipientId=${RECIP_ID}`));
+    expect((await partial.json()).hasMore).toBe(false);
+  });
 });
 
 // ── POST ──────────────────────────────────────────────────────────────────────

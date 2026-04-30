@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
@@ -168,8 +168,8 @@ function JournalCard({
         className={
           "hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2 border-l-4 " +
           (payload.mood
-            ? (moodBorderClass(payload.mood as Mood) ||
-              "border-l-[var(--color-border)]")
+            ? moodBorderClass(payload.mood as Mood) ||
+              "border-l-[var(--color-border)]"
             : "border-l-[var(--color-border)]")
         }
       >
@@ -294,6 +294,9 @@ type Props = {
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
   medications?: MedicationOption[];
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 };
 
 function formatDateHeader(iso: string) {
@@ -350,7 +353,26 @@ export function JournalTimeline({
   recipientId,
   onFlag,
   medications,
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }: Props) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !onLoadMore || !hasMore) return;
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onLoadMore, hasMore, events.length]);
+
   const [search, setSearch] = useState("");
   const [moodFilters, setMoodFilters] = useState<Set<MoodFilter>>(new Set());
   const [kindFilters, setKindFilters] = useState<Set<KindFilter>>(new Set());
@@ -585,6 +607,26 @@ export function JournalTimeline({
               );
             });
           })()}
+        </div>
+      )}
+
+      {onLoadMore && hasMore && filtered.length > 0 && (
+        <div
+          ref={sentinelRef}
+          data-testid="journal-load-more-sentinel"
+          className="flex items-center justify-center py-4"
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onLoadMore()}
+            disabled={loadingMore}
+            className="text-xs"
+            aria-label="Load older entries"
+          >
+            {loadingMore ? "Loading…" : "Load older entries"}
+          </Button>
         </div>
       )}
     </div>

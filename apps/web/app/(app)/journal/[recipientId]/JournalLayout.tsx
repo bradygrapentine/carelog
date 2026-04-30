@@ -57,6 +57,9 @@ export type LayoutProps = {
   user: User;
   org: OrgInfo | null;
   events: JournalEvent[];
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
   members: Member[];
   recipients?: Recipient[];
   currentUserRole: string;
@@ -92,6 +95,9 @@ export function JournalLayout({
   user,
   org,
   events,
+  onLoadMore,
+  hasMore,
+  loadingMore,
   members,
   recipients,
   currentUserRole,
@@ -190,6 +196,9 @@ export function JournalLayout({
                 canFlag={currentUserRole !== "supporter"}
                 recipientId={recipientId}
                 onFlag={onFlag}
+                onLoadMore={onLoadMore}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
               />
             </>
           )}

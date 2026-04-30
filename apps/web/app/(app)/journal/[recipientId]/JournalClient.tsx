@@ -44,6 +44,9 @@ export function JournalClient({ recipientId, user }: Props) {
     currentUserRole,
     loading,
     loadEvents,
+    loadMore,
+    hasMore,
+    loadingMore,
   } = useJournalData(recipientId, user);
   const { pendingQueueDepth, flushQueue } = useOfflineQueue(
     org?.id ?? null,
@@ -88,6 +91,9 @@ export function JournalClient({ recipientId, user }: Props) {
         user={user}
         org={org}
         events={events}
+        onLoadMore={loadMore}
+        hasMore={hasMore}
+        loadingMore={loadingMore}
         members={members}
         recipients={recipients}
         currentUserRole={currentUserRole}
