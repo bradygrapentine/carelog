@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 35 | TD-03 · TD-77..82 · TD-87 · TD-98 · TD-100..104 · A11Y-019 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-054..060 · PP-009 · LAUNCH-004 |
+| 🟢 Ready | 39 | TD-03 · TD-77..82 · TD-87 · TD-98 · TD-100..104 · A11Y-019 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-054..064 · PP-009 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -182,6 +182,25 @@ Source: second design prototype handoff (`docs/design/caresync-2-0/`, plan at `d
 | UX-058 | 🟢 Ready | **Shifts: Briefing handoff + Lanes schedule + Team Now-board** | Three new layouts per prototype. `BriefingHandoff` renders Sleep–Meds–Schedule blocks (replaces the legacy narrative when toggled). `ShiftLanes` is per-person swim-lane timeline with a NOW marker. `TeamNowBoard` groups the team into On-now / Up-next / Later / Off. New files only; existing `ShiftCalendar.tsx` and `HandoffSummary.tsx` (modal from UX-19) remain untouched. Toggle exposed on shifts route. ~6 hr. **Owner: Opus (multiple layouts + schema).** |
 | UX-059 | 🟢 Ready | **Journal: prompted 3-question composer + mood spectrum + calendar heatmap sidebar** | Three additive variants. `PromptedComposer` is a 3-question form (today/concern/win) replacing the textarea when "prompted" mode selected; `MoodSpectrum` is a segmented control replacing the badge picker when "spectrum" selected; `MoodHeatmap` is a 5-week calendar in the journal sidebar. New files in `apps/web/components/journal/`. Existing `JournalEntryForm.tsx` and `JournalTimeline.tsx` get a small mode toggle; everything else additive. ~5 hr. |
 | UX-060 | 🟢 Ready | **Recipient profile card** | New `apps/web/components/app/RecipientProfile.tsx` per prototype: avatar, name, mood badge, age, conditions, primary caregivers, "About" paragraph. Reads from existing `recipients` + `identity_vault` (PHI rule: surface name through `identityRepository.resolveIdentity` only, never raw). Mounted on a new tab/section of the recipient route. ~3 hr. |
+
+### CareSync 2.0 wiring follow-ups (UX-061..064) — opened 2026-04-30
+
+UX-054..060 shipped the presentational primitives. These four mount them onto their real surfaces. Plan: `docs/plans/plan-c-caresync-2-0-wiring.md`.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-061 | 🟢 Ready | **Wire `<MedScheduleStrip>` + `<AdherenceChart>` into MedCard** | UX-057 shipped both components as pure presentational. Derive a per-day taken/expected series from `care_events` + `medication_schedules` and render the strip + chart inside `MedCard`. New: `apps/web/lib/medAdherenceFromEvents.ts` adapter. Reuse existing `lib/medAdherence.ts`. ~3 hr. **Owner: Opus (schema-aware).** |
+| UX-062 | 🟢 Ready | **Mount Shifts BriefingHandoff + ShiftLanes + TeamNowBoard on the shifts route** | UX-058 shipped the three layouts. Add a segmented control on the shifts route (`apps/web/app/(app)/journal/[recipientId]/?panel=shifts` per the gotcha — verify) that switches among Briefing / Lanes / Now-board. Existing `ShiftCalendar.tsx` and `HandoffSummary` modal remain untouched. ~4 hr. **Owner: Opus.** |
+| UX-063 | 🟢 Ready | **Mount `<MoodHeatmap>` into JournalLayout sidebar** | UX-059 shipped the heatmap; integration was deliberately deferred. Render in the `JournalLayout` sidebar slot, fed by the existing journal-data hook. ~2 hr. |
+| UX-064 | 🟢 Ready | **Mount `<RecipientProfile>` on a discoverable surface** | UX-060 shipped the card. Decide IA: separate `/recipient/[id]/profile` page vs. a tab in the existing journal route. Identity values must flow through `identityRepository.resolveIdentity` server-side; never read `identity_vault` from the client. ~3 hr. **Owner: Opus (PHI-sensitive).** |
+
+### Tier 1/2 server testing sweep — Plan A (TD-77..82, TD-87)
+
+Existing rows above. Plan: `docs/plans/plan-a-tier12-tests.md`. Six file-disjoint test files + one CI workflow tweak.
+
+### Web hardening sweep — Plan B (TD-98, TD-100..104, A11Y-019)
+
+Existing rows above. Plan: `docs/plans/plan-b-web-hardening.md`. Seven mostly-disjoint hardening tracks across truncation, pagination, RTL, retry config, debounce, pluralize, SR-only live region.
 
 ### Roadmap features (ON-64..68) — opened 2026-04-25
 
