@@ -82,7 +82,7 @@ export function RecipientSummaryCard({
           >
             {initials}
           </span>
-          <h2 className="headline-display text-[clamp(1.25rem,3vw,1.75rem)]">
+          <h2 className="headline-display min-w-0 truncate text-[clamp(1.25rem,3vw,1.75rem)]">
             Caring for <em>{firstName}</em>
           </h2>
         </div>
