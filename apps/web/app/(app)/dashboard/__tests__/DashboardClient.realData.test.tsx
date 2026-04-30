@@ -59,6 +59,13 @@ vi.mock("@/lib/trpc", () => ({
         useQuery: (...args: unknown[]) => trpcMocks.medsTodayLogQuery(...args),
         invalidate: trpcMocks.todayLogInvalidate,
       },
+      weekData: {
+        useQuery: () => ({
+          data: { schedules: [], events: [] },
+          isLoading: false,
+          isError: false,
+        }),
+      },
       logAdministration: {
         useMutation: () => ({
           mutate: trpcMocks.logAdministrationMutate,
