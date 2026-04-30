@@ -17,6 +17,7 @@ import {
   type DashboardView,
 } from "@/components/dashboard/DashboardViewToggle";
 import { RecipientSummaryCard } from "@/components/dashboard/RecipientSummaryCard";
+import { NowBoard } from "@/components/dashboard/NowBoard";
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -226,6 +227,8 @@ export function DashboardClient({ user }: Props) {
 
   // Whether to show layout B (stacked) — only possible when N > 1
   const isStackedView = teams.length > 1 && dashboardView === "stacked";
+  // Whether to show the UX-056 Now Board timeline.
+  const isNowView = dashboardView === "now";
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
@@ -248,11 +251,13 @@ export function DashboardClient({ user }: Props) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {/* View toggle — visible only when N > 1 */}
-            {teams.length > 1 && (
+            {/* View toggle — shown whenever the user has any care teams.
+                The "stacked" option only renders when N > 1. */}
+            {teams.length > 0 && (
               <DashboardViewToggle
                 view={dashboardView}
                 onChange={setDashboardView}
+                showStacked={teams.length > 1}
               />
             )}
             <button
@@ -282,6 +287,49 @@ export function DashboardClient({ user }: Props) {
               </Link>
             </CardContent>
           </Card>
+        ) : isNowView ? (
+          /*
+            UX-056: Now Board timeline view — past / now / up next, mood-bordered cards.
+            Wired to focusedTeam (selectedRecipientId-driven) so the recipient
+            switcher chips below also re-target the timeline.
+          */
+          <>
+            <div className="mb-6">
+              <NowBoard recipientId={focusedTeam?.recipientId} />
+            </div>
+            {teams.length >= 2 && (
+              <div className="mb-6">
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                  Your care recipients
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {teams.map((team) => {
+                    const isSelected = team.recipientId === selectedRecipientId;
+                    const firstName =
+                      team.recipientName?.split(" ")[0] ?? team.org.name;
+                    return (
+                      <button
+                        key={team.org.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() =>
+                          setSelectedRecipientId(team.recipientId)
+                        }
+                        className={
+                          "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
+                          (isSelected
+                            ? "bg-[var(--color-primary-subtle)] border-[var(--color-primary)] text-[var(--color-primary)]"
+                            : "bg-card border-[var(--color-border)] text-foreground hover:border-[var(--color-primary)]/40")
+                        }
+                      >
+                        {firstName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         ) : isStackedView ? (
           /*
             Layout B (UX-039b): stacked-by-recipient view.
