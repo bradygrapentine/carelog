@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { JournalTimeline } from "../JournalTimeline";
 import { toast } from "sonner";
 
@@ -68,6 +74,81 @@ function makeEvent(
     ...overrides,
   };
 }
+
+describe("JournalTimeline — pagination sentinel", () => {
+  it("does NOT render the load-more sentinel when hasMore is false", () => {
+    render(
+      <JournalTimeline
+        events={[makeEvent({ id: "p1" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+        onLoadMore={vi.fn()}
+        hasMore={false}
+      />,
+    );
+    expect(
+      screen.queryByTestId("journal-load-more-sentinel"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does NOT render the sentinel when onLoadMore is not provided", () => {
+    render(
+      <JournalTimeline
+        events={[makeEvent({ id: "p2" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+        hasMore={true}
+      />,
+    );
+    expect(
+      screen.queryByTestId("journal-load-more-sentinel"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders sentinel + Load older button when hasMore + onLoadMore are present", () => {
+    const onLoadMore = vi.fn();
+    render(
+      <JournalTimeline
+        events={[makeEvent({ id: "p3" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+        onLoadMore={onLoadMore}
+        hasMore={true}
+      />,
+    );
+    expect(
+      screen.getByTestId("journal-load-more-sentinel"),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: /load older entries/i }),
+    );
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the load-more button while loadingMore is true", () => {
+    render(
+      <JournalTimeline
+        events={[makeEvent({ id: "p4" })]}
+        currentUserId="u1"
+        canFlag={false}
+        recipientId="r1"
+        onFlag={vi.fn()}
+        onLoadMore={vi.fn()}
+        hasMore={true}
+        loadingMore={true}
+      />,
+    );
+    const btn = screen.getByRole("button", { name: /load older entries/i });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveTextContent(/loading/i);
+  });
+});
 
 describe("JournalTimeline — empty state", () => {
   it("shows empty state when canFlag is true", () => {
@@ -292,22 +373,27 @@ describe("JournalTimeline — abort on rapid recipient switch", () => {
     });
 
     let callCount = 0;
-    const controlledFetch = vi.fn().mockImplementation((_url: string, opts?: { signal?: AbortSignal }) => {
-      callCount++;
-      if (callCount === 1) {
-        // Slow first fetch — will be aborted
-        return new Promise((_res, rej) => {
-          opts?.signal?.addEventListener("abort", () =>
-            rej(Object.assign(new Error("AbortError"), { name: "AbortError" })),
-          );
-          firstFetchPromise.then(_res);
+    const controlledFetch = vi
+      .fn()
+      .mockImplementation((_url: string, opts?: { signal?: AbortSignal }) => {
+        callCount++;
+        if (callCount === 1) {
+          // Slow first fetch — will be aborted
+          return new Promise((_res, rej) => {
+            opts?.signal?.addEventListener("abort", () =>
+              rej(
+                Object.assign(new Error("AbortError"), { name: "AbortError" }),
+              ),
+            );
+            firstFetchPromise.then(_res);
+          });
+        }
+        // Instant second fetch
+        return Promise.resolve({
+          json: () =>
+            Promise.resolve({ counts: { heart: 2 }, myReaction: null }),
         });
-      }
-      // Instant second fetch
-      return Promise.resolve({
-        json: () => Promise.resolve({ counts: { heart: 2 }, myReaction: null }),
       });
-    });
 
     vi.stubGlobal("fetch", controlledFetch);
 
@@ -335,7 +421,8 @@ describe("JournalTimeline — abort on rapid recipient switch", () => {
     // Resolve the first (now-aborted) fetch — state should NOT reflect heart:2
     await act(async () => {
       resolveFirst({
-        json: () => Promise.resolve({ counts: { heart: 99 }, myReaction: "heart" }),
+        json: () =>
+          Promise.resolve({ counts: { heart: 99 }, myReaction: "heart" }),
       });
       // Let microtasks drain
       await Promise.resolve();
@@ -389,7 +476,9 @@ describe("JournalTimeline — toast on rollback", () => {
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(
         "That didn't save. Try again.",
-        expect.objectContaining({ action: expect.objectContaining({ label: "Try again" }) }),
+        expect.objectContaining({
+          action: expect.objectContaining({ label: "Try again" }),
+        }),
       );
     });
   });
