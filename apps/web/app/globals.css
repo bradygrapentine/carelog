@@ -365,6 +365,103 @@ body {
   --popover-foreground:  270 100% 97%;
 }
 
+/* ── UX-054: Sage parlor palette (selectable via data-theme="sage") ──────
+   Eucalyptus primary, putty surface, ochre + clay accents. Quieter, lived-in.
+   Coexists with default violet (Hearth) which renders when no data-theme set. */
+[data-theme="sage"] {
+  --color-primary:          #5a7a5a;
+  --color-primary-light:    #7a9a7a;
+  --color-primary-subtle:   #e3ecdf;
+  --color-secondary:        #a8741a;
+  --color-secondary-light:  #c89030;
+  --color-secondary-subtle: #f5ead4;
+  --color-tertiary:         #a85040;
+  --color-tertiary-light:   #c4705f;
+  --color-tertiary-subtle:  #f0ddd8;
+  --color-ink:              #1f2820;
+  --color-surface:          #f6f4ee;
+  --color-surface-muted:    #ece9e0;
+  --color-app-shell:        #1f2820;
+  --color-app-shell-text:   #e3ecdf;
+  --color-app-shell-muted:  #a8b8a4;
+  --color-text-primary:     #1f2820;
+  --color-text-secondary:   #4a5448;
+  --color-muted:            #7a8478;
+  --color-border:           #dfddd2;
+  /* shadcn/ui HSL bridge — sage light. Eucalyptus 120,16%,42% */
+  --background:          54 23%  95%;
+  --foreground:          120 14% 13%;
+  --card:                0  0%   100%;
+  --card-foreground:     120 14% 13%;
+  --border:              60  10% 85%;
+  --input:               60  10% 85%;
+  --ring:                120 16% 42%;
+  --primary:             120 16% 42%;
+  --primary-foreground:  0   0%  100%;
+  --secondary:           60  20% 89%;
+  --secondary-foreground: 120 14% 13%;
+  --muted:               60  10% 89%;
+  --muted-foreground:    100 4%  47%;
+  --accent:              108 18% 90%;
+  --accent-foreground:   120 14% 13%;
+  --destructive:         0   60% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --popover:             0   0%  100%;
+  --popover-foreground:  120 14% 13%;
+}
+
+[data-theme="sage"].dark,
+[data-theme="sage"]:where(.dark *) {
+  --color-primary:          #d27a5e;
+  --color-primary-light:    #e89674;
+  --color-primary-subtle:   #3d2218;
+  --color-secondary:        #c89030;
+  --color-secondary-light:  #e2a948;
+  --color-secondary-subtle: #3a2810;
+  --color-tertiary:         #b88aa8;
+  --color-tertiary-light:   #cea3c0;
+  --color-tertiary-subtle:  #2e1f29;
+  --color-ink:              #f5ead4;
+  --color-surface:          #1a0f0a;
+  --color-surface-muted:    #251812;
+  --color-app-shell:        #0f0805;
+  --color-app-shell-text:   #f5ead4;
+  --color-app-shell-muted:  #c8a984;
+  --color-text-primary:     #f5ead4;
+  --color-text-secondary:   #c8a984;
+  --color-muted:            #8a7868;
+  --color-border:           #3a2820;
+  --color-success-subtle:   #0d2a1a;
+  --color-warning-subtle:   #2a1f04;
+  --color-danger-subtle:    #2a0808;
+  /* shadcn/ui HSL bridge — sage dark */
+  --background:          24  44% 7%;
+  --foreground:          43  64% 90%;
+  --card:                22  29% 11%;
+  --card-foreground:     43  64% 90%;
+  --border:              24  17% 19%;
+  --input:               24  17% 19%;
+  --ring:                17  60% 60%;
+  --primary:             17  60% 60%;
+  --primary-foreground:  24  44% 7%;
+  --secondary:           24  29% 14%;
+  --secondary-foreground: 43 64% 90%;
+  --muted:               24  17% 19%;
+  --muted-foreground:    33  30% 67%;
+  --accent:              17  40% 22%;
+  --accent-foreground:   43  64% 90%;
+  --destructive:         0   84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --popover:             22  29% 11%;
+  --popover-foreground:  43  64% 90%;
+}
+
+/* Editorial italic emphasis stays legible against sage primary in dark mode */
+[data-theme="sage"].dark .headline-display em,
+[data-theme="sage"]:where(.dark *) .headline-display em {
+  color: var(--color-primary-light);
+}
+
 /* Print: always use light mode */
 @media print {
   :root {

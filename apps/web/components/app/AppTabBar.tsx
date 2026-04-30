@@ -5,6 +5,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,6 +124,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
 
         {/* Right-hand controls */}
         <div className="flex items-center gap-2">
+          <ThemeSwitcher className="hidden lg:inline-flex" />
           <Link
             href="/settings"
             aria-label="Settings"
