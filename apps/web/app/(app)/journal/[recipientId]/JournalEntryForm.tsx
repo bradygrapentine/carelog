@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import posthog from "posthog-js";
-import { MOOD_CHIP_CLS } from "@/lib/mood";
+import { MOOD_CHIP_CLS, type Mood } from "@/lib/mood";
+import { PromptedComposer } from "@/components/journal/PromptedComposer";
+import { MoodSpectrum } from "@/components/journal/MoodSpectrum";
 
 const PROMPTS = [
   "How did they seem today?",
@@ -34,12 +36,46 @@ const MOODS = [
   { value: "crisis", label: "Crisis" },
 ];
 
+/**
+ * UX-059 — composer mode.
+ *  - "standard": existing freeform textarea + chip mood picker (default).
+ *  - "prompted": three-question structured composer (PromptedComposer).
+ *  - "spectrum": standard freeform body, but the mood picker uses the
+ *    segmented MoodSpectrum control instead of pill chips.
+ */
+export type ComposerMode = "standard" | "prompted" | "spectrum";
+
 type Props = {
   onPost: (text: string, mood: string) => Promise<void>;
   posting: boolean;
+  /** UX-059 — optional composer variant. Defaults to "standard". */
+  mode?: ComposerMode;
 };
 
-export function JournalEntryForm({ onPost, posting }: Props) {
+export function JournalEntryForm({
+  onPost,
+  posting,
+  mode = "standard",
+}: Props) {
+  // UX-059 — short-circuit to the prompted variant when requested.
+  if (mode === "prompted") {
+    return <PromptedComposer onPost={onPost} posting={posting} />;
+  }
+
+  return (
+    <StandardJournalEntryForm onPost={onPost} posting={posting} mode={mode} />
+  );
+}
+
+function StandardJournalEntryForm({
+  onPost,
+  posting,
+  mode,
+}: {
+  onPost: (text: string, mood: string) => Promise<void>;
+  posting: boolean;
+  mode: ComposerMode;
+}) {
   const [text, setText] = useState("");
   const [mood, setMood] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -107,24 +143,33 @@ export function JournalEntryForm({ onPost, posting }: Props) {
               <p className="text-xs text-[var(--color-muted)] mb-2">
                 How is today going?
               </p>
-              <div className="flex gap-2 flex-wrap mb-4">
-                {MOODS.map((m) => (
-                  <button
-                    key={m.value}
-                    type="button"
-                    data-mood={m.value}
-                    aria-pressed={mood === m.value}
-                    onClick={() => setMood(mood === m.value ? "" : m.value)}
-                    className={`px-3 py-1 rounded-full text-xs border transition-colors ${
-                      mood === m.value
-                        ? MOOD_CHIP_CLS[m.value]
-                        : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-slate-100"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+              {mode === "spectrum" ? (
+                <div className="mb-4">
+                  <MoodSpectrum
+                    value={mood as Mood | ""}
+                    onChange={(m) => setMood(m)}
+                  />
+                </div>
+              ) : (
+                <div className="flex gap-2 flex-wrap mb-4">
+                  {MOODS.map((m) => (
+                    <button
+                      key={m.value}
+                      type="button"
+                      data-mood={m.value}
+                      aria-pressed={mood === m.value}
+                      onClick={() => setMood(mood === m.value ? "" : m.value)}
+                      className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                        mood === m.value
+                          ? MOOD_CHIP_CLS[m.value]
+                          : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-slate-100"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <button
