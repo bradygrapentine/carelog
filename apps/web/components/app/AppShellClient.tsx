@@ -5,6 +5,7 @@ import { clearAll as clearOfflineQueue } from "@/lib/offline-queue";
 import { AppTabBar } from "./AppTabBar";
 import { CommandPalette } from "@/components/CommandPalette";
 import { QuickLogFab } from "@/components/QuickLogFab";
+import { LiveRegion } from "@/components/a11y/LiveRegion";
 
 type Props = {
   userInitials: string;
@@ -32,6 +33,7 @@ export function AppShellClient({ userInitials, children }: Props) {
       </main>
       <CommandPalette onSignOut={handleSignOut} />
       <QuickLogFab />
+      <LiveRegion />
     </div>
   );
 }
