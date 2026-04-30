@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HandoffSummary } from "@/components/HandoffSummary";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { JournalTimeline } from "./JournalTimeline";
+import { MoodHeatmap } from "@/components/journal/MoodHeatmap";
+import type { Mood } from "@/lib/mood";
 import { TeamPanel } from "./TeamPanel";
 import { ShiftForm } from "./ShiftForm";
 import { ShiftList } from "./ShiftList";
@@ -190,16 +192,37 @@ export function JournalLayout({
                   </p>
                 </div>
               )}
-              <JournalTimeline
-                events={events}
-                currentUserId={user.id}
-                canFlag={currentUserRole !== "supporter"}
-                recipientId={recipientId}
-                onFlag={onFlag}
-                onLoadMore={onLoadMore}
-                hasMore={hasMore}
-                loadingMore={loadingMore}
-              />
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="min-w-0 space-y-4">
+                  <JournalTimeline
+                    events={events}
+                    currentUserId={user.id}
+                    canFlag={currentUserRole !== "supporter"}
+                    recipientId={recipientId}
+                    onFlag={onFlag}
+                    onLoadMore={onLoadMore}
+                    hasMore={hasMore}
+                    loadingMore={loadingMore}
+                  />
+                </div>
+                <aside
+                  aria-label="Mood overview"
+                  className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start"
+                >
+                  <MoodHeatmap
+                    entries={events
+                      .filter(
+                        (e) =>
+                          e.entry_kind === "human" &&
+                          typeof e.payload?.mood === "string",
+                      )
+                      .map((e) => ({
+                        created_at: e.occurred_at,
+                        mood: (e.payload?.mood ?? null) as Mood | null,
+                      }))}
+                  />
+                </aside>
+              </div>
             </>
           )}
 
