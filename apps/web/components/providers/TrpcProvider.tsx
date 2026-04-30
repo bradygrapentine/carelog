@@ -15,6 +15,14 @@ export function TrpcProvider({ children }: { children: React.ReactNode }) {
             staleTime: 60 * 1000,
             retry: 1,
           },
+          // TD-102 — never auto-retry mutations. A retry on a request that
+          // reached the server but lost its response would silently
+          // double-write (e.g. duplicate care_events). Surfaces that need
+          // retry must expose an explicit retry button — TD-96 already
+          // provides toast-with-retry for mutation failures.
+          mutations: {
+            retry: 0,
+          },
         },
       }),
   );
