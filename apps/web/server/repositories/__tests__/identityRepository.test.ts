@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { resolveIdentity } from "../identityRepository";
+import {
+  resolveIdentity,
+  createIdentity,
+  resolveAndCacheDisplayName,
+} from "../identityRepository";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: { from: vi.fn() },
@@ -10,12 +14,37 @@ import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 const ORG_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const ORG_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 const TOKEN_FOR_ORG_A = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+const RECIPIENT_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd";
+
+type EqCall = { col: string; val: unknown };
 
 function makeSelectChain(result: { data: unknown; error: unknown }) {
+  const eqCalls: EqCall[] = [];
   const chain: Record<string, unknown> = {};
-  chain.select = () => chain;
-  chain.eq = () => chain;
+  chain.select = vi.fn(() => chain);
+  chain.eq = vi.fn((col: string, val: unknown) => {
+    eqCalls.push({ col, val });
+    return chain;
+  });
   chain.single = vi.fn().mockResolvedValue(result);
+  // expose for assertions
+  (chain as unknown as { __eqCalls: EqCall[] }).__eqCalls = eqCalls;
+  return chain;
+}
+
+function makeInsertChain(result: { data: unknown; error: unknown }) {
+  const chain: Record<string, unknown> = {};
+  chain.insert = vi.fn(() => chain);
+  chain.select = vi.fn(() => chain);
+  chain.single = vi.fn().mockResolvedValue(result);
+  return chain;
+}
+
+function makeUpsertChain() {
+  const chain: Record<string, unknown> = {};
+  chain.upsert = vi.fn(() =>
+    Promise.resolve({ data: null, error: null }),
+  );
   return chain;
 }
 
@@ -23,7 +52,7 @@ beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
 });
 
-describe("resolveIdentity cross-org boundary", () => {
+describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
   it("rejects a valid token when queried with a different org id", async () => {
     // DB returns no row because the (token, org_id) pair doesn't match
     vi.mocked(supabaseAdmin.from).mockImplementationOnce(
@@ -31,12 +60,31 @@ describe("resolveIdentity cross-org boundary", () => {
         makeSelectChain({
           data: null,
           error: { message: "no rows returned" },
-        }) as any,
+        }) as never,
     );
 
     await expect(resolveIdentity(TOKEN_FOR_ORG_A, ORG_B)).rejects.toThrow(
       "Identity resolution failed",
     );
+  });
+
+  it("queries identity_vault filtering by BOTH token AND org_id", async () => {
+    // Regression guard: if the org_id filter is ever dropped, a token from org A
+    // could resolve when queried by anyone in org B. This test pins the contract.
+    const chain = makeSelectChain({
+      data: { full_name: "Jane Doe", dob: null, contact_info: {} },
+      error: null,
+    });
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(() => chain as never);
+
+    await resolveIdentity(TOKEN_FOR_ORG_A, ORG_A);
+
+    expect(supabaseAdmin.from).toHaveBeenCalledWith("identity_vault");
+    const calls = (chain as unknown as { __eqCalls: EqCall[] }).__eqCalls;
+    expect(calls).toEqual([
+      { col: "token", val: TOKEN_FOR_ORG_A },
+      { col: "org_id", val: ORG_A },
+    ]);
   });
 
   it("returns a clean error for a malformed token without leaking PHI", async () => {
@@ -47,7 +95,7 @@ describe("resolveIdentity cross-org boundary", () => {
         makeSelectChain({
           data: null,
           error: { message: "invalid input syntax for type uuid" },
-        }) as any,
+        }) as never,
     );
 
     let thrownError: Error | undefined;
@@ -59,7 +107,7 @@ describe("resolveIdentity cross-org boundary", () => {
 
     expect(thrownError).toBeDefined();
     expect(thrownError!.message).toMatch("Identity resolution failed");
-    // The error message must not echo back any identity data
+    // The error message must not echo back any identity field
     expect(thrownError!.message).not.toMatch(/full_name|dob|contact_info/i);
   });
 
@@ -70,11 +118,165 @@ describe("resolveIdentity cross-org boundary", () => {
         makeSelectChain({
           data: null,
           error: { message: "expired token" },
-        }) as any,
+        }) as never,
     );
 
     await expect(resolveIdentity(TOKEN_FOR_ORG_A, ORG_A)).rejects.toThrow(
       "Identity resolution failed",
     );
+  });
+
+  it("returns the identity record on a valid (token, org_id) match", async () => {
+    const record = {
+      full_name: "Jane Doe",
+      dob: "1950-01-01",
+      contact_info: { phone: "555-0000" },
+    };
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(
+      () => makeSelectChain({ data: record, error: null }) as never,
+    );
+
+    const result = await resolveIdentity(TOKEN_FOR_ORG_A, ORG_A);
+    expect(result).toEqual(record);
+  });
+});
+
+describe("createIdentity", () => {
+  it("inserts and returns the new token", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(
+      () =>
+        makeInsertChain({
+          data: { token: TOKEN_FOR_ORG_A },
+          error: null,
+        }) as never,
+    );
+
+    const token = await createIdentity({
+      orgId: ORG_A,
+      fullName: "Jane Doe",
+      dob: "1950-01-01",
+    });
+
+    expect(token).toBe(TOKEN_FOR_ORG_A);
+    expect(supabaseAdmin.from).toHaveBeenCalledWith("identity_vault");
+  });
+
+  it("throws on insert error without leaking PHI in the message", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(
+      () =>
+        makeInsertChain({
+          data: null,
+          error: { message: "insert failed" },
+        }) as never,
+    );
+
+    let err: Error | undefined;
+    try {
+      await createIdentity({ orgId: ORG_A, fullName: "Jane Doe" });
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err).toBeDefined();
+    expect(err!.message).toMatch("Identity creation failed");
+    expect(err!.message).not.toMatch(/Jane Doe|1950/);
+  });
+});
+
+describe("resolveAndCacheDisplayName — cache-aside", () => {
+  it("returns cached name when cache row is fresh (no vault hit)", async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(
+      () =>
+        makeSelectChain({
+          data: { full_name: "Cached Name", expires_at: future },
+          error: null,
+        }) as never,
+    );
+
+    const name = await resolveAndCacheDisplayName(
+      RECIPIENT_ID,
+      ORG_A,
+      TOKEN_FOR_ORG_A,
+    );
+
+    expect(name).toBe("Cached Name");
+    // Only one from() — display_names. No vault read.
+    expect(supabaseAdmin.from).toHaveBeenCalledTimes(1);
+    expect(supabaseAdmin.from).toHaveBeenCalledWith("display_names");
+  });
+
+  it("falls back to vault on cache miss and writes back", async () => {
+    const upsertChain = makeUpsertChain();
+
+    vi.mocked(supabaseAdmin.from)
+      // 1st call: display_names cache lookup — miss
+      .mockImplementationOnce(
+        () =>
+          makeSelectChain({
+            data: null,
+            error: { message: "no rows" },
+          }) as never,
+      )
+      // 2nd call: identity_vault — hit
+      .mockImplementationOnce(
+        () =>
+          makeSelectChain({
+            data: {
+              full_name: "Vault Name",
+              dob: null,
+              contact_info: {},
+            },
+            error: null,
+          }) as never,
+      )
+      // 3rd call: display_names upsert
+      .mockImplementationOnce(() => upsertChain as never);
+
+    const name = await resolveAndCacheDisplayName(
+      RECIPIENT_ID,
+      ORG_A,
+      TOKEN_FOR_ORG_A,
+    );
+
+    expect(name).toBe("Vault Name");
+    expect(supabaseAdmin.from).toHaveBeenNthCalledWith(1, "display_names");
+    expect(supabaseAdmin.from).toHaveBeenNthCalledWith(2, "identity_vault");
+    expect(supabaseAdmin.from).toHaveBeenNthCalledWith(3, "display_names");
+    expect(upsertChain.upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to vault when cached row is expired", async () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const upsertChain = makeUpsertChain();
+
+    vi.mocked(supabaseAdmin.from)
+      .mockImplementationOnce(
+        () =>
+          makeSelectChain({
+            data: { full_name: "Stale Name", expires_at: past },
+            error: null,
+          }) as never,
+      )
+      .mockImplementationOnce(
+        () =>
+          makeSelectChain({
+            data: {
+              full_name: "Fresh Name",
+              dob: null,
+              contact_info: {},
+            },
+            error: null,
+          }) as never,
+      )
+      .mockImplementationOnce(() => upsertChain as never);
+
+    const name = await resolveAndCacheDisplayName(
+      RECIPIENT_ID,
+      ORG_A,
+      TOKEN_FOR_ORG_A,
+    );
+
+    expect(name).toBe("Fresh Name");
+    expect(supabaseAdmin.from).toHaveBeenCalledTimes(3);
   });
 });
