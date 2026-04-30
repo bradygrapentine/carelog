@@ -48,9 +48,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   const takenIds = useMemo(() => {
     if (!takenLog) return new Set<string>();
     return new Set(
-      takenLog
-        .filter((e) => e.action === "given")
-        .map((e) => e.medication_id),
+      takenLog.filter((e) => e.action === "given").map((e) => e.medication_id),
     );
   }, [takenLog]);
 
@@ -69,7 +67,9 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
     if (!scheduled) return [];
     const result: MedRow[] = [];
     for (const s of scheduled) {
-      const med = Array.isArray(s.medications) ? s.medications[0] : s.medications;
+      const med = Array.isArray(s.medications)
+        ? s.medications[0]
+        : s.medications;
       if (!med) continue;
       result.push({
         scheduleId: s.id,
@@ -177,12 +177,14 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
                 {med.taken && <Check className="h-3 w-3" aria-hidden="true" />}
               </span>
 
-              <span className="eyebrow-mono w-12 shrink-0">{med.timeLabel}</span>
+              <span className="eyebrow-mono w-12 shrink-0">
+                {med.timeLabel}
+              </span>
 
               <span
                 data-testid="med-name"
                 className={[
-                  "flex-1 text-sm text-[var(--color-ink)]",
+                  "min-w-0 flex-1 truncate text-sm text-[var(--color-ink)]",
                   med.taken ? "line-through" : "",
                 ].join(" ")}
               >
