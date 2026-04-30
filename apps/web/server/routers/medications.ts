@@ -153,12 +153,18 @@ export const medicationsRouter = router({
       z.object({ org_id: z.string().uuid(), recipient_id: z.string().uuid() }),
     )
     .query(async ({ ctx, input }) => {
+      // medication_schedules has no org_id column — RLS scopes via
+      // user_can_access_recipient(recipient_id), so the recipient_id eq is the
+      // authorization boundary. Aliased select preserves the existing
+      // `scheduled_time` field name on the response.
       const todayDow = new Date().getUTCDay();
       const { data, error } = await ctx.supabase
         .from("medication_schedules")
-        .select("id, scheduled_time, medications(id, drug_name, dosage)")
-        .eq("org_id", input.org_id)
+        .select(
+          "id, scheduled_time:time_of_day, medications(id, drug_name, dosage)",
+        )
         .eq("recipient_id", input.recipient_id)
+        .eq("active", true)
         .contains("days_of_week", [todayDow]);
       if (error)
         throw new TRPCError({
@@ -166,6 +172,61 @@ export const medicationsRouter = router({
           message: error.message,
         });
       return data ?? [];
+    }),
+
+  weekData: protectedProcedure
+    .input(
+      z.object({
+        org_id: z.string().uuid(),
+        recipient_id: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Pull every active schedule for the recipient + the last 7 calendar
+      // days of medication care_events. Caller (medAdherenceFromEvents)
+      // aggregates per day.
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+      sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6);
+
+      const [schedRes, eventRes] = await Promise.all([
+        ctx.supabase
+          .from("medication_schedules")
+          .select("id, medication_id, time_of_day, days_of_week")
+          .eq("recipient_id", input.recipient_id)
+          .eq("active", true),
+        ctx.supabase
+          .from("care_events")
+          .select("occurred_at, payload")
+          .eq("org_id", input.org_id)
+          .eq("recipient_id", input.recipient_id)
+          .eq("event_type", "medication")
+          .eq("entry_kind", "system")
+          .gte("occurred_at", sevenDaysAgo.toISOString()),
+      ]);
+
+      if (schedRes.error)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: schedRes.error.message,
+        });
+      if (eventRes.error)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: eventRes.error.message,
+        });
+
+      return {
+        schedules: schedRes.data ?? [],
+        events: (eventRes.data ?? []).map((e) => ({
+          occurred_at: e.occurred_at as string,
+          payload: e.payload as {
+            medication_id?: string;
+            scheduled_time?: string;
+            action?: string;
+          },
+        })),
+      };
     }),
 
   todayLog: protectedProcedure

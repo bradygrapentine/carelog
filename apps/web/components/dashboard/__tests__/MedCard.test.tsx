@@ -21,6 +21,7 @@ vi.mock("@/lib/trpc", () => ({
     medications: {
       listScheduled: { useQuery: vi.fn() },
       todayLog: { useQuery: vi.fn() },
+      weekData: { useQuery: vi.fn() },
       logAdministration: { useMutation: vi.fn() },
     },
   },
@@ -61,6 +62,12 @@ beforeEach(() => {
 
   vi.mocked(trpc.medications.todayLog.useQuery).mockReturnValue({
     data: takenLogData,
+    isLoading: false,
+    isError: false,
+  } as any);
+
+  vi.mocked(trpc.medications.weekData.useQuery).mockReturnValue({
+    data: { schedules: [], events: [] },
     isLoading: false,
     isError: false,
   } as any);
@@ -244,9 +251,7 @@ describe("MedCard — empty state", () => {
       isError: false,
     } as any);
     render(<MedCard {...PROPS} />);
-    expect(
-      screen.getByText(/no medications tracked yet/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/no medications tracked yet/i)).toBeInTheDocument();
     expect(screen.queryAllByTestId("med-row")).toHaveLength(0);
   });
 

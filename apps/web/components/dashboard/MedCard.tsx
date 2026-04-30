@@ -4,6 +4,12 @@ import { useMemo } from "react";
 import { Check } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { formatClockTime } from "@/lib/format";
+import { MedScheduleStrip } from "@/components/medications/MedScheduleStrip";
+import { AdherenceChart } from "@/components/medications/AdherenceChart";
+import {
+  buildAdherenceDays,
+  buildStripDoses,
+} from "@/lib/medAdherenceFromEvents";
 
 type MedCardProps = {
   /** UUID of the recipient whose meds to show. Required for real data; omit to skip queries (stub/placeholder mode). */
@@ -29,6 +35,11 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
     isLoading: logLoading,
     isError: logError,
   } = trpc.medications.todayLog.useQuery(
+    { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
+    { enabled },
+  );
+
+  const { data: weekData } = trpc.medications.weekData.useQuery(
     { org_id: orgId ?? "", recipient_id: recipientId ?? "" },
     { enabled },
   );
@@ -87,6 +98,52 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   const isLoading = schedulesLoading || logLoading;
   const isError = schedulesError || logError;
   const takenCount = rows.filter((r) => r.taken).length;
+
+  const stripDoses = useMemo(() => {
+    if (!weekData) return [];
+    const today = new Date();
+    const todayDow = today.getUTCDay();
+    const todayStartMs = Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate(),
+    );
+    const todayEvents = weekData.events.filter((e) => {
+      const ts = Date.parse(e.occurred_at);
+      return ts >= todayStartMs && ts < todayStartMs + 24 * 60 * 60 * 1000;
+    });
+    const enriched = weekData.schedules
+      .filter((s) => s.days_of_week?.includes(todayDow))
+      .map((s) => {
+        const med = scheduled?.find((row) => {
+          const m = Array.isArray(row.medications)
+            ? row.medications[0]
+            : row.medications;
+          return m?.id === s.medication_id;
+        });
+        const m = med
+          ? Array.isArray(med.medications)
+            ? med.medications[0]
+            : med.medications
+          : null;
+        return {
+          ...s,
+          drug_name: m?.drug_name,
+          dosage: m?.dosage,
+        };
+      });
+    return buildStripDoses(enriched, todayEvents, today);
+  }, [weekData, scheduled]);
+
+  const adherenceDays = useMemo(() => {
+    if (!weekData) return [];
+    return buildAdherenceDays(weekData.schedules, weekData.events);
+  }, [weekData]);
+
+  const nowHour = useMemo(() => {
+    const d = new Date();
+    return d.getHours() + d.getMinutes() / 60;
+  }, []);
 
   function handleLog(medId: string, scheduledTime: string) {
     if (!orgId || !recipientId) return;
@@ -150,6 +207,18 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
             Add one in Medications →
           </a>
         </p>
+      )}
+
+      {!isLoading && !isError && stripDoses.length > 0 && (
+        <div className="mb-4">
+          <MedScheduleStrip doses={stripDoses} now={nowHour} />
+        </div>
+      )}
+
+      {!isLoading && !isError && adherenceDays.length > 0 && (
+        <div className="mb-4">
+          <AdherenceChart days={adherenceDays} />
+        </div>
       )}
 
       {!isLoading && !isError && rows.length > 0 && (
