@@ -127,6 +127,10 @@ export function JournalLayout({
   const searchParams = useSearchParams();
   const useHeatmapSidebar = searchParams?.get("sidebar") === "heatmap";
 
+  // Anchor the 7-day cutoff at mount to keep useMemo pure (Date.now() inside
+  // render trips the react-hooks/purity rule under React 19's compiler).
+  const [sevenDaysAgo] = useState(() => Date.now() - 7 * 24 * 60 * 60 * 1000);
+
   const moodEntries = useMemo(
     () =>
       events
@@ -142,7 +146,6 @@ export function JournalLayout({
   );
 
   const weeklyMoodCounts = useMemo(() => {
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     let good = 0;
     let steady = 0;
     let difficult = 0;
@@ -159,7 +162,7 @@ export function JournalLayout({
       { mood: "steady" as const, count: steady },
       { mood: "difficult" as const, count: difficult },
     ];
-  }, [moodEntries]);
+  }, [moodEntries, sevenDaysAgo]);
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
