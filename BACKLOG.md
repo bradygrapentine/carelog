@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 20 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · PP-009 |
+| 🟢 Ready | 49 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-067 · UX-068a..c · UX-070..094 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -202,6 +202,42 @@ UX-062 + UX-064 shipped the surfaces but deliberately deferred narrative + relat
 |---|---|---|---|
 | UX-065 | 🟢 Ready | **BriefingHandoff narrative adapter for the shifts route** | UX-062 shipped a Calendar/Lanes/Now toggle on `ShiftsPanel` but left BriefingHandoff out — its `{summary, sleep, meds, schedule}` lines need source narratives that don't exist yet. Build a server-side adapter (`lib/handoffNarrative.ts` or extend `lib/handoffSummary.ts`) that turns the prior shift's care_events into 3 one-line summaries (sleep severity from sleep events, meds from medication events with given/missed counts, schedule from upcoming appointments + PT). Add Briefing as the 4th tab in `ShiftsPanel`. The existing "What did I miss?" modal (UX-19) covers the same surface but is modal-only — Briefing is the in-page toggle variant. ~4 hr. **Owner: Opus (schema + summarization).** |
 | UX-066 | 🟢 Ready | **RecipientProfile enrichment — mood / caregivers / About** | UX-064 shipped the route with name/age/conditions only. Wire the remaining `<RecipientProfile>` props: (a) `mood` from the latest `care_events` row with `payload.mood` for that recipient, (b) `caregivers` from `memberships` joined with display_names (resolved via identityRepository for PHI), (c) `about` — needs a new column on `care_recipients` (or a `recipient_profiles` table) with a coordinator-only edit affordance. Decide a/b/c sequencing: a + b are read-only joins (small); c is schema work. Consider splitting if the schema piece blocks. ~5 hr (or 2 + 3 if split). **Owner: Opus (PHI-sensitive caregivers join).** |
+
+### CareSync handoff (frozen design, UX-067..UX-094) — opened 2026-05-01
+
+Source: `docs/caresync-handoff/` (clickable React+Babel design prototype, tweaks panel removed — every variant frozen as constants in `app.jsx`'s `DESIGN` object). Plan: `docs/design/caresync-handoff-plan.md`. Several picks **diverge** from UX-054..060 (which shipped presentational primitives behind toggles): Brief uses **bold** display headlines (italic rejected), Today uses chronological **time-rail** (NowBoard becomes alt), Shifts uses **narrative** handoff + **week-grid** + **list** team (BriefingHandoff/Lanes/TeamNowBoard become alts), Journal flips to **inline** + 3 **badges** + **bar chart** defaults. Net new: app-shell rail + topbar (cs-rail dark sidebar), missed-dose attention hero, ℞ glyph, narrative handoff, open-questions card, weekly mood bars, likes/dislikes list, emergency footer. **Brand decision (2026-05-01): Sage is the default; `hearth` + `slate` retired from runtime.**
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-067 | 🟢 Ready | **Flip default theme to Sage; retire `hearth`/`slate` runtime alternates** | User-approved 2026-05-01: option (a) — Sage default, drop `hearth`/`slate` token blocks from `globals.css`. ThemeSwitcher (UX-054) keeps light/dark toggle only. Touches: `apps/web/app/globals.css`, `apps/web/components/theme/ThemeSwitcher.tsx`. ~1 hr. |
+| UX-068a | 🟢 Ready | **SageRail — dark `--app-shell` sidebar w/ brand mark, sections, recipient footer** | New `apps/web/components/app/SageRail.tsx` per `docs/caresync-handoff/shell.jsx`'s `PRail`. Dark surface `#1f2820`, Fraunces brand mark, "Today" / "Record" section labels in mono caps, recipient avatar footer. Adds missing `--app-shell`, `--app-shell-text`, `--app-shell-muted` tokens to `globals.css`. `/tdd-ship`. ~3 hr. |
+| UX-068b | 🟢 Ready | **SageTopBar — crumb + title + search input + ⌘K chip + action slot** | New `apps/web/components/app/SageTopBar.tsx` per `shell.jsx`'s `PTopBar`. Search is presentational v1; ⌘K binding follows in a separate row if needed. `/tdd-ship`. ~2 hr. |
+| UX-068c | 🟢 Ready | **App-shell mount — wire SageRail + SageTopBar into `(app)` layout behind `?shell=sage` opt-in** | Touch only `apps/web/app/(app)/AppShellClient.tsx`. Behind opt-in flag so legacy shell stays default until full rollout. **Owner: Opus**. ~2 hr. Blocked-by: UX-068a, UX-068b. |
+| UX-070 | 🟢 Ready | **BriefHero default — flip from italic emphasis to bold display serif headline** | Italic emphasis was tested in the prototype and rejected ("felt precious"). Default `<BriefHero>` to a bold Fraunces headline; keep italic as `?headline=italic` alt. Touches `apps/web/components/dashboard/BriefHero.tsx` + test only. ~1 hr. |
+| UX-071 | 🟢 Ready | **SleepSparkline — 7-day inline SVG sparkline + plain-language numbers (avg hrs, wakes)** | New `apps/web/components/brief/SleepSparkline.tsx` per `screen-brief.jsx`'s sleep card. Pattern is the primary signal; numbers underneath. `/tdd-ship`. ~3 hr. |
+| UX-072 | 🟢 Ready | **ShiftQuoteNote — left-rule indented quote for previous-shift voice** | New `apps/web/components/brief/ShiftQuoteNote.tsx` — blockquote w/ left rule, byline, timestamp. ~1 hr. |
+| UX-073 | 🟢 Ready | **ComingUpRows — clean rows of next 4–5 events** | New `apps/web/components/brief/ComingUpRows.tsx`. Reads existing upcoming-events query. Plain time + label rows; not blocks, not a calendar. ~2 hr. |
+| UX-074 | 🟢 Ready | **OnShiftSidebar + PatternCard — right-rail brief callouts** | Two new files in `apps/web/components/brief/`: who's on / next / latest mood (sidebar), and one notable trend (pattern card). `/tdd-ship`. ~3 hr. |
+| UX-075 | 🟢 Ready | **TimeRailTimeline — vertical timestamp rail + chronological events + NOW pill + type icons** | New `apps/web/components/dashboard/TimeRailTimeline.tsx` per `screen-today.jsx`. Becomes the canonical Today layout. **Owner: Opus** — schema-aware, reads `careEvents.timeline`. ~5 hr. |
+| UX-076 | 🟢 Ready | **TimelineFilterChips — multi-select chip toolbar above the timeline** | New `apps/web/components/dashboard/TimelineFilterChips.tsx`. Replaces dropdown/tabs. `/tdd-ship`. ~2 hr. |
+| UX-077 | 🟢 Ready | **Today route default flip — TimeRailTimeline as default, NowBoard behind `?layout=board`** | Touch `apps/web/components/dashboard/DashboardViewToggle.tsx` + `today/page.tsx`. ~1 hr. Blocked-by: UX-075, UX-076. |
+| UX-078 | 🟢 Ready | **MedAttentionHero — full-width hero card for missed-dose state w/ catch-up CTA** | New `apps/web/components/medications/MedAttentionHero.tsx`. Shown only when at least one med is missed today. `/tdd-ship`. ~3 hr. |
+| UX-079 | 🟢 Ready | **RxGlyph — Fraunces italic ℞ component** | New `apps/web/components/medications/RxGlyph.tsx`. The serif ℞ is the only character glyph designated to survive into production (per handoff README §architecture-notes-5). Replaces pill icon in `MedCard`. ~1 hr. |
+| UX-080 | 🟢 Ready | **MedStatusBadge — On track / Catch up / Missed pill** | New `apps/web/components/medications/MedStatusBadge.tsx`. Three-state badge with sage / clay / clay-strong tokens. ~1 hr. |
+| UX-081 | 🟢 Ready | **Meds route mount — Hero on missed-dose state, RxGlyph everywhere, badges on each row** | Touch `apps/web/app/(app)/meds/page.tsx`. ~1 hr. Blocked-by: UX-078, UX-079, UX-080. |
+| UX-082 | 🟢 Ready | **NarrativeHandoff — "Three things you need to know" composer + view (replaces Briefing as default)** | New `apps/web/components/shifts/NarrativeHandoff.tsx`. Short paragraphs from off-going caregiver. **Owner: Opus** — schema (reads/writes handoff text on `shifts` table). `/tdd-ship`. ~4 hr. |
+| UX-083 | 🟢 Ready | **ShiftWeekGrid — Mon–Sun × hours grid w/ per-person color blocks** | New `apps/web/components/shifts/ShiftWeekGrid.tsx`. Canonical schedule view; ShiftLanes (UX-058) becomes alt. **Owner: Opus** — reads `shifts` table week-range. ~5 hr. |
+| UX-084 | 🟢 Ready | **ShiftTeamList — plain stacked rows (name / role / contact); replaces TeamNowBoard default** | New `apps/web/components/shifts/ShiftTeamList.tsx`. ~2 hr. |
+| UX-085 | 🟢 Ready | **OpenQuestionsCard — inbox-like callout below handoff for async items** | New `apps/web/components/shifts/OpenQuestionsCard.tsx`. `/tdd-ship`. ~2 hr. |
+| UX-086 | 🟢 Ready | **Shifts route default flips — Narrative + WeekGrid + TeamList default; legacy variants behind `?layout=…`** | Touch only `apps/web/app/(app)/shifts/page.tsx`. ~1 hr. Blocked-by: UX-082..085. |
+| UX-087 | 🟢 Ready | **Inline composer default — flip JournalEntryForm default mode back to inline** | Open textarea + 3 mood badges always visible. Prompted (UX-059) becomes `?mode=prompted` alt. ~1 hr. |
+| UX-088 | 🟢 Ready | **WeeklyMoodBars — small bar chart of mood distribution + most-used tags** | New `apps/web/components/journal/WeeklyMoodBars.tsx`. Replaces MoodHeatmap as default sidebar; heatmap stays as alt. `/tdd-ship`. ~3 hr. |
+| UX-089 | 🟢 Ready | **FridayExportHint — footer card explaining the journal compiles into a Friday email to therapist** | New `apps/web/components/journal/FridayExportHint.tsx`. Presentational only — actual export feature is separate. ~1 hr. |
+| UX-090 | 🟢 Ready | **Journal route default flips — inline + bars defaults; alternates behind `?mode=…`** | Touch `apps/web/app/(app)/journal/page.tsx`. ~1 hr. Blocked-by: UX-087, UX-088, UX-089. |
+| UX-091 | 🟢 Ready | **LikesDislikesList — side-by-side bulleted lists** | New `apps/web/components/app/LikesDislikesList.tsx`. Plain lists; no cards. ~1 hr. |
+| UX-092 | 🟢 Ready | **CareTeamList — stacked rows w/ phone + role on profile** | New `apps/web/components/app/CareTeamList.tsx`. Replaces card-grid wherever team appears on profile. ~2 hr. |
+| UX-093 | 🟢 Ready | **EmergencyFooterCard — DNR / primary contact / hospital preference, always visible** | New `apps/web/components/app/EmergencyFooterCard.tsx`. **Owner: Opus** — PHI-sensitive (DNR + emergency contact via `identityRepository` only). `/tdd-ship`. ~3 hr. |
+| UX-094 | 🟢 Ready | **Profile route mount — compose RecipientProfile + LikesDislikes + CareTeamList + EmergencyFooter** | Touch `apps/web/app/(app)/profile/page.tsx`. ~1 hr. Blocked-by: UX-091..093. |
 
 ### CI regression — opened 2026-04-30
 
