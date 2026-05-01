@@ -20,6 +20,13 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
+// ─── Mock next/navigation ─────────────────────────────────────────────────────
+
+const mockSearchParamsGet = vi.fn<(key: string) => string | null>(() => null);
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => ({ get: mockSearchParamsGet }),
+}));
+
 // ─── Shared props ─────────────────────────────────────────────────────────────
 
 const DEFAULT_PROPS = {
@@ -77,10 +84,9 @@ describe("BriefHero — loading state", () => {
 
   it("marks the section as busy", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
-    expect(screen.getByRole("region", { name: /today's brief/i })).toHaveAttribute(
-      "aria-busy",
-      "true",
-    );
+    expect(
+      screen.getByRole("region", { name: /today's brief/i }),
+    ).toHaveAttribute("aria-busy", "true");
   });
 
   it("eyebrow is still visible during load", () => {
@@ -210,5 +216,31 @@ describe("BriefHero — error state", () => {
   it("preserves the eyebrow in error state", () => {
     render(<BriefHero {...DEFAULT_PROPS} />);
     expect(screen.getByTestId("brief-eyebrow")).toBeInTheDocument();
+  });
+});
+
+// ─── UX-070: headline default flip ────────────────────────────────────────────
+
+describe("BriefHero — headline variant (UX-070)", () => {
+  beforeEach(() => {
+    mockQuery({ data: SAMPLE_BRIEF });
+    mockSearchParamsGet.mockReset();
+  });
+
+  it("default (no ?headline param) applies headline-display-bold to suppress italic emphasis", () => {
+    mockSearchParamsGet.mockReturnValue(null);
+    render(<BriefHero {...DEFAULT_PROPS} />);
+    const headline = screen.getByTestId("brief-headline");
+    expect(headline.className).toContain("headline-display-bold");
+  });
+
+  it("?headline=italic opts in to the legacy italic-emphasis treatment", () => {
+    mockSearchParamsGet.mockImplementation((key) =>
+      key === "headline" ? "italic" : null,
+    );
+    render(<BriefHero {...DEFAULT_PROPS} />);
+    const headline = screen.getByTestId("brief-headline");
+    expect(headline.className).not.toContain("headline-display-bold");
+    expect(headline.className).toContain("headline-display");
   });
 });

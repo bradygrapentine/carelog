@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { BriefHeadline } from "@/components/brief/BriefHeadline";
 
@@ -24,9 +25,12 @@ type BriefContent = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const PILL_TONE_CLASS: Record<Tone, string> = {
-  primary: "bg-[var(--color-primary-subtle)] text-[var(--color-text-secondary)]",
-  success: "bg-[var(--color-success-subtle)] text-[var(--color-text-secondary)]",
-  warning: "bg-[var(--color-warning-subtle)] text-[var(--color-text-secondary)]",
+  primary:
+    "bg-[var(--color-primary-subtle)] text-[var(--color-text-secondary)]",
+  success:
+    "bg-[var(--color-success-subtle)] text-[var(--color-text-secondary)]",
+  warning:
+    "bg-[var(--color-warning-subtle)] text-[var(--color-text-secondary)]",
 };
 
 /** Format a UTC ISO timestamp as "7:02a" / "10:45p" in local time. */
@@ -113,7 +117,9 @@ function BriefShell({
         </span>
         <div
           data-testid="brief-headline"
-          className={headlineClass ?? "headline-display text-[var(--color-ink)]"}
+          className={
+            headlineClass ?? "headline-display text-[var(--color-ink)]"
+          }
         >
           {headline}
         </div>
@@ -181,6 +187,11 @@ type BriefHeroProps = {
 
 export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
   const ready = Boolean(recipientId && orgId);
+  const searchParams = useSearchParams();
+  const italic = searchParams?.get("headline") === "italic";
+  const headlineClass = italic
+    ? "headline-display text-[var(--color-ink)]"
+    : "headline-display headline-display-bold text-[var(--color-ink)] font-semibold";
 
   const {
     data: brief,
@@ -224,6 +235,7 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
     <BriefShell
       eyebrow={eyebrowLabel}
       headline={headlineNode}
+      headlineClass={headlineClass}
       pills={
         pills.length > 0 ? (
           <ul className="flex flex-wrap gap-2">

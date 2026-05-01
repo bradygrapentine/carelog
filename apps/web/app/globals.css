@@ -136,6 +136,17 @@ body {
     .headline-display em { color: #7c3aed; }
   }
 
+  /* UX-070: bold variant — italic emphasis was tested in the prototype and
+   * rejected ("felt precious"). Default brief headlines use this class to
+   * suppress the italic-on-em rule above and render bold serif throughout.
+   * The legacy italic-emphasis treatment stays available via the original
+   * .headline-display class without .headline-display-bold. */
+  .headline-display-bold em {
+    font-style: normal;
+    font-weight: 600;
+    color: inherit;
+  }
+
   .eyebrow-mono {
     font-family: var(--font-mono);
     font-size: 11px;
