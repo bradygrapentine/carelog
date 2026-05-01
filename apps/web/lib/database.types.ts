@@ -1702,6 +1702,86 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_recordings: {
+        Row: {
+          appointment_event_id: string | null
+          audio_url: string
+          care_event_id: string | null
+          created_at: string
+          created_by: string
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          org_id: string
+          recipient_id: string
+          status: Database["public"]["Enums"]["visit_recording_status"]
+          structured_data: Json | null
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_event_id?: string | null
+          audio_url: string
+          care_event_id?: string | null
+          created_at?: string
+          created_by: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          org_id: string
+          recipient_id: string
+          status?: Database["public"]["Enums"]["visit_recording_status"]
+          structured_data?: Json | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_event_id?: string | null
+          audio_url?: string
+          care_event_id?: string | null
+          created_at?: string
+          created_by?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          org_id?: string
+          recipient_id?: string
+          status?: Database["public"]["Enums"]["visit_recording_status"]
+          structured_data?: Json | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_recordings_appointment_event_id_fkey"
+            columns: ["appointment_event_id"]
+            isOneToOne: false
+            referencedRelation: "care_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_recordings_care_event_id_fkey"
+            columns: ["care_event_id"]
+            isOneToOne: false
+            referencedRelation: "care_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_recordings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_recordings_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       web_push_subscriptions: {
         Row: {
           auth_key: string
@@ -1783,6 +1863,7 @@ export type Database = {
         | "task"
         | "expense"
         | "handoff"
+        | "visit_note"
       member_role: "coordinator" | "caregiver" | "supporter" | "aide"
       message_thread_type: "dm" | "group"
       ocr_status:
@@ -1803,6 +1884,13 @@ export type Database = {
         | "scheduled"
         | "in_progress"
         | "cancelled"
+      visit_recording_status:
+        | "pending"
+        | "transcribing"
+        | "extracting"
+        | "needs_review"
+        | "confirmed"
+        | "failed"
     }
     CompositeTypes: {
       invite_accept_result: {
@@ -1946,6 +2034,7 @@ export const Constants = {
         "task",
         "expense",
         "handoff",
+        "visit_note",
       ],
       member_role: ["coordinator", "caregiver", "supporter", "aide"],
       message_thread_type: ["dm", "group"],
@@ -1968,6 +2057,14 @@ export const Constants = {
         "scheduled",
         "in_progress",
         "cancelled",
+      ],
+      visit_recording_status: [
+        "pending",
+        "transcribing",
+        "extracting",
+        "needs_review",
+        "confirmed",
+        "failed",
       ],
     },
   },
