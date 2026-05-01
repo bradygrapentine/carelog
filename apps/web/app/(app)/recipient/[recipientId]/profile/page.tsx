@@ -15,6 +15,9 @@ import type { Metadata } from "next";
 import { createServerSupabase } from "@/lib/supabaseServer";
 import { resolveIdentity } from "@/server/repositories/identityRepository";
 import { RecipientProfile } from "@/components/app/RecipientProfile";
+import { LikesDislikesList } from "@/components/app/LikesDislikesList";
+import { CareTeamList } from "@/components/app/CareTeamList";
+import { EmergencyFooterCard } from "@/components/app/EmergencyFooterCard";
 
 export const metadata: Metadata = {
   title: "Recipient profile",
@@ -76,13 +79,19 @@ export default async function RecipientProfilePage({
     recipient.org_id,
   );
 
+  // UX-094: compose the full profile page. Likes/dislikes, care team, and
+  // emergency-footer data are not yet plumbed — the components render their
+  // empty states. Data wiring is follow-up work (see UX-066 + new rows TBD).
   return (
-    <main className="mx-auto max-w-2xl px-4 lg:px-8 py-6">
+    <main className="mx-auto max-w-2xl px-4 lg:px-8 py-6 space-y-6">
       <RecipientProfile
         name={identity.full_name}
         age={ageFromDob(identity.dob)}
         conditions={conditionsFromDiagnoses(recipient.diagnoses)}
       />
+      <LikesDislikesList likes={[]} dislikes={[]} />
+      <CareTeamList members={[]} />
+      <EmergencyFooterCard />
     </main>
   );
 }
