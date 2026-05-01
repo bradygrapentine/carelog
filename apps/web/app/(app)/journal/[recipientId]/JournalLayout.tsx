@@ -3,7 +3,8 @@
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
-import { Clock } from "lucide-react";
+import Link from "next/link";
+import { Clock, User as UserIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { HandoffSummary } from "@/components/HandoffSummary";
 import { JournalEntryForm } from "./JournalEntryForm";
@@ -137,6 +138,14 @@ export function JournalLayout({
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href={`/recipient/${recipientId}/profile`}
+              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
+              aria-label="View recipient profile"
+            >
+              <UserIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Profile</span>
+            </Link>
             <button
               type="button"
               onClick={() => setHandoffOpen(true)}

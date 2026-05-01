@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 25 | TD-03 · TD-78..82 · TD-87 · TD-100 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-061..064 · PP-009 · LAUNCH-004 |
+| 🟢 Ready | 27 | TD-03 · TD-78..82 · TD-87 · TD-100 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-061..066 · PP-009 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -193,6 +193,15 @@ UX-054..060 shipped the presentational primitives. These four mount them onto th
 | UX-062 | 🟢 Ready | **Mount Shifts BriefingHandoff + ShiftLanes + TeamNowBoard on the shifts route** | UX-058 shipped the three layouts. Add a segmented control on the shifts route (`apps/web/app/(app)/journal/[recipientId]/?panel=shifts` per the gotcha — verify) that switches among Briefing / Lanes / Now-board. Existing `ShiftCalendar.tsx` and `HandoffSummary` modal remain untouched. ~4 hr. **Owner: Opus.** |
 | UX-063 | 🟢 Ready | **Mount `<MoodHeatmap>` into JournalLayout sidebar** | UX-059 shipped the heatmap; integration was deliberately deferred. Render in the `JournalLayout` sidebar slot, fed by the existing journal-data hook. ~2 hr. |
 | UX-064 | 🟢 Ready | **Mount `<RecipientProfile>` on a discoverable surface** | UX-060 shipped the card. Decide IA: separate `/recipient/[id]/profile` page vs. a tab in the existing journal route. Identity values must flow through `identityRepository.resolveIdentity` server-side; never read `identity_vault` from the client. ~3 hr. **Owner: Opus (PHI-sensitive).** |
+
+### CareSync 2.0 enrichment (UX-065..066) — opened 2026-04-30
+
+UX-062 + UX-064 shipped the surfaces but deliberately deferred narrative + relational data. These rows close those gaps.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-065 | 🟢 Ready | **BriefingHandoff narrative adapter for the shifts route** | UX-062 shipped a Calendar/Lanes/Now toggle on `ShiftsPanel` but left BriefingHandoff out — its `{summary, sleep, meds, schedule}` lines need source narratives that don't exist yet. Build a server-side adapter (`lib/handoffNarrative.ts` or extend `lib/handoffSummary.ts`) that turns the prior shift's care_events into 3 one-line summaries (sleep severity from sleep events, meds from medication events with given/missed counts, schedule from upcoming appointments + PT). Add Briefing as the 4th tab in `ShiftsPanel`. The existing "What did I miss?" modal (UX-19) covers the same surface but is modal-only — Briefing is the in-page toggle variant. ~4 hr. **Owner: Opus (schema + summarization).** |
+| UX-066 | 🟢 Ready | **RecipientProfile enrichment — mood / caregivers / About** | UX-064 shipped the route with name/age/conditions only. Wire the remaining `<RecipientProfile>` props: (a) `mood` from the latest `care_events` row with `payload.mood` for that recipient, (b) `caregivers` from `memberships` joined with display_names (resolved via identityRepository for PHI), (c) `about` — needs a new column on `care_recipients` (or a `recipient_profiles` table) with a coordinator-only edit affordance. Decide a/b/c sequencing: a + b are read-only joins (small); c is schema work. Consider splitting if the schema piece blocks. ~5 hr (or 2 + 3 if split). **Owner: Opus (PHI-sensitive caregivers join).** |
 
 ### Tier 1/2 server testing sweep — Plan A (TD-77..82, TD-87)
 
