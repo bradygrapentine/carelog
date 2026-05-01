@@ -2,52 +2,52 @@
 @import "tw-animate-css";
 
 @theme inline {
-  /* === Violet & Plum palette === */
+  /* === Sage Parlor palette (UX-067: now the default) ===
+     Eucalyptus primary, putty surface, ochre + clay accents. Quiet, lived-in. */
 
-  /* Primary */
-  --color-primary:        #7c3aed;   /* Violet 600 */
-  --color-primary-light:  #a78bfa;   /* Violet 400 */
-  --color-primary-subtle: #ede9fe;   /* Violet 100 */
+  /* Primary — eucalyptus */
+  --color-primary:        #5a7a5a;
+  --color-primary-light:  #7a9a7a;
+  --color-primary-subtle: #e3ecdf;
 
-  /* Secondary — warm amber (hope, warmth) — editorial highlight */
-  --color-secondary:        #d97706;   /* Amber 600 */
-  --color-secondary-light:  #f59e0b;   /* Amber 500 */
-  --color-secondary-subtle: #fef3c7;   /* Amber 100 */
+  /* Secondary — ochre */
+  --color-secondary:        #a8741a;
+  --color-secondary-light:  #c89030;
+  --color-secondary-subtle: #f5ead4;
 
-  /* Tertiary — warm coral — secondary actions, iconography, accents */
-  --color-tertiary:         #e76f51;   /* Coral 500 */
-  --color-tertiary-light:   #f08e76;
-  --color-tertiary-subtle:  #fbe0d6;
+  /* Tertiary — clay */
+  --color-tertiary:         #a85040;
+  --color-tertiary-light:   #c4705f;
+  --color-tertiary-subtle:  #f0ddd8;
 
   /* Accent — soft rose, for decorative surfaces */
   --color-accent-soft:    #fde4e4;
 
   /* Ink & surface */
-  --color-ink:     #1e0a3c;   /* Deep plum — headings */
-  --color-surface: #faf5ff;   /* Violet 50 — page backgrounds */
+  --color-ink:     #1f2820;   /* dark forest — headings */
+  --color-surface: #f6f4ee;   /* putty — page backgrounds */
 
-  /* App shell — stable dark plum across light/dark modes so the AppTabBar
-     doesn't invert into white-on-white when ink flips for dark mode. */
-  --color-app-shell:        #1e0a3c;
-  --color-app-shell-text:   #f5f3ff;
-  --color-app-shell-muted:  #c4b5fd;
+  /* App shell — dark forest sidebar (SageRail) */
+  --color-app-shell:        #1f2820;
+  --color-app-shell-text:   #e3ecdf;
+  --color-app-shell-muted:  #a8b8a4;
 
   /* Text */
-  --color-text-primary:   #1e0a3c;
-  --color-text-secondary: #4b5563;
-  --color-muted:          #6b7280;
+  --color-text-primary:   #1f2820;
+  --color-text-secondary: #4a5448;
+  --color-muted:          #7a8478;
 
   /* Border */
-  --color-border: #ede9fe;
+  --color-border: #dfddd2;
 
   /* Semantic */
   --color-warning: #f59e0b;
   --color-success: #10b981;
   --color-danger:  #c41a1a;
-  --color-success-subtle:  #f0fdf4;   /* Green 50 — in-progress event bg */
-  --color-warning-subtle:  #fffbeb;   /* Amber 50 — warning tint */
-  --color-surface-muted:   #f9fafb;   /* Gray 50 — completed/cancelled/off-range bg */
-  --color-danger-subtle:   #fef2f2;   /* Red 50 — unassigned event bg */
+  --color-success-subtle:  #f0fdf4;
+  --color-warning-subtle:  #fffbeb;
+  --color-surface-muted:   #ece9e0;
+  --color-danger-subtle:   #fef2f2;
 
   /* Mood (journal) */
   --color-mood-good:      #22c55e;
@@ -77,30 +77,30 @@
 
   /* === shadcn/ui HSL bridge ===
      shadcn reads these as "H S% L%" triplets (no hsl() wrapper).
-     Violet 600 = hsl(262, 83%, 58%)
-     Violet 50  = hsl(270, 100%, 98%)
-     Deep plum  = hsl(270, 90%, 14%)
+     Eucalyptus #5a7a5a = hsl(120, 16%, 42%)
+     Putty #f6f4ee     = hsl(54, 23%, 95%)
+     Dark forest #1f2820 = hsl(120, 14%, 13%)
   */
-  --background:          270 100% 98%;   /* surface */
-  --foreground:          270 90%  14%;   /* ink */
-  --card:                0   0%   100%;
-  --card-foreground:     270 90%  14%;
-  --border:              270 100% 93%;   /* primary-subtle */
-  --input:               270 100% 93%;
-  --ring:                262 83%  58%;   /* primary */
-  --radius:              0.625rem;       /* 10px */
-  --primary:             262 83%  58%;   /* #7c3aed */
-  --primary-foreground:  0   0%   100%;
-  --secondary:           270 100% 93%;   /* primary-subtle */
-  --secondary-foreground: 270 90% 14%;
-  --muted:               270 100% 93%;
-  --muted-foreground:    220 9%   46%;
-  --accent:              270 100% 93%;
-  --accent-foreground:   270 90%  14%;
-  --destructive:         0   84%  60%;   /* danger */
-  --destructive-foreground: 0 0%  100%;
-  --popover:             0   0%   100%;
-  --popover-foreground:  270 90%  14%;
+  --background:          54  23% 95%;   /* putty surface */
+  --foreground:          120 14% 13%;   /* dark forest ink */
+  --card:                0   0%  100%;
+  --card-foreground:     120 14% 13%;
+  --border:              60  10% 85%;   /* dfddd2 */
+  --input:               60  10% 85%;
+  --ring:                120 16% 42%;   /* eucalyptus */
+  --radius:              0.625rem;      /* 10px */
+  --primary:             120 16% 42%;  /* #5a7a5a */
+  --primary-foreground:  0   0%  100%;
+  --secondary:           60  20% 89%;
+  --secondary-foreground: 120 14% 13%;
+  --muted:               60  10% 89%;
+  --muted-foreground:    100 4%  47%;
+  --accent:              108 18% 90%;
+  --accent-foreground:   120 14% 13%;
+  --destructive:         0   60% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --popover:             0   0%  100%;
+  --popover-foreground:  120 14% 13%;
 }
 
 body {
@@ -244,51 +244,59 @@ body {
 }
 
 /* ── Light-only surfaces ──────────────────────────────────────────────────
-   Marketing pages stay in the Living Room daylight palette regardless of
-   system preference. Re-declaring the light tokens on a descendant beats
-   the `:root` overrides below in cascade order. */
+   Marketing pages stay in the Sage daylight palette regardless of system
+   preference. Re-declaring the light tokens on a descendant beats the
+   `:root` dark overrides in cascade order. */
 .surface-light-only {
-  --color-primary:        #7c3aed;
-  --color-primary-light:  #a78bfa;
-  --color-primary-subtle: #ede9fe;
-  --color-secondary:        #d97706;
-  --color-secondary-light:  #f59e0b;
-  --color-secondary-subtle: #fef3c7;
-  --color-tertiary:         #e76f51;
-  --color-tertiary-light:   #f08e76;
-  --color-tertiary-subtle:  #fbe0d6;
-  --color-ink:     #1e0a3c;
-  --color-surface: #faf5ff;
-  --color-text-primary:   #1e0a3c;
-  --color-text-secondary: #4b5563;
-  --color-muted:          #6b7280;
-  --color-border: #ede9fe;
-  --color-warning: #f59e0b;
-  --color-success: #10b981;
-  --color-danger:  #c41a1a;
+  --color-primary:          #5a7a5a;
+  --color-primary-light:    #7a9a7a;
+  --color-primary-subtle:   #e3ecdf;
+  --color-secondary:        #a8741a;
+  --color-secondary-light:  #c89030;
+  --color-secondary-subtle: #f5ead4;
+  --color-tertiary:         #a85040;
+  --color-tertiary-light:   #c4705f;
+  --color-tertiary-subtle:  #f0ddd8;
+  --color-ink:              #1f2820;
+  --color-surface:          #f6f4ee;
+  --color-surface-muted:    #ece9e0;
+  --color-app-shell:        #1f2820;
+  --color-app-shell-text:   #e3ecdf;
+  --color-app-shell-muted:  #a8b8a4;
+  --color-text-primary:     #1f2820;
+  --color-text-secondary:   #4a5448;
+  --color-muted:            #7a8478;
+  --color-border:           #dfddd2;
+  --color-warning:          #f59e0b;
+  --color-success:          #10b981;
+  --color-danger:           #c41a1a;
   color-scheme: light;
 }
 
 /* ── Dark mode token overrides ────────────────────────────────────────── */
 
-/* System preference */
+/* System preference — Sage dark */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-primary:          #a78bfa;
-    --color-primary-light:    #c4b5fd;
-    --color-primary-subtle:   #2e1065;
-    --color-secondary:        #fbbf24;
-    --color-secondary-light:  #fde68a;
-    --color-secondary-subtle: #451a03;
-    --color-tertiary:         #f08e76;
-    --color-tertiary-light:   #f5a994;
-    --color-tertiary-subtle:  #4a1f15;
-    --color-ink:              #f5f3ff;
-    --color-surface:          #0f0a1a;
-    --color-text-primary:     #e8e0f0;
-    --color-text-secondary:   #a89bc2;
-    --color-muted:            #9ca3af;
-    --color-border:           #2e1065;
+    --color-primary:          #d27a5e;
+    --color-primary-light:    #e89674;
+    --color-primary-subtle:   #3d2218;
+    --color-secondary:        #c89030;
+    --color-secondary-light:  #e2a948;
+    --color-secondary-subtle: #3a2810;
+    --color-tertiary:         #b88aa8;
+    --color-tertiary-light:   #cea3c0;
+    --color-tertiary-subtle:  #2e1f29;
+    --color-ink:              #f5ead4;
+    --color-surface:          #1a0f0a;
+    --color-surface-muted:    #251812;
+    --color-app-shell:        #0f0805;
+    --color-app-shell-text:   #f5ead4;
+    --color-app-shell-muted:  #c8a984;
+    --color-text-primary:     #f5ead4;
+    --color-text-secondary:   #c8a984;
+    --color-muted:            #8a7868;
+    --color-border:           #3a2820;
     --color-mood-good:        #22c55e;
     --color-mood-okay:        #eab308;
     --color-mood-difficult:   #f97316;
@@ -296,46 +304,53 @@ body {
     --color-warning:          #f59e0b;
     --color-success:          #22c55e;
     --color-danger:           #ef4444;
-    /* shadcn/ui HSL bridge — dark */
-    --background:          270 95%  7%;
-    --foreground:          270 100% 97%;
-    --card:                270 80%  10%;
-    --card-foreground:     270 100% 97%;
-    --border:              270 80%  20%;
-    --input:               270 80%  20%;
-    --ring:                270 100% 67%;
-    --primary:             270 100% 67%;
-    --primary-foreground:  270 95%  7%;
-    --secondary:           270 80%  15%;
-    --secondary-foreground: 270 100% 97%;
-    --muted:               270 40%  20%;
-    --muted-foreground:    270 30%  70%;
-    --accent:              270 80%  15%;
-    --accent-foreground:   270 100% 97%;
-    --destructive:         0   84%  60%;
+    --color-success-subtle:   #0d2a1a;
+    --color-warning-subtle:   #2a1f04;
+    --color-danger-subtle:    #2a0808;
+    /* shadcn/ui HSL bridge — sage dark */
+    --background:          24  44% 7%;
+    --foreground:          43  64% 90%;
+    --card:                22  29% 11%;
+    --card-foreground:     43  64% 90%;
+    --border:              24  17% 19%;
+    --input:               24  17% 19%;
+    --ring:                17  60% 60%;
+    --primary:             17  60% 60%;
+    --primary-foreground:  24  44% 7%;
+    --secondary:           24  29% 14%;
+    --secondary-foreground: 43 64% 90%;
+    --muted:               24  17% 19%;
+    --muted-foreground:    33  30% 67%;
+    --accent:              17  40% 22%;
+    --accent-foreground:   43  64% 90%;
+    --destructive:         0   84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --popover:             270 80%  10%;
-    --popover-foreground:  270 100% 97%;
+    --popover:             22  29% 11%;
+    --popover-foreground:  43  64% 90%;
   }
 }
 
-/* Manual toggle via .dark class (takes precedence over system preference) */
+/* Manual toggle via .dark class (takes precedence over system preference) — Sage dark */
 .dark {
-  --color-primary:          #a78bfa;
-  --color-primary-light:    #c4b5fd;
-  --color-primary-subtle:   #2e1065;
-  --color-secondary:        #fbbf24;
-  --color-secondary-light:  #fde68a;
-  --color-secondary-subtle: #451a03;
-  --color-tertiary:         #f08e76;
-  --color-tertiary-light:   #f5a994;
-  --color-tertiary-subtle:  #4a1f15;
-  --color-ink:              #f5f3ff;
-  --color-surface:          #0f0a1a;
-  --color-text-primary:     #e8e0f0;
-  --color-text-secondary:   #a89bc2;
-  --color-muted:            #9ca3af;
-  --color-border:           #2e1065;
+  --color-primary:          #d27a5e;
+  --color-primary-light:    #e89674;
+  --color-primary-subtle:   #3d2218;
+  --color-secondary:        #c89030;
+  --color-secondary-light:  #e2a948;
+  --color-secondary-subtle: #3a2810;
+  --color-tertiary:         #b88aa8;
+  --color-tertiary-light:   #cea3c0;
+  --color-tertiary-subtle:  #2e1f29;
+  --color-ink:              #f5ead4;
+  --color-surface:          #1a0f0a;
+  --color-surface-muted:    #251812;
+  --color-app-shell:        #0f0805;
+  --color-app-shell-text:   #f5ead4;
+  --color-app-shell-muted:  #c8a984;
+  --color-text-primary:     #f5ead4;
+  --color-text-secondary:   #c8a984;
+  --color-muted:            #8a7868;
+  --color-border:           #3a2820;
   --color-mood-good:        #22c55e;
   --color-mood-okay:        #eab308;
   --color-mood-difficult:   #f97316;
@@ -343,31 +358,35 @@ body {
   --color-warning:          #f59e0b;
   --color-success:          #22c55e;
   --color-danger:           #ef4444;
-  /* shadcn/ui HSL bridge — dark */
-  --background:          270 95%  7%;
-  --foreground:          270 100% 97%;
-  --card:                270 80%  10%;
-  --card-foreground:     270 100% 97%;
-  --border:              270 80%  20%;
-  --input:               270 80%  20%;
-  --ring:                270 100% 67%;
-  --primary:             270 100% 67%;
-  --primary-foreground:  270 95%  7%;
-  --secondary:           270 80%  15%;
-  --secondary-foreground: 270 100% 97%;
-  --muted:               270 40%  20%;
-  --muted-foreground:    270 30%  70%;
-  --accent:              270 80%  15%;
-  --accent-foreground:   270 100% 97%;
-  --destructive:         0   84%  60%;
+  --color-success-subtle:   #0d2a1a;
+  --color-warning-subtle:   #2a1f04;
+  --color-danger-subtle:    #2a0808;
+  /* shadcn/ui HSL bridge — sage dark */
+  --background:          24  44% 7%;
+  --foreground:          43  64% 90%;
+  --card:                22  29% 11%;
+  --card-foreground:     43  64% 90%;
+  --border:              24  17% 19%;
+  --input:               24  17% 19%;
+  --ring:                17  60% 60%;
+  --primary:             17  60% 60%;
+  --primary-foreground:  24  44% 7%;
+  --secondary:           24  29% 14%;
+  --secondary-foreground: 43 64% 90%;
+  --muted:               24  17% 19%;
+  --muted-foreground:    33  30% 67%;
+  --accent:              17  40% 22%;
+  --accent-foreground:   43  64% 90%;
+  --destructive:         0   84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --popover:             270 80%  10%;
-  --popover-foreground:  270 100% 97%;
+  --popover:             22  29% 11%;
+  --popover-foreground:  43  64% 90%;
 }
 
-/* ── UX-054: Sage parlor palette (selectable via data-theme="sage") ──────
-   Eucalyptus primary, putty surface, ochre + clay accents. Quieter, lived-in.
-   Coexists with default violet (Hearth) which renders when no data-theme set. */
+/* ── UX-054 / UX-067: Sage parlor palette ────────────────────────────────
+   Now the default (UX-067). This block kept as a no-op for safe transition;
+   [data-theme="sage"] matches when ThemeSwitcher explicitly sets the attribute
+   but is redundant since :root already carries sage tokens. */
 [data-theme="sage"] {
   --color-primary:          #5a7a5a;
   --color-primary-light:    #7a9a7a;
@@ -462,21 +481,21 @@ body {
   color: var(--color-primary-light);
 }
 
-/* Print: always use light mode */
+/* Print: always use Sage light mode */
 @media print {
   :root {
-    --color-primary:          #7c3aed;
-    --color-primary-subtle:   #ede9fe;
-    --color-tertiary:         #e76f51;
-    --color-tertiary-subtle:  #fbe0d6;
-    --color-ink:              #1e0a3c;
-    --color-surface:          #faf5ff;
-    --color-text-primary:     #1e0a3c;
-    --color-text-secondary:   #4b5563;
-    --background:          270 100% 98%;
-    --foreground:          270 90%  14%;
-    --card:                0   0%   100%;
-    --card-foreground:     270 90%  14%;
+    --color-primary:          #5a7a5a;
+    --color-primary-subtle:   #e3ecdf;
+    --color-tertiary:         #a85040;
+    --color-tertiary-subtle:  #f0ddd8;
+    --color-ink:              #1f2820;
+    --color-surface:          #f6f4ee;
+    --color-text-primary:     #1f2820;
+    --color-text-secondary:   #4a5448;
+    --background:          54  23% 95%;
+    --foreground:          120 14% 13%;
+    --card:                0   0%  100%;
+    --card-foreground:     120 14% 13%;
   }
 }
 

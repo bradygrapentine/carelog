@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { ThemeSwitcher, applyPalette } from "../ThemeSwitcher";
 
-const PALETTE_KEY = "carelog-palette";
 const THEME_KEY = "carelog-theme";
 
 describe("ThemeSwitcher", () => {
@@ -22,27 +21,11 @@ describe("ThemeSwitcher", () => {
   });
   afterEach(() => cleanup());
 
-  it("defaults to hearth and no data-theme attribute", () => {
+  it("renders a single light/dark toggle button", () => {
     render(<ThemeSwitcher />);
     expect(
-      screen.getByRole("button", { name: /hearth palette/i }),
-    ).toHaveAttribute("aria-pressed", "true");
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
-  });
-
-  it("switching to sage sets data-theme and persists to localStorage", () => {
-    render(<ThemeSwitcher />);
-    fireEvent.click(screen.getByRole("button", { name: /sage parlor/i }));
-    expect(document.documentElement.getAttribute("data-theme")).toBe("sage");
-    expect(localStorage.getItem(PALETTE_KEY)).toBe("sage");
-  });
-
-  it("switching back to hearth removes the data-theme attribute", () => {
-    render(<ThemeSwitcher />);
-    fireEvent.click(screen.getByRole("button", { name: /sage parlor/i }));
-    fireEvent.click(screen.getByRole("button", { name: /hearth palette/i }));
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
-    expect(localStorage.getItem(PALETTE_KEY)).toBe("hearth");
+      screen.getByRole("button", { name: /switch to dark mode/i }),
+    ).toBeInTheDocument();
   });
 
   it("dark toggle adds .dark class and persists", () => {
@@ -54,19 +37,23 @@ describe("ThemeSwitcher", () => {
     expect(localStorage.getItem(THEME_KEY)).toBe("dark");
   });
 
-  it("hydrates from existing localStorage palette", () => {
-    localStorage.setItem(PALETTE_KEY, "sage");
+  it("toggling dark twice returns to light", () => {
     render(<ThemeSwitcher />);
-    expect(
-      screen.getByRole("button", { name: /sage parlor/i }),
-    ).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /switch to dark mode/i }));
+    fireEvent.click(screen.getByRole("button", { name: /switch to light mode/i }));
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(localStorage.getItem(THEME_KEY)).toBe("light");
   });
 
-  it("applyPalette helper toggles the data-theme attribute", () => {
-    applyPalette("sage");
-    expect(document.documentElement.getAttribute("data-theme")).toBe("sage");
-    applyPalette("hearth");
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  it("does not render a palette picker", () => {
+    render(<ThemeSwitcher />);
+    expect(screen.queryByRole("button", { name: /hearth/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /sage parlor/i })).toBeNull();
+  });
+
+  it("applyPalette is a no-op (backward compat export still exists)", () => {
+    // Should not throw
+    expect(() => applyPalette("sage")).not.toThrow();
   });
 
   it("survives a localStorage quota error without throwing", () => {
@@ -76,8 +63,8 @@ describe("ThemeSwitcher", () => {
         throw new Error("quota");
       });
     render(<ThemeSwitcher />);
-    fireEvent.click(screen.getByRole("button", { name: /sage parlor/i }));
-    expect(document.documentElement.getAttribute("data-theme")).toBe("sage");
+    fireEvent.click(screen.getByRole("button", { name: /switch to dark mode/i }));
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
     setItem.mockRestore();
   });
 });
