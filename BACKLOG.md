@@ -20,12 +20,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 21 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · PP-009 |
+| 🟢 Ready | 32 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-095..105 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
-| 🧑 Needs human | 9 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 |
+| 🧑 Needs human | 10 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -210,6 +210,25 @@ Source: `docs/caresync-handoff/` (clickable React+Babel design prototype, frozen
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | UX-077 | 🟢 Ready | **Today route default flip — TimeRailTimeline as default, NowBoard behind `?layout=board`** | Deferred during 2026-05-01 PM session: there is no separate Today route — the dashboard already has a 3-way `DashboardViewToggle` (single / stacked / now). Flipping the default to TimeRailTimeline (or adding it as a 4th option) needs a product decision on whether the timeline view should replace one of the existing three or live alongside. The presentational components (`TimeRailTimeline`, `TimelineFilterChips`) shipped in #361 and are ready to wire once direction is decided. |
+
+### CareSync handoff follow-ups (UX-095..UX-106) — opened 2026-05-01 PM
+
+After the 28-story handoff session shipped (#349..#365), an honest audit revealed several presentational components are built + tested but not yet visible to users — they're orphaned (never mounted) or mounted with empty states pending data plumbing. These rows close those gaps. Plan: `docs/design/caresync-handoff-followups-plan.md`. Three waves: (8) Brief surface mount + adapters — no schema. (9) Shifts data — 2 of 3 need migrations. (10) Profile data — 2 of 3 need migrations. (11) UX-077 + default-flip decisions.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| UX-095 | 🟢 Ready | **Brief surface mount — wire SleepSparkline + ComingUpRows + ShiftQuoteNote + OnShiftSidebar + PatternCard into DashboardClient** | The 5 brief components from UX-071..074 shipped but nothing renders them. Mount in DashboardClient's primary column alongside BriefHero (sleep card + coming-up below the headline; on-shift sidebar in right rail). Initial pass uses derivations from existing queries; empty states where data is absent. **No schema.** ~3 hr. Blocked-by: none (UX-095..099 may merge in any order). |
+| UX-096 | 🟢 Ready | **Sleep data adapter — derive 7-night sleep from care_events** | Pure helper `lib/sleepFromEvents.ts` — pull `event_type='sleep'` rows for the past 7 nights, bucket by night, return `SleepNight[]` for `<SleepSparkline>`. Empty array if no events. Unit-tested. **No schema.** ~2 hr. |
+| UX-097 | 🟢 Ready | **Coming-up events adapter — derive next 4–5 events for `<ComingUpRows>`** | Helper or query that returns the next ≤5 scheduled items (medications + appointments) from `care_events.scheduled_for > now()`. Caller maps to `ComingUpEvent[]`. **Maybe schema** — needs to confirm `scheduled_for` exists; if not, add a thin tRPC query against existing tables. ~3 hr. |
+| UX-098 | 🟢 Ready | **On-shift derivation — derive current/next caregiver + latest mood for `<OnShiftSidebar>`** | Adapter from `shifts.list` (current week) + `journal.latestMood` for the recipient. Pure read-only join helper. **No schema.** ~2 hr. |
+| UX-099 | 🟢 Ready | **PatternCard headline detection — pick one notable trend from 7d care_events** | Lightweight pattern helper: scan past 7 days for the single most pattern-worthy signal (e.g. "sleep dipped", "med missed twice", "mood trending down") and return a `{ eyebrow, headline, detail, trend }` for `<PatternCard>`. Returns `null` if no clear pattern. Threshold-driven, not ML. **No schema.** ~4 hr. |
+| UX-100 | 🟢 Ready | **ShiftWeekGrid blocks adapter — map `shifts.list` → ShiftBlock[]** | Pure helper in `lib/shiftLayouts.ts` (extends existing module). Wire into ShiftsPanel "Week" tab so it renders real schedule blocks. ShiftLanes and TeamNowBoard already adapt from the same query — model after them. **No schema.** ~3 hr. |
+| UX-101 | 🟢 Ready | **Shift narrative-handoff schema + tRPC + adapter** | Migration: add `handoff_entries jsonb` (or a new `shift_handoffs` table) to capture the "Three things you need to know" narrative per shift. tRPC: `shifts.upsertHandoff` + `shifts.getLatestHandoff`. Wire into ShiftsPanel "Handoff" tab so view + edit modes work. **Schema work — pgTAP coverage required.** ~6 hr. **Owner: Opus (schema + RLS).** |
+| UX-102 | 🟢 Ready | **Open questions schema + tRPC + adapter** | Migration: new `shift_questions` table (id, recipient_id, org_id, text, raised_by, raised_at, resolved_at, resolved_by). RLS: same policy shape as `shifts`. tRPC: list / create / resolve. Wire into ShiftsPanel "Questions" tab. **Schema work — pgTAP coverage required.** ~5 hr. **Owner: Opus (schema + RLS).** |
+| UX-103 | 🟢 Ready | **CareTeamList adapter on profile route — query memberships + display_names** | Server-side query in `recipient/[recipientId]/profile/page.tsx`: list memberships for the recipient's org, resolve display_names via `identityRepository`, derive role labels, pass to `<CareTeamList>`. Phone numbers deferred until a profile-edit story adds them. **No schema (uses existing tables).** ~3 hr. **Owner: Opus (PHI-sensitive identity resolution).** |
+| UX-104 | 🟢 Ready | **Recipient likes/dislikes schema + edit affordance** | Migration: add `likes text[]` + `dislikes text[]` to `care_recipients` (or a new `recipient_profile` row table). Coordinator-only edit affordance (small inline composer on the profile page). Wire `<LikesDislikesList>` to read these. **Schema work — pgTAP coverage required.** ~5 hr. **Owner: Opus (schema + RLS).** Pairs with UX-066 (RecipientProfile enrichment). |
+| UX-105 | 🟢 Ready | **Emergency info schema + edit affordance** | Migration: add `dnr_status text`, `emergency_contact jsonb` (name + relationship + phone), `hospital_preference text` to `care_recipients`. Coordinator-only edit affordance. Wire `<EmergencyFooterCard>` to read these via `identityRepository` (PHI sensitive). **Schema work + PHI — pgTAP coverage required.** ~6 hr. **Owner: Opus (schema + RLS + PHI).** |
+| UX-106 | 🧑 Needs human | **Decision: flip default app shell to SageRail** | UX-068c shipped SageRail + SageTopBar behind `?shell=sage` opt-in. Decide whether to (a) flip the default and demote AppTabBar to legacy, (b) keep opt-in until further user testing, or (c) ship SageRail as the desktop chrome and keep AppTabBar mobile-only. ~1 hr exec once decided. |
 
 ### CI regression — opened 2026-04-30
 
