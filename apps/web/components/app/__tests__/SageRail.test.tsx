@@ -56,8 +56,8 @@ describe("SageRail", () => {
   it("renders the recipient footer with name, age, and relationship", () => {
     render(<SageRail {...defaultProps} />);
     expect(screen.getByText("Margaret H.")).toBeInTheDocument();
-    expect(screen.getByText(/82/)).toBeInTheDocument();
-    expect(screen.getByText(/Mom/)).toBeInTheDocument();
+    // The age · relationship mono label — "82 · Mom"
+    expect(screen.getByText(/82\s*·\s*Mom/)).toBeInTheDocument();
   });
 
   it("shows a count badge on daily-brief when attentionCount > 0", () => {
