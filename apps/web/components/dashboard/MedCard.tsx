@@ -6,6 +6,9 @@ import { trpc } from "@/lib/trpc";
 import { formatClockTime } from "@/lib/format";
 import { MedScheduleStrip } from "@/components/medications/MedScheduleStrip";
 import { AdherenceChart } from "@/components/medications/AdherenceChart";
+import { MedAttentionHero } from "@/components/medications/MedAttentionHero";
+import { MedStatusBadge } from "@/components/medications/MedStatusBadge";
+import { RxGlyph } from "@/components/medications/RxGlyph";
 import {
   buildAdherenceDays,
   buildStripDoses,
@@ -99,6 +102,33 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   const isError = schedulesError || logError;
   const takenCount = rows.filter((r) => r.taken).length;
 
+  function isPastScheduledTime(hms: string): boolean {
+    const [h, m] = hms.split(":").map((n) => parseInt(n, 10));
+    if (Number.isNaN(h) || Number.isNaN(m)) return false;
+    const now = new Date();
+    const minutesNow = now.getHours() * 60 + now.getMinutes();
+    return h * 60 + m < minutesNow;
+  }
+
+  function rowStatus(row: MedRow): "on-track" | "missed" | null {
+    if (row.taken) return "on-track";
+    if (isPastScheduledTime(row.scheduledTime)) return "missed";
+    return null;
+  }
+
+  const missedDoses = useMemo(
+    () =>
+      rows
+        .filter((r) => !r.taken && isPastScheduledTime(r.scheduledTime))
+        .map((r) => ({
+          medName: `${r.name} ${r.dose}`,
+          scheduledTime: r.timeLabel,
+          medId: r.medId,
+          rawScheduledTime: r.scheduledTime,
+        })),
+    [rows],
+  );
+
   const stripDoses = useMemo(() => {
     if (!weekData) return [];
     const today = new Date();
@@ -164,8 +194,13 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
       <div className="mb-3 flex items-baseline justify-between">
         <h2
           id="meds-card-heading"
-          className="text-sm font-semibold text-[var(--color-ink)]"
+          className="flex items-center gap-2 text-sm font-semibold text-[var(--color-ink)]"
         >
+          <RxGlyph
+            size={18}
+            className="text-[var(--color-primary)]"
+            ariaLabel="Medications"
+          />
           Medications
         </h2>
         {!isLoading && !isError && rows.length > 0 && (
@@ -174,6 +209,21 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
           </span>
         )}
       </div>
+
+      {!isLoading && !isError && missedDoses.length > 0 && (
+        <div className="mb-4">
+          <MedAttentionHero
+            missedDoses={missedDoses.map((d) => ({
+              medName: d.medName,
+              scheduledTime: d.scheduledTime,
+            }))}
+            onRecordCatchUp={(medName) => {
+              const dose = missedDoses.find((d) => d.medName === medName);
+              if (dose) handleLog(dose.medId, dose.rawScheduledTime);
+            }}
+          />
+        </div>
+      )}
 
       {isLoading && (
         <ul className="space-y-2" aria-label="Loading medications">
@@ -260,6 +310,13 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
                 {med.name}{" "}
                 <span className="text-[var(--color-muted)]">· {med.dose}</span>
               </span>
+
+              {(() => {
+                const status = rowStatus(med);
+                return status ? (
+                  <MedStatusBadge status={status} className="shrink-0" />
+                ) : null;
+              })()}
 
               {!med.taken && (
                 <button

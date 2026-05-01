@@ -221,8 +221,10 @@ describe("DashboardClient — real-data integration", () => {
       ).toBeInTheDocument(),
     );
 
-    // MedCard — drug_name from listScheduled.
-    expect(screen.getByText(/Lisinopril/i)).toBeInTheDocument();
+    // MedCard — drug_name from listScheduled. UX-081 mounted MedAttentionHero
+    // which also renders the med name when the dose is past-due, so there may
+    // be more than one occurrence in the DOM.
+    expect(screen.getAllByText(/Lisinopril/i).length).toBeGreaterThan(0);
 
     // MoodCard — todayLabel from sparkline.
     expect(screen.getByTestId("mood-label")).toHaveTextContent("Mood: calm");
