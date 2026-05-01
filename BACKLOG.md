@@ -20,12 +20,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 22 | TD-03 · TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · PP-009 · LAUNCH-004 |
+| 🟢 Ready | 20 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
-| 🧑 Needs human | 8 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-83 |
+| 🧑 Needs human | 9 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -74,7 +74,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-02 | ✅ Shipped · PR #87 | **Dynamic Type + screen-reader audit (mobile)** | scaledFont + accessibilityLabel sweep shipped. Physical device VoiceOver verification deferred to human. |
-| TD-03 | 🟢 Ready | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Needs 🧑 env var in Vercel. |
+| TD-03 | 🧑 Needs human | **Sentry source maps upload** | BUILD_STATUS: "source maps pending `SENTRY_AUTH_TOKEN`". Code wired (`apps/web/next.config.ts` Sentry plugin) + runbook documents enable steps (`docs/project-info/runbooks/OBSERVABILITY.md` §1). Only the human action of setting the Vercel env var remains. |
 | TD-12 | ✅ Shipped · PR #118 | **Fix missing Dialog + Label UI components** | Created `dialog.tsx` + `label.tsx` wrapping @base-ui/react; unskipped test files. |
 | TD-13 | ✅ Shipped · PR #116 | **CommentThread mutation error handling** | Added `onError: () => toast.error(...)` to add/edit/remove mutations; 3 new tests. |
 | TD-11 | ✅ Shipped · 2026-04-17 | **data-testid sweep for medication components** | All data-testids already existed in MedicationPanel.tsx + MedicationChecklist.tsx; e2e spec already uses them. No code changes needed. |
@@ -243,7 +243,7 @@ Source: external design prototype (CareSync Prototype.html) handed off as enhanc
 | LAUNCH-001 | 🧑 Needs human | **App Store launch — TestFlight QA + App Store Connect listing** | Run internal TestFlight cycle (≥1 week, ≥3 real-device testers). Complete App Store Connect listing: description, keywords, screenshots (iPhone 6.7″ + 5.5″), app preview video optional. iOS privacy nutrition label. Android Play Console parity (listing + privacy). Human-gated: EAS production build must be complete first. |
 | LAUNCH-002 | ✅ Shipped · PR #225 | **EAS production build profile + OTA gating** | Finalized `eas.json` production profile + channel pinning + `runtimeVersion` policy; release runbook at `docs/project-info/runbooks/MOBILE_RELEASE.md`. |
 | LAUNCH-003 | ✅ Shipped · PR #226 | **Web go-live SEO/OG meta + sitemap + structured data** | Added `<meta og/twitter>` to all marketing pages, `sitemap.ts`/`robots.ts`, Organization + SoftwareApplication JSON-LD on landing. |
-| LAUNCH-004 | 🟢 Ready | **Observability hardening** | Wire Sentry source maps (depends on TD-03 env var), add prod rate-limit dashboard (TD-73), add weekly digest monitoring (TD-74), add E2E green-streak gate (TD-75). Observability checklist doc in `docs/project-info/runbooks/`. ~1 day total (coordinates the TD sub-items). |
+| LAUNCH-004 | ✅ Shipped · runbook | **Observability hardening** | All four sub-items closed: TD-73 rate-limit dashboard (PR #227), TD-74 digest delivery monitor (#227), TD-75 E2E green-streak gate (#227), Sentry SDK + source-maps plugin wired (PR #309 + earlier). 319-line runbook at `docs/project-info/runbooks/OBSERVABILITY.md`. The remaining `SENTRY_AUTH_TOKEN` env var is human-gated and tracked separately as TD-03. |
 | LAUNCH-005 | 🧑 Needs human | **Compliance / legal — privacy policy, ToS, BAA, data retention** | Publish privacy policy + ToS at stable URLs (linked from signup + footer). Obtain BAA from Supabase (HIPAA) and Resend if processing PHI in email bodies. Document data-retention and deletion runbook (how to honor right-to-erasure requests). Human-gated: legal review required. |
 
 Rules: mark `✅` when done; list `**Blocked by:**` if a prerequisite is still open; one story per `###`; stay under ~4 hrs of work.
