@@ -18,6 +18,10 @@ import {
 } from "@/components/dashboard/DashboardViewToggle";
 import { RecipientSummaryCard } from "@/components/dashboard/RecipientSummaryCard";
 import { NowBoard } from "@/components/dashboard/NowBoard";
+import { ComingUpRows } from "@/components/brief/ComingUpRows";
+import { OnShiftSidebar } from "@/components/brief/OnShiftSidebar";
+// SleepSparkline, ShiftQuoteNote, PatternCard mount once their adapter rows
+// (UX-096..099) ship — see docs/design/caresync-handoff-followups-plan.md.
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -222,7 +226,7 @@ export function DashboardClient({ user }: Props) {
     null;
   const recipientFullName = focusedTeam?.recipientName ?? null;
   const recipientFirstName = recipientFullName
-    ? recipientFullName.split(" ")[0] ?? recipientFullName
+    ? (recipientFullName.split(" ")[0] ?? recipientFullName)
     : null;
 
   // Whether to show layout B (stacked) — only possible when N > 1
@@ -312,9 +316,7 @@ export function DashboardClient({ user }: Props) {
                         key={team.org.id}
                         type="button"
                         aria-pressed={isSelected}
-                        onClick={() =>
-                          setSelectedRecipientId(team.recipientId)
-                        }
+                        onClick={() => setSelectedRecipientId(team.recipientId)}
                         className={
                           "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
                           (isSelected
@@ -368,12 +370,20 @@ export function DashboardClient({ user }: Props) {
             ReferralCard moved to Settings (UX-039a).
           */
           <>
-            {/* BriefHero + side cards — wired to focusedTeam (selectedRecipientId-driven) */}
+            {/* BriefHero + side cards — wired to focusedTeam (selectedRecipientId-driven).
+                UX-095: editorial brief surface — sleep/coming-up/quote stacked
+                in the left column under BriefHero; on-shift sidebar in the right
+                rail; pattern card below the fold. v1 uses empty/stub data; the
+                adapter rows (UX-096..099) will plug real signals in. */}
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
-              <BriefHero
-                recipientId={focusedTeam?.recipientId}
-                orgId={focusedTeam?.org.id}
-              />
+              <div className="flex flex-col gap-4">
+                <BriefHero
+                  recipientId={focusedTeam?.recipientId}
+                  orgId={focusedTeam?.org.id}
+                />
+                {/* SleepSparkline mounts here once UX-096 supplies 7-night data. */}
+                <ComingUpRows events={[]} />
+              </div>
               <div className="flex flex-col gap-4">
                 <MedCard
                   recipientId={focusedTeam?.recipientId}
@@ -383,6 +393,7 @@ export function DashboardClient({ user }: Props) {
                   recipientId={focusedTeam?.recipientId}
                   orgId={focusedTeam?.org.id}
                 />
+                <OnShiftSidebar onNow={null} upNext={null} latestMood={null} />
               </div>
             </div>
 
@@ -408,9 +419,7 @@ export function DashboardClient({ user }: Props) {
                         key={team.org.id}
                         type="button"
                         aria-pressed={isSelected}
-                        onClick={() =>
-                          setSelectedRecipientId(team.recipientId)
-                        }
+                        onClick={() => setSelectedRecipientId(team.recipientId)}
                         className={
                           "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
                           (isSelected
