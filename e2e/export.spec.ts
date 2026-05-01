@@ -95,9 +95,9 @@ test.describe("Export button — coordinator", () => {
 
     await page.getByRole("button", { name: "Download export" }).click();
 
-    await expect(
-      page.getByText("Export failed. Please try again."),
-    ).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText(/the export didn'?t finish/i)).toBeVisible({
+      timeout: 8000,
+    });
   });
 });
 
