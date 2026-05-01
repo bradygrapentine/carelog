@@ -1,6 +1,7 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -10,6 +11,8 @@ import { HandoffSummary } from "@/components/HandoffSummary";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { JournalTimeline } from "./JournalTimeline";
 import { MoodHeatmap } from "@/components/journal/MoodHeatmap";
+import { WeeklyMoodBars } from "@/components/journal/WeeklyMoodBars";
+import { FridayExportHint } from "@/components/journal/FridayExportHint";
 import type { Mood } from "@/lib/mood";
 import { TeamPanel } from "./TeamPanel";
 import { ShiftForm } from "./ShiftForm";
@@ -121,6 +124,46 @@ export function JournalLayout({
   const [handoffOpen, setHandoffOpen] = useState(false);
   const sectionLabel = DESTINATION_LABELS[activeDestination] ?? "Journal";
 
+  const searchParams = useSearchParams();
+  const useHeatmapSidebar = searchParams?.get("sidebar") === "heatmap";
+
+  // Anchor the 7-day cutoff at mount to keep useMemo pure (Date.now() inside
+  // render trips the react-hooks/purity rule under React 19's compiler).
+  const [sevenDaysAgo] = useState(() => Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const moodEntries = useMemo(
+    () =>
+      events
+        .filter(
+          (e) =>
+            e.entry_kind === "human" && typeof e.payload?.mood === "string",
+        )
+        .map((e) => ({
+          created_at: e.occurred_at,
+          mood: (e.payload?.mood ?? null) as Mood | null,
+        })),
+    [events],
+  );
+
+  const weeklyMoodCounts = useMemo(() => {
+    let good = 0;
+    let steady = 0;
+    let difficult = 0;
+    for (const e of moodEntries) {
+      if (!e.mood) continue;
+      const ts = Date.parse(e.created_at);
+      if (Number.isNaN(ts) || ts < sevenDaysAgo) continue;
+      if (e.mood === "good") good += 1;
+      else if (e.mood === "okay") steady += 1;
+      else if (e.mood === "difficult") difficult += 1;
+    }
+    return [
+      { mood: "good" as const, count: good },
+      { mood: "steady" as const, count: steady },
+      { mood: "difficult" as const, count: difficult },
+    ];
+  }, [moodEntries, sevenDaysAgo]);
+
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
       <div className="flex flex-col min-h-screen">
@@ -216,20 +259,14 @@ export function JournalLayout({
                 </div>
                 <aside
                   aria-label="Mood overview"
-                  className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start"
+                  className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start space-y-4"
                 >
-                  <MoodHeatmap
-                    entries={events
-                      .filter(
-                        (e) =>
-                          e.entry_kind === "human" &&
-                          typeof e.payload?.mood === "string",
-                      )
-                      .map((e) => ({
-                        created_at: e.occurred_at,
-                        mood: (e.payload?.mood ?? null) as Mood | null,
-                      }))}
-                  />
+                  {useHeatmapSidebar ? (
+                    <MoodHeatmap entries={moodEntries} />
+                  ) : (
+                    <WeeklyMoodBars counts={weeklyMoodCounts} />
+                  )}
+                  <FridayExportHint />
                 </aside>
               </div>
             </>
