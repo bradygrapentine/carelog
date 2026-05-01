@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 27 | TD-03 · TD-78..82 · TD-87 · TD-100 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-061..066 · PP-009 · LAUNCH-004 |
+| 🟢 Ready | 28 | TD-03 · TD-78..82 · TD-87 · TD-100 · TD-106 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-061..066 · PP-009 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -202,6 +202,12 @@ UX-062 + UX-064 shipped the surfaces but deliberately deferred narrative + relat
 |---|---|---|---|
 | UX-065 | 🟢 Ready | **BriefingHandoff narrative adapter for the shifts route** | UX-062 shipped a Calendar/Lanes/Now toggle on `ShiftsPanel` but left BriefingHandoff out — its `{summary, sleep, meds, schedule}` lines need source narratives that don't exist yet. Build a server-side adapter (`lib/handoffNarrative.ts` or extend `lib/handoffSummary.ts`) that turns the prior shift's care_events into 3 one-line summaries (sleep severity from sleep events, meds from medication events with given/missed counts, schedule from upcoming appointments + PT). Add Briefing as the 4th tab in `ShiftsPanel`. The existing "What did I miss?" modal (UX-19) covers the same surface but is modal-only — Briefing is the in-page toggle variant. ~4 hr. **Owner: Opus (schema + summarization).** |
 | UX-066 | 🟢 Ready | **RecipientProfile enrichment — mood / caregivers / About** | UX-064 shipped the route with name/age/conditions only. Wire the remaining `<RecipientProfile>` props: (a) `mood` from the latest `care_events` row with `payload.mood` for that recipient, (b) `caregivers` from `memberships` joined with display_names (resolved via identityRepository for PHI), (c) `about` — needs a new column on `care_recipients` (or a `recipient_profiles` table) with a coordinator-only edit affordance. Decide a/b/c sequencing: a + b are read-only joins (small); c is schema work. Consider splitting if the schema piece blocks. ~5 hr (or 2 + 3 if split). **Owner: Opus (PHI-sensitive caregivers join).** |
+
+### CI regression — opened 2026-04-30
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-106 | 🟢 Ready | **Fix `e2e/export.spec.ts:81` — toast text drift after TD-96** | TD-96 (PR #306) standardized mutation-error toasts and changed `ExportButton`'s catch-block toast from `"Export failed. Please try again."` to `"The export didn't finish. Try again, or pick a smaller date range."`. The Playwright spec at `e2e/export.spec.ts:99-100` still asserts the old text → "export error message shown when API returns non-OK" fails on every PR with `Error: element(s) not found / Locator: getByText('Export failed. Please try again.')`. Mergify lets PRs through despite the failure, but the regression net is permanently red and any *new* export regression would now go undetected. Fix: update the spec's locator to match the current sonner toast (`"The export didn't finish."` or a tighter regex). Also worth checking for other catch-block toasts whose copy was rewritten by TD-96 and whose tests weren't updated. ~0.5 hr. |
 
 ### Tier 1/2 server testing sweep — Plan A (TD-77..82, TD-87)
 
