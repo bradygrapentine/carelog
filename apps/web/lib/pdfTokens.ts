@@ -20,10 +20,10 @@
  *   approves the visual diff.
  */
 export const pdfTokens = {
-  // Matched tokens — values mirror globals.css exactly
-  ink: "#1e0a3c", // --color-ink
-  muted: "#6b7280", // --color-muted
-  border: "#ede9fe", // --color-border
+  // Matched tokens — values mirror globals.css exactly (UX-067: Sage default)
+  ink: "#1f2820", // --color-ink (dark forest, was deep plum #1e0a3c)
+  muted: "#7a8478", // --color-muted (sage muted, was neutral #6b7280)
+  border: "#dfddd2", // --color-border (putty border, was violet #ede9fe)
   danger: "#c41a1a", // --color-danger
   neutral100: "#f3f4f6", // --color-neutral-100
   neutral200: "#e5e7eb", // --color-neutral-200
@@ -33,7 +33,7 @@ export const pdfTokens = {
   // Drift tokens — current shipping PDF values that don't match a globals.css
   // token. Kept verbatim to preserve pixel-identical output.
   dangerLegacy: "#dc2626", // closest match: --color-danger (#c41a1a)
-  inkLegacy: "#1a1a1a", // closest match: --color-ink (#1e0a3c)
+  inkLegacy: "#1a1a1a", // closest match: --color-ink (#1f2820)
 } as const;
 
 export type PdfToken = keyof typeof pdfTokens;
