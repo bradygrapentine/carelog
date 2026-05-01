@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-04-30 PM** — promoted UX-054..UX-060 (CareSync 2.0 design batch, PRs #320–#326), TD-77 (PR #328), TD-98 (#334), TD-101 (#333), TD-102 (#329), TD-103 (#331), TD-104 (#330), A11Y-019 (#332) to ✅ Shipped. Plan B + CareSync 2.0 wave landed; remaining Ready = 25.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-01** — promoted TD-100 (PR #336), UX-061 (#337), UX-063 (#338), UX-062 (#339), UX-064 (#340), TD-106 (#343) to ✅ Shipped. Plan C complete (UX-061..064); follow-ups UX-065 + UX-066 added in #341. Remaining Ready = 22.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 28 | TD-03 · TD-78..82 · TD-87 · TD-100 · TD-106 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-061..066 · PP-009 · LAUNCH-004 |
+| 🟢 Ready | 22 | TD-03 · TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · PP-009 · LAUNCH-004 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -143,7 +143,7 @@ Source: `/impeccable harden` audit against the whole web app on 2026-04-29 (`/tm
 | TD-97 | ✅ Shipped · PR #307 | **`disabled={mutation.isPending}` on every form submit** | High severity. ~11 disabled-while-pending guards across all submit handlers. Most submit buttons are not disabled while the mutation is in flight — mashing Submit on a slow connection enqueues N duplicate inserts. Highest risk on the offline-queue path, which already replays writes. Audit every `<form onSubmit>` and every primary action button calling a `useMutation`; add `disabled={mutation.isPending}` + idempotency assertion where the server can't dedupe. Test plan: a single component test per form that simulates 5 rapid clicks and asserts the mutation fired exactly once. ~4 hr. |
 | TD-98 | ✅ Shipped · PR #334 | **Text overflow / truncation pass on cards** | Med severity. `apps/web/components/dashboard/MedCard.tsx:192-200`: `<span className="flex-1 …">{med.name} · {med.dose}</span>` has no `min-w-0` / `truncate`. A 60-char drug name (e.g. *"Methylphenidate hydrochloride extended-release 36 mg"*) overflows the card or pushes the Log button off-screen on 320px. The `aria-label` on the Log button also inflates. Same risk: RecipientHeader, ShiftEventCard, JournalTimeline entry titles. Apply `min-w-0 truncate` (or 2-line clamp) and add a 60+ char fixture to the relevant component test. ~2 hr. |
 | TD-99 | ✅ Shipped · PR #302 | **Per-route `error.tsx` boundaries** | High severity. Only `/dashboard` and `/journal/[recipientId]` have `error.tsx` boundaries. Settings, Messages, Education, Subscriptions, Billing, Visit Summary, History Export, Team Admin all crash to the root error boundary on any render error — losing in-flight form state. Add per-route `error.tsx` with retry + "go back" affordance to all 8 missing routes. ~2 hr. |
-| TD-100 | 🟢 Ready | **Journal timeline cursor pagination + virtualization** | Med severity. `JournalTimeline.tsx` renders all DOM nodes for the recipient — a recipient with 2000 journal entries (a year of daily logs + meds) creates a heavy DOM tree. No `react-window` / `@tanstack/virtual` / cursor on the read path. Add cursor pagination + `IntersectionObserver` "load more" with a 200-entry threshold for client-side render. ~4 hr. |
+| TD-100 | ✅ Shipped · PR #336 | **Journal timeline cursor pagination + virtualization** | Med severity. `JournalTimeline.tsx` renders all DOM nodes for the recipient — a recipient with 2000 journal entries (a year of daily logs + meds) creates a heavy DOM tree. No `react-window` / `@tanstack/virtual` / cursor on the read path. Add cursor pagination + `IntersectionObserver` "load more" with a 200-entry threshold for client-side render. ~4 hr. |
 | TD-101 | ✅ Shipped · PR #333 | **RTL smoke test** | Med severity. 107 tailwind logical-direction utility usages (`ms-/me-/ps-/pe-`) — solid baseline. But: zero `dir="rtl"` test fixture, custom CSS in `globals.css` uses physical properties in spots, app-shell rail is left-anchored without an inline-start variant. Not currently a shipped concern, but if CareSync expands to Spanish-speaking caregivers (a real persona) the editorial Fraunces blocks need an RTL audit. Add an RTL smoke test that loads `/dashboard` with `dir="rtl"` and screenshots the result. ~2 hr. |
 | TD-102 | ✅ Shipped · PR #329 | **`mutations.retry: 0` in TrpcProvider** | Med severity. `apps/web/components/providers/TrpcProvider.tsx:16` sets `retry: 1` globally. For idempotent reads this is fine; for the implicit retries on `useMutation` it's silent and may double-write if the request reached the server but the response was lost. Set `mutations.retry: 0` explicitly; add explicit retry buttons on the surfaces that need them (handled by TD-96). ~0.5 hr. |
 | TD-103 | ✅ Shipped · PR #331 | **Debounce journal + messages search inputs** | Low severity. No debounce on the journal search/filter inputs (sampled `JournalTimeline` filter row). `useMemo` filtering 200+ entries per keystroke is OK locally but stutters on cheap Android. Wrap journal filter in 200ms debounce; same pass for `/messages` search. Pairs naturally with TD-100. ~1 hr. |
@@ -189,10 +189,10 @@ UX-054..060 shipped the presentational primitives. These four mount them onto th
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| UX-061 | 🟢 Ready | **Wire `<MedScheduleStrip>` + `<AdherenceChart>` into MedCard** | UX-057 shipped both components as pure presentational. Derive a per-day taken/expected series from `care_events` + `medication_schedules` and render the strip + chart inside `MedCard`. New: `apps/web/lib/medAdherenceFromEvents.ts` adapter. Reuse existing `lib/medAdherence.ts`. ~3 hr. **Owner: Opus (schema-aware).** |
-| UX-062 | 🟢 Ready | **Mount Shifts BriefingHandoff + ShiftLanes + TeamNowBoard on the shifts route** | UX-058 shipped the three layouts. Add a segmented control on the shifts route (`apps/web/app/(app)/journal/[recipientId]/?panel=shifts` per the gotcha — verify) that switches among Briefing / Lanes / Now-board. Existing `ShiftCalendar.tsx` and `HandoffSummary` modal remain untouched. ~4 hr. **Owner: Opus.** |
-| UX-063 | 🟢 Ready | **Mount `<MoodHeatmap>` into JournalLayout sidebar** | UX-059 shipped the heatmap; integration was deliberately deferred. Render in the `JournalLayout` sidebar slot, fed by the existing journal-data hook. ~2 hr. |
-| UX-064 | 🟢 Ready | **Mount `<RecipientProfile>` on a discoverable surface** | UX-060 shipped the card. Decide IA: separate `/recipient/[id]/profile` page vs. a tab in the existing journal route. Identity values must flow through `identityRepository.resolveIdentity` server-side; never read `identity_vault` from the client. ~3 hr. **Owner: Opus (PHI-sensitive).** |
+| UX-061 | ✅ Shipped · PR #337 | **Wire `<MedScheduleStrip>` + `<AdherenceChart>` into MedCard** | UX-057 shipped both components as pure presentational. Derive a per-day taken/expected series from `care_events` + `medication_schedules` and render the strip + chart inside `MedCard`. New: `apps/web/lib/medAdherenceFromEvents.ts` adapter. Reuse existing `lib/medAdherence.ts`. ~3 hr. **Owner: Opus (schema-aware).** |
+| UX-062 | ✅ Shipped · PR #339 | **Mount Shifts BriefingHandoff + ShiftLanes + TeamNowBoard on the shifts route** | UX-058 shipped the three layouts. Add a segmented control on the shifts route (`apps/web/app/(app)/journal/[recipientId]/?panel=shifts` per the gotcha — verify) that switches among Briefing / Lanes / Now-board. Existing `ShiftCalendar.tsx` and `HandoffSummary` modal remain untouched. ~4 hr. **Owner: Opus.** |
+| UX-063 | ✅ Shipped · PR #338 | **Mount `<MoodHeatmap>` into JournalLayout sidebar** | UX-059 shipped the heatmap; integration was deliberately deferred. Render in the `JournalLayout` sidebar slot, fed by the existing journal-data hook. ~2 hr. |
+| UX-064 | ✅ Shipped · PR #340 | **Mount `<RecipientProfile>` on a discoverable surface** | UX-060 shipped the card. Decide IA: separate `/recipient/[id]/profile` page vs. a tab in the existing journal route. Identity values must flow through `identityRepository.resolveIdentity` server-side; never read `identity_vault` from the client. ~3 hr. **Owner: Opus (PHI-sensitive).** |
 
 ### CareSync 2.0 enrichment (UX-065..066) — opened 2026-04-30
 
@@ -207,7 +207,7 @@ UX-062 + UX-064 shipped the surfaces but deliberately deferred narrative + relat
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| TD-106 | 🟢 Ready | **Fix `e2e/export.spec.ts:81` — toast text drift after TD-96** | TD-96 (PR #306) standardized mutation-error toasts and changed `ExportButton`'s catch-block toast from `"Export failed. Please try again."` to `"The export didn't finish. Try again, or pick a smaller date range."`. The Playwright spec at `e2e/export.spec.ts:99-100` still asserts the old text → "export error message shown when API returns non-OK" fails on every PR with `Error: element(s) not found / Locator: getByText('Export failed. Please try again.')`. Mergify lets PRs through despite the failure, but the regression net is permanently red and any *new* export regression would now go undetected. Fix: update the spec's locator to match the current sonner toast (`"The export didn't finish."` or a tighter regex). Also worth checking for other catch-block toasts whose copy was rewritten by TD-96 and whose tests weren't updated. ~0.5 hr. |
+| TD-106 | ✅ Shipped · PR #343 | **Fix `e2e/export.spec.ts:81` — toast text drift after TD-96** | TD-96 (PR #306) standardized mutation-error toasts and changed `ExportButton`'s catch-block toast from `"Export failed. Please try again."` to `"The export didn't finish. Try again, or pick a smaller date range."`. The Playwright spec at `e2e/export.spec.ts:99-100` still asserts the old text → "export error message shown when API returns non-OK" fails on every PR with `Error: element(s) not found / Locator: getByText('Export failed. Please try again.')`. Mergify lets PRs through despite the failure, but the regression net is permanently red and any *new* export regression would now go undetected. Fix: update the spec's locator to match the current sonner toast (`"The export didn't finish."` or a tighter regex). Also worth checking for other catch-block toasts whose copy was rewritten by TD-96 and whose tests weren't updated. ~0.5 hr. |
 
 ### Tier 1/2 server testing sweep — Plan A (TD-77..82, TD-87)
 
@@ -385,6 +385,14 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-01 — Plan C CareSync 2.0 wiring + journal pagination (PRs #336–#343)
+✅ **TD-100** Journal timeline cursor pagination — `before`/`limit` on `/api/journal`, `loadMore` on `useJournalData`, IntersectionObserver sentinel + Load older button (PR #336)
+✅ **UX-061** Wire `<MedScheduleStrip>` + `<AdherenceChart>` into MedCard — new `lib/medAdherenceFromEvents.ts` adapter + `medications.weekData` tRPC; bundles fix to `listScheduled` (`time_of_day` alias, drop nonexistent `org_id`) (PR #337)
+✅ **UX-062** Shifts layout toggle (Calendar / Lanes / Now) — new `ShiftsPanel` + `lib/shiftLayouts.ts`; Briefing deferred to UX-065 (PR #339)
+✅ **UX-063** Mount `<MoodHeatmap>` in JournalLayout sidebar — 2-col grid `lg:` breakpoint, sticky right rail (PR #338)
+✅ **UX-064** `/recipient/[recipientId]/profile` route + journal Profile link — server-resolved identity via `identityRepository.resolveIdentity`; mood/caregivers/About deferred to UX-066 (PR #340)
+✅ **TD-106** Fix `e2e/export.spec.ts:81` toast assertion drift after TD-96 — case-insensitive regex on stable substring (PR #343)
 
 ### 2026-04-30 PM — Plan B web hardening + Tier 1 testing (PRs #328–#334)
 ✅ **TD-77** `identityRepository` cross-org / malformed / expired token tests (PR #328)
