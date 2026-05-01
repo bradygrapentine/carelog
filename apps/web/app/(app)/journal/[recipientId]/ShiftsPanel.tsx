@@ -15,6 +15,10 @@ import { useMemo, useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 import { ShiftLanes } from "@/components/shifts/ShiftLanes";
 import { TeamNowBoard } from "@/components/shifts/TeamNowBoard";
+import { NarrativeHandoff } from "@/components/shifts/NarrativeHandoff";
+import { ShiftWeekGrid } from "@/components/shifts/ShiftWeekGrid";
+import { ShiftTeamList } from "@/components/shifts/ShiftTeamList";
+import { OpenQuestionsCard } from "@/components/shifts/OpenQuestionsCard";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { CardContent } from "@/components/ui/card";
 import { ShiftList } from "./ShiftList";
@@ -28,9 +32,20 @@ type Member = {
   email: string | null;
 };
 
-type Layout = "calendar" | "lanes" | "now";
+type Layout =
+  | "narrative"
+  | "week-grid"
+  | "team-list"
+  | "questions"
+  | "calendar"
+  | "lanes"
+  | "now";
 
 const LAYOUT_LABELS: Record<Layout, string> = {
+  narrative: "Handoff",
+  "week-grid": "Week",
+  "team-list": "Team",
+  questions: "Questions",
   calendar: "Calendar",
   lanes: "Lanes",
   now: "Now",
@@ -59,7 +74,25 @@ function getWeekRange(now: Date): { from: string; to: string } {
 }
 
 export function ShiftsPanel(props: Props) {
-  const [layout, setLayout] = useState<Layout>("calendar");
+  const [layout, setLayout] = useState<Layout>("narrative");
+
+  const teamListMembers = useMemo(
+    () =>
+      props.members.map((m) => ({
+        id: m.id,
+        name: m.display_name ?? m.email ?? "—",
+        role: m.role,
+        initials:
+          (m.display_name ?? m.email ?? "?")
+            .split(" ")
+            .map((s) => s[0])
+            .filter(Boolean)
+            .slice(0, 2)
+            .join("")
+            .toUpperCase() || "?",
+      })),
+    [props.members],
+  );
 
   const weekRange = useMemo(() => getWeekRange(new Date()), []);
 
@@ -116,6 +149,28 @@ export function ShiftsPanel(props: Props) {
           </button>
         ))}
       </div>
+
+      {layout === "narrative" && (
+        <NarrativeHandoff
+          mode="view"
+          entries={[]}
+          author={{ name: "—" }}
+          when="—"
+        />
+      )}
+
+      {layout === "week-grid" && (
+        <TintedCard>
+          <TintedCardHeader title="This week" />
+          <CardContent className="pt-2 pb-4">
+            <ShiftWeekGrid blocks={[]} />
+          </CardContent>
+        </TintedCard>
+      )}
+
+      {layout === "team-list" && <ShiftTeamList members={teamListMembers} />}
+
+      {layout === "questions" && <OpenQuestionsCard questions={[]} />}
 
       {layout === "calendar" && <ShiftList {...props} />}
 
