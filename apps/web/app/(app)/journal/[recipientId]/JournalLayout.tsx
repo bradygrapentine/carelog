@@ -13,7 +13,7 @@ import { MoodHeatmap } from "@/components/journal/MoodHeatmap";
 import type { Mood } from "@/lib/mood";
 import { TeamPanel } from "./TeamPanel";
 import { ShiftForm } from "./ShiftForm";
-import { ShiftList } from "./ShiftList";
+import { ShiftsPanel } from "./ShiftsPanel";
 import { MedicationPanel } from "./MedicationPanel";
 import { MedicationChecklist } from "./MedicationChecklist";
 import { OcrReviewPanel } from "./OcrReviewPanel";
@@ -283,7 +283,7 @@ export function JournalLayout({
                   onSuccess={() => {}}
                 />
               )}
-              <ShiftList
+              <ShiftsPanel
                 orgId={org?.id ?? ""}
                 recipientId={recipientId}
                 members={members}
