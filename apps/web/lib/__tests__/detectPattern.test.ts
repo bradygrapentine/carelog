@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectPattern } from "../detectPattern";
+import { detectPattern, detectPatterns } from "../detectPattern";
 
 type CareEventLike = {
   event_type: string;
@@ -122,5 +122,67 @@ describe("detectPattern", () => {
       moodEvt(2, "difficult"),
     ];
     expect(detectPattern(events, NOW)).toBeNull();
+  });
+});
+
+describe("detectPatterns (plural)", () => {
+  it("returns [] when nothing crosses any threshold", () => {
+    expect(detectPatterns([], NOW)).toEqual([]);
+  });
+
+  it("returns just the med-miss pattern when only that fires", () => {
+    const events: CareEventLike[] = [
+      medMiss(1),
+      medMiss(2),
+      medMiss(3),
+      // sleep: small drop, below threshold
+      sleepEvt(1, 7),
+      sleepEvt(8, 7.4),
+    ];
+    const result = detectPatterns(events, NOW);
+    expect(result).toHaveLength(1);
+    expect(result[0].headline).toMatch(/Medication/i);
+  });
+
+  it("returns med-miss + sleep + mood in priority order when all fire", () => {
+    const events: CareEventLike[] = [
+      // Med misses: 3 past, 1 prior → triggers (>=2 + >=50% increase)
+      medMiss(1),
+      medMiss(2),
+      medMiss(3),
+      medMiss(8),
+      // Sleep: avg ~5h past, ~7h prior → 2h drop (>=1h)
+      sleepEvt(1, 5),
+      sleepEvt(2, 5),
+      sleepEvt(8, 7),
+      sleepEvt(9, 7),
+      // Mood: 4 difficult past, 1 prior → triggers
+      moodEvt(1, "difficult"),
+      moodEvt(2, "difficult"),
+      moodEvt(3, "difficult"),
+      moodEvt(4, "difficult"),
+      moodEvt(8, "difficult"),
+    ];
+    const result = detectPatterns(events, NOW);
+    expect(result).toHaveLength(3);
+    expect(result[0].headline).toMatch(/Medication/i);
+    expect(result[1].headline).toMatch(/Sleep/i);
+    expect(result[2].headline).toMatch(/Difficult/i);
+  });
+
+  it("singular detectPattern returns the same first element as plural", () => {
+    const events: CareEventLike[] = [
+      medMiss(1),
+      medMiss(2),
+      medMiss(3),
+      sleepEvt(1, 5),
+      sleepEvt(2, 5),
+      sleepEvt(8, 7),
+      sleepEvt(9, 7),
+    ];
+    const single = detectPattern(events, NOW);
+    const plural = detectPatterns(events, NOW);
+    expect(single).not.toBeNull();
+    expect(plural[0]).toEqual(single);
   });
 });

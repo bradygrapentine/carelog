@@ -185,3 +185,23 @@ export function detectPattern(
     null
   );
 }
+
+/**
+ * Return every pattern that crosses its detection threshold, in priority
+ * order: med-misses, then sleep dip, then mood cluster. Empty array when
+ * nothing fires. Used by PatternsStrip (multi-card horizontal scroller);
+ * BriefSection's footer uses the singular form above.
+ */
+export function detectPatterns(events: CareEventLike[], now: Date): Pattern[] {
+  const bounds = windowBounds(now);
+  const out: Pattern[] = [];
+
+  const med = checkMedMisses(events, bounds);
+  if (med) out.push(med);
+  const sleep = checkSleepDip(events, bounds);
+  if (sleep) out.push(sleep);
+  const mood = checkMoodCluster(events, bounds);
+  if (mood) out.push(mood);
+
+  return out;
+}
