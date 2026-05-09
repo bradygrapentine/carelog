@@ -12,10 +12,13 @@ import type {
   TeamMember,
   TeamMemberStatus,
 } from "@/components/shifts/TeamNowBoard";
+import type { ShiftBlock } from "@/components/shifts/ShiftWeekGrid";
 
 export type MemberLookup = {
   /** `auth.users.id` → display name; null when no name resolved. */
   displayName: (userId: string) => string | null;
+  /** Optional: raw email for the user — used as local-part fallback when displayName is null. */
+  email?: (userId: string) => string | null;
 };
 
 /** Bands used by the lanes view — coarse 24h day buckets. */
@@ -235,4 +238,135 @@ export function buildTeamNowBoard(
   }
 
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// Stable color palette for ShiftWeekGrid blocks (one token per caregiver).
+// ---------------------------------------------------------------------------
+const CAREGIVER_COLORS = [
+  "var(--color-primary-subtle)",
+  "var(--color-secondary-subtle)",
+  "var(--color-tertiary-subtle)",
+] as const;
+
+/**
+ * Deterministic hash — maps a caregiverId string to an index into
+ * CAREGIVER_COLORS so the same caregiver always gets the same color.
+ */
+function caregiverColorIndex(caregiverId: string): number {
+  let h = 0;
+  for (let i = 0; i < caregiverId.length; i++) {
+    h = (h * 31 + caregiverId.charCodeAt(i)) >>> 0;
+  }
+  return h % CAREGIVER_COLORS.length;
+}
+
+type RawShift = {
+  id: string;
+  assignee_user_id: string | null;
+  start_at: string;
+  end_at: string;
+};
+
+/**
+ * Build a flat `ShiftBlock[]` for the Week tab of ShiftsPanel.
+ *
+ * - Drops unassigned shifts (null `assignee_user_id`).
+ * - Drops shifts outside `[weekStart, weekStart + 7d)`.
+ * - Midnight-crossing shifts split into two consecutive blocks.
+ * - Resolves caregiver name via `lookup.displayName`; falls back to
+ *   email local-part (via `lookup.email` if provided), then "Unknown caregiver".
+ * - Assigns a stable color per caregiver via `CAREGIVER_COLORS` hash.
+ * - Returns blocks sorted ascending by (day, startHour).
+ */
+export function buildShiftWeekGridBlocks(
+  shifts: RawShift[],
+  lookup: MemberLookup,
+  weekStart: Date,
+): ShiftBlock[] {
+  const weekStartMs = weekStart.getTime();
+  const weekEndMs = weekStartMs + 7 * DAY_MS;
+
+  const blocks: ShiftBlock[] = [];
+
+  for (const s of shifts) {
+    if (!s.assignee_user_id) continue;
+
+    const startDate = new Date(s.start_at);
+    const endDate = new Date(s.end_at);
+    const startMs = startDate.getTime();
+
+    // Drop shifts that start outside this week's window
+    if (startMs < weekStartMs || startMs >= weekEndMs) continue;
+
+    const caregiverId = s.assignee_user_id;
+    const color = CAREGIVER_COLORS[caregiverColorIndex(caregiverId)];
+
+    // Resolve caregiver name — PHI: never expose raw email if display_name is set
+    const displayName = lookup.displayName(caregiverId);
+    let caregiverName: string;
+    if (displayName !== null) {
+      caregiverName = displayName;
+    } else {
+      const rawEmail = lookup.email ? lookup.email(caregiverId) : null;
+      if (rawEmail) {
+        caregiverName = rawEmail.split("@")[0];
+      } else {
+        caregiverName = "Unknown caregiver";
+      }
+    }
+
+    const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+    const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+
+    // Compute day index (0=Mon … 6=Sun) for the shift's start day
+    const startDayStart = startOfDay(startDate).getTime();
+    const dayIndex = Math.floor((startDayStart - weekStartMs) / DAY_MS) as
+      | 0
+      | 1
+      | 2
+      | 3
+      | 4
+      | 5
+      | 6;
+
+    const crossesMidnight =
+      endDate.getTime() > startOfDay(startDate).getTime() + DAY_MS;
+
+    if (crossesMidnight && dayIndex < 6) {
+      // Split: first block covers start → midnight (24)
+      blocks.push({
+        id: `${s.id}-day0`,
+        caregiverId,
+        caregiverName,
+        caregiverColor: color,
+        day: dayIndex,
+        startHour,
+        endHour: 24,
+      });
+      // Second block covers midnight (0) → end of shift on next day
+      blocks.push({
+        id: `${s.id}-day1`,
+        caregiverId,
+        caregiverName,
+        caregiverColor: color,
+        day: (dayIndex + 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+        startHour: 0,
+        endHour: endHour <= 0 ? endHour + 24 : endHour,
+      });
+    } else {
+      blocks.push({
+        id: s.id,
+        caregiverId,
+        caregiverName,
+        caregiverColor: color,
+        day: dayIndex,
+        startHour,
+        endHour: endHour <= startHour ? endHour + 24 : endHour,
+      });
+    }
+  }
+
+  // Sort ascending by (day, startHour)
+  return blocks.sort((a, b) => a.day - b.day || a.startHour - b.startHour);
 }
