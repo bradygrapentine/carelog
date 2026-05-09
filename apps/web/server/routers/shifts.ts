@@ -312,4 +312,114 @@ export const shiftsRouter = router({
 
       return data;
     }),
+
+  /**
+   * UX-101b — write the off-going caregiver's narrative handoff to a shift.
+   *
+   * Authorization: ownership-gated at the application layer. The caller
+   * must be either the assignee of the shift OR a coordinator of the
+   * shift's org. RLS would only allow coordinators to UPDATE; the
+   * caregiver-edit-own-shift path is intentionally implemented here via
+   * supabaseAdmin (per migration design note).
+   *
+   * PHI: `entries[*].body` is free-text narrative — never log/capture
+   * the body to analytics. Posthog events here use shift_id only.
+   */
+  upsertHandoff: protectedProcedure
+    .input(
+      z.object({
+        shiftId: z.string().uuid(),
+        entries: z
+          .array(
+            z.object({
+              heading: z.string().max(120).optional(),
+              body: z.string().max(2000),
+            }),
+          )
+          .max(10),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Fetch the shift to enforce ownership. RLS would already filter
+      // unrelated rows, but we use supabaseAdmin to read because the
+      // ownership check below considers caregivers (who can read but
+      // not normally UPDATE under RLS).
+      const { data: shift, error: fetchError } = await supabaseAdmin
+        .from("shifts")
+        .select("id, org_id, assignee_user_id")
+        .eq("id", input.shiftId)
+        .single();
+
+      if (fetchError || !shift) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const isAssignee = shift.assignee_user_id === ctx.user.id;
+      let isCoordinator = false;
+      if (!isAssignee) {
+        const { data: m } = await supabaseAdmin
+          .from("memberships")
+          .select("role, accepted_at")
+          .eq("org_id", shift.org_id)
+          .eq("user_id", ctx.user.id)
+          .maybeSingle();
+        isCoordinator = !!m && m.role === "coordinator" && !!m.accepted_at;
+      }
+
+      if (!isAssignee && !isCoordinator) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("shifts")
+        .update({ handoff_entries: input.entries })
+        .eq("id", input.shiftId)
+        .select("id, handoff_entries")
+        .single();
+
+      if (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
+      }
+
+      return data;
+    }),
+
+  /**
+   * UX-101b — return the most recent past shift with a non-empty
+   * narrative handoff for a given recipient. Used by the dashboard's
+   * <ShiftQuoteNote> (UX-101c) and ShiftsPanel "Handoff" tab view mode.
+   *
+   * RLS-scoped via ctx.supabase: only callers who can already see the
+   * recipient's shifts get a result; everyone else gets null.
+   */
+  getLatestHandoff: protectedProcedure
+    .input(
+      z.object({
+        recipientId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const nowIso = new Date().toISOString();
+      const { data, error } = await ctx.supabase
+        .from("shifts")
+        .select("id, end_at, assignee_user_id, handoff_entries")
+        .eq("recipient_id", input.recipientId)
+        .lt("end_at", nowIso)
+        .neq("handoff_entries", "[]")
+        .order("end_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
+      }
+
+      return data ?? null;
+    }),
 });

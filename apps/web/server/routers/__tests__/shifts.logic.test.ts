@@ -334,3 +334,232 @@ describe("shifts.update — logic", () => {
     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
 });
+
+// ─── shifts.upsertHandoff (UX-101b) ──────────────────────────────────────────
+
+describe("shifts.upsertHandoff — UX-101b", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function makeShiftFetchChain(
+    shift: {
+      id: string;
+      org_id: string;
+      assignee_user_id: string | null;
+    } | null,
+  ) {
+    const chain: any = { select: () => chain, eq: () => chain };
+    chain.single = vi.fn().mockResolvedValue({
+      data: shift,
+      error: shift ? null : { message: "not found" },
+    });
+    return chain;
+  }
+
+  function makeMembershipMaybeSingleChain(
+    member: { role: string; accepted_at: string } | null,
+  ) {
+    const chain: any = { select: () => chain, eq: () => chain };
+    chain.maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: member, error: null });
+    return chain;
+  }
+
+  function makeUpsertChain(result: { data: unknown; error: unknown }) {
+    const chain: any = {
+      update: () => chain,
+      eq: () => chain,
+      select: () => chain,
+    };
+    chain.single = vi.fn().mockResolvedValue(result);
+    return chain;
+  }
+
+  it("allows the shift's assignee to write the handoff", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return makeShiftFetchChain({
+          id: SHIFT_ID,
+          org_id: ORG_ID,
+          assignee_user_id: USER_ID,
+        });
+      }
+      return makeUpsertChain({
+        data: { id: SHIFT_ID, handoff_entries: [{ body: "slept 6h" }] },
+        error: null,
+      });
+    });
+
+    const result = await authedCaller.shifts.upsertHandoff({
+      shiftId: SHIFT_ID,
+      entries: [{ body: "slept 6h" }],
+    });
+
+    expect(result).toMatchObject({ id: SHIFT_ID });
+    expect(callCount).toBe(2);
+  });
+
+  it("allows a coordinator (non-assignee) to write the handoff", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return makeShiftFetchChain({
+          id: SHIFT_ID,
+          org_id: ORG_ID,
+          assignee_user_id: "other-user-id",
+        });
+      }
+      if (callCount === 2) {
+        return makeMembershipMaybeSingleChain({
+          role: "coordinator",
+          accepted_at: "2026-01-01",
+        });
+      }
+      return makeUpsertChain({
+        data: { id: SHIFT_ID, handoff_entries: [{ body: "x" }] },
+        error: null,
+      });
+    });
+
+    const result = await authedCaller.shifts.upsertHandoff({
+      shiftId: SHIFT_ID,
+      entries: [{ body: "x" }],
+    });
+
+    expect(result).toMatchObject({ id: SHIFT_ID });
+  });
+
+  it("throws FORBIDDEN when caller is neither assignee nor coordinator", async () => {
+    let callCount = 0;
+    vi.mocked(supabaseAdmin.from).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return makeShiftFetchChain({
+          id: SHIFT_ID,
+          org_id: ORG_ID,
+          assignee_user_id: "other-user-id",
+        });
+      }
+      return makeMembershipMaybeSingleChain({
+        role: "caregiver",
+        accepted_at: "2026-01-01",
+      });
+    });
+
+    await expect(
+      authedCaller.shifts.upsertHandoff({
+        shiftId: SHIFT_ID,
+        entries: [{ body: "nope" }],
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("throws NOT_FOUND when the shift does not exist", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementationOnce(() =>
+      makeShiftFetchChain(null),
+    );
+
+    await expect(
+      authedCaller.shifts.upsertHandoff({
+        shiftId: SHIFT_ID,
+        entries: [{ body: "x" }],
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects entries[].body over 2000 chars via Zod", async () => {
+    await expect(
+      authedCaller.shifts.upsertHandoff({
+        shiftId: SHIFT_ID,
+        entries: [{ body: "x".repeat(2001) }],
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(supabaseAdmin.from).not.toHaveBeenCalled();
+  });
+
+  it("rejects more than 10 entries via Zod", async () => {
+    await expect(
+      authedCaller.shifts.upsertHandoff({
+        shiftId: SHIFT_ID,
+        entries: Array.from({ length: 11 }, () => ({ body: "x" })),
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+// ─── shifts.getLatestHandoff (UX-101b) ───────────────────────────────────────
+
+describe("shifts.getLatestHandoff — UX-101b", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function makeListChain(result: { data: unknown; error: unknown }) {
+    const chain: any = {
+      select: () => chain,
+      eq: () => chain,
+      lt: () => chain,
+      neq: () => chain,
+      order: () => chain,
+      limit: () => chain,
+    };
+    chain.maybeSingle = vi.fn().mockResolvedValue(result);
+    return chain;
+  }
+
+  it("returns the latest non-empty handoff for the recipient", async () => {
+    const handoff = {
+      id: SHIFT_ID,
+      end_at: "2026-05-08T10:00:00.000Z",
+      assignee_user_id: USER_ID,
+      handoff_entries: [{ body: "all good" }],
+    };
+    const ctxSupabase = {
+      from: vi
+        .fn()
+        .mockReturnValue(makeListChain({ data: handoff, error: null })),
+    } as any;
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as any,
+      supabase: ctxSupabase,
+      req: undefined,
+    });
+
+    const result = await caller.shifts.getLatestHandoff({
+      recipientId: REC_ID,
+    });
+
+    expect(result).toEqual(handoff);
+    expect(ctxSupabase.from).toHaveBeenCalledWith("shifts");
+  });
+
+  it("returns null when no past shift has a handoff", async () => {
+    const ctxSupabase = {
+      from: vi.fn().mockReturnValue(makeListChain({ data: null, error: null })),
+    } as any;
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as any,
+      supabase: ctxSupabase,
+      req: undefined,
+    });
+
+    const result = await caller.shifts.getLatestHandoff({
+      recipientId: REC_ID,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it("rejects non-uuid recipientId via Zod", async () => {
+    await expect(
+      authedCaller.shifts.getLatestHandoff({
+        recipientId: "not-a-uuid",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
