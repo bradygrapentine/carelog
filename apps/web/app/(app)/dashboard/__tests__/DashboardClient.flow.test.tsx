@@ -20,9 +20,13 @@ vi.mock("@/lib/supabase", () => ({
 vi.mock("@/components/dashboard/MoodCard", () => ({
   MoodCard: () => null,
 }));
-  
+
 vi.mock("@/components/dashboard/BriefHero", () => ({
   BriefHero: () => null,
+}));
+
+vi.mock("@/components/brief/BriefSection", () => ({
+  BriefSection: () => null,
 }));
 
 vi.mock("@/components/dashboard/MedCard", () => ({

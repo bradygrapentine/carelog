@@ -25,6 +25,10 @@ vi.mock("@/components/dashboard/BriefHero", () => ({
   BriefHero: () => null,
 }));
 
+vi.mock("@/components/brief/BriefSection", () => ({
+  BriefSection: () => null,
+}));
+
 vi.mock("@/components/dashboard/MedCard", () => ({
   MedCard: () => null,
 }));
@@ -279,9 +283,7 @@ describe("DashboardClient", () => {
         return {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
-          maybeSingle: vi
-            .fn()
-            .mockResolvedValue({ data: { full_name: name } }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { full_name: name } }),
         };
       }
       if (table === "care_events") {
@@ -297,28 +299,28 @@ describe("DashboardClient", () => {
   }
 
   it("shows view toggle when N > 1 teams", async () => {
-    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+    mockFrom.mockImplementation(
+      twoTeamMockFrom("Margaret Smith", "Robert Williams"),
+    );
 
     render(<DashboardClient user={mockUser} />);
 
     // Wait for teams to load, then view toggle should appear
     await waitFor(() =>
-      expect(
-        screen.getByLabelText("Show all recipients"),
-      ).toBeInTheDocument(),
+      expect(screen.getByLabelText("Show all recipients")).toBeInTheDocument(),
     );
   });
 
   it("switching to stacked view renders layout B with recipient summary cards", async () => {
-    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+    mockFrom.mockImplementation(
+      twoTeamMockFrom("Margaret Smith", "Robert Williams"),
+    );
 
     render(<DashboardClient user={mockUser} />);
 
     // Wait for the toggle to appear, then click it
     await waitFor(() =>
-      expect(
-        screen.getByLabelText("Show all recipients"),
-      ).toBeInTheDocument(),
+      expect(screen.getByLabelText("Show all recipients")).toBeInTheDocument(),
     );
 
     fireEvent.click(screen.getByLabelText("Show all recipients"));
@@ -334,31 +336,42 @@ describe("DashboardClient", () => {
     ).toBeInTheDocument();
 
     // RecipientSummaryCard rendered for both recipients
-    expect(screen.getByTestId("recipient-summary-Margaret")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("recipient-summary-Margaret"),
+    ).toBeInTheDocument();
   });
 
-  it("clicking a switcher chip in layout A updates the page heading to the selected recipient", { timeout: 10000 }, async () => {
-    // Mock two teams with distinct names to verify switcher wiring
-    mockFrom.mockImplementation(twoTeamMockFrom("Margaret Smith", "Robert Williams"));
+  it(
+    "clicking a switcher chip in layout A updates the page heading to the selected recipient",
+    { timeout: 10000 },
+    async () => {
+      // Mock two teams with distinct names to verify switcher wiring
+      mockFrom.mockImplementation(
+        twoTeamMockFrom("Margaret Smith", "Robert Williams"),
+      );
 
-    render(<DashboardClient user={mockUser} />);
+      render(<DashboardClient user={mockUser} />);
 
-    // Wait for initial heading: "Caring for Margaret"
-    await waitFor(() => {
-      const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveTextContent("Caring for Margaret");
-    }, { timeout: 3000 });
+      // Wait for initial heading: "Caring for Margaret"
+      await waitFor(
+        () => {
+          const h1 = screen.getByRole("heading", { level: 1 });
+          expect(h1).toHaveTextContent("Caring for Margaret");
+        },
+        { timeout: 3000 },
+      );
 
-    // Click the "Robert" chip — it should be labeled with first name
-    const robertChip = await waitFor(() =>
-      screen.getByRole("button", { name: /robert/i }),
-    );
-    fireEvent.click(robertChip);
+      // Click the "Robert" chip — it should be labeled with first name
+      const robertChip = await waitFor(() =>
+        screen.getByRole("button", { name: /robert/i }),
+      );
+      fireEvent.click(robertChip);
 
-    // Heading should update to "Caring for Robert"
-    await waitFor(() => {
-      const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveTextContent("Caring for Robert");
-    });
-  });
+      // Heading should update to "Caring for Robert"
+      await waitFor(() => {
+        const h1 = screen.getByRole("heading", { level: 1 });
+        expect(h1).toHaveTextContent("Caring for Robert");
+      });
+    },
+  );
 });
