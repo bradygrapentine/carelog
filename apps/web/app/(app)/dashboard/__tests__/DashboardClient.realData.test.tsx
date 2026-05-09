@@ -50,6 +50,9 @@ vi.mock("@/lib/trpc", () => ({
       latestForRecipient: {
         useQuery: (...args: unknown[]) => trpcMocks.briefQuery(...args),
       },
+      dashboardSummary: {
+        useQuery: () => ({ data: undefined, isLoading: false }),
+      },
     },
     medications: {
       listScheduled: {

@@ -18,10 +18,8 @@ import {
 } from "@/components/dashboard/DashboardViewToggle";
 import { RecipientSummaryCard } from "@/components/dashboard/RecipientSummaryCard";
 import { NowBoard } from "@/components/dashboard/NowBoard";
-import { ComingUpRows } from "@/components/brief/ComingUpRows";
-import { OnShiftSidebar } from "@/components/brief/OnShiftSidebar";
-// SleepSparkline, ShiftQuoteNote, PatternCard mount once their adapter rows
-// (UX-096..099) ship — see docs/design/caresync-handoff-followups-plan.md.
+import { BriefSection } from "@/components/brief/BriefSection";
+// ShiftQuoteNote mount deferred to UX-101 (needs shifts.getLatestHandoff).
 
 type CareTeam = {
   org: { id: string; name: string };
@@ -371,18 +369,22 @@ export function DashboardClient({ user }: Props) {
           */
           <>
             {/* BriefHero + side cards — wired to focusedTeam (selectedRecipientId-driven).
-                UX-095: editorial brief surface — sleep/coming-up/quote stacked
-                in the left column under BriefHero; on-shift sidebar in the right
-                rail; pattern card below the fold. v1 uses empty/stub data; the
-                adapter rows (UX-096..099) will plug real signals in. */}
+                UX-095 finalize: BriefSection (one tRPC subscription) feeds
+                SleepSparkline + ComingUpRows in the primary column,
+                OnShiftSidebar in the right rail, and PatternCard below the fold. */}
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[1.6fr_1fr]">
               <div className="flex flex-col gap-4">
                 <BriefHero
                   recipientId={focusedTeam?.recipientId}
                   orgId={focusedTeam?.org.id}
                 />
-                {/* SleepSparkline mounts here once UX-096 supplies 7-night data. */}
-                <ComingUpRows events={[]} />
+                {focusedTeam && (
+                  <BriefSection
+                    recipientId={focusedTeam.recipientId}
+                    orgId={focusedTeam.org.id}
+                    slot="primary"
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-4">
                 <MedCard
@@ -393,9 +395,24 @@ export function DashboardClient({ user }: Props) {
                   recipientId={focusedTeam?.recipientId}
                   orgId={focusedTeam?.org.id}
                 />
-                <OnShiftSidebar onNow={null} upNext={null} latestMood={null} />
+                {focusedTeam && (
+                  <BriefSection
+                    recipientId={focusedTeam.recipientId}
+                    orgId={focusedTeam.org.id}
+                    slot="sidebar"
+                  />
+                )}
               </div>
             </div>
+            {focusedTeam && (
+              <div className="mb-6">
+                <BriefSection
+                  recipientId={focusedTeam.recipientId}
+                  orgId={focusedTeam.org.id}
+                  slot="footer"
+                />
+              </div>
+            )}
 
             {/* Secondary chrome: recipient switcher chips — hidden when N=1 */}
             {teams.length >= 2 && (

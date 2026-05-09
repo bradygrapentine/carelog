@@ -119,3 +119,81 @@ describe("briefs.latestForRecipient — logic", () => {
     expect(ctxSupabase.from).not.toHaveBeenCalled();
   });
 });
+
+describe("briefs.dashboardSummary — logic", () => {
+  function makeMembershipChain(membership: { role: string } | null) {
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: membership, error: null }),
+    };
+    return chain;
+  }
+
+  function makeListChain(data: unknown[]) {
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lt: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data, error: null }),
+      not: vi.fn().mockReturnThis(),
+      then: undefined as unknown,
+    };
+    // Allow awaiting the chain itself (Promise-like) for queries that don't
+    // end in .limit() — Supabase builders are thenable.
+    chain.then = (resolve: (v: { data: unknown; error: null }) => unknown) =>
+      Promise.resolve(resolve({ data, error: null }));
+    return chain;
+  }
+
+  function buildCtxSupabase(overrides: Record<string, unknown>) {
+    const ctxSupabase = {
+      from: vi.fn((table: string) => {
+        if (table in overrides) return overrides[table];
+        return makeListChain([]);
+      }),
+    } as unknown as Context["supabase"];
+    return ctxSupabase;
+  }
+
+  it("throws FORBIDDEN when caller is not a member of the org", async () => {
+    const ctxSupabase = buildCtxSupabase({
+      memberships: makeMembershipChain(null),
+    });
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as Context["user"],
+      supabase: ctxSupabase,
+      req: undefined,
+    } as Context);
+
+    await expect(
+      caller.briefs.dashboardSummary({
+        recipientId: RECIPIENT_ID,
+        orgId: ORG_ID,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects non-uuid input via Zod before any DB call", async () => {
+    const ctxSupabase = buildCtxSupabase({
+      memberships: makeMembershipChain({ role: "coordinator" }),
+    });
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as Context["user"],
+      supabase: ctxSupabase,
+      req: undefined,
+    } as Context);
+
+    await expect(
+      caller.briefs.dashboardSummary({
+        recipientId: "nope",
+        orgId: ORG_ID,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(ctxSupabase.from).not.toHaveBeenCalled();
+  });
+});
