@@ -12,6 +12,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { ShiftLanes } from "@/components/shifts/ShiftLanes";
 import { TeamNowBoard } from "@/components/shifts/TeamNowBoard";
@@ -133,6 +134,84 @@ export function ShiftsPanel(props: Props) {
     return buildShiftWeekGridBlocks(weekShifts, memberLookup, weekStart);
   }, [layout, weekShifts, memberLookup, weekRange.from]);
 
+  // ─── Handoff (UX-101b) ────────────────────────────────────────────────────
+  // Anchor `now` once per mount — purity-safe per React-19 rule.
+  const [now] = useState(() => new Date());
+
+  const utils = trpc.useUtils();
+
+  const { data: latestHandoff } = trpc.shifts.getLatestHandoff.useQuery(
+    { recipientId: props.recipientId },
+    { enabled: layout === "narrative" },
+  );
+
+  // The shift to edit: the current user's most-recently-ended (or in-flight)
+  // shift in the loaded week. Caregivers edit only their own shifts;
+  // coordinators may edit any but the affordance is intentionally bounded
+  // to the same window so the UI stays grounded in "the shift that just
+  // happened."
+  const editableShift = useMemo(() => {
+    if (layout !== "narrative") return null;
+    const nowMs = now.getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const candidates = weekShifts
+      .filter((s) => s.assignee_user_id === props.currentUserId)
+      .filter((s) => {
+        const endMs = Date.parse(s.end_at);
+        // ended in last 24h, or currently in progress
+        return endMs <= nowMs + dayMs && endMs >= nowMs - dayMs;
+      })
+      .sort((a, b) => Date.parse(b.end_at) - Date.parse(a.end_at));
+    return candidates[0] ?? null;
+  }, [layout, weekShifts, props.currentUserId, now]);
+
+  const [editingHandoff, setEditingHandoff] = useState(false);
+
+  const upsertHandoff = trpc.shifts.upsertHandoff.useMutation({
+    onSuccess: () => {
+      toast.success("Handoff saved");
+      setEditingHandoff(false);
+      utils.shifts.getLatestHandoff.invalidate({
+        recipientId: props.recipientId,
+      });
+      utils.shifts.list.invalidate();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Could not save handoff");
+    },
+  });
+
+  const handoffEntries = useMemo<{ heading?: string; body: string }[]>(() => {
+    if (!latestHandoff) return [];
+    const raw = latestHandoff.handoff_entries;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter(
+        (e): e is { heading?: string; body: string } =>
+          !!e &&
+          typeof e === "object" &&
+          "body" in e &&
+          typeof (e as { body: unknown }).body === "string",
+      )
+      .map((e) => ({
+        ...(e.heading ? { heading: e.heading } : {}),
+        body: e.body,
+      }));
+  }, [latestHandoff]);
+
+  const handoffAuthorName = useMemo(() => {
+    if (!latestHandoff?.assignee_user_id) return "—";
+    return memberLookup.displayName(latestHandoff.assignee_user_id) ?? "—";
+  }, [latestHandoff, memberLookup]);
+
+  const handoffWhen = useMemo(() => {
+    if (!latestHandoff?.end_at) return "—";
+    return new Date(latestHandoff.end_at).toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }, [latestHandoff]);
+
   return (
     <div className="space-y-4">
       <div
@@ -161,12 +240,46 @@ export function ShiftsPanel(props: Props) {
       </div>
 
       {layout === "narrative" && (
-        <NarrativeHandoff
-          mode="view"
-          entries={[]}
-          author={{ name: "—" }}
-          when="—"
-        />
+        <div className="space-y-2">
+          {editingHandoff && editableShift ? (
+            <NarrativeHandoff
+              mode="edit"
+              defaultEntries={handoffEntries}
+              submitting={upsertHandoff.isPending}
+              onSubmit={(next) =>
+                upsertHandoff.mutate({
+                  shiftId: editableShift.id,
+                  entries: next,
+                })
+              }
+            />
+          ) : (
+            <NarrativeHandoff
+              mode="view"
+              entries={handoffEntries}
+              author={{ name: handoffAuthorName }}
+              when={handoffWhen}
+            />
+          )}
+          {!editingHandoff && editableShift && (
+            <button
+              type="button"
+              onClick={() => setEditingHandoff(true)}
+              className="text-xs font-medium text-[var(--color-primary)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"
+            >
+              + Write handoff for your last shift
+            </button>
+          )}
+          {editingHandoff && (
+            <button
+              type="button"
+              onClick={() => setEditingHandoff(false)}
+              className="text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       )}
 
       {layout === "week-grid" && (
