@@ -116,7 +116,7 @@ export function SignInForm() {
             placeholder="123456"
             required
             maxLength={6}
-            className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2 text-center text-2xl font-mono tracking-widest text-sm text-[var(--color-ink)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+            className="w-full rounded-xl border border-[var(--color-border)] px-3 py-3 text-center text-2xl font-mono tracking-[0.4em] text-[var(--color-ink)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           />
         </div>
         {error && (
