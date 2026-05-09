@@ -3,13 +3,18 @@ import { ContactForm } from "../../../components/marketing/ContactForm";
 
 const BASE_URL = "https://care-log.org";
 
+// SEO-001: lead with the action verb + the brand. ≤60 chars.
+const TITLE = "Contact CareSync — Caregiver Support, 24-hour Reply";
+const DESCRIPTION =
+  "Reach the CareSync team directly. We answer questions about caregiving coordination, pricing, and your family's data within 24 hours.";
+
 export const metadata: Metadata = {
-  title: "Contact — CareSync",
-  description: "Get in touch with CareSync. We reply within 24 hours.",
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: `${BASE_URL}/contact` },
   openGraph: {
-    title: "Contact — CareSync",
-    description: "Get in touch with CareSync. We reply within 24 hours.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: `${BASE_URL}/contact`,
     siteName: "CareSync",
     images: [
@@ -17,7 +22,7 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Contact CareSync",
+        alt: TITLE,
       },
     ],
     type: "website",
@@ -25,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact — CareSync",
-    description: "Get in touch with CareSync. We reply within 24 hours.",
+    title: TITLE,
+    description: DESCRIPTION,
     images: [`${BASE_URL}/og-image.png`],
   },
 };
@@ -46,9 +51,26 @@ const FAQ = [
   },
 ] as const;
 
+// SEO-002: FAQPage JSON-LD. Wraps the same Q&A content rendered visibly
+// below — Google requires the schema text to match what users see, so
+// these stay in sync via the FAQ const above.
+const contactFaqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map(({ q, a }) => ({
+    "@type": "Question",
+    name: q,
+    acceptedAnswer: { "@type": "Answer", text: a },
+  })),
+};
+
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactFaqJsonLd) }}
+      />
       <div className="mb-12 text-center">
         <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)]">
           Get in touch

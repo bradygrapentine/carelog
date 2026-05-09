@@ -6,17 +6,20 @@ import { Testimonials } from "../../components/marketing/Testimonials";
 
 const BASE_URL = "https://care-log.org";
 
+// SEO-001: title is intent-shaped — leads with "Family Caregiving App"
+// to land on long-tail "caregiving app for aging parents" queries while
+// still anchoring on the brand. ≤60 chars.
+const TITLE = "CareSync — Family Caregiving App for Aging Parents";
+const DESCRIPTION =
+  "Coordinate care for an aging parent without the group-text chaos. CareSync is a shared caregiver journal, medication tracker, and shift schedule for your whole family.";
+
 export const metadata: Metadata = {
-  title: "CareSync · Family Caregiving Coordination",
-  description:
-    "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
-  alternates: {
-    canonical: BASE_URL,
-  },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: BASE_URL },
   openGraph: {
-    title: "CareSync · Family Caregiving Coordination",
-    description:
-      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: BASE_URL,
     siteName: "CareSync",
     images: [
@@ -24,7 +27,7 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "CareSync · Family Caregiving Coordination",
+        alt: TITLE,
       },
     ],
     type: "website",
@@ -32,9 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CareSync · Family Caregiving Coordination",
-    description:
-      "CareSync helps families coordinate care for aging loved ones. Track medications, schedule shifts, and share updates with the whole care team, all in one place.",
+    title: TITLE,
+    description: DESCRIPTION,
     images: [`${BASE_URL}/og-image.png`],
   },
 };

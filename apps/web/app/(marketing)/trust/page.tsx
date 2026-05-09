@@ -3,15 +3,19 @@ import type { Metadata } from "next";
 
 const BASE_URL = "https://care-log.org";
 
+// SEO-001: lead with the user's actual concern ("my family's health
+// data") rather than the abstract "data commitment". ≤60 chars.
+const TITLE = "Your Family's Data, Protected — CareSync's Commitment";
+const DESCRIPTION =
+  "How CareSync protects your family's health data: never sold, never shown to advertisers, and accessible only to the care team you invite. Our stewardship commitment.";
+
 export const metadata: Metadata = {
-  title: "Data Commitment — CareSync",
-  description:
-    "Our data stewardship commitment. Your family's health data is protected and never sold.",
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: `${BASE_URL}/trust` },
   openGraph: {
-    title: "Data Commitment — CareSync",
-    description:
-      "Our data stewardship commitment. Your family's health data is protected and never sold.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: `${BASE_URL}/trust`,
     siteName: "CareSync",
     images: [
@@ -19,7 +23,7 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "CareSync Data Commitment",
+        alt: TITLE,
       },
     ],
     type: "website",
@@ -27,9 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Data Commitment — CareSync",
-    description:
-      "Our data stewardship commitment. Your family's health data is protected and never sold.",
+    title: TITLE,
+    description: DESCRIPTION,
     images: [`${BASE_URL}/og-image.png`],
   },
 };

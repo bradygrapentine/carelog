@@ -12,10 +12,13 @@ export function MarketingFooter() {
         <nav aria-label="Footer navigation">
           <ul className="flex items-center gap-6" role="list">
             {[
-              { label: "Privacy", href: "/privacy" },
-              { label: "Terms", href: "/terms" },
+              { label: "Pricing", href: "/pricing" },
+              { label: "About", href: "/about" },
+              { label: "Trust", href: "/trust" },
               { label: "For referrers", href: "/for-referrers" },
               { label: "Contact", href: "/contact" },
+              { label: "Privacy", href: "/privacy" },
+              { label: "Terms", href: "/terms" },
             ].map(({ label, href }) => (
               <li key={href}>
                 <Link
