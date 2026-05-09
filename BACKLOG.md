@@ -20,11 +20,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 30 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · SEO-001..006 · PP-009 |
+| 🟢 Ready | 29 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-001..006 · PP-009 |
 | 🔎 In review | 1 | TD-110 (PR #384) |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
-| 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
+| 🧊 Deferred | 9 | §5 ON-55 (ON-69 struck dup) · §1 UX-066 (superseded) · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 11 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 · SEO-007 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -65,7 +65,7 @@ Every active row **must** include a `Status:` field (`Ready` / `In progress` / `
 | ON-50 | ✅ Shipped · PR #106 | — | — | **Weekly digest: medications adherence section** | Add a missed-dose summary to the Sunday Inngest digest. Query `care_events` for `event_type='medication'` last week, surface missed vs given count. `weeklyDigest.ts` already has journal + mood + shifts but no meds section. |
 | ON-51 | ✅ Shipped · PR #109 | — | — | **Aide recipient-scoping in invite + team admin** | When inviting as role='aide', show a recipient picker that sets `recipient_id` on the membership row. DB already has `recipient_id` on `memberships` with an index; the invite form and TeamAdmin currently ignore it. |
 | ON-52 | ✅ Shipped · PR #101 | — | — | **Care history depth counter on dashboard** | Shows care event count + months of history per team; parallel Supabase queries + `formatCareStats` pure helper + 6 unit tests. |
-| ON-53 | ✅ Shipped · PR #100 | — | — | **CareZone alternative landing page** | `/carezone-alternative` hero, CareZone comparison table, medication import preview tool; MarketingNav linked ("CareZone users"). |
+| ON-53 | ✅ Shipped · PR #100 | — | — | **CareZone alternative landing page** | `/carezone-alternative` hero, CareZone comparison table, medication import preview tool; MarketingNav linked ("CareZone users"). **Note (2026-05-09):** standalone page consolidated into `/about` via PRs #316/#317 — see `apps/web/app/(marketing)/about/page.tsx` (`CompareTable`, `CareZoneMedicationImport`). |
 | ON-57 | ✅ Shipped · PR #105 | — | — | **Family referral share link** | Coordinator dashboard button: "Refer Carelog to another family." Generates a shareable `/signup?ref=<orgSlug>` URL (new-org referral, not a team invite). PostHog tracks `referral_shared` + `referral_converted` events. Referral source stored on new org row. Key KPI: 60% referral rate by month 6 (PRODUCT_STRATEGY.md). ~1 day. |
 | ON-58 | ✅ Shipped · PR #103 | — | — | **Analytics: onboarding + retention funnel events** | Add PostHog events: `onboarding_step_completed` (step name, elapsed_ms), `first_care_event_created` (elapsed_ms since signup), `team_member_invited` (team_size property). Powers PRODUCT_STRATEGY.md KPIs: "time to first care event < 10 min" + "week 4 retention 70%+." PHI rule: UUID only — no names or emails. ~0.5 day. |
 
@@ -138,7 +138,7 @@ Roadmap §"SEO discoverability (post-launch)" added 2026-05-09. LAUNCH-003 shipp
 | SEO-001 | 🟢 Ready | **Per-page `<title>` + meta description rewrite for primary intent keywords** | Audit every marketing route's title/description against target search intents ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", "CareZone alternative", etc.). Each page gets a unique, ≤60-char title and ≤160-char description, written for click-through-rate not just keyword stuffing. ~3 hr. |
 | SEO-002 | 🟢 Ready | **Add `FAQPage` JSON-LD on `/`, `/pricing`, `/about`** | Three or four common-question/answer pairs per page (already in copy on most pages) get wrapped in schema.org `FAQPage` markup. Pulls users into Google's rich-result blocks. ~1 hr per page; ~3 hr total. |
 | SEO-003 | 🟢 Ready | **Add `HowTo` JSON-LD on `/about` and the CareZone-alternative page** | Cornerstone "how to coordinate care for an aging parent" content gets `HowTo` markup with step-by-step. Drives the long-tail organic queries. ~2 hr. |
-| SEO-004 | 🟢 Ready | **`<h1>` hierarchy + internal linking audit** | Sweep every marketing route to confirm exactly one `<h1>`, h2/h3 in document order, and that key pages link to each other (`/` ↔ `/pricing` ↔ `/carezone-alternative` ↔ `/for-referrers`). ~2 hr. |
+| SEO-004 | 🟢 Ready | **`<h1>` hierarchy + internal linking audit** | Sweep every marketing route to confirm exactly one `<h1>`, h2/h3 in document order, and that key pages link to each other (`/` ↔ `/pricing` ↔ `/about#compare` ↔ `/for-referrers`). ~2 hr. |
 | SEO-005 | 🟢 Ready | **Core Web Vitals tightening on `/`, `/pricing`, `/about`** | Last measured 2026-04-28 (`/` 86ms, `/pricing` 61ms, `/about` 63ms LCP) — solid but pre-image-heavy. Run Lighthouse + Chrome DevTools perf trace; defer below-fold images, inline above-fold critical CSS, audit the `next/font` config for FOIT. CWV is a confirmed ranking factor. ~3 hr. |
 | SEO-006 | 🟢 Ready | **Cornerstone content engine — 3–5 articles at `/learn/*`** | Build a thin MDX-based blog at `/learn/*` (Next.js App Router, static-only, no CMS — minimal infra). Three to five long-form articles on caregiver pain points: "Managing medications across a care team", "Sharing shift handoff notes that actually help", "When a parent's care needs grow beyond what one person can do", etc. Each article is internally linked, has its own JSON-LD `Article` markup, and lands in the sitemap. ~8 hr (article infra ~2 hr, three articles ~6 hr). |
 | SEO-007 | 🧑 Needs human | **Verify in Google Search Console + Bing Webmaster Tools, submit sitemap** | Both consoles require ownership verification (DNS TXT or meta tag — meta tag works since marketing routes are SSG). Ownership tag goes in `(marketing)/layout.tsx`. Then submit `https://care-log.org/sitemap.xml`. Track index coverage weekly for the first month. Mostly setup, but gates SEO-001..006's measurable impact. ~30 min once human is at the keyboard. |
@@ -228,7 +228,7 @@ UX-062 + UX-064 shipped the surfaces but deliberately deferred narrative + relat
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | UX-065 | 🟢 Ready | **BriefingHandoff narrative adapter for the shifts route** | UX-062 shipped a Calendar/Lanes/Now toggle on `ShiftsPanel` but left BriefingHandoff out — its `{summary, sleep, meds, schedule}` lines need source narratives that don't exist yet. Build a server-side adapter (`lib/handoffNarrative.ts` or extend `lib/handoffSummary.ts`) that turns the prior shift's care_events into 3 one-line summaries (sleep severity from sleep events, meds from medication events with given/missed counts, schedule from upcoming appointments + PT). Add Briefing as the 4th tab in `ShiftsPanel`. The existing "What did I miss?" modal (UX-19) covers the same surface but is modal-only — Briefing is the in-page toggle variant. ~4 hr. **Owner: Opus (schema + summarization).** |
-| UX-066 | 🟢 Ready | **RecipientProfile enrichment — mood / caregivers / About** | UX-064 shipped the route with name/age/conditions only. Wire the remaining `<RecipientProfile>` props: (a) `mood` from the latest `care_events` row with `payload.mood` for that recipient, (b) `caregivers` from `memberships` joined with display_names (resolved via identityRepository for PHI), (c) `about` — needs a new column on `care_recipients` (or a `recipient_profiles` table) with a coordinator-only edit affordance. Decide a/b/c sequencing: a + b are read-only joins (small); c is schema work. Consider splitting if the schema piece blocks. ~5 hr (or 2 + 3 if split). **Owner: Opus (PHI-sensitive caregivers join).** |
+| UX-066 | 🧊 Deferred · superseded by UX-103/104/105 | **RecipientProfile enrichment — mood / caregivers / About** | Filed 2026-04-30 as a single 5-hr row. UX-103 (CareTeamList adapter), UX-104 (likes/dislikes schema), UX-105 (emergency info schema) split the same surface into 3 implementable rows on 2026-05-01 — those are now the canonical work items. Strike here once a successor row ships. |
 
 ### CareSync handoff (frozen design, UX-077 follow-up) — opened 2026-05-01
 
@@ -365,16 +365,14 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **Work:** Mobile: `expo-av` recording + upload to Supabase Storage. Inngest job: Whisper → structured parse → care_event insert with `entry_type='visit_note'`. Web: playback + structured fields editable.
 **Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case.
 
-### ON-69 — Visit recorder · ~3 days
-**Status:** 🧊 Deferred (Phase 7)
-**Why deferred:** Phase 7 — requires audio capture infra not yet scoped; revisit after launch.
-**Scope:** Mobile: `expo-av` audio recording → upload to Supabase Storage. Inngest job: Whisper transcription → Claude structured extraction → `care_event` insert with `entry_type='visit_note'` tagged to the appointment. Web: playback + structured fields editable. ROADMAP.md Phase 4 "Visit recorder" section is the authoritative spec.
-**Blocked by:** Phase 1–6 features fully stable; audio infra scoping; Whisper API cost analysis.
+### ON-69 — Visit recorder (struck 2026-05-09 — duplicate of ON-55)
+**Status:** 🧊 Deferred · duplicate of ON-55
+**Note:** ON-55 covers the same Visit Recorder Phase 7 scope. Keeping ON-55 (lower ID).
 
 ### ON-56 — Data stewardship commitment page · ~0.5 day
 **Status:** ✅ Shipped · PR #102
 **Why:** PRODUCT_STRATEGY.md says "publish before first paying users." Builds trust with a population burned by CareZone's shutdown. Commitment: 12 months notice before shutdown, full data export always available, data never sold, no ads ever.
-**Work:** New marketing page at `/data-commitment` (or `/trust`). Link from footer + signup flow. Plain language, no legalese. ~0.5 day.
+**Work:** New marketing page at `/trust`. Link from footer + signup flow. Plain language, no legalese. ~0.5 day.
 **AC:** Page live at stable URL; linked from site footer and onboarding.
 
 ### ON-59 — Inngest cron health monitoring · ~1 day

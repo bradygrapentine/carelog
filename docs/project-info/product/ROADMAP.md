@@ -37,9 +37,8 @@ Design decision: recipient_id on memberships is nullable.
 This enables the agency model — a home care agency can have one org with
 multiple care recipients and aides scoped to specific clients.
 
-### Weekly digest (not started)
-Every Sunday, supporters and coordinators get a summary of the week.
-What happened, how the care recipient is doing, whether anyone needs help.
+### Weekly digest (shipped — see ON-50, ON-59, LAUNCH-004 / TD-74)
+Lives at `apps/web/inngest/functions/weeklyDigest.ts`. Every Sunday, supporters and coordinators get a summary of the week. What happened, how the care recipient is doing, whether anyone needs help.
 
 This is the retention mechanism. Supporters who get a weekly digest
 stay engaged. Engaged supporters send more reactions. Reactions keep caregivers
@@ -97,7 +96,8 @@ Finds medications with `supply_days_remaining <= 7`.
 Sends alert to coordinator + assigned caregiver with pharmacy contact pre-populated.
 Idempotency key: `refill:{medication_id}:{week_stamp}`.
 
-### Outer circle volunteer board
+### Outer circle volunteer board (shipped)
+Lives at `/care/[shareToken]` with `OuterCirclePanel` on the coordinator side.
 Friends and neighbors want to help but don't know how.
 The coordinator posts a request ("meals needed this week, 3 slots").
 Anyone with the share_token link can claim a slot — no account required.
@@ -184,7 +184,7 @@ Before accepting paying users: wire Sentry source-map uploads (unblocked by TD-0
 Publish a privacy policy and Terms of Service at stable URLs linked from the signup flow and site footer. Obtain a Business Associate Agreement from Supabase (HIPAA) and from Resend if email bodies contain PHI. Document a data-retention and right-to-erasure runbook covering how to honor deletion requests within the required timeframe. Requires legal review — tracked as LAUNCH-005 (human-gated).
 
 ### SEO discoverability (post-launch)
-LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: rewrite each marketing page's `<title>` and meta description for primary intent keywords ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", etc.); add `FAQPage` + `HowTo` JSON-LD on relevant pages; ensure a single canonical `<h1>` per page with a clean h2/h3 hierarchy; enable internal linking between marketing pages, the CareZone-comparison page, and `/for-referrers`; tighten Core Web Vitals on `/`, `/pricing`, `/about` (CWV is a ranking factor); ship a small content engine (3–5 cornerstone articles on caregiver pain points) at `/learn/*` to capture organic search; verify the site in Google Search Console + Bing Webmaster Tools and submit the sitemap. Tracked as `SEO-001` through `SEO-007` in BACKLOG.md §1.
+LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: rewrite each marketing page's `<title>` and meta description for primary intent keywords ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", etc.); add `FAQPage` + `HowTo` JSON-LD on relevant pages; ensure a single canonical `<h1>` per page with a clean h2/h3 hierarchy; enable internal linking between marketing pages, the CareZone comparison section on `/about`, and `/for-referrers` (the standalone `/carezone-alternative` page was consolidated into `/about` via PRs #316/#317); tighten Core Web Vitals on `/`, `/pricing`, `/about` (CWV is a ranking factor); ship a small content engine (3–5 cornerstone articles on caregiver pain points) at `/learn/*` to capture organic search; verify the site in Google Search Console + Bing Webmaster Tools and submit the sitemap. Tracked as `SEO-001` through `SEO-007` in BACKLOG.md §1.
 
 ## Feature sequencing rationale
 

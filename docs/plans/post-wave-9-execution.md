@@ -134,7 +134,7 @@ These four are `apps/web/app/(marketing)/*` only — no shared state with the re
 |---|---|
 | SEO-001 (per-page meta) | every `(marketing)/<route>/page.tsx`'s `metadata` export |
 | SEO-002 (FAQPage JSON-LD) | `(marketing)/page.tsx`, `(marketing)/pricing/page.tsx`, `(marketing)/about/page.tsx` |
-| SEO-003 (HowTo JSON-LD) | `(marketing)/about/page.tsx`, `(marketing)/carezone-alternative/page.tsx` |
+| SEO-003 (HowTo JSON-LD) | `(marketing)/about/page.tsx` only (the standalone `/carezone-alternative` page no longer exists — consolidated into `/about` via PRs #316/#317; HowTo deferred until `/about` has explicit step-by-step content) |
 | SEO-004 (h1 + internal links) | every `(marketing)` page + `MarketingNav.tsx`, `MarketingFooter.tsx` |
 
 **File-overlap warning**: SEO-001 and SEO-002/003 both touch `page.tsx` files. Merge order: 001 first (touches `metadata` exports), then 002/003 in parallel (touch `<script type="application/ld+json">` blocks alongside, no conflict), then 004 last (rebases on top, may need light h1 alignment).

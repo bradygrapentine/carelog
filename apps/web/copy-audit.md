@@ -402,10 +402,7 @@ Detailed audit deferred for `landing`, `about`, `pricing` — UX-037 / UX-038 in
   - Issue: textbook generic-SaaS verb. The whole product brand pulls away from this register.
   - Suggested: tagline → `"Free, no card required."`; button → `"Try it free"` or `"Create a care team"` (matches the action that actually happens)
 
-- `apps/web/app/(marketing)/compare/page.tsx:110` [Critical]
-  - Current: `"Get started free"`
-  - Issue: same generic-SaaS line in a comparison surface where the value should be specific
-  - Suggested: `"Start a care team — free"`
+- ~~`apps/web/app/(marketing)/compare/page.tsx:110`~~ [Critical] — **STRUCK 2026-05-09**: page consolidated into `/about` via PRs #316/#317. Re-audit the equivalent CTA in `apps/web/app/(marketing)/about/page.tsx` if still present.
 
 - `apps/web/components/marketing/ForReferrersPage.tsx:247` [Critical]
   - Current: `"Learn more about our privacy commitments"`
@@ -424,10 +421,7 @@ Detailed audit deferred for `landing`, `about`, `pricing` — UX-037 / UX-038 in
   - Issue: slight repetition ("shuts down… any shutdown"); "this platform" is engineering register
   - Suggested: `"If CareSync ever has to shut down, families get 12 months' notice — enough time to export and find a new home."`
 
-- `apps/web/app/(marketing)/compare/page.tsx:45` [Medium]
-  - Current: `"Pick CaringBridge if you only need to broadcast health updates to a wide circle of friends and family."`
-  - Issue: well-pitched, candid. Keep; flag only "broadcast" — slightly cold for warm·candid·companion. "Send" is plainer.
-  - Suggested: `"Pick CaringBridge if you mainly want to send health updates to a wide circle of friends and family."`
+- ~~`apps/web/app/(marketing)/compare/page.tsx:45`~~ [Medium] — **STRUCK 2026-05-09**: page consolidated into `/about` via PRs #316/#317. Re-audit the equivalent line in `apps/web/app/(marketing)/about/page.tsx` if still present.
 
 ### Low
 
