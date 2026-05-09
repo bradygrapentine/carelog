@@ -1489,6 +1489,54 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_questions: {
+        Row: {
+          body: string
+          id: string
+          org_id: string
+          raised_at: string
+          raised_by: string
+          recipient_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          body: string
+          id?: string
+          org_id: string
+          raised_at?: string
+          raised_by: string
+          recipient_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          body?: string
+          id?: string
+          org_id?: string
+          raised_at?: string
+          raised_by?: string
+          recipient_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_questions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_questions_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shift_trade_requests: {
         Row: {
           created_at: string
