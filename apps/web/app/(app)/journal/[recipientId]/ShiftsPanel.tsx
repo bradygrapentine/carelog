@@ -22,7 +22,11 @@ import { OpenQuestionsCard } from "@/components/shifts/OpenQuestionsCard";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { CardContent } from "@/components/ui/card";
 import { ShiftList } from "./ShiftList";
-import { buildShiftLanesData, buildTeamNowBoard } from "@/lib/shiftLayouts";
+import {
+  buildShiftLanesData,
+  buildShiftWeekGridBlocks,
+  buildTeamNowBoard,
+} from "@/lib/shiftLayouts";
 
 type Member = {
   id: string;
@@ -123,6 +127,12 @@ export function ShiftsPanel(props: Props) {
     return buildTeamNowBoard(weekShifts, props.members);
   }, [layout, weekShifts, props.members]);
 
+  const weekGridBlocks = useMemo(() => {
+    if (layout !== "week-grid") return [];
+    const weekStart = new Date(weekRange.from);
+    return buildShiftWeekGridBlocks(weekShifts, memberLookup, weekStart);
+  }, [layout, weekShifts, memberLookup, weekRange.from]);
+
   return (
     <div className="space-y-4">
       <div
@@ -163,7 +173,7 @@ export function ShiftsPanel(props: Props) {
         <TintedCard>
           <TintedCardHeader title="This week" />
           <CardContent className="pt-2 pb-4">
-            <ShiftWeekGrid blocks={[]} />
+            <ShiftWeekGrid blocks={weekGridBlocks} />
           </CardContent>
         </TintedCard>
       )}
