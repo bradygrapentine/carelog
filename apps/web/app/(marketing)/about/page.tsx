@@ -6,15 +6,19 @@ import { CareZoneMedicationImport } from "../../../components/marketing/CareZone
 
 const BASE_URL = "https://care-log.org";
 
+// SEO-001: lead with comparison intent — captures users shopping
+// CareZone alternatives. ≤60 chars.
+const TITLE = "CareSync vs CaringBridge & CareZone — How We Compare";
+const DESCRIPTION =
+  "Built by a caregiver, for caregivers. How CareSync compares to CaringBridge, Lotsa Helping Hands, and CareZone for families coordinating care for an aging parent.";
+
 export const metadata: Metadata = {
-  title: "About — CareSync",
-  description:
-    "CareSync — built by a caregiver, for caregivers. How we compare to CaringBridge, Lotsa Helping Hands, and CareZone.",
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: `${BASE_URL}/about` },
   openGraph: {
-    title: "About — CareSync",
-    description:
-      "CareSync — built by a caregiver, for caregivers. How we compare to CaringBridge, Lotsa Helping Hands, and CareZone.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: `${BASE_URL}/about`,
     siteName: "CareSync",
     images: [
@@ -22,7 +26,7 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "About CareSync",
+        alt: TITLE,
       },
     ],
     type: "website",
@@ -30,9 +34,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About — CareSync",
-    description:
-      "CareSync — built by a caregiver, for caregivers. How we compare to CaringBridge, Lotsa Helping Hands, and CareZone.",
+    title: TITLE,
+    description: DESCRIPTION,
     images: [`${BASE_URL}/og-image.png`],
   },
 };
