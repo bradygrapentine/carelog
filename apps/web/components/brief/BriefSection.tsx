@@ -9,10 +9,10 @@
  * `useState(() => new Date())` to satisfy React 19's `react-hooks/purity`
  * rule — no `Date.now()` / `new Date()` in render or `useMemo` bodies.
  *
- * Renders the five brief components: SleepSparkline (only when 7 nights),
+ * Renders five brief components: SleepSparkline (only when 7 nights),
  * ComingUpRows (own empty state), OnShiftSidebar, PatternCard (only when
- * non-null). ShiftQuoteNote remains deferred until UX-101 ships
- * `shifts.getLatestHandoff`.
+ * non-null), and ShiftQuoteNote (only when shifts.getLatestHandoff returns
+ * a non-empty narrative — wired in UX-101c).
  */
 
 import { useMemo, useState } from "react";
@@ -21,6 +21,7 @@ import { SleepSparkline } from "@/components/brief/SleepSparkline";
 import { ComingUpRows } from "@/components/brief/ComingUpRows";
 import { OnShiftSidebar } from "@/components/brief/OnShiftSidebar";
 import { PatternCard } from "@/components/brief/PatternCard";
+import { ShiftQuoteNote } from "@/components/brief/ShiftQuoteNote";
 import { sleepFromEvents } from "@/lib/sleepFromEvents";
 import { comingUpEvents } from "@/lib/comingUpEvents";
 import { deriveOnShift } from "@/lib/deriveOnShift";
@@ -89,10 +90,64 @@ export function BriefSection({
     [data, now],
   );
 
+  // UX-101c — most-recent past shift's narrative handoff.
+  // Independent tRPC query (different cache key); subscribed only when
+  // the primary slot is rendered, so sidebar/footer slots don't pay the
+  // cost on dashboards that re-mount BriefSection multiple times.
+  const { data: latestHandoff } = trpc.shifts.getLatestHandoff.useQuery(
+    { recipientId },
+    { enabled: slot === "primary" },
+  );
+
+  // Build the quote string from the first entry's body. Inner shape
+  // {heading?, body} matches the tRPC output and the migration's CHECK
+  // (array of objects); we defensively narrow.
+  const handoffQuote = useMemo<{
+    quote: string;
+    by: string;
+    when: string;
+  } | null>(() => {
+    if (!latestHandoff) return null;
+    const raw = latestHandoff.handoff_entries;
+    if (!Array.isArray(raw) || raw.length === 0) return null;
+    const first = raw[0];
+    if (
+      !first ||
+      typeof first !== "object" ||
+      !("body" in first) ||
+      typeof (first as { body: unknown }).body !== "string"
+    ) {
+      return null;
+    }
+    const body = (first as { body: string }).body.trim();
+    if (!body) return null;
+
+    // Caregiver name resolution from members lookup if available.
+    const caregiver = data?.members.find(
+      (m) => m.user_id === latestHandoff.assignee_user_id,
+    );
+    const by = caregiver?.display_name ?? "Previous shift";
+    const when = latestHandoff.end_at
+      ? new Date(latestHandoff.end_at).toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : "—";
+
+    return { quote: body, by, when };
+  }, [latestHandoff, data]);
+
   if (slot === "primary") {
     return (
       <>
         {sleepNights.length === 7 && <SleepSparkline nights={sleepNights} />}
+        {handoffQuote && (
+          <ShiftQuoteNote
+            quote={handoffQuote.quote}
+            by={handoffQuote.by}
+            when={handoffQuote.when}
+          />
+        )}
         <ComingUpRows events={comingUp} />
       </>
     );

@@ -81,6 +81,11 @@ vi.mock("@/lib/trpc", () => ({
         useQuery: (...args: unknown[]) => trpcMocks.moodSparklineQuery(...args),
       },
     },
+    shifts: {
+      getLatestHandoff: {
+        useQuery: () => ({ data: null, isLoading: false }),
+      },
+    },
     useUtils: () => ({
       medications: { todayLog: { invalidate: trpcMocks.todayLogInvalidate } },
     }),
