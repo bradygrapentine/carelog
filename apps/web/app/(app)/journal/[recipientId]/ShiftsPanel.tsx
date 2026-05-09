@@ -204,6 +204,54 @@ export function ShiftsPanel(props: Props) {
     return memberLookup.displayName(latestHandoff.assignee_user_id) ?? "—";
   }, [latestHandoff, memberLookup]);
 
+  // ─── Questions (UX-102b) ──────────────────────────────────────────────────
+  const { data: questionsRaw = [] } = trpc.shiftQuestions.list.useQuery(
+    { recipientId: props.recipientId, openOnly: false },
+    { enabled: layout === "questions" },
+  );
+
+  const createQuestion = trpc.shiftQuestions.create.useMutation({
+    onSuccess: () => {
+      toast.success("Question posted");
+      setQuestionDraft("");
+      utils.shiftQuestions.list.invalidate({
+        recipientId: props.recipientId,
+      });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Could not post question");
+    },
+  });
+
+  const resolveQuestion = trpc.shiftQuestions.resolve.useMutation({
+    onSuccess: () => {
+      toast.success("Question resolved");
+      utils.shiftQuestions.list.invalidate({
+        recipientId: props.recipientId,
+      });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Could not resolve question");
+    },
+  });
+
+  const [questionDraft, setQuestionDraft] = useState("");
+
+  const questionsView = useMemo(
+    () =>
+      questionsRaw.map((q) => ({
+        id: q.id,
+        text: q.body,
+        by: memberLookup.displayName(q.raised_by) ?? "—",
+        when: new Date(q.raised_at).toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+        open: q.resolved_at === null,
+      })),
+    [questionsRaw, memberLookup],
+  );
+
   const handoffWhen = useMemo(() => {
     if (!latestHandoff?.end_at) return "—";
     return new Date(latestHandoff.end_at).toLocaleString(undefined, {
@@ -293,7 +341,49 @@ export function ShiftsPanel(props: Props) {
 
       {layout === "team-list" && <ShiftTeamList members={teamListMembers} />}
 
-      {layout === "questions" && <OpenQuestionsCard questions={[]} />}
+      {layout === "questions" && (
+        <div className="space-y-3">
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const trimmed = questionDraft.trim();
+              if (!trimmed) return;
+              createQuestion.mutate({
+                orgId: props.orgId,
+                recipientId: props.recipientId,
+                body: trimmed,
+              });
+            }}
+          >
+            <label htmlFor="shift-question-input" className="sr-only">
+              Ask a question for the team
+            </label>
+            <input
+              id="shift-question-input"
+              type="text"
+              value={questionDraft}
+              onChange={(e) => setQuestionDraft(e.target.value)}
+              maxLength={2000}
+              placeholder="Ask the team a question…"
+              className="flex-1 rounded-md border border-[var(--color-border)] bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            />
+            <button
+              type="submit"
+              disabled={
+                createQuestion.isPending || questionDraft.trim().length === 0
+              }
+              className="rounded-md bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:opacity-50"
+            >
+              {createQuestion.isPending ? "Posting…" : "Post"}
+            </button>
+          </form>
+          <OpenQuestionsCard
+            questions={questionsView}
+            onRespond={(id) => resolveQuestion.mutate({ id })}
+          />
+        </div>
+      )}
 
       {layout === "calendar" && <ShiftList {...props} />}
 

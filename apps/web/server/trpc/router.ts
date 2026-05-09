@@ -21,6 +21,7 @@ import { billingRouter } from "../routers/billing";
 import { historyExportRouter } from "../routers/historyExport";
 import { moodEntriesRouter } from "../routers/moodEntries";
 import { briefsRouter } from "../routers/briefs";
+import { shiftQuestionsRouter } from "../routers/shiftQuestions";
 
 export const appRouter = router({
   ai: aiRouter,
@@ -45,6 +46,7 @@ export const appRouter = router({
   historyExport: historyExportRouter,
   moodEntries: moodEntriesRouter,
   briefs: briefsRouter,
+  shiftQuestions: shiftQuestionsRouter,
 });
 
 export type AppRouter = typeof appRouter;
