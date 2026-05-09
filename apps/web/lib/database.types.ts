@@ -1554,6 +1554,7 @@ export type Database = {
           created_at: string
           created_by: string
           end_at: string
+          handoff_entries: Json
           id: string
           notes: string | null
           org_id: string
@@ -1570,6 +1571,7 @@ export type Database = {
           created_at?: string
           created_by: string
           end_at: string
+          handoff_entries?: Json
           id?: string
           notes?: string | null
           org_id: string
@@ -1586,6 +1588,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           end_at?: string
+          handoff_entries?: Json
           id?: string
           notes?: string | null
           org_id?: string
