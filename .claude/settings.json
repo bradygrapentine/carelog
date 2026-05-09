@@ -8,11 +8,11 @@
       "Bash(npx vitest:*)",
       "Bash(pnpm add:*)",
       "Read(//Users/bradygrapentine/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/subagent-driven-development/**)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog rev-parse HEAD)",
+      "Bash(git -C /Users/bradygrapentine/projects/carelog rev-parse HEAD)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(echo \"VITEST_EXIT:$?\")",
       "Bash(echo \"GIT_EXIT:$?\")",
-      "Bash(grep -n \"color-brand\\\\|color-sidebar\\\\|color-text-muted\\\\|color-surface-raised\\\\|color-surface-muted\" /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/TeamPanel.tsx /Users/bradygrapentine/Documents/projects/carelog/apps/web/app/journal/[recipientId]/JournalClient.tsx)",
+      "Bash(grep -n \"color-brand\\\\|color-sidebar\\\\|color-text-muted\\\\|color-surface-raised\\\\|color-surface-muted\" /Users/bradygrapentine/projects/carelog/apps/web/app/journal/[recipientId]/TeamPanel.tsx /Users/bradygrapentine/projects/carelog/apps/web/app/journal/[recipientId]/JournalClient.tsx)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm type-check:*)",
       "Bash(git show:*)",
@@ -21,13 +21,13 @@
       "Bash(ls e2e/*.ts)",
       "Bash(ls *.config.ts *.config.js vitest.workspace*)",
       "Bash(ls *.config.ts vitest.workspace*)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog branch --show-current)",
+      "Bash(git -C /Users/bradygrapentine/projects/carelog branch --show-current)",
       "Edit(/.claude/skills/deploy-autopilot/**)",
       "Bash(pnpm -C apps/web exec vitest run --related:*)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log -1 --oneline)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short plans/)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog log --oneline -10)",
-      "Bash(git -C /Users/bradygrapentine/Documents/projects/carelog status --short)"
+      "Bash(git -C /Users/bradygrapentine/projects/carelog log -1 --oneline)",
+      "Bash(git -C /Users/bradygrapentine/projects/carelog status --short plans/)",
+      "Bash(git -C /Users/bradygrapentine/projects/carelog log --oneline -10)",
+      "Bash(git -C /Users/bradygrapentine/projects/carelog status --short)"
     ]
   },
   "hooks": {
@@ -54,7 +54,7 @@
           },
           {
             "type": "command",
-            "command": "CMD=$(python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))\" 2>/dev/null); if echo \"$CMD\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit'; then branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ] && [ -z \"$CLAUDE_ALLOW_MAIN_COMMIT\" ]; then echo '[blocked] Direct commit to main is blocked. Create a feature branch, or re-run with CLAUDE_ALLOW_MAIN_COMMIT=1 for an intentional backlog-sync / docs-only commit.' >&2; exit 2; fi; fi; exit 0"
+            "command": "INPUT=$(cat); CMD=$(echo \"$INPUT\" | python3 -c \"import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" 2>/dev/null); CWD=$(echo \"$INPUT\" | python3 -c \"import sys,json; print(json.load(sys.stdin).get('cwd','.'))\" 2>/dev/null); if echo \"$CMD\" | grep -qE '(^|[[:space:]&;|])git[[:space:]]+commit'; then branch=$(git -C \"${CWD:-.}\" branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ] && [ -z \"$CLAUDE_ALLOW_MAIN_COMMIT\" ]; then echo '[blocked] Direct commit to main is blocked. Create a feature branch, or re-run with CLAUDE_ALLOW_MAIN_COMMIT=1 for an intentional backlog-sync / docs-only commit.' >&2; exit 2; fi; fi; exit 0"
           }
         ]
       },
@@ -79,7 +79,7 @@
           },
           {
             "type": "command",
-            "command": "branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ]; then printf '{\"systemMessage\": \"[warn] Editing on main branch — consider a feature branch\"}'; fi; exit 0"
+            "command": "CWD=$(python3 -c \"import sys,json; print(json.load(sys.stdin).get('cwd','.'))\" 2>/dev/null || echo .); branch=$(git -C \"${CWD:-.}\" branch --show-current 2>/dev/null); if [ \"$branch\" = 'main' ]; then printf '{\"systemMessage\": \"[warn] Editing on main branch — consider a feature branch\"}'; fi; exit 0"
           }
         ]
       }
@@ -102,7 +102,7 @@
           },
           {
             "type": "command",
-            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if 'apps/mobile' in fp and fp.endswith(('.ts','.tsx')) else 1)\" 2>/dev/null && cd /Users/bradygrapentine/Documents/projects/carelog/apps/mobile && npx tsc --noEmit 2>&1 | head -10 || true"
+            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if 'apps/mobile' in fp and fp.endswith(('.ts','.tsx')) else 1)\" 2>/dev/null && cd /Users/bradygrapentine/projects/carelog/apps/mobile && npx tsc --noEmit 2>&1 | head -10 || true"
           },
           {
             "type": "command",
@@ -115,7 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if any(k in fp.lower() for k in ['auth','rls','migration','policy','supabase/tests']) else 1)\" 2>/dev/null && echo '[pgTAP] Auth/RLS file changed - running supabase test db...' && cd /Users/bradygrapentine/Documents/projects/carelog && { output=$(supabase test db 2>&1); ec=$?; echo \"$output\" | tail -20; [ $ec -ne 0 ] && echo '[hint] pgTAP failing - invoke /ollama to dispatch a fix task, or run `supabase test db` manually to iterate'; } || true"
+            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); exit(0 if any(k in fp.lower() for k in ['auth','rls','migration','policy','supabase/tests']) else 1)\" 2>/dev/null && echo '[pgTAP] Auth/RLS file changed - running supabase test db...' && cd /Users/bradygrapentine/projects/carelog && { output=$(supabase test db 2>&1); ec=$?; echo \"$output\" | tail -20; [ $ec -ne 0 ] && echo '[hint] pgTAP failing - invoke /ollama to dispatch a fix task, or run `supabase test db` manually to iterate'; } || true"
           }
         ]
       },
