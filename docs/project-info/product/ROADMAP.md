@@ -183,6 +183,9 @@ Before accepting paying users: wire Sentry source-map uploads (unblocked by TD-0
 ### Compliance and legal
 Publish a privacy policy and Terms of Service at stable URLs linked from the signup flow and site footer. Obtain a Business Associate Agreement from Supabase (HIPAA) and from Resend if email bodies contain PHI. Document a data-retention and right-to-erasure runbook covering how to honor deletion requests within the required timeframe. Requires legal review — tracked as LAUNCH-005 (human-gated).
 
+### SEO discoverability (post-launch)
+LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: rewrite each marketing page's `<title>` and meta description for primary intent keywords ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", etc.); add `FAQPage` + `HowTo` JSON-LD on relevant pages; ensure a single canonical `<h1>` per page with a clean h2/h3 hierarchy; enable internal linking between marketing pages, the CareZone-comparison page, and `/for-referrers`; tighten Core Web Vitals on `/`, `/pricing`, `/about` (CWV is a ranking factor); ship a small content engine (3–5 cornerstone articles on caregiver pain points) at `/learn/*` to capture organic search; verify the site in Google Search Console + Bing Webmaster Tools and submit the sitemap. Tracked as `SEO-001` through `SEO-007` in BACKLOG.md §1.
+
 ## Feature sequencing rationale
 
 **Why journal before scheduler:**

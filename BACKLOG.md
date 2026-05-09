@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09** — Wave 9 (Shifts data plumbing) shipped 7 PRs (#372/373/374/375/376/377/378/379): UX-095 finalize (brief surface live adapters), UX-100 (ShiftWeekGrid blocks), UX-101 (handoff schema + tRPC + ShiftsPanel wire + dashboard ShiftQuoteNote — split a/b/c), UX-102 (shift_questions schema + tRPC + Questions tab — split a/b). Plus chore(security) pin axios + fast-uri overrides. All four ShiftsPanel empty states now render real data; dashboard brief surface fully wired. Remaining Ready = 24.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM** — Post-Wave-9 cleanup pass added 11 new rows: TD-107 (✅ shipped: OTP-input class collision fix), TD-108 (multi-org `.single()` bug), TD-109 (`/signin` no-redirect-when-authed), TD-110 (PatternsStrip mock → real aggregation), UX-107 (sign-in/onboarding brand-voice convergence with marketing), UX-108 (sign-in nav back to landing), and SEO-001..007 (post-launch SEO push: per-page title/desc, FAQPage + HowTo JSON-LD, h1 hierarchy + internal linking, CWV tightening, MDX cornerstone content engine, Search Console verification). Roadmap §"SEO discoverability (post-launch)" added under Phase 6. Worktrees + merged branches pruned. Remaining Ready = 34.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,12 +20,12 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 24 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · PP-009 |
+| 🟢 Ready | 34 | TD-78..82 · TD-87 · TD-108..110 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · UX-107 · UX-108 · SEO-001..006 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
-| 🧑 Needs human | 10 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 |
+| 🧑 Needs human | 11 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 · SEO-007 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
 
@@ -115,6 +115,33 @@ Surfaced by parallel pre-flight + test-gap audits (`docs/plans/WAVE5_DISCOVERY_R
 | TD-81 | 🟢 Ready | **Tests for `organizationsRepository.ts` (Tier 2 — team isolation)** | Cross-org query (org_id unfiltered) could be silent in CI if test fixtures don't span orgs. New file: `apps/web/server/repositories/__tests__/organizationsRepository.test.ts`. Test cross-org fixtures + org UUID assignment. ~1.5 hr. |
 | TD-82 | 🟢 Ready | **RLS test stub for `care_events_client_id` migration** | `20260416000001_care_events_client_id.sql` has no dedicated test. Either add a minimal `supabase/tests/care_events_client_id.test.sql` or document why it's covered by the existing `care_events_rls.test.sql`. ~0.5 hr. |
 | TD-83 | 🧑 Needs human | **Verify `CI Summary` is in main branch protection** | Pre-flight audit couldn't read protection config (no PAT in shell). Manually verify via GitHub UI: Settings → Branches → main → required checks includes `CI Summary` (per TD-30). If missing, add via API. ~0.25 hr. |
+
+### Post-Wave-9 audit (TD-107..110, UX-107, UX-108) — opened 2026-05-09
+
+Surfaced during the post-Wave-9 cleanup pass: read-only audit of sign-in flow, app-shell SSR auth, marketing/sign-in style divergence, and the lone surviving `TODO` marker.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-107 | ✅ Shipped · 2026-05-09 | **OTP input renders tiny: `text-2xl` + `text-sm` Tailwind class collision** | `apps/web/app/signin/SignInForm.tsx:119` had both `text-2xl` AND `text-sm` on the OTP input — Tailwind last-wins resolved to `text-sm`, so the "large monospace OTP digits" intent rendered small. Looked broken. Fixed in `chore(post-wave-9-cleanup)`: dropped `text-sm`, kept `text-2xl font-mono`, replaced `tracking-widest` with `tracking-[0.4em]` for clearer per-digit spacing. |
+| TD-108 | 🟢 Ready | **Multi-org caregiver: `(app)/layout.tsx:23` `.single()` silently nulls `orgId` for users with 2+ memberships** | `app/(app)/layout.tsx:19-23` calls `supabase.from("memberships").select("org_id").eq("user_id", user.id).single()`. `.single()` returns `error: PGRST116` for 2+ rows; the code drops the error and sets `orgId = null`. Result: a coordinator who is in two families gets `<AIAssistantProvider orgId="">` — broken AI assistant. Fix: use `.limit(1)` or `.maybeSingle()` after explicitly choosing a primary org (e.g., the first row by `created_at ASC` or the user's most-recently-active org). Add a regression test asserting layout still resolves a non-null orgId for a 2-membership fixture. ~1.5 hr. **Owner: Opus (auth flow)**. |
+| TD-109 | 🟢 Ready | **`/signin` doesn't redirect already-authenticated users to `/dashboard`** | Visiting `/signin` while logged in re-renders the OTP form. Mild UX papercut and a 1-line fix in `app/signin/page.tsx`: server-side `getUser()` → `if (user) redirect("/dashboard")` before returning JSX. Test: add a `SignInPage.flow` case asserting redirect when a session cookie is present. ~0.5 hr. |
+| TD-110 | 🟢 Ready | **Replace `TODO(UX-24)` placeholder with real pattern aggregation in `PatternsStrip`** | `apps/web/components/journal/PatternsStrip.tsx:6` still hard-codes 3 mock patterns ("Eleanor more anxious on Tuesdays" etc.) even though Wave 8's `detectPattern` helper now ships a real care-events pattern detector. Wire `PatternsStrip` to a tRPC query that returns the top-N detected patterns for the recipient (extend `detectPattern` to return an array, or aggregate over event-type slices). **No schema.** ~3 hr. **Owner: Opus (helper extension + adapter).** |
+| UX-107 | 🟢 Ready | **Sign-in / onboarding pages diverge from marketing brand voice** | `apps/web/app/signin/page.tsx` renders a placeholder colored square as logo (lines 17-20), then `text-xl font-bold` for the brand mark and `text-xl font-bold` for the h1 — Geist sans, no editorial styling. Marketing pages use `headline-display` (Fraunces italic-em pattern) for the hero h1 + the proper logo mark. Auth surfaces feel like a different product. Audit + converge: sign-in + onboarding pages should use the marketing logo, `headline-display` for the page h1, and the marketing color rhythm without losing focus on the form. Same audit on `/onboarding`. ~3 hr. |
+| UX-108 | 🟢 Ready | **`/signin` is unbranded — no link back to landing for visitors who got there by accident** | Compounds UX-107: a user who lands on `/signin` from a referral link with no account context has no way back to `/`. Add a minimal top-left "← CareSync" link (or a pared-down `MarketingNav` variant) so the auth surfaces stay reachable from the marketing journey. Coordinate with UX-107 since both touch sign-in chrome. ~1 hr. |
+
+### SEO discoverability (SEO-001..007) — opened 2026-05-09
+
+Roadmap §"SEO discoverability (post-launch)" added 2026-05-09. LAUNCH-003 shipped table-stakes meta + sitemap + JSON-LD; this slate goes deeper for organic discoverability. Tracked as a separate prefix to keep them visible during the post-launch push.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| SEO-001 | 🟢 Ready | **Per-page `<title>` + meta description rewrite for primary intent keywords** | Audit every marketing route's title/description against target search intents ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", "CareZone alternative", etc.). Each page gets a unique, ≤60-char title and ≤160-char description, written for click-through-rate not just keyword stuffing. ~3 hr. |
+| SEO-002 | 🟢 Ready | **Add `FAQPage` JSON-LD on `/`, `/pricing`, `/about`** | Three or four common-question/answer pairs per page (already in copy on most pages) get wrapped in schema.org `FAQPage` markup. Pulls users into Google's rich-result blocks. ~1 hr per page; ~3 hr total. |
+| SEO-003 | 🟢 Ready | **Add `HowTo` JSON-LD on `/about` and the CareZone-alternative page** | Cornerstone "how to coordinate care for an aging parent" content gets `HowTo` markup with step-by-step. Drives the long-tail organic queries. ~2 hr. |
+| SEO-004 | 🟢 Ready | **`<h1>` hierarchy + internal linking audit** | Sweep every marketing route to confirm exactly one `<h1>`, h2/h3 in document order, and that key pages link to each other (`/` ↔ `/pricing` ↔ `/carezone-alternative` ↔ `/for-referrers`). ~2 hr. |
+| SEO-005 | 🟢 Ready | **Core Web Vitals tightening on `/`, `/pricing`, `/about`** | Last measured 2026-04-28 (`/` 86ms, `/pricing` 61ms, `/about` 63ms LCP) — solid but pre-image-heavy. Run Lighthouse + Chrome DevTools perf trace; defer below-fold images, inline above-fold critical CSS, audit the `next/font` config for FOIT. CWV is a confirmed ranking factor. ~3 hr. |
+| SEO-006 | 🟢 Ready | **Cornerstone content engine — 3–5 articles at `/learn/*`** | Build a thin MDX-based blog at `/learn/*` (Next.js App Router, static-only, no CMS — minimal infra). Three to five long-form articles on caregiver pain points: "Managing medications across a care team", "Sharing shift handoff notes that actually help", "When a parent's care needs grow beyond what one person can do", etc. Each article is internally linked, has its own JSON-LD `Article` markup, and lands in the sitemap. ~8 hr (article infra ~2 hr, three articles ~6 hr). |
+| SEO-007 | 🧑 Needs human | **Verify in Google Search Console + Bing Webmaster Tools, submit sitemap** | Both consoles require ownership verification (DNS TXT or meta tag — meta tag works since marketing routes are SSG). Ownership tag goes in `(marketing)/layout.tsx`. Then submit `https://care-log.org/sitemap.xml`. Track index coverage weekly for the first month. Mostly setup, but gates SEO-001..006's measurable impact. ~30 min once human is at the keyboard. |
 
 ### Lighthouse a11y CI gating gap (TD-87) — opened 2026-04-29
 
