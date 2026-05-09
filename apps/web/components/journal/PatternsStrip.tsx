@@ -2,41 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc";
+import type { Pattern } from "@/lib/detectPattern";
 
-// TODO(UX-24): replace with real aggregation from care_events.
-type Pattern = {
-  id: string;
-  text: string;
-  bgClass: string;
-  filterParam: string;
-};
-
-const MOCK_PATTERNS: Pattern[] = [
-  {
-    id: "anxiety-tuesdays",
-    text: "Eleanor has been more anxious on Tuesdays (4 of last 5).",
-    bgClass: "bg-[var(--color-mood-okay)]/15",
-    filterParam: "mood",
-  },
-  {
-    id: "sleep-pt-days",
-    text: "Sleep drops by ~90 minutes after PT days.",
-    bgClass: "bg-[var(--color-primary-subtle)]",
-    filterParam: "mood",
-  },
-  {
-    id: "mood-priya",
-    text: "Mood is highest when Priya visits.",
-    bgClass: "bg-[var(--color-secondary-subtle)]",
-    filterParam: "mood",
-  },
-];
+// TD-110: subscribes to briefs.patterns; renders nothing when no pattern
+// crosses its detection threshold. Each card matches a real Pattern shape
+// (eyebrow / headline / detail / trend) — same data BriefSection's footer
+// uses, just rendered as a horizontal scroller of every signal that fired
+// rather than just the top one.
 
 type PatternsStripProps = {
   recipientId: string;
+  orgId: string;
 };
 
-export function PatternsStrip({ recipientId }: PatternsStripProps) {
+// Tint palette cycles in priority order (med → sleep → mood). detectPatterns
+// returns at most three results, so this covers every case without
+// embedding tint as a server-side concern.
+const TINT_BY_INDEX = [
+  "bg-[var(--color-mood-okay)]/15",
+  "bg-[var(--color-primary-subtle)]",
+  "bg-[var(--color-secondary-subtle)]",
+] as const;
+
+function tintFor(index: number): string {
+  return TINT_BY_INDEX[index % TINT_BY_INDEX.length] ?? TINT_BY_INDEX[0];
+}
+
+// Map a Pattern to the journal filter param the "View entries →" button
+// should hand to the journal route. Med misses → medications filter,
+// mood cluster → mood filter, sleep dip → sleep filter.
+function filterFor(p: Pattern): string {
+  if (p.headline.toLowerCase().includes("medication")) return "medication";
+  if (p.headline.toLowerCase().includes("sleep")) return "sleep";
+  return "mood";
+}
+
+export function PatternsStrip({ recipientId, orgId }: PatternsStripProps) {
   const router = useRouter();
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -47,6 +49,11 @@ export function PatternsStrip({ recipientId }: PatternsStripProps) {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  const { data } = trpc.briefs.patterns.useQuery({ recipientId, orgId });
+  const patterns = data ?? [];
+
+  if (patterns.length === 0) return null;
 
   const scrollBehaviorClass = reducedMotion
     ? "scroll-behavior-auto"
@@ -76,13 +83,13 @@ export function PatternsStrip({ recipientId }: PatternsStripProps) {
           scrollBehaviorClass,
         ].join(" ")}
       >
-        {MOCK_PATTERNS.map((pattern) => (
+        {patterns.map((pattern, i) => (
           <article
-            key={pattern.id}
+            key={`${pattern.headline}-${i}`}
             data-testid="pattern-card"
-            data-pattern-id={pattern.id}
+            data-pattern-headline={pattern.headline}
             className={[
-              pattern.bgClass,
+              tintFor(i),
               "snap-start shrink-0",
               "w-[280px] min-h-[110px]",
               "rounded-lg p-4",
@@ -95,10 +102,13 @@ export function PatternsStrip({ recipientId }: PatternsStripProps) {
                 className="text-xs font-mono uppercase tracking-widest opacity-60 text-[var(--color-ink)]"
                 aria-hidden="true"
               >
-                PATTERN
+                {pattern.eyebrow}
+              </p>
+              <p className="text-sm font-medium text-[var(--color-ink)]">
+                {pattern.headline}
               </p>
               <p className="text-sm leading-snug text-[var(--color-text-primary)]">
-                {pattern.text}
+                {pattern.detail}
               </p>
             </div>
 
@@ -106,7 +116,7 @@ export function PatternsStrip({ recipientId }: PatternsStripProps) {
               type="button"
               onClick={() =>
                 router.push(
-                  `/journal/${recipientId}?filter=${pattern.filterParam}`,
+                  `/journal/${recipientId}?filter=${filterFor(pattern)}`,
                 )
               }
               className="mt-2 self-start text-xs text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"

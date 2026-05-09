@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
 import { supabaseAdmin } from "../supabaseAdmin.server";
+import { detectPatterns, type Pattern } from "@/lib/detectPattern";
 
 export const briefsRouter = router({
   /**
@@ -246,5 +247,60 @@ export const briefsRouter = router({
         members,
         latestMood,
       };
+    }),
+
+  /**
+   * TD-110 — derived patterns surface for PatternsStrip.
+   *
+   * Reads the same 14-day care_events window dashboardSummary uses, runs
+   * detectPatterns() (priority-ordered: med-misses > sleep dip > mood
+   * cluster), and returns whichever fired. RLS via ctx.supabase. No
+   * supabaseAdmin needed — this query is org-scoped read-only.
+   */
+  patterns: protectedProcedure
+    .input(
+      z.object({
+        recipientId: z.string().uuid(),
+        orgId: z.string().uuid(),
+        limit: z.number().int().min(1).max(10).optional(),
+      }),
+    )
+    .query(async ({ ctx, input }): Promise<Pattern[]> => {
+      const { recipientId, orgId, limit } = input;
+
+      const { data: membership } = await ctx.supabase
+        .from("memberships")
+        .select("role")
+        .eq("org_id", orgId)
+        .eq("user_id", ctx.user.id)
+        .not("accepted_at", "is", null)
+        .maybeSingle();
+
+      if (!membership) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const now = new Date();
+      const fourteenDaysAgo = new Date(
+        now.getTime() - 14 * 24 * 60 * 60 * 1000,
+      );
+
+      const { data, error } = await ctx.supabase
+        .from("care_events")
+        .select("event_type, occurred_at, payload")
+        .eq("org_id", orgId)
+        .eq("recipient_id", recipientId)
+        .gte("occurred_at", fourteenDaysAgo.toISOString())
+        .limit(500);
+
+      if (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
+      }
+
+      const patterns = detectPatterns(data ?? [], now);
+      return limit ? patterns.slice(0, limit) : patterns;
     }),
 });
