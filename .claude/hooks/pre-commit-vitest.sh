@@ -53,4 +53,21 @@ if [ $ec -ne 0 ]; then
   exit 2
 fi
 
+# D.3 — catch lint errors locally before CI Lint flags them. Particularly
+# the React 19 react-hooks/purity rule (Date.now() / Math.random() inside
+# useMemo / useCallback) — vitest doesn't catch this but CI Lint does, so
+# it currently surfaces post-push with a 5+ minute round-trip.
+# Scope: same staged files vitest just ran against. --quiet means warnings
+# don't block (preserves the TD-14 downgrades to warn for no-explicit-any
+# etc.); only errors block.
+# shellcheck disable=SC2086
+lint_output=$(npx eslint --quiet --no-error-on-unmatched-pattern $staged 2>&1)
+lint_ec=$?
+
+if [ $lint_ec -ne 0 ]; then
+  echo "$lint_output" | tail -15
+  echo '[blocked] Pre-commit lint errors - fix before committing' >&2
+  exit 2
+fi
+
 exit 0
