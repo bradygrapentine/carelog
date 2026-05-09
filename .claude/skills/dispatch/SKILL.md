@@ -107,6 +107,33 @@ As each agent finishes, receive its notification:
 - `DONE_WITH_CONCERNS` → read concerns, decide push-with-note vs. ask user
 - `BLOCKED` → record reason; do NOT silently retry; surface to user
 
+#### 5a. Verify the PR actually exists (REQUIRED)
+
+When a subagent reports `DONE`, **always verify the PR landed before treating it as complete**. Subagents have run out of context mid-PR before — the agent declares "completed" while the worktree still has files staged-but-uncommitted, and no PR exists. Symptom: notification arrives, `gh pr list` shows nothing.
+
+For each completed agent, run:
+
+```sh
+gh pr list --author @me --json number,headRefName \
+  | jq -r --arg b "<branch>" '.[] | select(.headRefName == $b) | .number' \
+  | grep -q . \
+  || echo "[ALERT] subagent reported DONE but no PR exists for <branch>"
+```
+
+If the alert fires:
+1. `cd .worktrees/<name>` and run `git status`. Expect either uncommitted files (finish the commit yourself + push + open PR) or a pushed branch with no PR (open the PR yourself).
+2. **Do NOT redispatch the same agent** — it'll likely re-exhaust context the same way. Take the work over directly.
+
+#### 5b. Discourage 4+-file dispatches
+
+The most common path to "DONE but no PR" is a subagent dispatched with 4+ files to write before the final commit. The pre-commit vitest hook (~30–60s) inside `git commit` can exhaust the agent's remaining context. Soft guideline:
+
+- **Plan-time question**: "Will this subagent need to write 4+ files?" If yes, prefer one of:
+  - Split into two subagents on disjoint file subsets.
+  - Brief the agent to **push after the first commit** (red-phase tests only) so subsequent green-phase commits land on the open PR even if context exhausts later.
+
+This is a guideline, not a hard cap — some legitimate dispatches genuinely need 4+ files (e.g. a TDD spec-author writing failing tests across 4 files). But a 4+ dispatch without an early-push instruction is the failure mode.
+
 ### 6. Report (unified table)
 
 ```
