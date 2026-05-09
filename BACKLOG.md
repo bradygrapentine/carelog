@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM** — Post-Wave-9 cleanup pass added 11 new rows: TD-107 (✅ shipped: OTP-input class collision fix), TD-108 (multi-org `.single()` bug), TD-109 (`/signin` no-redirect-when-authed), TD-110 (PatternsStrip mock → real aggregation), UX-107 (sign-in/onboarding brand-voice convergence with marketing), UX-108 (sign-in nav back to landing), and SEO-001..007 (post-launch SEO push: per-page title/desc, FAQPage + HowTo JSON-LD, h1 hierarchy + internal linking, CWV tightening, MDX cornerstone content engine, Search Console verification). Roadmap §"SEO discoverability (post-launch)" added under Phase 6. Worktrees + merged branches pruned. Remaining Ready = 34.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM (Wave 10/11 reconcile)** — Wave 10 (PR #383) merged: TD-108 + TD-109 + UX-107 + UX-108 promoted to ✅ shipped. Wave 11 (PR #384) open: TD-110 flipped to 🔎 In review. Remaining Ready = 30.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,8 +20,8 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 34 | TD-78..82 · TD-87 · TD-108..110 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · UX-107 · UX-108 · SEO-001..006 · PP-009 |
-| 🔎 In review | 0 | — |
+| 🟢 Ready | 30 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · SEO-001..006 · PP-009 |
+| 🔎 In review | 1 | TD-110 (PR #384) |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
 | 🧊 Deferred | 9 | §5 ON-55 · ON-69 · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
@@ -123,11 +123,11 @@ Surfaced during the post-Wave-9 cleanup pass: read-only audit of sign-in flow, a
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-107 | ✅ Shipped · 2026-05-09 | **OTP input renders tiny: `text-2xl` + `text-sm` Tailwind class collision** | `apps/web/app/signin/SignInForm.tsx:119` had both `text-2xl` AND `text-sm` on the OTP input — Tailwind last-wins resolved to `text-sm`, so the "large monospace OTP digits" intent rendered small. Looked broken. Fixed in `chore(post-wave-9-cleanup)`: dropped `text-sm`, kept `text-2xl font-mono`, replaced `tracking-widest` with `tracking-[0.4em]` for clearer per-digit spacing. |
-| TD-108 | 🟢 Ready | **Multi-org caregiver: `(app)/layout.tsx:23` `.single()` silently nulls `orgId` for users with 2+ memberships** | `app/(app)/layout.tsx:19-23` calls `supabase.from("memberships").select("org_id").eq("user_id", user.id).single()`. `.single()` returns `error: PGRST116` for 2+ rows; the code drops the error and sets `orgId = null`. Result: a coordinator who is in two families gets `<AIAssistantProvider orgId="">` — broken AI assistant. Fix: use `.limit(1)` or `.maybeSingle()` after explicitly choosing a primary org (e.g., the first row by `created_at ASC` or the user's most-recently-active org). Add a regression test asserting layout still resolves a non-null orgId for a 2-membership fixture. ~1.5 hr. **Owner: Opus (auth flow)**. |
-| TD-109 | 🟢 Ready | **`/signin` doesn't redirect already-authenticated users to `/dashboard`** | Visiting `/signin` while logged in re-renders the OTP form. Mild UX papercut and a 1-line fix in `app/signin/page.tsx`: server-side `getUser()` → `if (user) redirect("/dashboard")` before returning JSX. Test: add a `SignInPage.flow` case asserting redirect when a session cookie is present. ~0.5 hr. |
-| TD-110 | 🟢 Ready | **Replace `TODO(UX-24)` placeholder with real pattern aggregation in `PatternsStrip`** | `apps/web/components/journal/PatternsStrip.tsx:6` still hard-codes 3 mock patterns ("Eleanor more anxious on Tuesdays" etc.) even though Wave 8's `detectPattern` helper now ships a real care-events pattern detector. Wire `PatternsStrip` to a tRPC query that returns the top-N detected patterns for the recipient (extend `detectPattern` to return an array, or aggregate over event-type slices). **No schema.** ~3 hr. **Owner: Opus (helper extension + adapter).** |
-| UX-107 | 🟢 Ready | **Sign-in / onboarding pages diverge from marketing brand voice** | `apps/web/app/signin/page.tsx` renders a placeholder colored square as logo (lines 17-20), then `text-xl font-bold` for the brand mark and `text-xl font-bold` for the h1 — Geist sans, no editorial styling. Marketing pages use `headline-display` (Fraunces italic-em pattern) for the hero h1 + the proper logo mark. Auth surfaces feel like a different product. Audit + converge: sign-in + onboarding pages should use the marketing logo, `headline-display` for the page h1, and the marketing color rhythm without losing focus on the form. Same audit on `/onboarding`. ~3 hr. |
-| UX-108 | 🟢 Ready | **`/signin` is unbranded — no link back to landing for visitors who got there by accident** | Compounds UX-107: a user who lands on `/signin` from a referral link with no account context has no way back to `/`. Add a minimal top-left "← CareSync" link (or a pared-down `MarketingNav` variant) so the auth surfaces stay reachable from the marketing journey. Coordinate with UX-107 since both touch sign-in chrome. ~1 hr. |
+| TD-108 | ✅ Shipped · 2026-05-09 | **Multi-org caregiver: `(app)/layout.tsx:23` `.single()` silently nulls `orgId` for users with 2+ memberships** | Replaced `.single()` with `.order("accepted_at", { ascending: true }).limit(1)` so the earliest-accepted membership becomes the primary org. Shipped with Wave 10 (PR #383). |
+| TD-109 | ✅ Shipped · 2026-05-09 | **`/signin` doesn't redirect already-authenticated users to `/dashboard`** | Server-side `getUser()` → `redirect("/dashboard")` added to `app/signin/page.tsx` before render, skipping the OTP form for authed visitors. Shipped with Wave 10 (PR #383). |
+| TD-110 | 🔎 In review · PR #384 | **Replace `TODO(UX-24)` placeholder with real pattern aggregation in `PatternsStrip`** | `apps/web/components/journal/PatternsStrip.tsx:6` still hard-codes 3 mock patterns ("Eleanor more anxious on Tuesdays" etc.) even though Wave 8's `detectPattern` helper now ships a real care-events pattern detector. Wire `PatternsStrip` to a tRPC query that returns the top-N detected patterns for the recipient (extend `detectPattern` to return an array, or aggregate over event-type slices). **No schema.** ~3 hr. **Owner: Opus (helper extension + adapter).** |
+| UX-107 | ✅ Shipped · 2026-05-09 | **Sign-in / onboarding pages diverge from marketing brand voice** | Migrated `/signin` and `/onboarding` h1s to `.headline-display` with the Fraunces italic-em pattern (`Sign in to <em>CareSync</em>`, `Set up your <em>care team</em>`). Dropped the placeholder colored square from `/signin`. Shipped with Wave 10 (PR #383). |
+| UX-108 | ✅ Shipped · 2026-05-09 | **`/signin` is unbranded — no link back to landing for visitors who got there by accident** | New `MarketingNavSlim` (brand-mark only, links back to `/`) mounted on `/signin` and `/onboarding` so users have a way out of the auth flow. Shipped with Wave 10 (PR #383). |
 
 ### SEO discoverability (SEO-001..007) — opened 2026-05-09
 
@@ -439,6 +439,13 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-09 PM — Wave 10 Auth flow hardening (PR #383)
+Bundled four auth/onboarding stories into one PR — overlapping file scope (signin/page.tsx, layout.tsx, marketing chrome).
+✅ **TD-108** Multi-org caregiver: replaced `.single()` with earliest-accepted-membership pick in `(app)/layout.tsx`
+✅ **TD-109** `/signin` redirects authed visitors to `/dashboard` before render
+✅ **UX-107** `/signin` + `/onboarding` h1s migrated to `.headline-display` Fraunces italic-em pattern
+✅ **UX-108** New `MarketingNavSlim` brand-mark nav mounted on `/signin` + `/onboarding`
 
 ### 2026-05-09 — Wave 9 Shifts data plumbing (PRs #372–#379)
 Closes the "Handoff / Week / Team / Questions" empty states in ShiftsPanel and finalizes the dashboard brief surface. UX-101/102 each split into multiple PRs at adversarial-review request to keep schema and wiring atomic.
