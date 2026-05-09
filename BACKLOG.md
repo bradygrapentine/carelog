@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-01 PM** — CareSync handoff session shipped 28 stories (PRs #349..#365): UX-067, UX-068a..c, UX-070..076, UX-078..094 (UX-087 confirmed no-op). UX-077 deferred — Today route default flip needs product decision. Remaining Ready = 21.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09** — Wave 9 (Shifts data plumbing) shipped 7 PRs (#372/373/374/375/376/377/378/379): UX-095 finalize (brief surface live adapters), UX-100 (ShiftWeekGrid blocks), UX-101 (handoff schema + tRPC + ShiftsPanel wire + dashboard ShiftQuoteNote — split a/b/c), UX-102 (shift_questions schema + tRPC + Questions tab — split a/b). Plus chore(security) pin axios + fast-uri overrides. All four ShiftsPanel empty states now render real data; dashboard brief surface fully wired. Remaining Ready = 24.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 32 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-095..105 · PP-009 |
+| 🟢 Ready | 24 | TD-78..82 · TD-87 · UX-035 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-066 · UX-077 · UX-103..105 · PP-009 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 1 | UX-046 (clinician-share surface) |
 | 🔴 Blocked | 0 | — |
@@ -217,14 +217,14 @@ After the 28-story handoff session shipped (#349..#365), an honest audit reveale
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| UX-095 | 🟢 Ready | **Brief surface mount — wire SleepSparkline + ComingUpRows + ShiftQuoteNote + OnShiftSidebar + PatternCard into DashboardClient** | The 5 brief components from UX-071..074 shipped but nothing renders them. Mount in DashboardClient's primary column alongside BriefHero (sleep card + coming-up below the headline; on-shift sidebar in right rail). Initial pass uses derivations from existing queries; empty states where data is absent. **No schema.** ~3 hr. Blocked-by: none (UX-095..099 may merge in any order). |
-| UX-096 | 🟢 Ready | **Sleep data adapter — derive 7-night sleep from care_events** | Pure helper `lib/sleepFromEvents.ts` — pull `event_type='sleep'` rows for the past 7 nights, bucket by night, return `SleepNight[]` for `<SleepSparkline>`. Empty array if no events. Unit-tested. **No schema.** ~2 hr. |
-| UX-097 | 🟢 Ready | **Coming-up events adapter — derive next 4–5 events for `<ComingUpRows>`** | Helper or query that returns the next ≤5 scheduled items (medications + appointments) from `care_events.scheduled_for > now()`. Caller maps to `ComingUpEvent[]`. **Maybe schema** — needs to confirm `scheduled_for` exists; if not, add a thin tRPC query against existing tables. ~3 hr. |
-| UX-098 | 🟢 Ready | **On-shift derivation — derive current/next caregiver + latest mood for `<OnShiftSidebar>`** | Adapter from `shifts.list` (current week) + `journal.latestMood` for the recipient. Pure read-only join helper. **No schema.** ~2 hr. |
-| UX-099 | 🟢 Ready | **PatternCard headline detection — pick one notable trend from 7d care_events** | Lightweight pattern helper: scan past 7 days for the single most pattern-worthy signal (e.g. "sleep dipped", "med missed twice", "mood trending down") and return a `{ eyebrow, headline, detail, trend }` for `<PatternCard>`. Returns `null` if no clear pattern. Threshold-driven, not ML. **No schema.** ~4 hr. |
-| UX-100 | 🟢 Ready | **ShiftWeekGrid blocks adapter — map `shifts.list` → ShiftBlock[]** | Pure helper in `lib/shiftLayouts.ts` (extends existing module). Wire into ShiftsPanel "Week" tab so it renders real schedule blocks. ShiftLanes and TeamNowBoard already adapt from the same query — model after them. **No schema.** ~3 hr. |
-| UX-101 | 🟢 Ready | **Shift narrative-handoff schema + tRPC + adapter** | Migration: add `handoff_entries jsonb` (or a new `shift_handoffs` table) to capture the "Three things you need to know" narrative per shift. tRPC: `shifts.upsertHandoff` + `shifts.getLatestHandoff`. Wire into ShiftsPanel "Handoff" tab so view + edit modes work. **Schema work — pgTAP coverage required.** ~6 hr. **Owner: Opus (schema + RLS).** |
-| UX-102 | 🟢 Ready | **Open questions schema + tRPC + adapter** | Migration: new `shift_questions` table (id, recipient_id, org_id, text, raised_by, raised_at, resolved_at, resolved_by). RLS: same policy shape as `shifts`. tRPC: list / create / resolve. Wire into ShiftsPanel "Questions" tab. **Schema work — pgTAP coverage required.** ~5 hr. **Owner: Opus (schema + RLS).** |
+| UX-095 | ✅ Shipped · PR #368 | **Brief surface mount** | Mounted SleepSparkline + ComingUpRows + ShiftQuoteNote + OnShiftSidebar + PatternCard into DashboardClient. |
+| UX-096 | ✅ Shipped · PR #370 | **sleepFromEvents adapter** | Pure helper deriving 7-night sleep buckets from `care_events`. |
+| UX-097 | ✅ Shipped · PR #369 | **comingUpEvents adapter** | Next ≤5 scheduled events helper for `<ComingUpRows>`. |
+| UX-098 | ✅ Shipped · PR #369 | **deriveOnShift adapter** | Current/next caregiver + latest mood join helper. |
+| UX-099 | ✅ Shipped · PR #370 | **detectPattern helper** | Threshold-driven 7d pattern signal for `<PatternCard>`. |
+| UX-100 | ✅ Shipped · PR #374 | **ShiftWeekGrid blocks adapter** | `buildShiftWeekGridBlocks` helper + ShiftsPanel "Week" tab wire. |
+| UX-101 | ✅ Shipped · PRs #375/376/377 | **Shift narrative-handoff schema + tRPC + dashboard mount** | Split into 3a (migration + pgTAP + types), 3b (upsertHandoff/getLatestHandoff + ShiftsPanel wire), 3c (ShiftQuoteNote on dashboard). |
+| UX-102 | ✅ Shipped · PRs #378/379 | **shift_questions schema + tRPC + Questions tab wire** | Split into 4a (table + RLS + immutability trigger + 15 pgTAP tests) and 4b (list/create/resolve tRPC + composer + resolve flow in ShiftsPanel). |
 | UX-103 | 🟢 Ready | **CareTeamList adapter on profile route — query memberships + display_names** | Server-side query in `recipient/[recipientId]/profile/page.tsx`: list memberships for the recipient's org, resolve display_names via `identityRepository`, derive role labels, pass to `<CareTeamList>`. Phone numbers deferred until a profile-edit story adds them. **No schema (uses existing tables).** ~3 hr. **Owner: Opus (PHI-sensitive identity resolution).** |
 | UX-104 | 🟢 Ready | **Recipient likes/dislikes schema + edit affordance** | Migration: add `likes text[]` + `dislikes text[]` to `care_recipients` (or a new `recipient_profile` row table). Coordinator-only edit affordance (small inline composer on the profile page). Wire `<LikesDislikesList>` to read these. **Schema work — pgTAP coverage required.** ~5 hr. **Owner: Opus (schema + RLS).** Pairs with UX-066 (RecipientProfile enrichment). |
 | UX-105 | 🟢 Ready | **Emergency info schema + edit affordance** | Migration: add `dnr_status text`, `emergency_contact jsonb` (name + relationship + phone), `hospital_preference text` to `care_recipients`. Coordinator-only edit affordance. Wire `<EmergencyFooterCard>` to read these via `identityRepository` (PHI sensitive). **Schema work + PHI — pgTAP coverage required.** ~6 hr. **Owner: Opus (schema + RLS + PHI).** |
@@ -412,6 +412,24 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-09 — Wave 9 Shifts data plumbing (PRs #372–#379)
+Closes the "Handoff / Week / Team / Questions" empty states in ShiftsPanel and finalizes the dashboard brief surface. UX-101/102 each split into multiple PRs at adversarial-review request to keep schema and wiring atomic.
+✅ **UX-095 finalize** Brief surface wired to live adapters via new `briefs.dashboardSummary` tRPC + `<BriefSection>` component (PR #372)
+✅ **chore(security)** Pin axios ≥1.15.1 + fast-uri ≥3.1.2 overrides; restore TD-29 warn-only on OSV/Trivy (PR #373)
+✅ **UX-100** `buildShiftWeekGridBlocks` adapter — ShiftsPanel "Week" tab renders real blocks (PR #374)
+✅ **UX-101a** `shifts.handoff_entries jsonb` column + 9 pgTAP tests + types regen (PR #375)
+✅ **UX-101b** `shifts.upsertHandoff/getLatestHandoff` tRPC + ShiftsPanel "Handoff" tab wire + 12 logic tests (PR #376)
+✅ **UX-101c** `<ShiftQuoteNote>` mount on dashboard via `getLatestHandoff` (PR #377)
+✅ **UX-102a** `shift_questions` table + RLS + immutability trigger + 15 pgTAP tests (PR #378)
+✅ **UX-102b** `shiftQuestions.list/create/resolve` tRPC + ShiftsPanel "Questions" tab composer + resolve flow + 10 logic tests (PR #379)
+
+### 2026-05-08 — CareSync handoff follow-ups Wave 8 (PRs #367–#371)
+✅ **UX-095** Brief surface mount — SleepSparkline + ComingUpRows + ShiftQuoteNote + OnShiftSidebar + PatternCard wired into DashboardClient (PR #368)
+✅ **UX-096** `sleepFromEvents` adapter — 7-night sleep buckets from `care_events` (PR #370)
+✅ **UX-097** `comingUpEvents` adapter — next ≤5 scheduled events for `<ComingUpRows>` (PR #369)
+✅ **UX-098** `deriveOnShift` adapter — current/next caregiver + latest mood join (PR #369)
+✅ **UX-099** `detectPattern` helper — threshold-driven 7d pattern signal for `<PatternCard>` (PR #370)
 
 ### 2026-05-01 PM — CareSync handoff (frozen design) (PRs #349–#365)
 Source: `docs/caresync-handoff/`. 28 stories shipped in one session. Brand decision: Sage default; `hearth` + `slate` retired from runtime. UX-077 (Today route default flip) deferred — needs product decision.
