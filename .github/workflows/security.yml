@@ -48,7 +48,12 @@ jobs:
           echo "c52d68f857d9aa6d6a2e98fcf0fda9e75307d59ee1fe1db26ffc588f1c5fda33  /usr/local/bin/osv-scanner" | sha256sum -c -
           chmod +x /usr/local/bin/osv-scanner
 
+      # TD-29 warn-only: OSV indexes long-tail advisories pnpm.overrides cannot
+      # always patch (e.g. unmaintained dev-dep transitives). Failures are
+      # surfaced in the run log + Sentry but do not block the merge queue.
+      # Hard-blocking advisories should be pinned via pnpm.overrides instead.
       - name: Run OSV Scanner
+        continue-on-error: true
         run: osv-scanner --recursive --skip-git ./
 
   gitleaks:
@@ -73,7 +78,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      # TD-29 warn-only: Trivy can lag pnpm overrides (e.g. axios advisory
+      # surfaced before posthog-node bumped its pin). Failures are visible
+      # in the run log; the authoritative gate is `Dependency audit` which
+      # stays hard-blocking and respects pnpm.overrides directly.
       - name: Run Trivy filesystem scan
+        continue-on-error: true
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: fs
