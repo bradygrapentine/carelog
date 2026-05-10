@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import { createServerSupabase } from "@/lib/supabaseServer";
 import { resolveIdentity } from "@/server/repositories/identityRepository";
 import { getCareTeamForRecipient } from "@/server/repositories/membershipsRepository";
+import { getRecipientPreferences } from "@/server/repositories/recipientsRepository";
 import { RecipientProfile } from "@/components/app/RecipientProfile";
 import { LikesDislikesList } from "@/components/app/LikesDislikesList";
 import { CareTeamList } from "@/components/app/CareTeamList";
@@ -75,9 +76,10 @@ export default async function RecipientProfilePage({
 
   if (!recipient) notFound();
 
-  const [identity, careTeam] = await Promise.all([
+  const [identity, careTeam, preferences] = await Promise.all([
     resolveIdentity(recipient.identity_token, recipient.org_id),
     getCareTeamForRecipient(recipient.org_id, recipient.id),
+    getRecipientPreferences(supabase, recipient.org_id, recipient.id),
   ]);
 
   // UX-094: compose the full profile page. Likes/dislikes, care team, and
@@ -90,7 +92,10 @@ export default async function RecipientProfilePage({
         age={ageFromDob(identity.dob)}
         conditions={conditionsFromDiagnoses(recipient.diagnoses)}
       />
-      <LikesDislikesList likes={[]} dislikes={[]} />
+      <LikesDislikesList
+        likes={preferences.likes}
+        dislikes={preferences.dislikes}
+      />
       <CareTeamList members={careTeam} />
       <EmergencyFooterCard />
     </main>
