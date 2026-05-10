@@ -23,13 +23,20 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-[var(--color-surface)]">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28">
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-border)]">
+        {/* UX-113: hero-4.png is native 1408×768 landscape. The previous
+            aspect-[4/5] portrait container with object-cover cropped so
+            aggressively at desktop widths that only blank sky was visible —
+            reported as an "empty grey rectangle" in the 2026-05-10 smoke
+            walk. Switch to aspect-[3/4] (less extreme portrait) and bias
+            the focal point upward so the caregiver + elderly man stay in
+            frame at every breakpoint. */}
+        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-border)]">
           <Image
             src="/images/hero-4.png"
             alt="A caregiver walking alongside an elderly man in a park on an autumn day"
             fill
             sizes="(min-width: 768px) 45vw, 90vw"
-            className="object-cover"
+            className="object-cover object-[center_30%]"
           />
         </div>
 
