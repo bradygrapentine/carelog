@@ -45,3 +45,9 @@ test-results/
 
 # Subagent heartbeat logs (per-session, ephemeral)
 .claude/agent-status/
+
+# Codex adversarial-review run artifacts (per-session, ephemeral)
+.codex-runs/
+
+# Vercel CLI link state (per-developer, contains project IDs)
+.vercel/
