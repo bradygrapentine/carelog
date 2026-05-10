@@ -46,10 +46,15 @@ test("coordinator invite accepted — invitee lands on dashboard with correct ro
       // Invitee must land on the dashboard
       await expect(inviteePage).toHaveURL(/\/dashboard/, { timeout: 15000 });
 
-      // Dashboard shows care team section
-      await expect(inviteePage.getByText("Your care teams")).toBeVisible({
-        timeout: 10000,
-      });
+      // Dashboard shows care team section. UX-039a — heading is recipient-led
+      // ("Caring for {name}") when org has a recipient, falls back to "Your
+      // care dashboard" when not. Match either to stay state-agnostic.
+      await expect(
+        inviteePage.getByRole("heading", {
+          level: 1,
+          name: /your care dashboard|caring for|your care recipients/i,
+        }),
+      ).toBeVisible({ timeout: 10000 });
 
       // The role label is on the Team panel, not on /dashboard. The
       // dashboard surface a caregiver sees post-accept is the journal-link

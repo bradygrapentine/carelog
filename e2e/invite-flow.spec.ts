@@ -58,9 +58,14 @@ test("invitee accepts invite and sees care team dashboard", async ({
       // "You have joined the team" success page is on /invite/[token]
       // and auto-redirects to /dashboard after 2s, so we can't catch it
       // here — assert on the dashboard state instead.
-      await expect(inviteePage.getByText("Your care teams")).toBeVisible({
-        timeout: 10000,
-      });
+      // UX-039a — heading is "Caring for {name}" (with recipient) or
+      // "Your care dashboard" (fallback). Match either.
+      await expect(
+        inviteePage.getByRole("heading", {
+          level: 1,
+          name: /your care dashboard|caring for|your care recipients/i,
+        }),
+      ).toBeVisible({ timeout: 10000 });
       // Verify the joined team is visible on the dashboard (not just the
       // empty state). Either the journal-link card OR the "Set up a care
       // team" CTA satisfies "user has reached a usable dashboard."
