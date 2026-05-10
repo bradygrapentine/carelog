@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc/index";
 import { TRPCError } from "@trpc/server";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import { eolPlanUpsertInput } from "@carelog/schemas";
 
 const getInput = z.object({
@@ -34,7 +34,8 @@ export const eolPlanRouter = router({
     if (error && error.code !== "PGRST116") {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: wrapAdminError(error).message,
+          cause: error,
       });
     }
     return data ?? null;
@@ -64,7 +65,8 @@ export const eolPlanRouter = router({
       if (error)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       return { ok: true };
     }),

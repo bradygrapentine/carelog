@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import { coverageWindowCreateInput, coverageWindowListInput } from "@carelog/schemas";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export const coverageWindowsRouter = router({
         .order("starts_at", { ascending: true });
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: wrapAdminError(error).message, cause: error });
       }
 
       return data ?? [];
@@ -75,7 +75,7 @@ export const coverageWindowsRouter = router({
         .single();
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: wrapAdminError(error).message, cause: error });
       }
 
       return data;
@@ -93,7 +93,7 @@ export const coverageWindowsRouter = router({
         .eq("org_id", input.org_id);
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: wrapAdminError(error).message, cause: error });
       }
 
       return { success: true };

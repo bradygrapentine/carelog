@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import {
   outerCircleRequestCreateInput,
   outerCircleDeactivateInput,
@@ -32,13 +32,19 @@ export const outerCircleRouter = router({
       // Use RLS-scoped ctx.supabase so only org members can list
       const { data, error } = await ctx.supabase
         .from("outer_circle_requests")
-        .select("id, title, description, request_type, slots_total, slots_filled, needed_by, active, share_token, created_at")
+        .select(
+          "id, title, description, request_type, slots_total, slots_filled, needed_by, active, share_token, created_at",
+        )
         .eq("org_id", input.org_id)
         .eq("recipient_id", input.recipient_id)
         .order("created_at", { ascending: false });
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: wrapAdminError(error).message,
+          cause: error,
+        });
       }
 
       return data ?? [];
@@ -52,20 +58,24 @@ export const outerCircleRouter = router({
       const { data, error } = await supabaseAdmin
         .from("outer_circle_requests")
         .insert({
-          org_id:       input.org_id,
+          org_id: input.org_id,
           recipient_id: input.recipient_id,
-          title:        input.title,
-          description:  input.description,
+          title: input.title,
+          description: input.description,
           request_type: input.request_type,
-          slots_total:  input.slots_total,
-          needed_by:    input.needed_by,
-          created_by:   ctx.user.id,
+          slots_total: input.slots_total,
+          needed_by: input.needed_by,
+          created_by: ctx.user.id,
         })
         .select()
         .single();
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: wrapAdminError(error).message,
+          cause: error,
+        });
       }
 
       return data;
@@ -85,7 +95,11 @@ export const outerCircleRouter = router({
         .single();
 
       if (error) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: wrapAdminError(error).message,
+          cause: error,
+        });
       }
 
       return data;

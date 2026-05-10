@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc/index";
 import { TRPCError } from "@trpc/server";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 
 const listInput = z.object({
   org_id: z.string().uuid(),
@@ -114,7 +114,8 @@ export const documentsRouter = router({
     if (error)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: wrapAdminError(error).message,
+          cause: error,
       });
     return (data ?? []).map(({ extracted_text: _et, ...rest }) => ({
       ...rest,
@@ -204,7 +205,8 @@ export const documentsRouter = router({
       if (error)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       return { ok: true };
     }),
