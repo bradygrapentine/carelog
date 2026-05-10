@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import {
   shiftCreateInput,
   shiftUpdateInput,
@@ -60,7 +60,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -109,7 +110,8 @@ export const shiftsRouter = router({
         if (error) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: error.message,
+            message: wrapAdminError(error).message,
+          cause: error,
           });
         }
         return data;
@@ -158,7 +160,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -185,7 +188,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -238,7 +242,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -288,7 +293,8 @@ export const shiftsRouter = router({
         if (error) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: error.message,
+            message: wrapAdminError(error).message,
+          cause: error,
           });
         }
 
@@ -306,7 +312,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -380,7 +387,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
@@ -416,7 +424,8 @@ export const shiftsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 

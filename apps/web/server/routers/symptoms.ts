@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc/index";
 import { TRPCError } from "@trpc/server";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import { symptomLogInput, symptomListInput } from "@carelog/schemas";
 
 export const symptomsRouter = router({
@@ -27,7 +27,8 @@ export const symptomsRouter = router({
       if (error)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       return data ?? [];
     }),
@@ -70,7 +71,8 @@ export const symptomsRouter = router({
       if (error)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       return { ok: true };
     }),

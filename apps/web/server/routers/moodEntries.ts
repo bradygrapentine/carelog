@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc/index";
 import { TRPCError } from "@trpc/server";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 
 /** Mood score mapping: higher = better. */
 const MOOD_SCORE: Record<string, number> = {
@@ -77,7 +77,8 @@ export const moodEntriesRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
 
