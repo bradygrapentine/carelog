@@ -127,7 +127,7 @@ export function SignInForm() {
         <button
           type="submit"
           disabled={loading || otp.length !== 6}
-          className="w-full rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="w-full rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
         >
           {loading ? "Signing you in..." : "Sign in"}
         </button>
@@ -169,7 +169,7 @@ export function SignInForm() {
       <button
         type="submit"
         disabled={loading || !email}
-        className="w-full rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+        className="w-full rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
       >
         {loading ? "Sending code..." : "Continue with email"}
       </button>
