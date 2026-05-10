@@ -7,7 +7,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
   registerServiceWorker,
   subscribeToPush,
@@ -501,24 +500,6 @@ function NotificationsSection() {
   );
 }
 
-// ─── Appearance Section ──────────────────────────────────────────────────────
-
-function AppearanceSection() {
-  return (
-    <TintedCard>
-      <TintedCardHeader title="Appearance" />
-      <CardContent className="pt-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-[var(--color-ink)]">
-            Color theme
-          </label>
-          <ThemeToggle />
-        </div>
-      </CardContent>
-    </TintedCard>
-  );
-}
-
 // ─── Language Section ─────────────────────────────────────────────────────────
 
 function LanguageSection() {
@@ -718,7 +699,6 @@ export default function SettingsPage() {
       <div className="mt-8 space-y-6">
         <ProfileSection />
         <NotificationsSection />
-        <AppearanceSection />
         <LanguageSection />
         <GrowCareSyncSection />
         <DangerZoneSection />

@@ -39,12 +39,10 @@ export default function RootLayout({
       )}
     >
       <head>
-        {/* Anti-FOUC: set dark class + palette before paint. Must live in <head> —
-            Next 16 / React 19 throw a hydration error if <script> is a
-            direct child of <html>. */}
+        {/* UX-110: dark mode retired. Palette is Sage-only. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('carelog-theme');if(s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}var p=localStorage.getItem('carelog-palette');if(p==='sage'){document.documentElement.setAttribute('data-theme','sage')}}catch(_){}})();`,
+            __html: `(function(){try{document.documentElement.setAttribute('data-theme','sage');}catch(_){}})();`,
           }}
         />
       </head>

@@ -18,10 +18,9 @@
  *
  * Tones:
  *   - `tone="default"` (default) — light primary-subtle tint. Used by 12+ panels.
- *   - `tone="dark"` — adds dark-mode overrides on the header (`dark:bg-gray-700`,
- *     `dark:border-gray-600`). Renders identically to `tone="default"` in light
- *     mode. Adopted by `TradeRequestList`. Other dark-aware surfaces should
- *     migrate here rather than hand-rolling the bypass.
+ *   - `tone="dark"` — accepted for backward compatibility but renders identically
+ *     to `tone="default"`. UX-110 retired dark mode; the prop is kept so existing
+ *     call sites and tests continue to compile.
  */
 
 import * as React from "react";
@@ -45,7 +44,7 @@ function TintedCard({ className, ...props }: TintedCardProps) {
 //
 // `title`  — string or any ReactNode (for icon+title combos, badge+title, etc.)
 // `action` — optional right-aligned slot (+ Add buttons, toggles, badges)
-// `tone`   — "default" (light primary-subtle) or "dark" (adds dark: overrides)
+// `tone`   — "default" (light primary-subtle); "dark" is accepted but no-op (UX-110)
 // `className` — pass-through for edge-case overrides
 // ---------------------------------------------------------------------------
 
@@ -59,7 +58,7 @@ type TintedCardHeaderProps = {
 function TintedCardHeader({
   title,
   action,
-  tone = "default",
+  tone: _tone = "default",
   className,
 }: TintedCardHeaderProps) {
   const hasAction = Boolean(action);
@@ -68,7 +67,6 @@ function TintedCardHeader({
     <CardHeader
       className={cn(
         "-mt-4 px-4 py-3 bg-[var(--color-primary-subtle)] border-b border-[var(--color-border)]",
-        tone === "dark" && "dark:bg-gray-700 dark:border-gray-600",
         hasAction && "flex flex-row items-center justify-between space-y-0",
         className,
       )}

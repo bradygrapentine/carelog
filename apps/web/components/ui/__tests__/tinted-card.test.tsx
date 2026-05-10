@@ -31,7 +31,8 @@ describe("<TintedCardHeader />", () => {
     expect(header.className).not.toContain("dark:border-gray-600");
   });
 
-  it("tone=\"dark\" layers dark-mode overrides on top of the default tokens", () => {
+  // UX-110: dark mode retired. tone="dark" is now a no-op alias of "default".
+  it.skip("tone=\"dark\" layers dark-mode overrides on top of the default tokens", () => {
     const { container } = render(
       <TintedCard>
         <TintedCardHeader tone="dark" title="Trade Requests" />
