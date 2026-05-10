@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 27 | TD-111 · TD-112 · TD-113..116 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103..105 · UX-107 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
+| 🟢 Ready | 26 | TD-111 · TD-112 · TD-113..116 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -300,7 +300,7 @@ Surfaced by the 2026-05-09 audit (`docs/audits/2026-05-09-roadmap-and-harness-au
 | TD-114 | 🟢 Ready | **Tests for `medicationTaggingRepository.ts` CRUD (Tier 2)** | `medicationTagging.precision.test.ts` covers the matching algorithm only. The repository CRUD path (insert tag, remove tag, list-by-event) has no direct coverage. New file: `apps/web/server/repositories/__tests__/medicationTaggingRepository.test.ts`. ~1 hr. Surfaced by `docs/audits/2026-05-10-state-and-gaps.md` §3. |
 | TD-115 | 🟢 Ready | **Tests for `shiftTradeRequestsRepository.ts` (Tier 2 — auth-adjacent state machine)** | Shift-trade flow has multiple state transitions (pending → claimed → approved/declined). RLS fences DB; the helper layer needs tests for who can transition which state. New file: `apps/web/server/repositories/__tests__/shiftTradeRequestsRepository.test.ts`. Cover: (a) coordinator-only approve, (b) claim is open to any team member with recipient access, (c) double-claim race surfaces a clear error. ~1.5 hr. Surfaced by `docs/audits/2026-05-10-state-and-gaps.md` §3. |
 | TD-116 | 🟢 Ready | **Tests for `routers/moodEntries.ts` (Tier 1 — PHI write path)** | Mood logging tRPC router. No direct router test. New file: `apps/web/server/routers/__tests__/moodEntries.test.ts`. Cover: (a) auth boundary (`ctx.user = null` → 401), (b) `create` validates org/recipient membership, (c) `list` cross-recipient isolation, (d) timestamp validation rejects future dates. ~1.5 hr. Surfaced by `docs/audits/2026-05-10-state-and-gaps.md` §3. |
-| UX-107 | 🟢 Ready | **Visit recorder UI status triage** | Migration `20260501132708_visit_recordings.sql` shipped 2026-05-01 but `apps/web/app/api/visit*` is empty. Either (a) recorder is mobile-only and the migration backs an Expo route, (b) UI is partially landed and needs wiring, or (c) schema landed ahead of UI per the plan and UI work is Phase 7. Triage: `rg "visit_recordings" apps/web apps/mobile`, decide path, file follow-up rows. ROADMAP currently misclassifies visit recorder as "Phase 7, future" — see `docs/audits/2026-05-10-state-and-gaps.md` §4. ~30 min. |
+| UX-107 (triage) | ✅ Shipped · 2026-05-10 | **Visit recorder UI status triage** | Decision: schema-ahead-of-UI **by design** per PR #348 ("First slice of the Phase 4 visit recorder. Lands the storage contract so follow-up rows can wire mobile recording, the Inngest Whisper → Claude pipeline, and the web playback/edit surface"). Outcome: kept the migration on main; updated `ON-55` §5 row to reflect the actual shipped/remaining split (data-model done, UI deferred); fixed ROADMAP Phase 4 visit-recorder paragraph (was "TBD" → now documents the schema-ahead-of-UI design + ON-55 link). No new ON-NN row needed; ON-55 already covers the UI surface. Note: this row collided with the shipped sign-in-voice UX-107 (line 129); ID reused unintentionally. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
 
@@ -384,10 +384,11 @@ Full plan + scoring: `docs/project-info/technology/ACCESSIBILITY.md`. Active in 
 **Blocked by:** 🧑 Brady decides free-tier limits.
 
 ### ON-55 — Visit recorder · ~3 days
-**Status:** 🧊 Deferred (Phase 7)
-**Why:** Audio note at a doctor visit → Whisper transcription → Claude structured extraction → `care_event` tagged to the appointment. Roadmap explicitly labels this Phase 7 / future.
-**Work:** Mobile: `expo-av` recording + upload to Supabase Storage. Inngest job: Whisper → structured parse → care_event insert with `entry_type='visit_note'`. Web: playback + structured fields editable.
-**Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case.
+**Status:** 🧊 Deferred (UI surface; data-model first slice shipped 2026-05-01 in PR #348)
+**Why:** Audio note at a doctor visit → Whisper transcription → Claude structured extraction → `care_event` tagged to the appointment. Roadmap classifies this under Phase 4 (depth + retention).
+**Shipped already (PR #348):** `visit_recordings` table + `visit_recording_status` enum + `'visit_note'` entry_type + RLS via `user_can_access_recipient()` + pgTAP regression net.
+**Work remaining:** **(a) server** — tRPC router (`visitRecordings.create/list/confirm`); **(b) pipeline** — Inngest function (Whisper → Claude structured extraction → `care_event` insert); **(c) mobile** — `expo-av` recording + Supabase Storage upload; **(d) web** — playback + structured-fields review screen.
+**Blocked by:** Phase 1–6 features fully stable; sufficient data volume to validate the use case (per #348's deferral criteria).
 
 ### ON-69 — Visit recorder (struck 2026-05-09 — duplicate of ON-55)
 **Status:** 🧊 Deferred · duplicate of ON-55
@@ -461,6 +462,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-10 — Wave 14 Part A — visit recorder triage
+Read-only investigation per `docs/plans/wave-14-test-gaps-and-visit-recorder.md`. Decision: schema-ahead-of-UI **by design** per PR #348. Updated ROADMAP Phase 4 visit-recorder paragraph to document the design rationale; corrected ON-55 §5 row to reflect "data-model shipped, UI deferred" instead of "Phase 7 / future." No new ON-NN row needed — ON-55 already covers the UI surface.
+✅ **UX-107 (triage)** closed; row dropped from §1.
 
 ### 2026-05-09 PM — Wave 13-A + retroactive TD-78..82 reconcile (PRs #396–#398)
 Wave 13-A intent was UX-045 (PHI gate) + UX-051 (brand cleanup); UX-051 deferred mid-wave when DNS blocker surfaced. Wave 13-B (TD-78..82) aborted at preflight: all 5 test files already on main from earlier sprints — backlog rows were stale.
