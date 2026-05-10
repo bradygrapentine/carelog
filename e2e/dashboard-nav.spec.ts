@@ -79,13 +79,19 @@ test.describe("Dashboard and sign-out navigation", () => {
   test("sign-out redirects to /signin", async ({ page }) => {
     const NAV_EMAIL = uniqueEmail("nav");
     // (TD-73) Sign in first; otherwise /dashboard redirects to /signin and
-    // there's no Sign-out button to click. Also: TD-65 wrapped sign-out in
-    // a window.confirm — auto-accept it.
+    // there's no Sign-out button to click. The TD-65 window.confirm was
+    // later replaced by a Radix <AlertDialog>; drive the modal explicitly.
     await signIn(page, NAV_EMAIL);
-    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Sign out" }).first().click();
+    await expect(
+      page.getByRole("alertdialog", { name: /sign out of caresync/i }),
+    ).toBeVisible({ timeout: 5_000 });
     await Promise.all([
       page.waitForURL(/\/signin/, { timeout: 15_000 }),
-      page.getByRole("button", { name: "Sign out" }).first().click(),
+      page
+        .getByRole("alertdialog")
+        .getByRole("button", { name: "Sign out" })
+        .click(),
     ]);
     await expect(page.getByPlaceholder("you@example.com")).toBeVisible();
   });
