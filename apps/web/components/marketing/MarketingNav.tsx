@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export function MarketingNav() {
   return (
@@ -44,7 +43,6 @@ export function MarketingNav() {
 
         {/* CTA */}
         <div className="flex items-center gap-3">
-          <ThemeSwitcher className="hidden md:inline-flex" />
           <Link
             href="/signin"
             className="rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
