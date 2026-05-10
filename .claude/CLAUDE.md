@@ -127,6 +127,7 @@ Hard invariant — applies to every agent, subagent, and Claude instance (includ
 - This applies to all analytics platforms (PostHog, Segment, Amplitude, or any future service) across web, mobile, and any future surface.
 - Any subagent touching analytics files (any file importing `posthog` or a similar analytics SDK, or containing `identify`/`capture` calls) must have its diff reviewed by Opus before merge.
 - When writing the subagent scope contract, always include: `PHI RULE: posthog.identify() and posthog.capture() must use UUID only — never email, name, or any PII`
+- **Automated enforcement (TD-117):** the project-local ESLint rule `carelog/no-phi-in-analytics` (in `apps/web/eslint-rules/`) fails the lint gate if any forbidden property key (`email`, `name`, `phone`, `dob`, `ssn`, `firstname`, `lastname`, `fullname`, `address`, `zip`, `street`, `city`) appears in an object literal passed to `posthog.identify` / `posthog.capture` / `Sentry.setUser` / `Sentry.setContext`. Codifies ADR-0001. Limitation: doesn't catch spread elements or variable references — those still need code review.
 
 ## Parallel Work
 
