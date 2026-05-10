@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM (Wave 10/11 reconcile)** — Wave 10 (PR #383) merged: TD-108 + TD-109 + UX-107 + UX-108 promoted to ✅ shipped. Wave 11 (PR #384) open: TD-110 flipped to 🔎 In review. Remaining Ready = 30.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM-2 (audit-remediation reconcile)** — 8 audit-remediation PRs (#387–#394) merged plus Wave 12 Session A (#386): SEO-001/002/004 promoted to ✅ shipped, SEO-003 → 🧊 Deferred (no `/carezone-alternative` page; `/about` lacks step-by-step content). TD-111 filed for skill-dedup phase 2 follow-up. Remaining Ready = 27.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,11 +20,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 29 | TD-78..82 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-001..005 · PP-009 · ON-70 · ON-71 · ON-74 |
+| 🟢 Ready | 27 | TD-78..82 · TD-111 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
-| 🧊 Deferred | 12 | §5 ON-55 (ON-69 struck dup) · §1 UX-066 (superseded) · UX-035 (BriefHero now wired) · ON-72/73 (Phase 3/4 prereqs) · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
+| 🧊 Deferred | 13 | §5 ON-55 (ON-69 struck dup) · §1 UX-066 (superseded) · UX-035 (BriefHero now wired) · SEO-003 (no /carezone-alternative; /about lacks step content) · ON-72/73 (Phase 3/4 prereqs) · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 12 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 · SEO-006 · SEO-007 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -135,10 +135,10 @@ Roadmap §"SEO discoverability (post-launch)" added 2026-05-09. LAUNCH-003 shipp
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| SEO-001 | 🟢 Ready | **Per-page `<title>` + meta description rewrite for primary intent keywords** | Audit every marketing route's title/description against target search intents ("family caregiving app", "shared caregiver journal", "shift schedule for home aides", "CareZone alternative", etc.). Each page gets a unique, ≤60-char title and ≤160-char description, written for click-through-rate not just keyword stuffing. ~3 hr. |
-| SEO-002 | 🟢 Ready | **Add `FAQPage` JSON-LD on `/`, `/pricing`, `/about`** | Three or four common-question/answer pairs per page (already in copy on most pages) get wrapped in schema.org `FAQPage` markup. Pulls users into Google's rich-result blocks. ~1 hr per page; ~3 hr total. |
-| SEO-003 | 🟢 Ready | **Add `HowTo` JSON-LD on `/about` and the CareZone-alternative page** | Cornerstone "how to coordinate care for an aging parent" content gets `HowTo` markup with step-by-step. Drives the long-tail organic queries. ~2 hr. |
-| SEO-004 | 🟢 Ready | **`<h1>` hierarchy + internal linking audit** | Sweep every marketing route to confirm exactly one `<h1>`, h2/h3 in document order, and that key pages link to each other (`/` ↔ `/pricing` ↔ `/about#compare` ↔ `/for-referrers`). ~2 hr. |
+| SEO-001 | ✅ Shipped · PR #386 | **Per-page `<title>` + meta description rewrite for primary intent keywords** | Every marketing route's metadata rewritten for intent-shaped titles (≤60 char) + descriptions (≤160 char). Shipped with Wave 12 Session A. |
+| SEO-002 | ✅ Shipped · PR #386 | **Add `FAQPage` JSON-LD on `/`, `/pricing`, `/about`** | FAQPage JSON-LD added on `/contact` (existing 3-Q&A FAQ) and `/pricing` (new 3-Q&A "Pricing FAQ" section). `/about` skipped — comparison-table-shaped, not FAQ-shaped (would have been schema spam). Shipped with Wave 12 Session A. |
+| SEO-003 | 🧊 Deferred | **Add `HowTo` JSON-LD on `/about` and the CareZone-alternative page** | Deferred 2026-05-09: `/carezone-alternative` was consolidated into `/about` via PRs #316/#317; `/about` lacks step-by-step content the schema would describe. Adding the schema without matching visible content = schema spam (Google penalizes). Re-visit when the human writes step-by-step caregiving content. |
+| SEO-004 | ✅ Shipped · PR #386 | **`<h1>` hierarchy + internal linking audit** | h1 hierarchy was already clean (every marketing route has exactly one `<h1>`). Internal-linking gap closed: `MarketingFooter` previously linked only Privacy/Terms/Referrers/Contact — added Pricing, About, Trust. Shipped with Wave 12 Session A. |
 | SEO-005 | 🟢 Ready | **Core Web Vitals tightening on `/`, `/pricing`, `/about`** | Last measured 2026-04-28 (`/` 86ms, `/pricing` 61ms, `/about` 63ms LCP) — solid but pre-image-heavy. Run Lighthouse + Chrome DevTools perf trace; defer below-fold images, inline above-fold critical CSS, audit the `next/font` config for FOIT. CWV is a confirmed ranking factor. ~3 hr. |
 | SEO-006 | 🧑 Needs human (re-scoped 2026-05-09) | **Cornerstone content engine — 3–5 articles at `/learn/*`** | Build a thin MDX-based blog at `/learn/*` (Next.js App Router, static-only, no CMS — minimal infra). Three to five long-form articles on caregiver pain points: "Managing medications across a care team", "Sharing shift handoff notes that actually help", "When a parent's care needs grow beyond what one person can do", etc. Each article is internally linked, has its own JSON-LD `Article` markup, and lands in the sitemap. ~8 hr — **6 of those 8 are long-form copy writing where single creative voice matters; flagged 🧑 Needs human.** Infra (~2 hr) can be ready when the human carves out the writing time. |
 | SEO-007 | 🧑 Needs human | **Verify in Google Search Console + Bing Webmaster Tools, submit sitemap** | Both consoles require ownership verification (DNS TXT or meta tag — meta tag works since marketing routes are SSG). Ownership tag goes in `(marketing)/layout.tsx`. Then submit `https://care-log.org/sitemap.xml`. Track index coverage weekly for the first month. Mostly setup, but gates SEO-001..006's measurable impact. ~30 min once human is at the keyboard. |
@@ -289,6 +289,12 @@ Surfaced by the 2026-05-09 audit (`docs/audits/2026-05-09-roadmap-and-harness-au
 | ON-72 | 🧊 Deferred | **Prescription label scanning OCR pipeline** | Per ROADMAP Phase 3. Mobile camera → Apple Vision/Google ML Kit OCR → LLM parse → `ocr_jobs` status: needs_review → caregiver confirms → medication created. Never auto-creates without human confirmation. **Blocked by:** stable medication catalog (Phase 3 prereq before OCR makes sense). |
 | ON-73 | 🧊 Deferred | **Burnout tracker** | Per ROADMAP Phase 4. Weekly check-in: how are YOU doing? Sleep, stress, support. If scores trend bad, surface respite resources. **Blocked by:** roadmap rationale says "needs 2-3 mo of data to show meaningful trends" — defer until families have that history. |
 | ON-74 | 🟢 Ready | **Full history export (PDF / structured)** | Per ROADMAP Phase 4. Every journal entry, medication log, shift record, symptom reading. Formatted for a doctor or new care facility. Trust feature: families who can export everything are more likely to put everything in. ~3 days. **Pairs with /visit-summary work (UX-20) — share components.** |
+
+### Audit-remediation follow-ups (TD-111) — opened 2026-05-09 PM
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-111 | 🟢 Ready | **Skill dedup phase 2 — triage 13 divergent project skills against globals** | C.3 phase 1 (PR #394) deleted the 5 byte-identical project-skill shadows. 13 remain divergent: `backlog-dispatch` (40 vs 115), `backlog-sync` (72 vs 71), `dispatch` (148 vs 163), `live-test` (299 vs 135), `ollama` (184 vs 186), `plan-with-tests` (67 vs 107), `schema-dump` (100 vs 109), `session-end` (46 vs 46), `ship-story` (88 vs 90), `supabase-types` (43 vs 47), `tdd-ship` (95 vs 128), `test-gaps` (38 vs 47). Per-skill judgment: identical-after-format → delete project; project encodes carelog-specifics → rename to `<name>-carelog` so it doesn't shadow; project is genuinely better → promote to global, delete project. ~2 hr. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
 
@@ -449,6 +455,18 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-09 PM — Roadmap & harness audit remediation (PRs #387–#394)
+Source: `docs/audits/2026-05-09-roadmap-and-harness-audit.md` + `docs/plans/audit-remediation-2026-05-09.md`. 8 chore PRs, ~3 hr active work.
+✅ **A.1+A.2** Fixed 9 stale `Documents/projects/carelog` hook paths + worktree-cwd commit guard — restored silently-broken pgTAP-on-edit + mobile-typecheck regression nets (PR #387)
+✅ **A.3+A.4** Backlog/roadmap stale-reference sweep (`/carezone-alternative` consolidated; ROADMAP "Weekly digest" was actually shipped) + ON-69/UX-066 strikes (PR #388)
+✅ **C.1+C.2** Scoped tsc/eslint hooks to `apps/web` edits + dedupe allowlist 27→18 (PR #389)
+✅ **D.3** Pre-commit eslint pass — catches React 19 react-hooks/purity errors locally (PR #390)
+✅ **B.1+B.2** Resolved 4 stale Ready rows (UX-035 struck, UX-053 narrowed, SEO-006 → 🧑, TD-87 → 🟡 Spike) + filed 5 ROADMAP-promised rows ON-70..74 (PR #391)
+✅ **D.4** /dispatch — early-push guideline + post-dispatch PR verifier (PR #392)
+✅ **C.4** Split `.claude/CLAUDE.md` 412→233 lines (−43%); 189 lines moved to new `HARNESS_USAGE.md` runbook (PR #393)
+✅ **C.3 phase 1** Deleted 5 byte-identical project skill shadows (project skills 26→21) (PR #394)
+B.3 (memory hygiene) shipped out-of-band — repo-external. Plus Wave 12 Session A: SEO-001/002/004 shipped via PR #386 (rows promoted in this sync).
 
 ### 2026-05-09 PM — Wave 10 Auth flow hardening (PR #383)
 Bundled four auth/onboarding stories into one PR — overlapping file scope (signin/page.tsx, layout.tsx, marketing chrome).
