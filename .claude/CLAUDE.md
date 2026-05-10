@@ -221,10 +221,6 @@ Any request containing "review", "audit", "adversarial", "security check", or "c
 After every correction: update this file immediately.
 End corrections with: "Now update CLAUDE.md so you don't make that mistake again."
 
-## Reference (load on demand)
-
-- **Skills + agents catalog, hook table, MCP/plugin priority, Ollama routing, Automation slash-commands, merge policy** → [HARNESS_USAGE.md](../docs/project-info/runbooks/HARNESS_USAGE.md). Don't auto-load — read on demand when working with a specific surface.
-
 ## Token Discipline
 
 - Response cap: ≤350 tokens unless the task demands more
