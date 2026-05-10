@@ -25,18 +25,21 @@ test("sign out works", async ({ page }) => {
   const TEST_EMAIL = uniqueEmail("auth");
   await signIn(page, TEST_EMAIL);
 
-  // TD-65 wrapped sign-out in a window.confirm("Sign out of CareSync?")
-  // dialog. Auto-accept it BEFORE the click — Playwright dialogs must be
-  // handled by an event listener since they block synchronously.
-  page.once("dialog", (dialog) => dialog.accept());
-
-  // Wait for the URL flip rather than a fixed sleep; the redirect can
-  // take >1s under the CI runner. Scope click by role + aria-label so
-  // we don't match the CommandPalette "Sign out" command (which also
-  // calls handleSignOut but isn't what this test exercises).
+  // The browser-native window.confirm wrapper from TD-65 was replaced
+  // with a Radix <AlertDialog> in AppTabBar. The avatar button
+  // (aria-label="Sign out") opens the modal; the actual sign-out fires
+  // on the <AlertDialogAction> inside. Playwright `dialog` events only
+  // capture native dialogs, so we drive the modal explicitly.
+  await page.getByRole("button", { name: "Sign out" }).first().click();
+  await expect(
+    page.getByRole("alertdialog", { name: /sign out of caresync/i }),
+  ).toBeVisible({ timeout: 5_000 });
   await Promise.all([
     page.waitForURL(/\/signin/, { timeout: 15_000 }),
-    page.getByRole("button", { name: "Sign out" }).first().click(),
+    page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Sign out" })
+      .click(),
   ]);
   await expect(
     page.getByRole("heading", { name: "Sign in to CareSync" }),
