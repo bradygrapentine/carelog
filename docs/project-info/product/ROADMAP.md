@@ -157,12 +157,12 @@ are more likely to put everything in.
 
 Lives at `apps/web/app/api/history/export/pdf/route.tsx`.
 
-### Visit recorder (schema shipped, UI status TBD)
+### Visit recorder (schema shipped, UI deferred)
 Record an audio note or transcribe a doctor's visit.
 Whisper for transcription, Claude for structured extraction.
 Goes into the care_events log tagged to the appointment.
 
-Migration `20260501132708_visit_recordings.sql` shipped 2026-05-01. UI surface (web vs mobile-only) is currently being triaged in **UX-107** — see `BACKLOG.md` §1.
+Migration `20260501132708_visit_recordings.sql` (PR #348) shipped the data-model first slice on 2026-05-01 — table, status enum, RLS via `user_can_access_recipient()`, pgTAP regression net. Schema-ahead-of-UI by design: PR #348 enumerated four follow-up surfaces (server router, Inngest Whisper→Claude pipeline, Expo recording UI, web playback/edit) that remain unbuilt. UI work tracked under **ON-55** in `BACKLOG.md` §5 — held 🧊 Deferred until Phase 1–6 are fully stable per the original deferral criteria.
 
 ## Phase 5 — Financial and legal (shipped)
 
