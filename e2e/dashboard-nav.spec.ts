@@ -18,9 +18,12 @@ test.describe("Dashboard and sign-out navigation", () => {
     await page.goto("/dashboard");
     // Should land on dashboard, not be redirected to /signin
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    await expect(page.getByText("Your care teams")).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /your care dashboard|caring for|your care recipients/i,
+      }),
+    ).toBeVisible({ timeout: 10000 });
     await checkA11y(page);
   });
 
@@ -65,9 +68,12 @@ test.describe("Dashboard and sign-out navigation", () => {
       await page.goBack();
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     }
-    await expect(page.getByText("Your care teams")).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /your care dashboard|caring for|your care recipients/i,
+      }),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("sign-out redirects to /signin", async ({ page }) => {

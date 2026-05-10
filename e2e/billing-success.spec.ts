@@ -12,9 +12,12 @@ test.describe("Billing success page", () => {
     const EMAIL = uniqueEmail("e2e-billing-success");
     await signIn(page, EMAIL);
     await page.goto("/billing/success");
-    await expect(page.getByText("Something went wrong")).toBeVisible({
-      timeout: 10000,
-    });
+    // Copy was rewritten in the warm·candid voice pass — match either
+    // the curly or straight apostrophe so a future re-encoding doesn't
+    // tank the suite.
+    await expect(
+      page.getByText(/we couldn[’']t confirm your subscription/i),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("valid session shows Welcome to Family Plan", async ({ page }) => {
