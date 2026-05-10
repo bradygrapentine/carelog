@@ -62,7 +62,6 @@ export function validateServiceRoleKeyOrThrow(): void {
   if (outcome.ok) return;
 
   const msg = `[TD-118] ${outcome.reason}`;
-  // eslint-disable-next-line no-console
   console.error(msg);
 
   // Throw only in local dev. Vercel preview/production keep NODE_ENV =
