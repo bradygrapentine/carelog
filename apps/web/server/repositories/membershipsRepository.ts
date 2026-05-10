@@ -24,6 +24,69 @@ export async function getMemberships(
   return (data ?? []) as Membership[];
 }
 
+export type CareTeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  initials?: string;
+};
+
+function initialsFromName(name: string): string | undefined {
+  const trimmed = name.trim();
+  if (!trimmed) return undefined;
+  const parts = trimmed.split(/\s+/);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  const out = (first + last).toUpperCase();
+  return out || undefined;
+}
+
+/**
+ * UX-103: care-team list for the recipient profile page.
+ * Returns accepted members of `orgId` whose membership is either scoped to
+ * `recipientId` or org-wide (recipient_id NULL).
+ *
+ * Member display names live in `auth.users.user_metadata` — there is no
+ * cache table for member names (display_names is recipient-only). Resolve
+ * each name via `supabaseAdmin.auth.admin.getUserById()` per the precedent
+ * in `briefs.ts:232`. Falls back to "Member" when metadata is absent.
+ */
+export async function getCareTeamForRecipient(
+  orgId: string,
+  recipientId: string,
+): Promise<CareTeamMember[]> {
+  const { data: rows, error } = await supabaseAdmin
+    .from("memberships")
+    .select("id, user_id, role, recipient_id")
+    .eq("org_id", orgId)
+    .or(`recipient_id.eq.${recipientId},recipient_id.is.null`)
+    .not("accepted_at", "is", null)
+    .not("user_id", "is", null);
+
+  if (error)
+    throw new Error(`getCareTeamForRecipient failed: ${error.message}`);
+
+  const members = await Promise.all(
+    (rows ?? []).map(async (row) => {
+      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(
+        row.user_id as string,
+      );
+      const meta = userRes?.user?.user_metadata as
+        | { display_name?: string; full_name?: string }
+        | undefined;
+      const name = meta?.display_name ?? meta?.full_name ?? "Member";
+      return {
+        id: row.id as string,
+        name,
+        role: row.role as string,
+        initials: initialsFromName(name),
+      };
+    }),
+  );
+
+  return members;
+}
+
 export async function createMembershipAndInvite(params: {
   orgId: string;
   recipientId: string | null;
