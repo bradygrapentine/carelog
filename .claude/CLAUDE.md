@@ -3,6 +3,18 @@
 Family caregiving coordination platform. $14/mo family plan. Bootstrapped.
 Monorepo: `apps/`, `packages/`, `supabase/`.
 
+## Load-bearing constants
+
+Pin canonical values here so they don't drift across files:
+
+- **Pricing:** $14/month family plan. Bootstrapped, single price point.
+- **Web test suite:** ~1980 vitest tests across 245+ files in `apps/web` (pre-commit hook runs scoped to changed files).
+- **Pre-commit gate:** related-files vitest only; full suite via `cd apps/web && npx vitest run`.
+- **Branch protection:** GitHub native auto-merge; merge with `gh pr merge <num> --auto --squash`. No Mergify.
+- **Codex:** disabled until **2026-05-16** (quota exhausted). Adversarial gates route to Sonnet subagent or `/grill` slash command.
+- **PHI rule:** `posthog.identify()` and `posthog.capture()` use anonymous UUID only — never email, name, phone. See `docs/adr/0001-phi-anonymous-uuid-only.md`.
+- **BACKLOG-as-SoT:** `BACKLOG.md` is single source of truth. Feature/fix PRs do NOT touch it. New TD/ON rows go in dedicated `chore(backlog):` PRs. See `docs/adr/0002-backlog-as-single-source-of-truth.md`.
+
 ## Design context
 
 - `PRODUCT.md` (repo root) — register, users, brand personality, anti-references, design principles. Read before any UI/UX work.
@@ -35,9 +47,7 @@ If you catch yourself about to start work without a backlog row, stop and create
 
 ### Pre-flight audit (before multi-task sessions)
 
-Before starting any planned or multi-task work, verify what is already done. Run `git log --oneline -20`, grep the codebase for the target files/symbols, and check the relevant backlog doc for `✅ DONE`/strike-through markers. Produce a status table (done/partial/todo) before touching code. Skipping this step has repeatedly led to re-implementing completed work.
-
-**Before writing any new file**, run Glob/Grep to verify it doesn't already exist. This applies to components, migrations, utilities — anything. Discovering a file already exists mid-implementation wastes context and produces duplicates.
+Before any planned or multi-task work: `git log --oneline -20`, grep target files/symbols, check backlog rows for shipped status. Produce a done/partial/todo table before touching code. **Before writing any new file**, run Glob/Grep to verify it doesn't already exist — components, migrations, utilities, anything.
 
 ### Testing first
 
@@ -45,14 +55,12 @@ When asked to fix failing tests, run the test command first and read the actual 
 
 ### Interactive Commands
 
-These CLIs block on stdin — Claude **cannot** run them from Bash. Recognize them immediately and ask the user to run manually, then paste the output. Do not attempt to pipe input or use `expect`.
+These block on stdin — Claude **cannot** run them. Ask the user to run manually and paste output. Do not pipe input or use `expect`.
 
 - `eas login`, `eas build --auto-submit`, `eas submit`
 - `supabase login`
 - Any OAuth / browser-redirect authentication flow
-- `npx create-*` prompts that ask questions interactively
-
-Pattern: if a command requires typing into a prompt, it belongs to the user, not Claude.
+- `npx create-*` interactive prompts
 
 ## Commands
 
@@ -74,7 +82,7 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - **Bash paths with `(app)` or `[recipientId]`** need quoting in zsh: `"apps/web/app/(app)/..."` — unquoted triggers glob expansion failures.
 - **Pre-commit hook** runs `cd apps/web && npx vitest run --reporter=dot 2>&1 | tail -5` — only the last 5 lines of test output are visible; run the command manually to see the full error if it fails.
 - **Main-commit hook timing**: The PreToolUse hook checks `git branch --show-current` *before* the Bash command runs. Never chain `git checkout -b <branch> && git commit` in one Bash call — the hook sees `main` and blocks. Always split into two separate Bash calls.
-- **Parallel subagent BACKLOG.md conflicts**: When rebasing branches from parallel subagents, BACKLOG.md always conflicts. Resolution: `git checkout --theirs BACKLOG.md && git add BACKLOG.md && GIT_EDITOR=true git rebase --continue`. Main's BACKLOG.md is always more current than the branch's status-flip.
+- **Parallel-dispatch BACKLOG.md conflicts**: Per the BACKLOG-as-SoT rule, feature/fix PRs should not touch `BACKLOG.md` — but if a stray status-flip slips into a parallel branch, the rebase will conflict. Resolution: `git checkout --theirs BACKLOG.md && git add BACKLOG.md && GIT_EDITOR=true git rebase --continue`. Main's BACKLOG.md is always more current than any branch's status-flip; let `/backlog-sync` rewrite it on its own branch.
 - **Story ID collisions**: Before assigning a new A11Y/TD/UX ID, grep §7 shipped log — IDs may already be taken there. Use `grep "A11Y-0[0-9][0-9]\|TD-[0-9]" BACKLOG.md` to find the highest used ID.
 - **Worktree commits + main-branch guard hook (2026-04-25)**: The `git commit` PreToolUse guard checks `git branch --show-current` from the **harness root cwd**, not the worktree where the commit is actually running. If the harness root is on `main`, the hook hard-blocks every worktree commit even when the worktree itself is on a feature branch. Workaround: switch the harness root off main first (`cd /Users/bradygrapentine/projects/carelog && git checkout -B chore/<scratch>`) before committing in any worktree.
 - **Pre-commit vitest flake on YAML/markdown-only diffs (2026-04-25)**: The pre-commit `vitest run` hook flakes non-deterministically on PRs whose diff touches only `*.yml` / `*.md` (no JS/TS source change can affect the test outcome). Hit twice in a single session on TD-32. If you see `1 failed` and the diff is config/docs only, run `cd apps/web && npx vitest run` manually to verify. If manual run is green, retry the commit — don't reach for `--no-verify`.
@@ -89,9 +97,7 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 
 ## Plan Mode
 
-- Start every complex task (3+ files) in plan mode
-- Pour energy into the plan → 1-shot implementation
-- When something goes sideways, re-plan — don't keep pushing
+Start every complex task (3+ files) in plan mode. Pour energy into the plan → 1-shot implementation. When something goes sideways, re-plan — don't keep pushing.
 
 ## Merge Policy
 
@@ -99,10 +105,9 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 
 ## Branch Hygiene
 
-- Always verify current branch with `git branch --show-current` before any commit
-- When dispatching subagents, explicitly pass the target branch name and instruct them to verify it before committing
-- Never commit directly to main/master without confirmation
-- A concurrent Claude instance may switch branches under you. Re-run `git branch --show-current` immediately before every commit, not just at the start of a session. If the wrong branch was committed to, `git cherry-pick` onto the correct branch rather than reset.
+- Always verify with `git branch --show-current` before every commit (not just at session start — concurrent Claude instances can switch branches under you).
+- When dispatching subagents, pass the target branch and require them to verify before committing.
+- Never commit to main/master without confirmation. If the wrong branch was committed to, `git cherry-pick` onto the correct branch rather than reset.
 
 ### Rebase before pushing to a PR
 
@@ -149,6 +154,13 @@ Subagents that go out of scope (add unrelated features, leak PHI, commit to wron
 2. **Pre-flight checklist.** See [HARNESS_USAGE.md §"Subagent Dispatch — pre-flight checklist"](../docs/project-info/runbooks/HARNESS_USAGE.md#subagent-dispatch--pre-flight-checklist) for the full pre-flight (worktree node_modules symlinks, Docker, branch checks, DB-table injection).
 3. **Review before merge.** Read the subagent diff for: invented DB tables, out-of-scope features, PHI in analytics calls. Require each subagent to include a diff summary in their response.
 
+## Project slash commands
+
+- `/grill` — adversarial review of current branch diff vs `origin/main` via a Sonnet subagent (Codex replacement until 2026-05-16).
+- `/techdebt` — read-only TODO/FIXME/HACK + dead-export scan; emits a punch-list, no edits.
+
+**ADRs:** `docs/adr/` — load-bearing decision records (PHI UUID-only, BACKLOG-as-SoT). Run the global `write-adr` skill to add new ones.
+
 ## Reference Docs (load on demand)
 
 - `docs/project-info/technology/ARCHITECTURE.md` — data model, system design, design rationale
@@ -161,10 +173,7 @@ Subagents that go out of scope (add unrelated features, leak PHI, commit to wron
 
 ## Things Claude Should NOT Do
 
-- Don't use `any` type without explicit approval
-- Don't auto-import large reference docs — list them, let user load on demand
-- Don't claim done without running verification commands first
-- Don't edit files during code review — only read and report findings
+- Don't use `any` without explicit approval; don't auto-import large reference docs; don't claim done without running verification first; don't edit files during code review.
 
 ## Deliver Artifacts — Don't Explore
 
@@ -202,28 +211,16 @@ Any request containing "review", "audit", "adversarial", "security check", or "c
 - Prefer the `/review` skill (parallel subagents) over a single-agent review path.
 - If a dispatched review agent stalls or returns empty, report immediately rather than retrying silently.
 
-## Code Reviews (general)
-
-- When the user confirms 'Yes' or similar affirmation: treat it as confirmation of the previously proposed action — not as answering a question.
-
 ## General Rules
 
-- When instructed to read docs or follow a specific document: read those files FIRST before exploring the codebase. Do not autonomously explore code when directed to consult documentation.
-- Do not present option menus or ask clarifying questions when the user has given a clear, specific request. Execute directly. If the request names specific deliverables (e.g., 'create three runbooks'), produce them without stalling.
-
-## Task Execution
-
-- When the user requests specific named deliverables (e.g., "create these 3 runbooks"), produce them directly without option menus or clarifying questions unless truly blocked
-- Read referenced docs FIRST before exploring the codebase
+- When the user confirms 'Yes' or similar: treat it as confirmation of the previously proposed action — not as answering a question.
+- When instructed to read docs or follow a specific document: read those files FIRST before exploring the codebase.
+- Do not present option menus or ask clarifying questions when the user has given a clear, specific request. Execute directly — including for named deliverables like "create these 3 runbooks".
 
 ## Self-Improvement
 
-After every correction: update this file immediately.
-End corrections with: "Now update CLAUDE.md so you don't make that mistake again."
+After every correction, update this file immediately. End corrections with: "Now update CLAUDE.md so you don't make that mistake again."
 
 ## Token Discipline
 
-- Response cap: ≤350 tokens unless the task demands more
-- Mechanical work (boilerplate, single-file refactor, known-pattern tests, bulk exploration) → dispatch to `/ollama`
-- 3+ independent subtasks → parallel fan-out via `/ollama` rather than serial Claude work
-- Full routing, self-check signals, and handoff plan format: `docs/project-info/runbooks/TOKEN_DISCIPLINE.md`
+Response cap ≤350 tokens unless task demands more. Dispatch mechanical work (boilerplate, single-file refactor, bulk exploration) to `/ollama`; 3+ independent subtasks → parallel fan-out. Full routing + handoff format: `docs/project-info/runbooks/TOKEN_DISCIPLINE.md`.
