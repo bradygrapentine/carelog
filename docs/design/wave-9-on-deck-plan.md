@@ -1,6 +1,6 @@
 # Wave 9 — Shifts data plumbing (on-deck for next session)
 
-This is the next-session plan. Wave 8 (brief surface mount + adapters) is in flight at session-end of 2026-05-01 — PRs #367, #368, #369 queued; the SleepFromEvents + detectPattern subagent (UX-096 + UX-099) is still running and may auto-queue overnight.
+This is the next-session plan. Wave 8 (brief surface mount + adapters) is in flight at session-end of 2026-05-01 — PRs #367, #368, #369 queued; the SleepFromEvents + detectPattern subagent (UX-096 + UX-099) is still running and will be picked up at session start.
 
 ## Scope
 
@@ -17,7 +17,7 @@ Goal: the Shifts surface in `ShiftsPanel` (the journal route's `shifts` destinat
 ## Recommended sequence
 
 ### Step 0 — pre-flight (10 min)
-1. Confirm Wave 8 PRs landed: `gh pr list --state open --limit 10` should show zero. If UX-096/099 (subagent) didn't queue overnight, walk into `.worktrees/ux-096-099-helpers`, finish commit + push + PR + queue.
+1. Confirm Wave 8 PRs landed: `gh pr list --state open --limit 10` should show zero. If UX-096/099 (subagent) didn't queue between sessions, walk into `.worktrees/ux-096-099-helpers`, finish commit + push + PR + queue.
 2. Pull latest main: `git fetch origin main && git checkout main && git reset --hard origin/main`. Wave 8 should now be merged; the brief sidebar should render real ComingUp + OnShift derivations once the wire-in PR lands (see "Step 1" below).
 3. `git worktree prune` to clean up Wave 8 worktrees.
 
