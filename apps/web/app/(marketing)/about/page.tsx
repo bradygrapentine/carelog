@@ -325,16 +325,6 @@ export default function AboutPage() {
           <CareZoneMedicationImport />
         </div>
       </section>
-
-      {/* CTA */}
-      <div className="text-center">
-        <Link
-          href="/signin"
-          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-        >
-          Start your family&rsquo;s log
-        </Link>
-      </div>
     </div>
   );
 }
