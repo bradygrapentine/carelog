@@ -13,7 +13,10 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createServerSupabase } from "@/lib/supabaseServer";
-import { resolveIdentity } from "@/server/repositories/identityRepository";
+import {
+  resolveIdentity,
+  parseEmergencyInfo,
+} from "@/server/repositories/identityRepository";
 import { getCareTeamForRecipient } from "@/server/repositories/membershipsRepository";
 import { getRecipientPreferences } from "@/server/repositories/recipientsRepository";
 import { RecipientProfile } from "@/components/app/RecipientProfile";
@@ -97,7 +100,9 @@ export default async function RecipientProfilePage({
         dislikes={preferences.dislikes}
       />
       <CareTeamList members={careTeam} />
-      <EmergencyFooterCard />
+      <EmergencyFooterCard
+        {...parseEmergencyInfo(identity.contact_info ?? {})}
+      />
     </main>
   );
 }

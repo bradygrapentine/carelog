@@ -3,6 +3,7 @@ import {
   resolveIdentity,
   createIdentity,
   resolveAndCacheDisplayName,
+  parseEmergencyInfo,
 } from "../identityRepository";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
@@ -42,9 +43,7 @@ function makeInsertChain(result: { data: unknown; error: unknown }) {
 
 function makeUpsertChain() {
   const chain: Record<string, unknown> = {};
-  chain.upsert = vi.fn(() =>
-    Promise.resolve({ data: null, error: null }),
-  );
+  chain.upsert = vi.fn(() => Promise.resolve({ data: null, error: null }));
   return chain;
 }
 
@@ -278,5 +277,62 @@ describe("resolveAndCacheDisplayName — cache-aside", () => {
 
     expect(name).toBe("Fresh Name");
     expect(supabaseAdmin.from).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("parseEmergencyInfo (UX-105)", () => {
+  it("parses a fully-populated contact_info blob", () => {
+    expect(
+      parseEmergencyInfo({
+        dnr_status: "DNR — full code declined",
+        hospital: "Memorial Cooper",
+        primary_contact: {
+          name: "Jane Doe",
+          relationship: "Daughter",
+          phone: "555-0100",
+        },
+      }),
+    ).toEqual({
+      dnrStatus: "DNR — full code declined",
+      hospital: "Memorial Cooper",
+      primaryContact: {
+        name: "Jane Doe",
+        relationship: "Daughter",
+        phone: "555-0100",
+      },
+    });
+  });
+
+  it("returns {} for an empty blob", () => {
+    expect(parseEmergencyInfo({})).toEqual({});
+  });
+
+  it("omits primary_contact when name is missing/empty", () => {
+    expect(
+      parseEmergencyInfo({
+        primary_contact: { relationship: "Sibling", phone: "555-0101" },
+      }),
+    ).toEqual({});
+    expect(parseEmergencyInfo({ primary_contact: { name: "   " } })).toEqual(
+      {},
+    );
+  });
+
+  it("omits relationship + phone when present but empty/whitespace", () => {
+    expect(
+      parseEmergencyInfo({
+        primary_contact: { name: "Alex", relationship: "", phone: "  " },
+      }),
+    ).toEqual({ primaryContact: { name: "Alex" } });
+  });
+
+  it("ignores wrong-typed values (does NOT throw)", () => {
+    expect(
+      parseEmergencyInfo({
+        dnr_status: 42,
+        hospital: null,
+        primary_contact: ["not", "an", "object"],
+      }),
+    ).toEqual({});
   });
 });
