@@ -18,7 +18,7 @@ test("sign in page loads correctly", async ({ page }) => {
 test("sign in with OTP lands on dashboard", async ({ page }) => {
   const TEST_EMAIL = uniqueEmail("auth");
   await signIn(page, TEST_EMAIL);
-  await expect(page.getByText("Your care teams")).toBeVisible();
+  await expect(page.getByText("Your care dashboard")).toBeVisible();
 });
 
 test("sign out works", async ({ page }) => {
