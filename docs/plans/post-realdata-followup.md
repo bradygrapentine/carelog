@@ -1,5 +1,8 @@
 # Post real-data follow-up — Wave C + Wave D
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Two parallelizable waves chosen from `BACKLOG.md` §1 Ready rows + the 2026-04-27
 landing-page launch feedback. Zero file overlap between waves; both can run in
 independent sessions.

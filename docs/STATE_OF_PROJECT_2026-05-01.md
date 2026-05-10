@@ -1,5 +1,7 @@
 # Carelog — State of the project · 2026-05-01
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
 Snapshot taken at end of the 2026-04-30 → 2026-05-01 session that shipped TD-100 (journal pagination), Plan C (UX-061..064 wiring), and TD-106 (export.spec regression fix).
 
 ---

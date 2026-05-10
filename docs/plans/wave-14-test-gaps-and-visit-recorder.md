@@ -1,5 +1,8 @@
 # Wave 14 — Tier-1/2 test gaps + visit-recorder triage
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 **Stories:** TD-113, TD-114, TD-115, TD-116, UX-107
 **Estimated effort:** ~9 hr total across 5 PRs (revised from ~7.5 after Opus peer review)
 **Source:** `docs/audits/2026-05-10-state-and-gaps.md` §3 + §5
