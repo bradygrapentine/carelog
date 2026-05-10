@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 const validBrief = {
   id: "b1",
   title: "Weekly Care Brief",
+  // Editorial Span[] headline — see lib/brief/headline.ts. Without it,
+  // BriefHeadline falls back to `title`; the editorial-headline render
+  // path is what this spec exercises.
+  headline: [{ text: "A steady week for " }, { text: "Margaret", em: true }],
   content: {
     recipient_name: "Margaret",
     dob: null,
@@ -56,13 +60,15 @@ test.describe("Care Brief public page", () => {
       });
     });
     await page.goto("/brief/valid-tok");
-    // UX-21: editorial layout — Fraunces headline "A good morning for {name}"
-    // and the eyebrow-mono dateline above it. The legacy title-card was
-    // intentionally dropped in the magazine refactor.
+    // UX-21: editorial layout — Fraunces headline drawn from the brief's
+    // structured Span[] (see lib/brief/headline.ts). The legacy "good
+    // morning" template was retired by the warm·candid voice pass; the
+    // spec now drives the headline via the fixture above and asserts the
+    // recipient name is rendered in the editorial heading.
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /a good morning for margaret/i,
+        name: /margaret/i,
       }),
     ).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/today's brief/i)).toBeVisible({
