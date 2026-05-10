@@ -1,24 +1,24 @@
 # Carelog — Harness Usage
 
-How the Claude Code harness actually runs in this project: hooks, skills, agents, MCP servers, plugin priority, model routing, automation, and the Mergify-based merge flow.
+How the Claude Code harness actually runs in this project: hooks, skills, agents, MCP servers, plugin priority, model routing, automation, and the merge flow.
 
 This file is **load-on-demand reference**. Behavioral rules that drive Claude's actions live in `.claude/CLAUDE.md`; this file is the longer description of the machinery that supports them.
 
-## Merge Queue (~~Mergify~~)
+## Merge Policy
 
-Repo uses **~~Mergify~~ merge queue** (as of 2026-04-25, replacing GitHub native auto-merge — see #163, #166). Config lives at ~~`.mergify.yml`~~. ~~Mergify~~ batches up to 5 PRs into one CI run on a synthetic merge SHA, eliminating the rebase-storm tax that armed auto-merge incurred when multiple PRs targeted main concurrently (O(N²) → O(N)).
+Repo uses **GitHub native auto-merge** (squash). A browser-extension auto-rebaser keeps the PR head current as siblings land, so the previous Mergify-based queue (2026-04-25 → 2026-05-10) was retired in favor of the simpler native flow.
 
 ### How to merge a PR
 
 ```sh
-gh pr edit <num> --add-label queue
+gh pr merge <num> --auto --squash
 ```
 
-~~Mergify~~ watches for the `queue` label and routes the PR into the default queue. Don't use `gh pr merge --auto --squash` — GitHub native auto-merge races ~~Mergify~~ (auto-merge rebases the PR head; ~~Mergify~~ queues a synthetic merge SHA).
+Native auto-merge fires as soon as required checks are green and the branch is up to date with main. Don't use a `queue` label — Mergify is no longer in use.
 
-### Pre-queue validation (run BEFORE `--add-label queue`)
+### Pre-merge validation (run BEFORE `--auto --squash`)
 
-~~Mergify~~ won't queue a PR with failing required checks or conflicts. Quick check:
+Auto-merge needs a clean state to arm. Quick check:
 
 ```sh
 PR=<num>
@@ -26,19 +26,21 @@ gh pr view "$PR" --json mergeable,mergeStateStatus -q '.mergeable + " / " + .mer
 #   Want: MERGEABLE / anything-but-DIRTY. CONFLICTING/DIRTY → rebase first.
 
 gh pr checks "$PR" 2>&1 | grep -E "fail" | head -5
-#   Want: empty. Any "fail" → fix or rerun before labeling.
+#   Want: empty. Any "fail" → fix or rerun before arming.
 ```
 
-### Wakeup-on-label
+### Wakeup-on-arm
 
-When you add the `queue` label, **always schedule a wakeup** (10-15 min) to verify the PR landed. ~~Mergify~~ will comment on the PR if it can't queue (config issue, missing checks, conflicts). Silent stalls are the worst failure mode — the wakeup converts them into actionable signal.
+After arming `--auto --squash`, **schedule a 10–15 min wakeup** to verify the PR landed. Silent stalls (failing required check, branch protection drift) are the worst failure mode — the wakeup converts them into actionable signal.
+
+### Attempt once, then hand off
+
+Per the global rule: attempt `gh pr merge <num> --auto --squash` exactly once. If it's rejected (failing checks, conflicts, branch-protection rule), print the PR URL + `gh pr checks` status + what's blocking and stop. Do not retry, do not bypass safety hooks.
 
 ### Failure-mode shortlist
-- **~~Mergify~~ won't queue** → check the PR for a ~~Mergify~~ comment explaining why; usually a missing required check or a conflict.
-- **Batch fails CI on the merge SHA** → ~~Mergify~~ bisects to find the bad PR and ejects it; sibling PRs continue.
-- **`Configuration changed` check fails** → ~~`.mergify.yml`~~ syntax error; ~~Mergify~~ dashboard link in the check details has the parse error.
-- **Conflict appears while queued** → ~~Mergify~~ ejects + comments; rebase (`git rebase origin/main`) + re-add label.
-- **Required-check name drift** → if a workflow renames a check, update both ~~`.mergify.yml`~~ queue_conditions AND branch protection required-checks; otherwise ~~Mergify~~ never finds the check.
+- **Auto-merge rejected at arm time** → `gh pr checks <num>` for failing required checks; or `gh pr view --json mergeStateStatus` for `BLOCKED`/`DIRTY`. Fix locally and re-arm once.
+- **Conflict appears after arm** → rebase (`git fetch origin && git rebase origin/main`), force-push with `--force-with-lease`, re-arm.
+- **Required-check name drift** → branch-protection requires a check that workflow renamed; update branch protection or restore the check name.
 
 ## Subagent Dispatch — pre-flight checklist
 
