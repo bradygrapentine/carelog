@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM-2 (audit-remediation reconcile)** — 8 audit-remediation PRs (#387–#394) merged plus Wave 12 Session A (#386): SEO-001/002/004 promoted to ✅ shipped, SEO-003 → 🧊 Deferred (no `/carezone-alternative` page; `/about` lacks step-by-step content). TD-111 filed for skill-dedup phase 2 follow-up. Remaining Ready = 27.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-09 PM-3 (Wave 13-A + stale TD-78..82 reconcile)** — UX-045 PHI gate shipped (#396) plus test/E2E fixture repairs (#397, #398). TD-78..82 retroactively flipped to ✅ Shipped after Wave 13-B preflight discovered all 5 test files already on main from earlier sprints (PRs #248–#258); rows were stale. UX-051 deferred (caresync.app DNS not set up yet). Remaining Ready = 21.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,11 +20,11 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 27 | TD-78..82 · TD-111 · UX-041..045 · UX-048..051 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
+| 🟢 Ready | 21 | TD-111 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
-| 🧊 Deferred | 13 | §5 ON-55 (ON-69 struck dup) · §1 UX-066 (superseded) · UX-035 (BriefHero now wired) · SEO-003 (no /carezone-alternative; /about lacks step content) · ON-72/73 (Phase 3/4 prereqs) · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
+| 🧊 Deferred | 14 | §5 ON-55 (ON-69 struck dup) · §1 UX-066 (superseded) · UX-035 (BriefHero now wired) · UX-051 (caresync.app DNS not provisioned) · SEO-003 (no /carezone-alternative; /about lacks step content) · ON-72/73 (Phase 3/4 prereqs) · §6 UX-08/09/11/22/23/24 · §3 PP-013 |
 | 🧑 Needs human | 12 | §5 ON-54 · §8 A2 · C3 · PP-008 · §4 A11Y-018 · §1 LAUNCH-001 · LAUNCH-005 · TD-03 · TD-83 · UX-106 · SEO-006 · SEO-007 |
 
 > If this table looks stale, run `/backlog-sync` — it rewrites it from the story rows below.
@@ -109,11 +109,11 @@ Surfaced by parallel pre-flight + test-gap audits (`docs/plans/WAVE5_DISCOVERY_R
 |---|---|---|---|
 | TD-76 | ✅ Shipped · PR #230 | **Regenerate `database.types.ts`** | Drift covered the C1+C2 security migrations; net +285/-3 lines after `npx supabase gen types typescript --local`. Stale types had been masking RLS schema changes at the type-checker level. |
 | TD-77 | ✅ Shipped · PR #328 | **Tests for `identityRepository.ts` (Tier 1 — PHI vault)** | Uses `supabaseAdmin` (no RLS protection). Untested cross-org `resolveIdentity(token, org_id)` could leak names/DOB/contact between orgs in a silent regression. New file: `apps/web/server/repositories/__tests__/identityRepository.test.ts`. Test (a) cross-org token rejection, (b) malformed token, (c) expired token. ~2 hr. |
-| TD-78 | 🟢 Ready | **Tests for `user.ts` tRPC router (Tier 1 — auth boundary)** | Zero auth-boundary tests. `IANA_TIMEZONE_PATTERN` regex untested for bypass (e.g. `"../../../"`); `dismissEducationTip` date math untested for off-by-one. New file: `apps/web/server/routers/__tests__/user.test.ts`. Test (a) `ctx.user = null` → 401, (b) timezone regex valid/invalid/empty, (c) dismissEducationTip date math, (d) updateNotifications upsert idempotency. ~1.5 hr. |
-| TD-79 | 🟢 Ready | **Tests for `careEventsRepository.ts` (Tier 1 — core PHI write)** | No `validatePayload()` regression net + no org_id/recipient_id isolation test for `getTimeline`. RLS covers DB layer; this is the helper layer. New file: `apps/web/server/repositories/__tests__/careEventsRepository.test.ts`. Test (a) invalid payload throws before DB write, (b) cross-recipient timeline returns empty, (c) `insertEvent()` respects org_id boundary. ~1.5 hr. |
-| TD-80 | 🟢 Ready | **Tests for `lib/stripe.ts` (Tier 1 — payment infra)** | Singleton init throws if `STRIPE_SECRET_KEY` missing. Zero test asserting the error path; affects every checkout/upgrade. New file: `apps/web/lib/__tests__/stripe.test.ts`. Test (a) missing env → clear error message, (b) singleton returns same instance, (c) API version `"2026-03-25.dahlia"` is current. ~0.5 hr. |
-| TD-81 | 🟢 Ready | **Tests for `organizationsRepository.ts` (Tier 2 — team isolation)** | Cross-org query (org_id unfiltered) could be silent in CI if test fixtures don't span orgs. New file: `apps/web/server/repositories/__tests__/organizationsRepository.test.ts`. Test cross-org fixtures + org UUID assignment. ~1.5 hr. |
-| TD-82 | 🟢 Ready | **RLS test stub for `care_events_client_id` migration** | `20260416000001_care_events_client_id.sql` has no dedicated test. Either add a minimal `supabase/tests/care_events_client_id.test.sql` or document why it's covered by the existing `care_events_rls.test.sql`. ~0.5 hr. |
+| TD-78 | ✅ Shipped · PR #248 | **Tests for `user.ts` tRPC router (Tier 1 — auth boundary)** | 21 tests in `apps/web/server/routers/__tests__/user.test.ts` covering ctx.user=null → 401, IANA timezone regex, dismissEducationTip date math, updateNotifications. |
+| TD-79 | ✅ Shipped · PR #249 | **Tests for `careEventsRepository.ts` (Tier 1 — core PHI write)** | 10 tests in `apps/web/server/repositories/__tests__/careEventsRepository.test.ts` covering validatePayload pre-DB-write, cross-recipient timeline isolation, insertEvent org_id boundary. |
+| TD-80 | ✅ Shipped · PR #250 | **Tests for `lib/stripe.ts` (Tier 1 — payment infra)** | 3 tests in `apps/web/lib/__tests__/stripe.test.ts` covering missing-env error, singleton identity, pinned `2026-03-25.dahlia` API version. |
+| TD-81 | ✅ Shipped · PR #253 | **Tests for `organizationsRepository.ts` (Tier 2 — team isolation)** | 11 tests in `apps/web/server/repositories/__tests__/organizationsRepository.test.ts` covering cross-org isolation + DB-assigned UUID contract. |
+| TD-82 | ✅ Shipped · PR #258 | **RLS test stub for `care_events_client_id` migration** | pgTAP coverage in `supabase/tests/care_events_client_id.test.sql` — 4 scenarios (NULL coexistence, partial unique constraint, global cross-org uniqueness). |
 | TD-83 | 🧑 Needs human | **Verify `CI Summary` is in main branch protection** | Pre-flight audit couldn't read protection config (no PAT in shell). Manually verify via GitHub UI: Settings → Branches → main → required checks includes `CI Summary` (per TD-30). If missing, add via API. ~0.25 hr. |
 
 ### Post-Wave-9 audit (TD-107..110, UX-107, UX-108) — opened 2026-05-09
@@ -450,11 +450,19 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 | UX-048 | 🟢 Ready | **Empty states polish** | `/impeccable clarify` 2026-04-29 audit found generic-SaaS empty-state copy across journal, medications, team, and dashboard surfaces ("No items", "No projects yet", "Get started"). Replace with PRODUCT.md-aligned warm·candid copy that names the subject + offers a next action ("No journal entries yet. Log how today went."). See `apps/web/copy-audit.md` §3 for the full list. |
 | UX-049 | 🟢 Ready | **Auth + onboarding voice pass** | `/impeccable clarify` 2026-04-29 audit found tone mismatches in the auth flow: `SignInForm.tsx:115` button reads "Sign in" on what is actually a 6-digit OTP verify step ("Verify code" / "Verifying..." is correct). Onboarding has 3 different error strings, only 1 well-pitched. Auth callback / invite-load errors lack remediation. Sweep the 8 auth-surface findings in `apps/web/copy-audit.md` §2 and the onboarding findings in §1 Medium. |
 | UX-050 | 🟢 Ready | **Journal mood + entry-form copy** | `/impeccable clarify` 2026-04-29 audit found tone risks in the journal — the surface where stakes are highest (PRODUCT.md: "the recipient is a person, not a chart"). Sweep mood-label copy, ShiftForm field labels, and the "Share update" button on what is actually a private journal post. See `apps/web/copy-audit.md` §4 for the full list. |
-| UX-051 | 🟢 Ready | **Legacy `care-log.org` → `caresync.app` cleanup** | `/impeccable clarify` 2026-04-29 audit caught `hello@care-log.org` shipping to paying users in `apps/web/app/(app)/subscriptions/page.tsx:188` and `apps/web/app/(app)/team/admin/TeamAdminClient.tsx:159`. Per the brand-name rule, user-facing brand is **CareSync** (`@caresync.app`). Grep the whole repo (`rg "care-log\.org"`) and replace user-facing instances; leave repo path / package.json unchanged (those are the legacy internal name). Tiny PR — could roll into UX-047 if convenient. |
+| UX-051 | 🧊 Deferred (2026-05-09) | **Legacy `care-log.org` → `caresync.app` cleanup** | Deferred 2026-05-09: `hello@caresync.app` and `privacy@caresync.app` are not yet provisioned (DNS + inbox). Replacing displayed addresses now would ship broken support links to paying users. Re-visit once DNS lands. Audit findings preserved: `apps/web/app/(app)/subscriptions/page.tsx:188`, `team/admin/TeamAdminClient.tsx:159`, plus marketing surfaces (privacy/terms/contact pages). Resend `from:` in `app/api/contact/route.ts` is also affected — separate Resend domain-verification step. |
 
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-09 PM — Wave 13-A + retroactive TD-78..82 reconcile (PRs #396–#398)
+Wave 13-A intent was UX-045 (PHI gate) + UX-051 (brand cleanup); UX-051 deferred mid-wave when DNS blocker surfaced. Wave 13-B (TD-78..82) aborted at preflight: all 5 test files already on main from earlier sprints — backlog rows were stale.
+✅ **UX-045** Redact `content.dob` from `/api/brief/[shareToken]` unless `includes` opts in — fail-closed (PR #396)
+✅ **fix(test)** ExpensePanel fixture relative-date — date-rollover flake hit every PR opened 2026-05-10 (PR #397)
+✅ **fix(e2e)** shift-calendar helper drop racy conditional — `count()` doesn't auto-wait, ShiftsPanel layout-toggle Calendar tab needs a render cycle (PR #398)
+✅ **TD-78..82** retroactively flipped to ✅ Shipped — files `apps/web/server/routers/__tests__/user.test.ts` (#248, 21 tests), `careEventsRepository.test.ts` (#249, 10 tests), `lib/__tests__/stripe.test.ts` (#250, 3 tests), `organizationsRepository.test.ts` (#253, 11 tests), `supabase/tests/care_events_client_id.test.sql` (#258, pgTAP) — coverage matches the original spec.
+🧊 **UX-051** deferred — caresync.app inbox (`hello@`/`privacy@`) not yet provisioned; legacy `care-log.org` strings stay until DNS is set up.
 
 ### 2026-05-09 PM — Roadmap & harness audit remediation (PRs #387–#394)
 Source: `docs/audits/2026-05-09-roadmap-and-harness-audit.md` + `docs/plans/audit-remediation-2026-05-09.md`. 8 chore PRs, ~3 hr active work.
