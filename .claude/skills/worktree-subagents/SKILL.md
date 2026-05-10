@@ -130,10 +130,10 @@ When subagents return:
 
 1. Read each diff: `git -C .worktrees/<slug> diff origin/main`
 2. Check for: invented DB tables, out-of-scope file changes, PHI in `identify`/`capture`
-3. If clean and tests green → push branch + open PR + apply ~~Mergify~~ `queue` label:
+3. If clean and tests green → push branch + open PR + arm native auto-merge:
    ```sh
    gh pr create --title "..." --body "..."
-   gh pr edit <num> --add-label queue        # ~~Mergify~~ owns the queue (see CLAUDE.md §Merge Queue)
+   gh pr merge <num> --auto --squash         # GitHub native auto-merge; see CLAUDE.md §Merge Policy
    ```
 4. If a subagent returned `BLOCKED` → record reason, don't retry silently
 5. If a subagent's diff touches PHI surfaces (flagged in §1 step 7) → **do not auto-merge**; route to Opus for review first

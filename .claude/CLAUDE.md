@@ -93,9 +93,9 @@ pnpm exec playwright test  # E2E — see e2e/CLAUDE.md
 - Pour energy into the plan → 1-shot implementation
 - When something goes sideways, re-plan — don't keep pushing
 
-## Merge Queue
+## Merge Policy
 
-> **The behavioral rule**: merge a PR by adding the `queue` label (`gh pr edit <num> --add-label queue`). Don't use `gh pr merge --auto --squash` — it races Mergify. Schedule a wakeup after labeling. **Full Mergify procedure, pre-queue validation, failure modes:** [HARNESS_USAGE.md §"Merge Queue"](../docs/project-info/runbooks/HARNESS_USAGE.md#merge-queue-mergify).
+> **The behavioral rule**: merge a PR with `gh pr merge <num> --auto --squash` after `gh pr create`. The repo uses GitHub native auto-merge; an external browser-extension auto-rebaser keeps the head branch current as siblings land. Do NOT use a `queue` label — Mergify is not in use here. Schedule a 10–15 min wakeup after arming auto-merge to verify the PR landed (silent stalls are the worst failure mode). Per the global rule: attempt `--auto --squash` exactly once; if it's rejected (failing checks, conflicts, branch protection), print the PR URL + `gh pr checks` status + what's blocking and hand off — do not retry.
 
 ## Branch Hygiene
 
@@ -156,7 +156,7 @@ Subagents that go out of scope (add unrelated features, leak PHI, commit to wron
 - `docs/project-info/product/UX_DECISIONS.md` — language and tone rules
 - `.claude/rules/ui-standards.md` — hard UI rules (tokens, WCAG AA, responsive, panel/form patterns). Load before any work under `apps/web/app/` or `apps/web/components/`.
 - `docs/project-info/technology/TROUBLESHOOTING.md` — local dev fixes (Supabase, auth, Turbopack)
-- `docs/project-info/runbooks/HARNESS_USAGE.md` — **harness reference**: hooks, skills, agents, MCP, plugin priority, model routing, Ollama dispatch, Mergify procedure
+- `docs/project-info/runbooks/HARNESS_USAGE.md` — **harness reference**: hooks, skills, agents, MCP, plugin priority, model routing, Ollama dispatch, merge policy
 - `docs/project-info/runbooks/TOKEN_DISCIPLINE.md` — Ollama dispatch patterns, handoff plan format
 
 ## Things Claude Should NOT Do
@@ -223,7 +223,7 @@ End corrections with: "Now update CLAUDE.md so you don't make that mistake again
 
 ## Reference (load on demand)
 
-- **Skills + agents catalog, hook table, MCP/plugin priority, Ollama routing, Automation slash-commands, Mergify procedure** → [HARNESS_USAGE.md](../docs/project-info/runbooks/HARNESS_USAGE.md). Don't auto-load — read on demand when working with a specific surface.
+- **Skills + agents catalog, hook table, MCP/plugin priority, Ollama routing, Automation slash-commands, merge policy** → [HARNESS_USAGE.md](../docs/project-info/runbooks/HARNESS_USAGE.md). Don't auto-load — read on demand when working with a specific surface.
 
 ## Token Discipline
 
