@@ -114,6 +114,7 @@ export default defineConfig({
             "inngest/**/*.test.ts",
             "lib/**/__tests__/**/*.test.ts",
             "lib/**/*.test.ts",
+            "eslint-rules/**/*.test.mjs",
           ],
           setupFiles: ["./vitest.setup.node.ts"],
           globals: true,

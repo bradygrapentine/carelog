@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import carelog from "./eslint-rules/index.js";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -13,6 +14,22 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // TD-117 — ADR-0001 enforcement. Forbids PHI/PII property keys in
+  // posthog.identify / posthog.capture / Sentry.setUser / Sentry.setContext
+  // call sites. See apps/web/eslint-rules/no-phi-in-analytics.js.
+  {
+    plugins: { carelog },
+    rules: {
+      "carelog/no-phi-in-analytics": "error",
+    },
+  },
+  // Allow CommonJS in eslint-rules/ — ESLint plugins must be CJS.
+  {
+    files: ["eslint-rules/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
   // A11Y-002: Escalate key jsx-a11y rules to error level.
   // eslint-config-next already includes eslint-plugin-jsx-a11y; we only override severity.
   {
