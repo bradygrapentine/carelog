@@ -21,11 +21,11 @@ All wave-2 PRs open simultaneously, each in its own worktree (`/Users/bradygrape
 
 ## A11Y-020 (P1) — `/signin` button contrast
 
-**Cause hypothesis (high confidence):** `SignInForm` submit uses `bg-[var(--color-primary-light)]` (`#E48A4A`) with white text. Light variant is ~2.5:1, well below 4.5:1 AA. UX-109 swap landed `--color-primary-pressed` (`#9C4A14`, 5.67:1 ✓) for exactly this case.
+**Cause (CONFIRMED — adversarial review correction):** `apps/web/app/signin/SignInForm.tsx:130,172` already uses `bg-[var(--color-primary)]` (`#D2691E`) with white text. White-on-`#D2691E` ≈ **3.80:1** — fails the 4.5:1 AA floor for body text. The original hypothesis (`--color-primary-light`) was wrong; the actual offender is `--color-primary` itself.
 
 **Files:**
-- `apps/web/app/signin/SignInForm.tsx` — change submit button bg to `--color-primary` (`#D2691E`) + on-hover `--color-primary-pressed`. **Verify the rendered text-on-bg pair clears 4.5:1 with white text.** If `--color-primary` (`#D2691E`, ~3.45:1) doesn't clear AA with white, switch to `--color-primary-pressed` (`#9C4A14`, 5.67:1 ✓) as the resting state.
-- Sweep: `grep -rn "color-primary-light" apps/web/app apps/web/components` for any other button/CTA using the light variant as the BG with white FG. File a follow-up if more than 2 sites surface; in-scope to fix in this PR if it's only the signin button.
+- `apps/web/app/signin/SignInForm.tsx` — change submit button resting-state bg to `--color-primary-pressed` (`#9C4A14`, **5.67:1 ✓**). Hover can darken further to `--color-primary-deep` (`#6B3210`, 9.52:1 AAA). Do NOT use `--color-primary` for the resting state with white text — it fails AA.
+- Sweep: `grep -rn "bg-\[var(--color-primary)\]" apps/web/app apps/web/components` for any other CTA pairing white text with `--color-primary` resting bg. **Expected zero additional sites** beyond the signin button (decorative `--color-primary` usage with non-white FG is fine). If grep returns >0 hits with white text, file a follow-up A11Y row — do NOT fix in this PR.
 
 **Tests:**
 - Unit: snapshot/className assertion that the submit button uses the AA-passing token, not `--color-primary-light`.
@@ -39,22 +39,24 @@ All wave-2 PRs open simultaneously, each in its own worktree (`/Users/bradygrape
 
 ## UX-113 (P2) — Marketing landing missing illustration at desktop
 
-**Cause hypothesis (medium confidence):** A `hidden lg:block` paired image that points to an asset that 404s, OR a CSS `background-image` URL that broke during a prior rename. Mobile rendering is fine — confirms the asset exists for some breakpoint, just not the desktop variant.
+**Cause (REVISED — adversarial review correction):** The original hypothesis (`hidden lg:block` paired image with a 404 asset) is **wrong**. `apps/web/components/marketing/HowItWorks.tsx:25-33` renders the image unconditionally inside a `md:grid-cols-2`; asset `apps/web/public/images/hero-4.png` exists and serves 200. The desktop "empty grey rectangle" symptom must come from something else — candidates: (a) `object-cover` cropping the visible region out at the wider aspect ratio, (b) image `className` collapsing to zero height when the parent grid behaves differently between `md` and `lg`, (c) a sibling element overlaying the image, (d) the wrong section was screenshotted during the smoke walk.
 
-**Investigation steps (read-only, ≤10 min):**
-1. `grep -rn "shared rhythm" apps/web` to find the section component.
-2. Inspect the JSX for `lg:` / `xl:` conditional image elements.
-3. `grep -rn "shared-rhythm\|sharedRhythm\|caregiver" apps/web/public apps/web/app/(marketing)` to find the candidate asset paths.
-4. Open browser devtools Network tab on `/` at 1440px → look for the 4xx on the missing image.
+**Investigation steps (READ-ONLY, ≤15 min, no edits before owner sign-off):**
+1. Open `apps/web/components/marketing/HowItWorks.tsx` and inspect the image container's grid + sizing classNames.
+2. Reproduce in browser at 1440px with devtools open: inspect the image element, confirm it's actually present in the DOM, check computed `height`/`width`/`object-fit`/`object-position`.
+3. If the image is rendered at zero-height: fix the parent grid sizing.
+4. If the image is rendered tall but the visible portion is empty: adjust `object-position` or swap to `object-contain`.
+5. If the section being reported isn't `HowItWorks` at all: re-locate via the actual headline string in the screenshot and update this plan before touching code.
 
-**Files (anticipated):**
-- One component under `apps/web/app/(marketing)/` or `apps/web/components/marketing/`.
-- Possibly `apps/web/public/` if a missing asset needs adding back.
+**Files (anticipated, narrowed):**
+- `apps/web/components/marketing/HowItWorks.tsx` — most likely.
+- Possibly `apps/web/public/images/hero-4.png` if the asset itself is corrupt or has wrong dimensions.
 
 **Fix paths:**
-- (a) Asset missing → restore the asset OR repoint the `src` to the existing mobile asset and let it scale.
-- (b) Wrong className conditional (e.g. `hidden lg:hidden` instead of `lg:block`) → fix the className.
-- (c) Background-image URL stale → update to existing asset path.
+- (a) Grid collapse → fix the parent `grid` template / image classNames.
+- (b) `object-cover` cropping out the focal point → switch to `object-contain` or adjust `object-position`.
+- (c) Sibling overlay → fix z-index / positioning.
+- If root cause is "asset is wrong artwork for the desktop slot," flag for owner approval before substituting brand artwork.
 
 **Tests:**
 - Manual at 375px / 768px / 1440px — image present at every breakpoint.
@@ -96,9 +98,9 @@ All wave-2 PRs open simultaneously, each in its own worktree (`/Users/bradygrape
 - Size: 40×40 (vs 56×56 on the primary FAB) — still ≥40 touch-target minimum.
 - Stack vertically with `gap-3`, AI assistant ABOVE Quick log so the primary action sits at thumb-rest.
 
-**Files:**
-- `apps/web/components/QuickLogFab.tsx` (or wherever the FAB pair is composed — likely a shared `(app)/layout.tsx` slot).
-- The AI assistant FAB component (search: `grep -rn "Open AI Assistant\|AssistantFab\|sparkle" apps/web/components`).
+**Files (CONFIRMED via review):**
+- `apps/web/components/QuickLogFab.tsx` — Quick log FAB (keep filled-primary).
+- `apps/web/components/ai/AIFab.tsx:15` — AI assistant FAB (currently `bg-[var(--color-primary)]`, `right-24`); change to outline + smaller.
 
 **Tests:**
 - Existing FAB a11y test should re-pass with smaller AI FAB still ≥40×40 touch target.
@@ -114,24 +116,33 @@ All wave-2 PRs open simultaneously, each in its own worktree (`/Users/bradygrape
 
 **Cause (confirmed during smoke walk):** Local `apps/web/.env.local` had a production `sb_secret_*` key in `SUPABASE_SERVICE_ROLE_KEY`. `supabaseAdmin` silently fell back to anon → first server-side write (`POST /api/onboarding/create`) 500'd with an RLS error that pointed at the wrong cause.
 
-**Fix — two parts:**
+**Fix — two parts (file paths CORRECTED):**
 
-### Part 1: server-boot validation
-- New helper `apps/web/lib/validateServiceRoleKey.ts`:
+The actual admin module is `apps/web/server/supabaseAdmin.server.ts` (not `apps/web/lib/supabaseAdmin.ts`). It already throws on missing env at line 17 and exposes the client via a lazy `Proxy` (line 29). Validation must run inside `getClient()` on first use, NOT at module import — `import` happens before env values are reliably available in some runtime paths.
+
+### Part 1: lazy-first-use validation
+- New helper `apps/web/server/validateServiceRoleKey.ts`:
   - Decodes the `SUPABASE_SERVICE_ROLE_KEY` JWT (no signature verification — just parse the payload).
   - Asserts `role === "service_role"`.
-  - On failure: log a CRITICAL `console.error` with a clear message AND throw to refuse to start in dev. In production, log loudly but don't crash (avoid taking down a deploy on a transient env-load issue — let the wrapped error in Part 2 surface to users).
-- Call site: `apps/web/lib/supabaseAdmin.ts` module-load.
-- Skip in test envs (NODE_ENV === "test") to avoid breaking the suite.
+  - On failure behavior, by environment:
+    - `NODE_ENV === "test"` → skip (don't break the suite).
+    - `NODE_ENV === "development"` → log CRITICAL + **throw** (fail loudly so devs notice immediately).
+    - `VERCEL_ENV === "preview"` → log CRITICAL + **do NOT throw** (preview env-var typos shouldn't 500 the build).
+    - Otherwise (production) → log CRITICAL + do NOT throw (let Part 2's wrapped error surface to users; don't take down a deploy).
+- Call site: invoke once inside `getClient()` in `supabaseAdmin.server.ts`, gated by a module-level `validated` boolean so it runs exactly once per process.
 
 ### Part 2: error wrapping
-- In `supabaseAdmin.ts` (or the call sites that use it for writes), wrap thrown PostgrestErrors whose `code` is RLS-class (`42501`) or whose message matches `/row-level security/i` with a clearer prefix:
+- In `supabaseAdmin.server.ts`, wrap thrown PostgrestErrors whose `code === "42501"` or whose message matches `/row-level security/i` with a clearer prefix:
   > "Supabase admin client may not be authenticated as service_role — check `SUPABASE_SERVICE_ROLE_KEY` env. Underlying error: <original>"
 
+### Part 3: `.env.example` doc
+- Add a comment to `.env.example` (or `apps/web/.env.example`) above `SUPABASE_SERVICE_ROLE_KEY` documenting that it must be a JWT with `role: "service_role"` — NOT a `sb_secret_*` production-style key.
+
 **Files:**
-- New: `apps/web/lib/validateServiceRoleKey.ts`
-- New: `apps/web/lib/__tests__/validateServiceRoleKey.test.ts`
-- Modified: `apps/web/lib/supabaseAdmin.ts`
+- New: `apps/web/server/validateServiceRoleKey.ts`
+- New: `apps/web/server/__tests__/validateServiceRoleKey.test.ts` (server vitest project)
+- Modified: `apps/web/server/supabaseAdmin.server.ts`
+- Modified: `apps/web/.env.example` (or repo-root `.env.example` if that's the canonical location — check before editing).
 
 **Tests:**
 - `validateServiceRoleKey.test.ts`:
@@ -163,4 +174,4 @@ All wave-2 PRs open simultaneously, each in its own worktree (`/Users/bradygrape
 ## After implementation
 
 - Re-run `/live-test` smoke walk (same routes) to confirm all five surfaced fixes hold.
-- Mark all 5 backlog rows `🟢 Ready` → `🔵 In review` via `/backlog-sync` after PRs open.
+- **Reminder per ADR-0002: feature/fix PRs do NOT touch `BACKLOG.md`.** Status flips happen via `/backlog-sync` reading conventional-commit subjects from git log + PR list. Each PR's commit subject must include the story ID (e.g. `fix(a11y-020): …`) so sync can find it.
