@@ -31,27 +31,6 @@ describe("<TintedCardHeader />", () => {
     expect(header.className).not.toContain("dark:border-gray-600");
   });
 
-  // UX-110: dark mode retired. tone="dark" is now a no-op alias of "default".
-  it.skip("tone=\"dark\" layers dark-mode overrides on top of the default tokens", () => {
-    const { container } = render(
-      <TintedCard>
-        <TintedCardHeader tone="dark" title="Trade Requests" />
-        <CardContent>body</CardContent>
-      </TintedCard>,
-    );
-
-    const header = container.querySelector(
-      "[data-slot='card-header']",
-    ) as HTMLElement;
-    expect(header).not.toBeNull();
-    // Light-mode tokens still present — dark variant is additive.
-    expect(header.className).toContain("bg-[var(--color-primary-subtle)]");
-    expect(header.className).toContain("border-[var(--color-border)]");
-    // Dark-mode overrides applied.
-    expect(header.className).toContain("dark:bg-gray-700");
-    expect(header.className).toContain("dark:border-gray-600");
-  });
-
   it("renders the action slot with the flex justify-between layout", () => {
     const { container, getByRole } = render(
       <TintedCard>
