@@ -1,8 +1,12 @@
 // e2e/shift-calendar.spec.ts
 // Covers ShiftCalendar (react-big-calendar) UI added in feat/shift-calendar.
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, navigateToJournal, uniqueEmail } from "./helpers";
-
+import {
+  signIn,
+  clearMailpit,
+  navigateToJournal,
+  uniqueEmail,
+} from "./helpers";
 
 /** Navigate to the Shifts tab (calendar view) from the journal page. */
 async function goToShiftsCalendar(page: import("@playwright/test").Page) {
@@ -10,11 +14,11 @@ async function goToShiftsCalendar(page: import("@playwright/test").Page) {
   await page.getByRole("tab", { name: "Shifts" }).click();
   // Wait for ShiftList heading to confirm we're on the shifts panel.
   await expect(page.getByText("Shifts").first()).toBeVisible({ timeout: 8000 });
-  // Click the "Calendar" tab to switch to ShiftCalendar.
-  const calendarTab = page.getByRole("tab", { name: "Calendar" });
-  if ((await calendarTab.count()) > 0) {
-    await calendarTab.click();
-  }
+  // Click the "Calendar" layout tab inside ShiftsPanel. The default layout is
+  // "narrative" (Handoff) — the calendar isn't rendered until this fires.
+  // Auto-waits for the tab to mount; the previous `if (count() > 0)` form was
+  // racy and silently no-op'd before ShiftsPanel finished mounting.
+  await page.getByRole("tab", { name: "Calendar" }).click();
 }
 
 test.beforeEach(async () => {
