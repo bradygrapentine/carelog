@@ -51,7 +51,7 @@ export function AIActionCard({
           size="sm"
           onClick={onConfirm}
           disabled={isPending}
-          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90"
+          className="bg-[var(--color-primary-pressed)] hover:bg-[var(--color-primary-deep)]"
         >
           {isPending ? "Applying…" : "Confirm"}
         </Button>

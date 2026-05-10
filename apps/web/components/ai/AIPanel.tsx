@@ -108,11 +108,11 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
       className="fixed bottom-20 right-4 z-40 w-80 sm:w-96 bg-card rounded-2xl shadow-2xl border border-[var(--color-primary)] flex flex-col max-h-[70vh]"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-primary)] rounded-t-2xl">
+      <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-primary-pressed)] rounded-t-2xl">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-sm">✦ AI Assistant</span>
           {contextLabel && (
-            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-white/25 text-white px-2 py-0.5 rounded-full">
               {contextLabel}
             </span>
           )}
