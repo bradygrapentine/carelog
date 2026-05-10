@@ -11,10 +11,14 @@ ESLint catches violations at write-time (Edit hook + CI lint), not test-time. Fa
 ## Scope
 
 **Catches:** literal property keys in object literals passed to:
-- `posthog.identify(distinctId, propertiesObject?)`
-- `posthog.capture(eventName, propertiesObject?)`
+- `posthog.identify(distinctId, propertiesObject?)` (browser, posthog-js)
+- `posthog.identify({distinctId, ...})` (server, posthog-node — single-arg object form)
+- `posthog.capture(eventName, propertiesObject?)` (browser)
+- `posthog.capture({distinctId, event, properties: {...}})` (server, posthog-node — single-arg object form; recursion catches forbidden keys inside `properties`)
 - `Sentry.setUser(userObject)`
 - `Sentry.setContext(name, contextObject)`
+- `Sentry.captureException(err, captureContext)` — extra/tags/contexts surfaces
+- `Sentry.addBreadcrumb({message, data, category, ...})` — `data` is the leak surface
 
 **Forbidden keys** (case-insensitive, exact match):
 `email`, `phone`, `dob`, `ssn`, `first_name`, `last_name`, `full_name`, `address`, `zip`, `street`, `city`, `name` (special-cased — see below).
@@ -27,6 +31,8 @@ ESLint catches violations at write-time (Edit hook + CI lint), not test-time. Fa
 - Spread elements (`{ ...userObj }`) — can't statically resolve. Reviewer must inspect.
 - Variables (`const props = { email }; posthog.capture('e', props)`) — only literal-at-call-site is checked. Variable-flow analysis is out of scope.
 - Computed keys (`{ [k]: v }`) — skipped, can't resolve.
+- **Compound key names** like `user_email` or `customer_phone_number` — rule matches normalized keys exactly (`email`, `phone`), not substring. `user_email` won't trigger. Trade-off accepts false-negatives on suspicious-but-non-canonical names to avoid false-positives on innocent keys (`template_for_emailing`, `phone_book_id`). If a compound naming convention emerges, extend rule via substring match for that specific prefix/suffix.
+- Renamed identifiers (`const ph = getPostHogClient(); ph.capture(...)`) — rule keys on identifier name `posthog`/`Sentry` literally. Future safety: optionally use ESLint's `no-restricted-syntax` to forbid renaming-then-calling the analytics SDKs.
 
 ## Files
 

@@ -198,7 +198,7 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
     isLoading,
     isError,
   } = trpc.briefs.latestForRecipient.useQuery(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     { recipientId: recipientId!, orgId: orgId! },
     { enabled: ready, staleTime: 5 * 60 * 1_000 },
   );
