@@ -8,6 +8,8 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: { from: vi.fn(), rpc: vi.fn() },
+  wrapAdminError: (e: { message?: string }) =>
+    new Error(e.message ?? "wrapAdminError mock"),
 }));
 
 import { appRouter } from "@/server/trpc/router";

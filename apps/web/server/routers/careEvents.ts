@@ -9,7 +9,7 @@ import {
   insertEventIdempotent,
 } from "../repositories/careEventsRepository";
 import { autoTagCareEvent } from "../repositories/medicationTaggingRepository";
-import { supabaseAdmin } from "../supabaseAdmin.server";
+import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import type { EventType, EntryKind } from "@carelog/types";
 import { getPostHogClient } from "@/lib/posthog-server";
 
@@ -174,7 +174,8 @@ export const careEventsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
     }),
@@ -190,7 +191,8 @@ export const careEventsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
     }),
@@ -205,7 +207,8 @@ export const careEventsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
       const counts: Record<string, number> = {};
@@ -253,7 +256,8 @@ export const careEventsRouter = router({
       if (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: wrapAdminError(error).message,
+          cause: error,
         });
       }
     }),
