@@ -49,6 +49,11 @@ export const supabaseAdmin = new Proxy({} as SupabaseClient, {
  * Use at admin-write call sites:
  *   const { error } = await supabaseAdmin.from('x').insert(...)
  *   if (error) throw wrapAdminError(error)
+ *
+ * Currently shipped as an opt-in helper — TD-119 (follow-up) will sweep the
+ * existing 30+ admin call sites and migrate them. Introducing the helper
+ * here lets new code adopt the pattern immediately without waiting on the
+ * full migration.
  */
 export function wrapAdminError(error: {
   code?: string;

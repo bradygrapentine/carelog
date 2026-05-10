@@ -16,12 +16,7 @@ function decodeJwtPayload(token: string): DecodedJwt {
   if (parts.length !== 3) {
     throw new Error("not a JWT (expected 3 dot-separated segments)");
   }
-  const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-  const padded = payloadBase64.padEnd(
-    payloadBase64.length + ((4 - (payloadBase64.length % 4)) % 4),
-    "=",
-  );
-  const json = Buffer.from(padded, "base64").toString("utf8");
+  const json = Buffer.from(parts[1], "base64url").toString("utf8");
   return JSON.parse(json) as DecodedJwt;
 }
 
@@ -70,9 +65,10 @@ export function validateServiceRoleKeyOrThrow(): void {
   // eslint-disable-next-line no-console
   console.error(msg);
 
-  const isDev = process.env.NODE_ENV === "development";
-  const isVercelPreview = process.env.VERCEL_ENV === "preview";
-  if (isDev && !isVercelPreview) {
+  // Throw only in local dev. Vercel preview/production keep NODE_ENV =
+  // "production", so they fall through to log-only and rely on
+  // wrapAdminError() to surface a clearer message at the failing call site.
+  if (process.env.NODE_ENV === "development") {
     throw new Error(msg);
   }
 }
