@@ -32,6 +32,13 @@ vi.mock("@/lib/trpc", () => ({
 const ORG_ID = "10000000-0000-0000-0000-000000000001";
 const REC_ID = "20000000-0000-0000-0000-000000000001";
 
+// Use a date 7 days ago so the fixture stays inside the 30-day window
+// regardless of when the test runs (previous hardcoded "2026-04-09"
+// silently rolled out of window after 30 days).
+const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0, 10);
+
 const sampleExpenses = [
   {
     id: "expense-1",
@@ -40,7 +47,7 @@ const sampleExpenses = [
     category: "medication",
     description: "Aspirin",
     paid_by_name: "Brady",
-    incurred_at: "2026-04-09",
+    incurred_at: sevenDaysAgo,
   },
 ];
 
