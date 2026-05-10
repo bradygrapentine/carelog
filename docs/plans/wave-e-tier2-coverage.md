@@ -1,5 +1,8 @@
 # Wave E — Tier-2 server coverage + audit follow-through
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Continues the Wave B trajectory: closes the remaining Tier-2 backlog rows
 (TD-81, TD-82), re-runs the Wave-5 Codex adversarial audit that produced no
 output (TD-84), and gates the BriefHero hardcoded mock content (UX-035).

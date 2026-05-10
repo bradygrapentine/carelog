@@ -1,5 +1,8 @@
 # Post-Wave-9 execution plan
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Session date: 2026-05-09 PM. Covers the 10 still-open rows added in PR #381 (TD-107 already ✅ shipped). Three sequenced waves; each can ship independently.
 
 ## Backlog inventory

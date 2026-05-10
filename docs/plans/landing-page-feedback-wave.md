@@ -1,5 +1,8 @@
 # Wave: Landing Page Feedback (2026-04-28)
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Source: 8-issue feedback list raised by Brady on 2026-04-27.
 
 | # | Issue | Status going in | Track |

@@ -1,5 +1,8 @@
 # Wave F — Launch-prep loose ends
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Closes the remaining launch-readiness rows that don't need product/legal
 input: TD-03 Sentry source-map upload pipeline, PP-009 Android visual-QA
 runbook, a Resend domain-verification runbook (capturing the only actionable

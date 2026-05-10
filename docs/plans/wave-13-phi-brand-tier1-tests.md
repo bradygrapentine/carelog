@@ -1,5 +1,8 @@
 # Wave 13 — PHI gate · brand cleanup · Tier-1 test coverage
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 **Stories:** UX-045, UX-051, TD-78, TD-79, TD-80, TD-81, TD-82
 **Estimated effort:** ~7.5 hr total across 7 PRs
 **Base:** `origin/main` (post-PR #395)

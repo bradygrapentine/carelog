@@ -1,5 +1,8 @@
 # Plan — Address `2026-05-09-roadmap-and-harness-audit.md`
 
+> **⚠ Deprecated merge-policy mention:** This document was written when the repo used Mergify and a `queue` label. As of 2026-05-10, Mergify is no longer in use; the canonical merge flow is `gh pr merge --auto --squash` via GitHub native auto-merge. References to Mergify / `--add-label queue` below are kept as historical record. See `.claude/CLAUDE.md` §Merge Policy.
+
+
 Source: `docs/audits/2026-05-09-roadmap-and-harness-audit.md`. Four execution waves, ordered by ROI per hour. Total estimated effort: **~7–9 hr active work** (revised after peer review on 2026-05-09; D.5 is investigation-only and not counted).
 
 Revised after Opus peer review on 2026-05-09. Key revisions: D.2 hoisted into Wave A; C.3 budget lifted from 1.5 → 3–4 hr with diff-triage; C.4 made line-for-line move with stub pointers; missing audit findings (§C Outer-circle, copy-audit.md, codex-adversarial-gate) added; verification steps tightened.
