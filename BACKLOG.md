@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 21 | TD-111 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
+| 🟢 Ready | 22 | TD-111 · TD-112 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103..105 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -295,6 +295,7 @@ Surfaced by the 2026-05-09 audit (`docs/audits/2026-05-09-roadmap-and-harness-au
 | ID | Status | Story | Notes |
 |---|---|---|---|
 | TD-111 | 🟢 Ready | **Skill dedup phase 2 — triage 13 divergent project skills against globals** | C.3 phase 1 (PR #394) deleted the 5 byte-identical project-skill shadows. 13 remain divergent: `backlog-dispatch` (40 vs 115), `backlog-sync` (72 vs 71), `dispatch` (148 vs 163), `live-test` (299 vs 135), `ollama` (184 vs 186), `plan-with-tests` (67 vs 107), `schema-dump` (100 vs 109), `session-end` (46 vs 46), `ship-story` (88 vs 90), `supabase-types` (43 vs 47), `tdd-ship` (95 vs 128), `test-gaps` (38 vs 47). Per-skill judgment: identical-after-format → delete project; project encodes carelog-specifics → rename to `<name>-carelog` so it doesn't shadow; project is genuinely better → promote to global, delete project. ~2 hr. |
+| TD-112 | 🟢 Ready | **`/backlog-sync` skill: stale-Ready detector** | Surfaced 2026-05-09: TD-78..82 sat as `🟢 Ready` for ~weeks despite the 5 referenced "New file: …" paths already existing on main from PRs #248–#258. The current skill walks `git log` for un-shipped commits but never cross-checks that Ready-row file references still represent missing work. Wave 13-B preflight caught it; the skill should have. **Add a step:** for each `🟢 Ready` row, grep the row text for `New file:\s*\`([^`]+)\`` patterns; if the path exists on disk, surface as `STALE_READY` candidate in the report (do not auto-flip — fall through to human or follow-up sync to confirm scope match). Also extend to `apps/web/.../path.ts` mentions inside the row body. Implementation lives at `~/.claude/skills/backlog-sync/SKILL.md` (user-level skill). ~30 min. |
 
 Source: external design prototype (CareSync Prototype.html) handed off as enhancement spec on 2026-04-23. Triaged into 8 actionable stories; configurability surface (theme switcher, density/radius pickers, grain overlay, multiple hero variants, multiple dashboard layouts) deliberately cut to UX-22 to preserve a single opinionated look. Crisis/SOS scoped separately as UX-23. Real pattern aggregation deferred to UX-24 (UX-18 ships with mocks).
 
