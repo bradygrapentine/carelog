@@ -91,7 +91,7 @@ export function ThreadList({ orgId, userId }: Props) {
               {unread > 0 && (
                 <span
                   aria-hidden="true"
-                  className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-primary)] text-white"
+                  className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-primary-pressed)] text-white"
                 >
                   {unread > 99 ? "99+" : unread}
                 </span>

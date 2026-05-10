@@ -373,7 +373,7 @@ export function ShiftsPanel(props: Props) {
               disabled={
                 createQuestion.isPending || questionDraft.trim().length === 0
               }
-              className="rounded-md bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:opacity-50"
+              className="rounded-md bg-[var(--color-primary-pressed)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2 disabled:opacity-50"
             >
               {createQuestion.isPending ? "Posting…" : "Post"}
             </button>

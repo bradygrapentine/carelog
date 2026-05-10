@@ -464,7 +464,7 @@ export function DashboardClient({ user }: Props) {
                 <Link
                   href={"/journal/" + focusedTeam.recipientId}
                   aria-label={`Open care journal for ${focusedTeam.org.name}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold hover:bg-[var(--color-primary)]/90 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary-pressed)] text-white text-sm font-semibold hover:bg-[var(--color-primary-deep)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
                 >
                   Open care journal
                   <ChevronRight className="w-4 h-4" aria-hidden="true" />

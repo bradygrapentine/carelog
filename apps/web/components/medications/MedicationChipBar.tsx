@@ -29,7 +29,7 @@ export function MedicationChipBar({ medications, selected, onSelect }: Props) {
           "flex-shrink-0 px-3 py-1 text-sm rounded-full font-medium transition-colors " +
           "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
           (selected === null
-            ? "bg-[var(--color-primary)] text-white"
+            ? "bg-[var(--color-primary-pressed)] text-white"
             : "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]")
         }
       >
@@ -47,7 +47,7 @@ export function MedicationChipBar({ medications, selected, onSelect }: Props) {
               "flex-shrink-0 px-3 py-1 text-sm rounded-full font-medium transition-colors " +
               "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 " +
               (isSelected
-                ? "bg-[var(--color-primary)] text-white"
+                ? "bg-[var(--color-primary-pressed)] text-white"
                 : "bg-[var(--color-primary-subtle)] text-[var(--color-primary)]")
             }
           >

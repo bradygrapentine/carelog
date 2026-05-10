@@ -132,7 +132,7 @@ export function CompareTable() {
               </th>
               <th
                 scope="col"
-                className="px-6 py-4 text-left font-semibold text-[var(--color-app-shell-text)] bg-[var(--color-primary)] w-1/4"
+                className="px-6 py-4 text-left font-semibold text-[var(--color-app-shell-text)] bg-[var(--color-primary-pressed)] w-1/4"
               >
                 CareSync
               </th>

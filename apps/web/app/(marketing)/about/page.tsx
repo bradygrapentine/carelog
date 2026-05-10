@@ -236,7 +236,7 @@ export default function AboutPage() {
                   {cta && (
                     <Link
                       href="/signin"
-                      className="mt-4 inline-block rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                      className="mt-4 inline-block rounded-xl bg-[var(--color-primary-pressed)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
                     >
                       Get started free
                     </Link>

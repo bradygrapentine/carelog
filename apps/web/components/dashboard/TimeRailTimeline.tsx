@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Pen,
-  Clock,
-  Heart,
-  Calendar,
-  FileText,
-} from "lucide-react";
+import { Pen, Clock, Heart, Calendar, FileText } from "lucide-react";
 
 export type TimelineEventType =
   | "med"
@@ -55,7 +49,10 @@ function RxGlyph({ size = 14 }: { size?: number }) {
   );
 }
 
-const TYPE_ICONS: Record<TimelineEventType, { icon: React.ReactNode; name: string }> = {
+const TYPE_ICONS: Record<
+  TimelineEventType,
+  { icon: React.ReactNode; name: string }
+> = {
   med: { icon: <RxGlyph size={14} />, name: "rx" },
   journal: {
     icon: <Pen size={14} data-icon="pen" aria-hidden="true" />,
@@ -119,10 +116,7 @@ export function TimeRailTimeline({
   }
 
   return (
-    <section
-      aria-label="Today's timeline"
-      className={`${className ?? ""}`}
-    >
+    <section aria-label="Today's timeline" className={`${className ?? ""}`}>
       <ol className="relative space-y-1">
         {sorted.map((event, idx) => {
           const { icon } = TYPE_ICONS[event.type];
@@ -136,18 +130,14 @@ export function TimeRailTimeline({
                   className="flex items-center gap-2 py-1"
                 >
                   <div className="w-16 shrink-0 text-right">
-                    <span
-                      className="inline-block rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white"
-                    >
+                    <span className="inline-block rounded-full bg-[var(--color-primary-pressed)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                       NOW
                     </span>
                   </div>
                   <div className="flex-1 border-t border-[var(--color-primary)] opacity-40" />
                 </li>
               )}
-              <li
-                className="flex items-start gap-3"
-              >
+              <li className="flex items-start gap-3">
                 {/* Time rail label */}
                 <div className="w-16 shrink-0 pt-1 text-right font-mono text-[11px] text-[var(--color-muted)]">
                   {formatTime(event.at)}
@@ -185,9 +175,7 @@ export function TimeRailTimeline({
             className="flex items-center gap-2 py-1"
           >
             <div className="w-16 shrink-0 text-right">
-              <span
-                className="inline-block rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white"
-              >
+              <span className="inline-block rounded-full bg-[var(--color-primary-pressed)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                 NOW
               </span>
             </div>

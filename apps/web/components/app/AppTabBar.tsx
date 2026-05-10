@@ -136,7 +136,7 @@ function AppTabBarInner({ userInitials, onSignOut }: Props) {
                 <button
                   type="button"
                   aria-label="Sign out"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-pressed)] text-xs font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)] focus:ring-offset-1 focus:ring-offset-[var(--color-app-shell)]"
                 >
                   {userInitials}
                 </button>

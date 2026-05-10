@@ -53,7 +53,7 @@ export function AIChatThread({
             <div
               className={`px-3 py-2 rounded-xl text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-[var(--color-primary)] text-white rounded-br-sm"
+                  ? "bg-[var(--color-primary-pressed)] text-white rounded-br-sm"
                   : "bg-[var(--color-surface)] text-[var(--color-text-primary)] rounded-bl-sm border border-[var(--color-border)]"
               }`}
             >

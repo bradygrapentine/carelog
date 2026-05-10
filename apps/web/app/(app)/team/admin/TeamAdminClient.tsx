@@ -102,7 +102,7 @@ export function TeamAdminClient({ orgId, userId: _userId }: Props) {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-pressed)] text-xs font-semibold text-white">
                         {(member.display_name ?? member.email ?? "?")
                           .slice(0, 2)
                           .toUpperCase()}

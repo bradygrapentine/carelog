@@ -79,7 +79,7 @@ export function AIConsentModal({ onEnable, onDismiss }: Props) {
         </div>
         <div className="space-y-2">
           <Button
-            className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90"
+            className="w-full bg-[var(--color-primary-pressed)] hover:bg-[var(--color-primary-deep)]"
             onClick={onEnable}
           >
             Enable AI Assistant

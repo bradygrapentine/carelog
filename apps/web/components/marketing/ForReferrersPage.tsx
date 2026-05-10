@@ -78,7 +78,7 @@ function CopyLinkButton() {
       type="button"
       onClick={handleCopy}
       aria-label="Copy signup link to clipboard"
-      className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary)]/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 min-h-[44px]"
+      className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary-deep)] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2 min-h-[44px]"
     >
       {copied ? (
         <>
@@ -203,6 +203,7 @@ export function ForReferrersPage() {
               className="flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-card p-5 shadow-sm"
             >
               <span
+                // A11Y-021: large-text 3:1 ✓ — text-sm (14px) at font-bold (700) qualifies as WCAG large-text
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-bold text-[var(--color-app-shell-text)]"
                 aria-label={`Step ${number}`}
               >

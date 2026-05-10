@@ -124,7 +124,7 @@ export default function TrustPage() {
       <div className="text-center">
         <Link
           href="/signin"
-          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
         >
           Start your family&rsquo;s log
         </Link>
