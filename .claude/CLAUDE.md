@@ -61,7 +61,7 @@ supabase start          # Must run first
 pnpm web                # localhost:3000
 npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
 pnpm test               # Vitest unit tests (monorepo root — 173 tests)
-cd apps/web && npx vitest run  # full web test suite (961 tests, used by pre-commit hook)
+cd apps/web && npx vitest run  # full web test suite (~1900 tests across 240+ files, used by pre-commit hook)
 cd apps/web && npx tsc --noEmit  # web typecheck (no pnpm script; pnpm --filter web typecheck does not exist)
 supabase test db        # RLS pgTAP tests — see supabase/CLAUDE.md
 pnpm exec playwright test  # E2E — see e2e/CLAUDE.md

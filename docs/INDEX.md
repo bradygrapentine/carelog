@@ -8,7 +8,7 @@
 supabase start                                    # must be first
 pnpm web                                          # localhost:3000
 pnpm test                                         # Vitest unit tests (173 tests at monorepo root)
-cd apps/web && npx vitest run                     # full web suite (~994 tests)
+cd apps/web && npx vitest run                     # full web suite (~1900 tests across 240+ files)
 cd apps/web && npx tsc --noEmit                   # web typecheck
 supabase test db                                  # RLS pgTAP tests
 pnpm exec playwright test                         # E2E
