@@ -40,6 +40,23 @@ ruleTester.run("no-phi-in-analytics", rule, {
         { code: "supabase.from('users').insert({ email: 'x@y.com' });" },
         // Different object name shouldn't match.
         { code: "myPosthog.identify('uuid', { email: 'x@y.com' });" },
+        // Server-side posthog.capture object form — distinctId/event are
+        // allowed top-level metadata; properties is recursed.
+        {
+          code: "posthog.capture({ distinctId: 'uuid', event: 'contact_form_submitted', properties: { has_email: true } });",
+        },
+        // Server-side posthog.identify object form, safe.
+        {
+          code: "posthog.identify({ distinctId: 'uuid', properties: { org_id: 'org-1' } });",
+        },
+        // Sentry.captureException with safe extra/tags.
+        {
+          code: "Sentry.captureException(err, { extra: { request_id: 'abc' }, tags: { route: '/api/x' } });",
+        },
+        // Sentry.addBreadcrumb with safe data.
+        {
+          code: "Sentry.addBreadcrumb({ message: 'cache miss', category: 'cache', data: { key: 'k' } });",
+        },
       ],
       invalid: [
         // PostHog identify with email.
@@ -98,6 +115,29 @@ ruleTester.run("no-phi-in-analytics", rule, {
             { messageId: "forbiddenKey", data: { key: "email" } },
             { messageId: "forbiddenKey", data: { key: "phone" } },
           ],
+        },
+        // Server posthog.capture object form — PHI inside properties.
+        // (Reviewer must-fix: this shape was uncaught before TARGET_CALLS rewrite.)
+        {
+          code: "posthog.capture({ distinctId: 'uuid', event: 'e', properties: { email: 'x@y.com' } });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "email" } }],
+        },
+        // Server posthog.identify object form — PHI at top level.
+        {
+          code: "posthog.identify({ distinctId: 'uuid', email: 'x@y.com' });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "email" } }],
+        },
+        // Sentry.captureException with PII in extra (the historical leak surface).
+        // Note: rule matches exact normalized keys, so `user_email` would NOT be
+        // caught — flag only `email`, `name`, etc. Document gap in plan.
+        {
+          code: "Sentry.captureException(err, { extra: { email: 'x@y.com' } });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "email" } }],
+        },
+        // Sentry.addBreadcrumb with PII in data.
+        {
+          code: "Sentry.addBreadcrumb({ message: 'login', data: { phone: '555-1234' } });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "phone" } }],
         },
   ],
 });
