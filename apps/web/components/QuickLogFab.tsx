@@ -160,6 +160,7 @@ export function QuickLogFab() {
           aria-expanded={open}
           aria-controls="quick-log-menu"
           onClick={() => setOpen((prev) => !prev)}
+          // A11Y-021: icon-only FAB (X / Plus), WCAG 1.4.11 non-text 3:1 ✓ — primary write-action FAB stays filled-primary by design
           className={cn(
             "flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
             "bg-[var(--color-primary)] text-white",

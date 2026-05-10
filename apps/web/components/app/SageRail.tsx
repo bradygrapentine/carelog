@@ -108,7 +108,7 @@ function NavItemButton({
       onClick={() => onNavigate(item.id)}
       className={`flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[13.5px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-app-shell-text)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-app-shell)] ${
         isActive
-          ? "bg-[var(--color-primary)] text-white"
+          ? "bg-[var(--color-primary-pressed)] text-white"
           : "text-[var(--color-app-shell-muted)] hover:bg-white/5 hover:text-[var(--color-app-shell-text)]"
       }`}
     >
@@ -153,7 +153,7 @@ export function SageRail({
       {/* Brand */}
       <div className="mb-3 flex items-center gap-2.5 border-b border-white/10 pb-4 pl-2">
         <div
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary)] font-display text-base italic font-medium text-white"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-pressed)] font-display text-base italic font-medium text-white"
           aria-hidden="true"
         >
           c

@@ -157,7 +157,7 @@ export function HistoryExportClient({ orgId, recipientId }: Props) {
             onClick={handleDownloadJson}
             disabled={generateMutation.isPending || previewLoading}
             aria-label="Download JSON export"
-            className="flex items-center gap-2 bg-[var(--color-primary)] text-white hover:opacity-90 focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="flex items-center gap-2 bg-[var(--color-primary-pressed)] text-white hover:bg-[var(--color-primary-deep)] focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
           >
             {generateMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

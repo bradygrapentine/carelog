@@ -286,6 +286,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
             >
               <span
                 aria-hidden="true"
+                // A11Y-021: icon-only checkmark, WCAG 1.4.11 non-text 3:1 ✓
                 className={[
                   "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
                   med.taken
@@ -325,7 +326,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
                   onClick={() => handleLog(med.medId, med.scheduledTime)}
                   disabled={logMutation.isPending}
                   aria-label={`Log ${med.name} ${med.dose} as taken`}
-                  className="shrink-0 rounded-md bg-[var(--color-primary-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:opacity-50"
+                  className="shrink-0 rounded-md bg-[var(--color-primary-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-pressed)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2 disabled:opacity-50"
                 >
                   Log
                 </button>

@@ -167,7 +167,7 @@ function ProfileSection() {
               <Button
                 type="submit"
                 disabled={updateProfile.isPending}
-                className="bg-[var(--color-primary)] text-white hover:opacity-90 focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                className="bg-[var(--color-primary-pressed)] text-white hover:bg-[var(--color-primary-deep)] focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
               >
                 {updateProfile.isPending ? "Saving…" : "Save profile"}
               </Button>

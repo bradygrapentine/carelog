@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Clock, Pill, BookOpen, Calendar, AlertTriangle, Users } from "lucide-react";
+import {
+  Clock,
+  Pill,
+  BookOpen,
+  Calendar,
+  AlertTriangle,
+  Users,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -45,10 +52,17 @@ function MedsSection({ data }: { data: HandoffSummaryData["meds"] }) {
   return (
     <section aria-labelledby="handoff-meds-heading">
       <SectionHeading
-        icon={<Pill className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />}
+        icon={
+          <Pill
+            className="h-4 w-4 text-[var(--color-primary)]"
+            aria-hidden="true"
+          />
+        }
         label="Medications"
       />
-      <p id="handoff-meds-heading" className="sr-only">Medications summary</p>
+      <p id="handoff-meds-heading" className="sr-only">
+        Medications summary
+      </p>
       <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
         {data.description}
       </p>
@@ -60,10 +74,17 @@ function MomentsSection({ data }: { data: HandoffSummaryData["moments"] }) {
   return (
     <section aria-labelledby="handoff-moments-heading">
       <SectionHeading
-        icon={<BookOpen className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />}
+        icon={
+          <BookOpen
+            className="h-4 w-4 text-[var(--color-primary)]"
+            aria-hidden="true"
+          />
+        }
         label="Moments"
       />
-      <p id="handoff-moments-heading" className="sr-only">Journal moments summary</p>
+      <p id="handoff-moments-heading" className="sr-only">
+        Journal moments summary
+      </p>
       {data.items.length === 0 ? (
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
           {data.description}
@@ -71,13 +92,18 @@ function MomentsSection({ data }: { data: HandoffSummaryData["moments"] }) {
       ) : (
         <ul className="mt-1 space-y-2">
           {data.items.map((item, idx) => (
-            <li key={idx} className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
+            <li
+              key={idx}
+              className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+            >
               {item.mood && (
                 <span className="mr-2 inline-block rounded-full bg-[var(--color-primary-subtle)] px-2 py-0.5 text-xs font-medium text-[var(--color-primary)]">
                   {item.mood}
                 </span>
               )}
-              <span className="text-[var(--color-text-secondary)]">{item.excerpt}</span>
+              <span className="text-[var(--color-text-secondary)]">
+                {item.excerpt}
+              </span>
             </li>
           ))}
         </ul>
@@ -94,10 +120,17 @@ function AppointmentsSection({
   return (
     <section aria-labelledby="handoff-appts-heading">
       <SectionHeading
-        icon={<Calendar className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />}
+        icon={
+          <Calendar
+            className="h-4 w-4 text-[var(--color-primary)]"
+            aria-hidden="true"
+          />
+        }
         label="Appointments"
       />
-      <p id="handoff-appts-heading" className="sr-only">Appointments summary</p>
+      <p id="handoff-appts-heading" className="sr-only">
+        Appointments summary
+      </p>
       <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
         {data.description}
       </p>
@@ -105,11 +138,7 @@ function AppointmentsSection({
   );
 }
 
-function ConcernsSection({
-  data,
-}: {
-  data: HandoffSummaryData["concerns"];
-}) {
+function ConcernsSection({ data }: { data: HandoffSummaryData["concerns"] }) {
   return (
     <section aria-labelledby="handoff-concerns-heading">
       <SectionHeading
@@ -121,7 +150,9 @@ function ConcernsSection({
         }
         label="Concerns"
       />
-      <p id="handoff-concerns-heading" className="sr-only">Concerns summary</p>
+      <p id="handoff-concerns-heading" className="sr-only">
+        Concerns summary
+      </p>
       <p
         className={`mt-1 text-sm ${
           data.hasConcerns
@@ -156,10 +187,17 @@ function ThanksSection({ data }: { data: HandoffSummaryData["thanks"] }) {
   return (
     <section aria-labelledby="handoff-thanks-heading">
       <SectionHeading
-        icon={<Users className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />}
+        icon={
+          <Users
+            className="h-4 w-4 text-[var(--color-primary)]"
+            aria-hidden="true"
+          />
+        }
         label="Thanks to"
       />
-      <p id="handoff-thanks-heading" className="sr-only">Contributors summary</p>
+      <p id="handoff-thanks-heading" className="sr-only">
+        Contributors summary
+      </p>
       <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
         {data.description}
       </p>
@@ -199,7 +237,12 @@ export function HandoffSummary({
   }, [events, now, windowHours]);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent
         className="max-h-[90vh] overflow-y-auto max-w-lg w-full"
         aria-describedby="handoff-summary-description"
@@ -219,9 +262,9 @@ export function HandoffSummary({
                   type="button"
                   aria-pressed={windowHours === opt.value}
                   onClick={() => setWindowHours(opt.value)}
-                  className={`rounded px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ${
+                  className={`rounded px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2 ${
                     windowHours === opt.value
-                      ? "bg-[var(--color-primary)] text-white"
+                      ? "bg-[var(--color-primary-pressed)] text-white"
                       : "bg-[var(--color-primary-subtle)] text-[var(--color-primary)] hover:bg-[var(--color-primary-subtle)]/70"
                   }`}
                 >
@@ -261,7 +304,7 @@ export function HandoffSummary({
         <DialogFooter className="mt-6">
           <Button
             onClick={onClose}
-            className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="bg-[var(--color-primary-pressed)] text-white hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
           >
             Got it
           </Button>

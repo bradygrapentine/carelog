@@ -37,7 +37,7 @@ export function PricingCards() {
           className={
             "rounded-lg px-4 py-2 text-sm font-semibold transition-colors " +
             (interval === "month"
-              ? "bg-[var(--color-primary)] text-[var(--color-app-shell-text)]"
+              ? "bg-[var(--color-primary-pressed)] text-[var(--color-app-shell-text)]"
               : "text-[var(--color-muted)] hover:text-[var(--color-ink)]")
           }
         >
@@ -50,7 +50,7 @@ export function PricingCards() {
           className={
             "rounded-lg px-4 py-2 text-sm font-semibold transition-colors " +
             (interval === "year"
-              ? "bg-[var(--color-primary)] text-[var(--color-app-shell-text)]"
+              ? "bg-[var(--color-primary-pressed)] text-[var(--color-app-shell-text)]"
               : "text-[var(--color-muted)] hover:text-[var(--color-ink)]")
           }
         >
@@ -104,7 +104,7 @@ export function PricingCards() {
 
         {/* Family Plan */}
         <div className="relative flex flex-1 flex-col rounded-2xl border-2 border-[var(--color-primary)] bg-card p-8">
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--color-primary)] px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-[var(--color-app-shell-text)]">
+          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--color-primary-pressed)] px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-[var(--color-app-shell-text)]">
             Most popular
           </span>
           <div className="mb-6">
@@ -146,7 +146,7 @@ export function PricingCards() {
           </ul>
           <button
             onClick={handleSubscribe}
-            className="mt-auto inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-auto inline-flex items-center justify-center rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
           >
             Start the family plan
           </button>

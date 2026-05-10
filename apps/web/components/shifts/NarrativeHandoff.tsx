@@ -50,11 +50,7 @@ export function NarrativeHandoff(props: NarrativeHandoffProps) {
 }
 
 function ViewMode({ entries, author, when, className }: ViewProps) {
-  const eyebrow = [
-    "HANDOFF",
-    author.name,
-    author.shiftLabel,
-  ]
+  const eyebrow = ["HANDOFF", author.name, author.shiftLabel]
     .filter(Boolean)
     .join(" · ");
 
@@ -85,9 +81,7 @@ function ViewMode({ entries, author, when, className }: ViewProps) {
             </section>
           ))
         )}
-        <p className="text-xs text-[var(--color-muted)] pt-1">
-          Posted {when}
-        </p>
+        <p className="text-xs text-[var(--color-muted)] pt-1">Posted {when}</p>
       </CardContent>
     </Card>
   );
@@ -168,7 +162,7 @@ function EditMode({
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+              className="rounded-md bg-[var(--color-primary-pressed)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-deep)] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
             >
               Post handoff
             </button>

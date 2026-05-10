@@ -54,7 +54,7 @@ export function HowItWorks() {
             {steps.map((s) => (
               <li key={s.n} className="flex gap-4">
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-semibold text-[var(--color-app-shell-text)]"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-pressed)] text-sm font-semibold text-[var(--color-app-shell-text)]"
                   aria-hidden="true"
                 >
                   {s.n}
@@ -73,7 +73,7 @@ export function HowItWorks() {
 
           <Link
             href="/signin"
-            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+            className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] transition-colors hover:bg-[var(--color-primary-deep)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
           >
             Start your family&rsquo;s log
           </Link>

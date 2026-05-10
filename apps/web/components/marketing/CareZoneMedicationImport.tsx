@@ -135,7 +135,7 @@ export function CareZoneMedicationImport() {
               </p>
               <Link
                 href="/signin"
-                className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary-hover)] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 active:bg-[var(--color-primary-pressed)] sm:w-auto"
+                className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-[var(--color-app-shell-text)] shadow-sm transition-all hover:bg-[var(--color-primary-deep)] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2 active:bg-[var(--color-primary-deep)] sm:w-auto"
               >
                 {hasMeds
                   ? `Import ${medications.length} medication${medications.length === 1 ? "" : "s"}, sign up free`

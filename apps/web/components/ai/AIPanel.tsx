@@ -139,7 +139,7 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
                   <button
                     key={s.prompt}
                     onClick={() => sendPrompt(s.prompt)}
-                    className="w-full text-left text-xs bg-[var(--color-primary-subtle)] text-[var(--color-primary)] px-3 py-2 rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-full text-left text-xs bg-[var(--color-primary-subtle)] text-[var(--color-primary)] px-3 py-2 rounded-lg hover:bg-[var(--color-primary-pressed)] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)]"
                   >
                     {s.label}
                   </button>
@@ -203,7 +203,7 @@ export function AIPanel({ orgId, recipientId, onClose }: Props) {
           onClick={() => sendPrompt(input)}
           disabled={queryMutation.isPending || !input.trim()}
           aria-label="Send message"
-          className="bg-[var(--color-primary)] text-white rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-primary)]/90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 flex items-center justify-center"
+          className="bg-[var(--color-primary-pressed)] text-white rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-primary-deep)] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-1 flex items-center justify-center"
         >
           {queryMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
