@@ -57,8 +57,8 @@ Before every dispatch (inline checklist in each dispatch skill):
 
 ## Automation & Sessions
 
-- `/loop` — run a skill on a recurring interval
-- `/schedule` — schedule Claude on a cron, up to a week
+- `/loop` — run a skill on a recurring interval **during an active session only** (e.g. polling a build for ~5 minutes). Do not use for unattended runs.
+- `/schedule` — **do not use.** Carelog runs no overnight or scheduled Claude work; per global "No Overnight Plans" rule.
 - `/btw` — side query without interrupting current work
 
 ## Ollama Dispatch
