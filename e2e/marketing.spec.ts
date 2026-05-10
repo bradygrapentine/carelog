@@ -16,7 +16,13 @@ test.describe("Marketing pages", () => {
     await expect(
       page.getByText("Simple pricing for the whole family"),
     ).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("$14")).toBeVisible({ timeout: 10000 });
+    // Pricing page now mentions "$14" in the hero price AND in 2 FAQ
+    // answers; loose getByText hits a strict-mode violation. Scope to
+    // the hero price tag (Tailwind text-4xl is unique to the price
+    // element on this page).
+    await expect(page.locator("span.text-4xl", { hasText: "$14" })).toBeVisible(
+      { timeout: 10000 },
+    );
     // (TD-73) "Family Plan" appears as both heading and body copy ("One
     // family plan covers…") — scope to the heading.
     await expect(
