@@ -20,10 +20,10 @@
  *   approves the visual diff.
  */
 export const pdfTokens = {
-  // Matched tokens — values mirror globals.css exactly (UX-067: Sage default)
-  ink: "#1f2820", // --color-ink (dark forest, was deep plum #1e0a3c)
-  muted: "#7a8478", // --color-muted (sage muted, was neutral #6b7280)
-  border: "#dfddd2", // --color-border (putty border, was violet #ede9fe)
+  // Matched tokens — values mirror globals.css exactly (UX-109: burnt orange)
+  ink: "#2A1810", // --color-ink (warm near-black, UX-109 burnt-orange palette)
+  muted: "#7A6558", // --color-muted (warm muted, UX-109 burnt-orange palette)
+  border: "#E8DFD4", // --color-border (warm border, UX-109 burnt-orange palette)
   danger: "#c41a1a", // --color-danger
   neutral100: "#f3f4f6", // --color-neutral-100
   neutral200: "#e5e7eb", // --color-neutral-200
