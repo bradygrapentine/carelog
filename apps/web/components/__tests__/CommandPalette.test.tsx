@@ -67,7 +67,7 @@ describe("CommandPalette", () => {
     openPalette();
     const dialog = screen.getByRole("dialog");
     // backdrop is the parent element
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     fireEvent.click(dialog.parentElement!);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

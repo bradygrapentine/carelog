@@ -41,17 +41,58 @@ function normalizeKey(s) {
 // Sentry.setContext (where it's often browser/runtime metadata).
 const NAME_FORBIDDEN_BUT_ALLOWED_IN_SETCONTEXT = "name";
 
-const TARGET_CALLS = {
-  // identifier on posthog object → property-arg index
-  posthog: {
-    identify: 1, // identify(distinctId, propsObj?)
-    capture: 1, // capture(eventName, propsObj?)
-  },
-  Sentry: {
-    setUser: 0, // setUser(userObj) — userObj at arg 0
-    setContext: 1, // setContext(name, contextObj)
-  },
-};
+// Resolver maps a CallExpression's arguments to the object literal(s) the
+// rule should inspect. Returns an array because some calls (e.g. posthog
+// capture) have either a 2-arg form (eventName, propsObj) used by posthog-js
+// in the browser OR a 1-arg form ({distinctId, event, properties: {...}})
+// used by posthog-node on the server. Both must be checked.
+//
+// `name` is allowed in the inspected object only for Sentry.setContext,
+// where it commonly carries non-identity metadata (e.g. browser name).
+function resolveArgsToInspect(obj, method, args) {
+  if (obj === "posthog") {
+    if (method === "identify" || method === "capture") {
+      // Single-arg object form (posthog-node) — first arg is itself the props bag.
+      if (args[0]?.type === "ObjectExpression") return [args[0]];
+      // Two-arg form (posthog-js) — second arg is the props.
+      if (args[1]?.type === "ObjectExpression") return [args[1]];
+    }
+  }
+  if (obj === "Sentry") {
+    if (method === "setUser") {
+      if (args[0]?.type === "ObjectExpression") return [args[0]];
+    }
+    if (method === "setContext") {
+      if (args[1]?.type === "ObjectExpression") return [args[1]];
+    }
+    if (method === "captureException") {
+      // captureException(err, captureContext) — captureContext.extra/tags/contexts.
+      if (args[1]?.type === "ObjectExpression") return [args[1]];
+    }
+    if (method === "addBreadcrumb") {
+      // addBreadcrumb({ message, data, category, ... }) — data is the leak surface.
+      if (args[0]?.type === "ObjectExpression") return [args[0]];
+    }
+  }
+  return [];
+}
+
+function isTargetCall(obj, method) {
+  if (obj === "posthog") return method === "identify" || method === "capture";
+  if (obj === "Sentry") {
+    return (
+      method === "setUser" ||
+      method === "setContext" ||
+      method === "captureException" ||
+      method === "addBreadcrumb"
+    );
+  }
+  return false;
+}
+
+function allowsName(obj, method) {
+  return obj === "Sentry" && method === "setContext";
+}
 
 function isLiteralKey(prop) {
   if (prop.type !== "Property") return null;
@@ -120,20 +161,15 @@ module.exports = {
         const obj = callee.object.name;
         const method = callee.property.name;
 
-        const targetMethods = TARGET_CALLS[obj];
-        if (!targetMethods) return;
-        if (!Object.prototype.hasOwnProperty.call(targetMethods, method)) {
-          return;
+        if (!isTargetCall(obj, method)) return;
+
+        const argsToInspect = resolveArgsToInspect(obj, method, node.arguments);
+        if (argsToInspect.length === 0) return;
+
+        const allowName = allowsName(obj, method);
+        for (const arg of argsToInspect) {
+          checkObjectExpression(context, arg, allowName);
         }
-
-        const propsArgIndex = targetMethods[method];
-        const propsArg = node.arguments[propsArgIndex];
-        if (!propsArg) return;
-
-        // `name` is allowed only in Sentry.setContext
-        const allowName = obj === "Sentry" && method === "setContext";
-
-        checkObjectExpression(context, propsArg, allowName);
       },
     };
   },

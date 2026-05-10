@@ -15,10 +15,18 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   // TD-117 — ADR-0001 enforcement. Forbids PHI/PII property keys in
-  // posthog.identify / posthog.capture / Sentry.setUser / Sentry.setContext
-  // call sites. See apps/web/eslint-rules/no-phi-in-analytics.js.
+  // posthog.identify / posthog.capture / Sentry.{setUser,setContext,
+  // captureException,addBreadcrumb} call sites. See
+  // apps/web/eslint-rules/no-phi-in-analytics.js for full coverage spec.
+  // `linterOptions.reportUnusedDisableDirectives` ensures any
+  // `// eslint-disable-next-line carelog/no-phi-in-analytics` escape hatch
+  // either justifies its existence or fails the gate when the underlying
+  // violation is fixed.
   {
     plugins: { carelog },
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
     rules: {
       "carelog/no-phi-in-analytics": "error",
     },
