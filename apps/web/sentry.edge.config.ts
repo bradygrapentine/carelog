@@ -8,6 +8,11 @@ import * as Sentry from "@sentry/nextjs";
 Sentry.init({
   dsn: "https://b7f31415e84a995296f5f019cc3fff26@o4511181211369472.ingest.us.sentry.io/4511192928157696",
 
+  // TD-125: gate event-sending in dev. See sentry.client.config.ts for rationale.
+  enabled:
+    process.env.NODE_ENV === "production" ||
+    process.env.SENTRY_FORCE_ENABLED === "true",
+
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
 
