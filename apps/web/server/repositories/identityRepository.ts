@@ -10,6 +10,51 @@ export interface IdentityRecord {
   contact_info: Record<string, unknown>;
 }
 
+/**
+ * UX-105: shape used by EmergencyFooterCard. Parsed from
+ * `identity_vault.contact_info jsonb`. PHI lives behind identity_token
+ * resolution; the page's RLS-scoped care_recipients read serves as the
+ * membership gate before resolveIdentity runs.
+ */
+export interface EmergencyInfo {
+  dnrStatus?: string;
+  primaryContact?: {
+    name: string;
+    relationship?: string;
+    phone?: string;
+  };
+  hospital?: string;
+}
+
+/**
+ * Permissive parse of `contact_info jsonb` for emergency fields.
+ * Pure function — never throws; unknown shapes return `{}`.
+ */
+export function parseEmergencyInfo(
+  contactInfo: Record<string, unknown>,
+): EmergencyInfo {
+  const out: EmergencyInfo = {};
+  const dnr = contactInfo.dnr_status;
+  if (typeof dnr === "string" && dnr.trim()) out.dnrStatus = dnr;
+  const hospital = contactInfo.hospital;
+  if (typeof hospital === "string" && hospital.trim()) out.hospital = hospital;
+  const pc = contactInfo.primary_contact;
+  if (pc && typeof pc === "object" && !Array.isArray(pc)) {
+    const obj = pc as Record<string, unknown>;
+    const name = obj.name;
+    if (typeof name === "string" && name.trim()) {
+      out.primaryContact = { name };
+      const rel = obj.relationship;
+      if (typeof rel === "string" && rel.trim())
+        out.primaryContact.relationship = rel;
+      const phone = obj.phone;
+      if (typeof phone === "string" && phone.trim())
+        out.primaryContact.phone = phone;
+    }
+  }
+  return out;
+}
+
 export async function resolveIdentity(
   token: string,
   orgId: string,
