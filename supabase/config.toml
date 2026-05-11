@@ -59,7 +59,10 @@ schema_paths = []
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
-enabled = false
+# TD-124: enabled so `supabase db reset` produces a working coordinator + recipient
+# + membership for local dev (otherwise dashboard shows the "no care teams" empty
+# state and post-onboarding routes can't be tested).
+enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = ["./seed.sql"]
