@@ -1,6 +1,7 @@
 import type { Router } from "expo-router";
-import type { NotificationPayload } from "./types";
+import { NotificationPayloadSchema, type NotificationPayload } from "./types";
 
+export { NotificationPayloadSchema };
 export type { NotificationPayload };
 
 export type NotificationRouter = {
