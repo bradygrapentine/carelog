@@ -11,9 +11,9 @@
  * No "good morning". No "another tough night for your sweet mom".
  * Two short clauses, ≤10 words, max two `em` spans per headline.
  *
- * Adding a state: append to BRIEF_STATES, add a classifier branch,
- * add 1-3 templates. Keep template strings ≤10 words. Each `em`
- * span carries the *state* of the moment, never the subject.
+ * Adding a state: append to BriefState, add a strategy in headlineStrategies/,
+ * register it in STRATEGIES below (before DefaultStrategy). Keep template
+ * strings ≤10 words. Each `em` span carries the *state*, never the subject.
  *
  * Future: when missed-dose tracking lands, add a `meds_missed` state.
  * When mood deltas become reliable, add `mood_drop`.
@@ -54,141 +54,40 @@ export type ClassifiedHeadline = {
   headline: Headline;
 };
 
-function firstName(full: string): string {
-  return full.trim().split(/\s+/)[0] ?? full;
-}
+import { EmptyStrategy } from "./headlineStrategies/EmptyStrategy";
+import { CrisisStrategy } from "./headlineStrategies/CrisisStrategy";
+import { FlaggedStrategy } from "./headlineStrategies/FlaggedStrategy";
+import { DifficultRunStrategy } from "./headlineStrategies/DifficultRunStrategy";
+import { SingleEntryDifficultStrategy } from "./headlineStrategies/SingleEntryDifficultStrategy";
+import { SingleEntryQuietStrategy } from "./headlineStrategies/SingleEntryQuietStrategy";
+import { QuietStableStrategy } from "./headlineStrategies/QuietStableStrategy";
+import { DefaultStrategy } from "./headlineStrategies/DefaultStrategy";
+import type { HeadlineStrategy } from "./headlineStrategies/types";
 
-function countMood(entries: HeadlineEntry[], mood: Mood): number {
-  return entries.filter((e) => e.mood === mood).length;
-}
-
-function pluralize(n: number, one: string, many: string): string {
-  return n === 1 ? one : many;
-}
+// Order is severity-descending; precedence is load-bearing.
+const STRATEGIES: HeadlineStrategy[] = [
+  new EmptyStrategy(),
+  new CrisisStrategy(),
+  new FlaggedStrategy(),
+  new DifficultRunStrategy(),
+  new SingleEntryDifficultStrategy(),
+  new SingleEntryQuietStrategy(),
+  new QuietStableStrategy(),
+  new DefaultStrategy(),
+];
 
 /**
  * Classify a brief snapshot into a named state. The first matching
- * branch wins; order is severity-descending (empty/crisis/flagged
+ * strategy wins; order is severity-descending (empty/crisis/flagged
  * before steady/default). Pure function — no I/O, easy to test.
  */
 export function classifyBrief(input: HeadlineInput): ClassifiedHeadline {
-  const { entries } = input;
-  const name = firstName(input.recipientName);
-
-  // 1. Empty — no entries since the previous brief.
-  if (entries.length === 0) {
-    return {
-      state: "empty",
-      headline: [
-        { text: "No notes for " },
-        { text: name, em: true },
-        { text: " yet. Start with whatever happened today." },
-      ],
-    };
+  for (const strategy of STRATEGIES) {
+    const result = strategy.classify(input);
+    if (result !== null) return result;
   }
-
-  // 2. Crisis — any crisis-mood entry. Highest severity, always wins.
-  const crisisCount = countMood(entries, "crisis");
-  if (crisisCount > 0) {
-    if (crisisCount === 1) {
-      return {
-        state: "crisis",
-        headline: [
-          { text: `${name} had a ` },
-          { text: "crisis moment", em: true },
-          { text: ". One note flagged for the team." },
-        ],
-      };
-    }
-    return {
-      state: "crisis",
-      headline: [
-        { text: `${name} had a ` },
-        { text: "hard stretch", em: true },
-        { text: `. ${crisisCount} flagged notes.` },
-      ],
-    };
-  }
-
-  // 3. Flagged-but-not-crisis — caregiver marked notes for the doctor.
-  const flaggedCount = entries.filter((e) => e.flagged).length;
-  if (flaggedCount > 0) {
-    return {
-      state: "flagged",
-      headline: [
-        { text: `${flaggedCount} ` },
-        { text: pluralize(flaggedCount, "note", "notes"), em: true },
-        { text: ` from ${name} worth a ` },
-        { text: "second look", em: true },
-        { text: "." },
-      ],
-    };
-  }
-
-  // 4. Difficult run — multiple difficult-mood entries, no flag/crisis.
-  const difficultCount = countMood(entries, "difficult");
-  if (difficultCount >= 2) {
-    return {
-      state: "difficult_run",
-      headline: [
-        { text: `${name} has had a ` },
-        { text: "rough", em: true },
-        { text: ` stretch. ${difficultCount} ` },
-        { text: "difficult", em: true },
-        { text: " days." },
-      ],
-    };
-  }
-
-  // 5. Single entry — exactly one note since the last brief.
-  if (entries.length === 1) {
-    const mood = entries[0]?.mood;
-    if (mood === "difficult") {
-      return {
-        state: "single_entry",
-        headline: [
-          { text: `${name} had a ` },
-          { text: "difficult", em: true },
-          { text: " day. One note on file." },
-        ],
-      };
-    }
-    return {
-      state: "single_entry",
-      headline: [
-        { text: `One note logged for ${name}. ` },
-        { text: "Quiet", em: true },
-        { text: " since." },
-      ],
-    };
-  }
-
-  // 6. Quiet/stable — multiple entries, all good/okay, no flag/crisis.
-  const goodOrOkay = entries.every(
-    (e) => e.mood === "good" || e.mood === "okay" || !e.mood,
-  );
-  if (goodOrOkay) {
-    return {
-      state: "quiet_stable",
-      headline: [
-        { text: "A " },
-        { text: "steady", em: true },
-        { text: ` stretch for ${name}. ${entries.length} ` },
-        { text: pluralize(entries.length, "note", "notes"), em: true },
-        { text: "." },
-      ],
-    };
-  }
-
-  // 7. Default — entries exist but don't match any sharper category.
-  return {
-    state: "default",
-    headline: [
-      { text: `Latest from ${name}'s ` },
-      { text: "care team", em: true },
-      { text: "." },
-    ],
-  };
+  // Unreachable: DefaultStrategy always returns non-null.
+  throw new Error("No headline strategy matched — DefaultStrategy missing?");
 }
 
 /**
