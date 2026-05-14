@@ -14,17 +14,29 @@ vi.mock("@/lib/stripe", () => ({
 const mockUpdate = vi.fn().mockReturnValue({
   eq: vi.fn().mockResolvedValue({ error: null }),
 });
-const mockSupabaseFrom = vi.fn().mockImplementation(() => ({
-  update: mockUpdate,
-  select: vi.fn().mockReturnValue({
-    eq: vi.fn().mockReturnValue({
-      single: vi.fn().mockResolvedValue({
-        data: { id: "org-1", stripe_id: null },
-        error: null,
+
+// SEC-002: dedup upsert chain — returns one row (new event) by default.
+const mockUpsertSelect = vi
+  .fn()
+  .mockResolvedValue({ data: [{ event_id: "evt_1" }], error: null });
+const mockUpsert = vi.fn().mockReturnValue({ select: mockUpsertSelect });
+
+const mockSupabaseFrom = vi.fn().mockImplementation((table: string) => {
+  if (table === "stripe_events") {
+    return { upsert: mockUpsert };
+  }
+  return {
+    update: mockUpdate,
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: { id: "org-1", stripe_id: null },
+          error: null,
+        }),
       }),
     }),
-  }),
-}));
+  };
+});
 vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: { from: (...args: unknown[]) => mockSupabaseFrom(...args) },
 }));
@@ -135,14 +147,19 @@ describe("POST /api/stripe/webhook", () => {
         object: { customer: "cus_unknown" },
       },
     });
-    mockSupabaseFrom.mockImplementation(() => ({
-      update: mockUpdate,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "stripe_events") {
+        return { upsert: mockUpsert };
+      }
+      return {
+        update: mockUpdate,
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
         }),
-      }),
-    }));
+      };
+    });
     const { POST } = await import("../webhook/route");
     const res = await POST(makeWebhookRequest("{}"));
     expect(res.status).toBe(200);
@@ -162,17 +179,27 @@ describe("handler-map dispatch (OOP-015)", () => {
     mockUpdate.mockReturnValue({
       eq: vi.fn().mockResolvedValue({ error: null }),
     });
-    mockSupabaseFrom.mockImplementation(() => ({
-      update: mockUpdate,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { id: "org-1", stripe_id: null },
-            error: null,
+    mockUpsertSelect.mockResolvedValue({
+      data: [{ event_id: "evt_1" }],
+      error: null,
+    });
+    mockUpsert.mockReturnValue({ select: mockUpsertSelect });
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "stripe_events") {
+        return { upsert: mockUpsert };
+      }
+      return {
+        update: mockUpdate,
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: { id: "org-1", stripe_id: null },
+              error: null,
+            }),
           }),
         }),
-      }),
-    }));
+      };
+    });
   });
 
   it("handlers map contains exactly the 4 known event types", async () => {
