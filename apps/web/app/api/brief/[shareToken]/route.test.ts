@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: { from: vi.fn() },
 }));
 
+vi.mock("@/lib/rateLimit", () => ({
+  rateLimit: vi.fn().mockResolvedValue(null),
+}));
+
 import { GET } from "./route";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
+import { rateLimit } from "@/lib/rateLimit";
 
 const TOKEN = "abc123sharetoken";
 const BRIEF_ID = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
@@ -29,9 +34,24 @@ function getRequest(shareToken: string) {
 
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
+  vi.mocked(rateLimit).mockResolvedValue(null);
 });
 
 describe("GET /api/brief/[shareToken]", () => {
+  it("returns 429 and does not call supabaseAdmin when rate limited", async () => {
+    const limitedResponse = NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 },
+    );
+    vi.mocked(rateLimit).mockResolvedValueOnce(limitedResponse);
+
+    const res = await GET(getRequest(TOKEN), {
+      params: Promise.resolve({ shareToken: TOKEN }),
+    });
+    expect(res.status).toBe(429);
+    expect(vi.mocked(supabaseAdmin.from)).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when brief not found", async () => {
     vi.mocked(supabaseAdmin.from).mockImplementationOnce(
       () =>
