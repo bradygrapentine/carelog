@@ -20,6 +20,7 @@ import {
   moodChipClass,
   type Mood,
 } from "../../../../lib/mood";
+import { parseMood } from "../../../../lib/careEvent";
 import {
   formatTimeOfDay,
   formatMonthDayLocale,
@@ -167,8 +168,8 @@ function JournalCard({
         data-testid="journal-entry"
         className={
           "hover:shadow-md transition-shadow relative focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2 border-l-4 " +
-          (payload.mood
-            ? moodBorderClass(payload.mood as Mood) ||
+          (parseMood(payload.mood)
+            ? moodBorderClass(parseMood(payload.mood)!) ||
               "border-l-[var(--color-border)]"
             : "border-l-[var(--color-border)]")
         }
@@ -190,24 +191,24 @@ function JournalCard({
           </Link>
 
           <div className="flex items-start gap-3 mb-3 relative pointer-events-none">
-            {payload.mood && (
+            {parseMood(payload.mood) && (
               <span
                 className={
                   "mt-1 w-2 h-2 rounded-full shrink-0 " +
-                  (moodDotClass(payload.mood as Mood) || "bg-slate-300")
+                  (moodDotClass(parseMood(payload.mood)!) || "bg-slate-300")
                 }
               />
             )}
             <p className="text-sm text-[var(--color-text-primary)] leading-relaxed flex-1">
               {payload.text}
             </p>
-            {payload.mood && (
+            {parseMood(payload.mood) && (
               <Badge
                 variant="outline"
                 data-testid="mood-badge"
                 className={
                   "shrink-0 capitalize text-xs " +
-                  moodBgClass(payload.mood as Mood)
+                  moodBgClass(parseMood(payload.mood)!)
                 }
               >
                 {payload.mood}
@@ -434,7 +435,7 @@ export function JournalTimeline({
     // Mood filter
     if (moodFilters.size > 0) {
       result = result.filter((e) => {
-        const mood = e.payload?.mood as MoodFilter | undefined;
+        const mood = parseMood(e.payload?.mood);
         return mood ? moodFilters.has(mood) : false;
       });
     }

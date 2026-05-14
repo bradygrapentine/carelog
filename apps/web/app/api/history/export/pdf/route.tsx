@@ -157,8 +157,7 @@ export async function POST(request: NextRequest) {
           <View>
             <Text style={styles.title}>Care History Export</Text>
             <Text style={styles.subtitle}>
-              Generated {formatLocaleDateTime(snapshot.generated_at)} ·
-              Carelog
+              Generated {formatLocaleDateTime(snapshot.generated_at)} · Carelog
             </Text>
           </View>
 
@@ -230,10 +229,11 @@ export async function POST(request: NextRequest) {
                   {ev.entry_kind ? ` (${ev.entry_kind})` : ""}
                 </Text>
                 {ev.payload &&
-                  typeof ev.payload === "object" &&
                   "text" in ev.payload &&
-                  typeof ev.payload.text === "string" && (
-                    <Text style={styles.eventText}>{ev.payload.text}</Text>
+                  String(ev.payload.text || "").length > 0 && (
+                    <Text style={styles.eventText}>
+                      {String(ev.payload.text)}
+                    </Text>
                   )}
                 {ev.flagged && (
                   <Text style={styles.flagged}>⚑ Flagged for follow-up</Text>

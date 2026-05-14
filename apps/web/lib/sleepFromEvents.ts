@@ -16,6 +16,15 @@ export type CareEventLike = {
   } | null;
 };
 
+/** Extract a numeric payload field, returning 0 for absent/non-numeric values. */
+function numericPayload(
+  payload: CareEventLike["payload"],
+  key: "hours" | "wakes",
+): number {
+  const v = payload?.[key];
+  return Number.isFinite(v) ? (v as number) : 0;
+}
+
 export type SleepNight = {
   date: string; // YYYY-MM-DD for the waking date
   hours: number;
@@ -66,8 +75,8 @@ export function sleepFromEvents(
     const date = new Date(ts).toISOString().slice(0, 10);
     if (!nightSet.has(date)) continue;
 
-    const hours = typeof ev.payload?.hours === "number" ? ev.payload.hours : 0;
-    const wakes = typeof ev.payload?.wakes === "number" ? ev.payload.wakes : 0;
+    const hours = numericPayload(ev.payload, "hours");
+    const wakes = numericPayload(ev.payload, "wakes");
 
     const existing = buckets.get(date);
     if (!existing) {
