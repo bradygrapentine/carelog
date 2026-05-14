@@ -31,6 +31,18 @@ const eslintConfig = defineConfig([
       "carelog/no-phi-in-analytics": "error",
     },
   },
+  // TD-131 — FIND-006 enforcement. Forbids dangerouslySetInnerHTML and HTML/markdown
+  // renderer imports inside components/ai/. LLM output must be rendered as JSX text
+  // only — wrapping it in an HTML sink creates a stored-XSS / PHI-leak vector.
+  // Scoped to components/ai/ only; does NOT affect JSON-LD or other legitimate
+  // dangerouslySetInnerHTML usage elsewhere in the codebase.
+  {
+    files: ["components/ai/**/*.{ts,tsx}"],
+    plugins: { carelog },
+    rules: {
+      "carelog/no-html-in-ai": "error",
+    },
+  },
   // Allow CommonJS in eslint-rules/ — ESLint plugins must be CJS.
   {
     files: ["eslint-rules/**/*.js"],

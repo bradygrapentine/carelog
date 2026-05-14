@@ -57,6 +57,7 @@ export function AIChatThread({
                   : "bg-[var(--color-surface)] text-[var(--color-text-primary)] rounded-bl-sm border border-[var(--color-border)]"
               }`}
             >
+              {/* SECURITY: LLM output rendered as JSX text — never wrap in dangerouslySetInnerHTML or any HTML/markdown renderer without sanitization. PHI/XSS invariant. See TD-131 / docs/security/2026-05-14-owasp-audit.md FIND-006. */}
               {msg.content}
             </div>
             {msg.citationSlug && (
