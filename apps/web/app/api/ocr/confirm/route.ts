@@ -4,6 +4,11 @@ import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
 import { getPostHogClient } from "@/lib/posthog-server";
+import {
+  OcrJobStateMachine,
+  OcrTransitionError,
+  type OcrStatus,
+} from "@/lib/ocr/jobStateMachine";
 
 const confirmSchema = z.object({
   jobId: z.string().uuid(),
@@ -46,16 +51,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch job — read recipient_id from the row, never trust client-supplied value
+    // Fetch job — read recipient_id and status from the row, never trust client-supplied value
     const { data: job } = await supabaseAdmin
       .from("ocr_jobs")
-      .select("id, recipient_id")
+      .select("id, recipient_id, status")
       .eq("id", jobId)
       .eq("org_id", orgId)
       .single();
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    // Validate state transition via state machine
+    const sm = new OcrJobStateMachine(job.status as OcrStatus);
+    try {
+      sm.transitionTo("confirmed");
+    } catch (e) {
+      if (e instanceof OcrTransitionError) {
+        return NextResponse.json(
+          { error: `Invalid transition: ${e.from} → ${e.to}` },
+          { status: 400 },
+        );
+      }
+      throw e;
     }
 
     // Create medication row using recipient_id from the job (not from client body)
@@ -72,14 +91,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: medError.message }, { status: 500 });
     }
 
-    // Mark job as confirmed
-    const { error: updateError } = await supabaseAdmin
+    // Mark job as confirmed — optimistic lock: only update if status hasn't changed
+    const { error: updateError, count } = await supabaseAdmin
       .from("ocr_jobs")
       .update({ status: "confirmed" })
-      .eq("id", jobId);
+      .eq("id", jobId)
+      .eq("status", job.status)
+      .select("id");
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+    if (!count || count === 0) {
+      // Another concurrent request already changed the status — we lost the race
+      return NextResponse.json(
+        { error: "Conflict: job status changed concurrently" },
+        { status: 409 },
+      );
     }
 
     try {

@@ -76,11 +76,19 @@ describe("POST /api/ocr/save-fields", () => {
           id: "job-1",
           created_by: "u1",
           parsed_data: { document_type: "bill", fields: [] },
+          status: "needs_review",
         },
         error: null,
       }),
+      // Optimistic-lock UPDATE chain: .update(..).eq(..).eq(..).select(..) resolves with count: 1
       update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi
+              .fn()
+              .mockResolvedValue({ data: null, error: null, count: 1 }),
+          }),
+        }),
       }),
     });
     const res = await POST(

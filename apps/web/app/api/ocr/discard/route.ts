@@ -3,6 +3,11 @@ import { z } from "zod";
 import { supabaseAdmin, wrapAdminError } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
 import { rateLimit } from "@/lib/rateLimit";
+import {
+  OcrJobStateMachine,
+  OcrTransitionError,
+  type OcrStatus,
+} from "@/lib/ocr/jobStateMachine";
 
 const discardSchema = z.object({
   jobId: z.string().uuid(),
@@ -42,10 +47,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Verify job belongs to this org
+    // Verify job belongs to this org; read status for state machine
     const { data: job } = await supabaseAdmin
       .from("ocr_jobs")
-      .select("id")
+      .select("id, status")
       .eq("id", jobId)
       .eq("org_id", orgId)
       .single();
@@ -54,16 +59,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const { error } = await supabaseAdmin
+    // Validate state transition via state machine
+    const sm = new OcrJobStateMachine(job.status as OcrStatus);
+    try {
+      sm.transitionTo("failed");
+    } catch (e) {
+      if (e instanceof OcrTransitionError) {
+        return NextResponse.json(
+          { error: `Invalid transition: ${e.from} → ${e.to}` },
+          { status: 400 },
+        );
+      }
+      throw e;
+    }
+
+    // Optimistic lock: only update if status hasn't changed
+    const { error, count } = await supabaseAdmin
       .from("ocr_jobs")
       .update({ status: "failed" })
-      .eq("id", jobId);
+      .eq("id", jobId)
+      .eq("status", job.status)
+      .select("id");
 
     if (error)
       return NextResponse.json(
         { error: wrapAdminError(error).message },
         { status: 500 },
       );
+    if (!count || count === 0) {
+      return NextResponse.json(
+        { error: "Conflict: job status changed concurrently" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const errorMessage =
