@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getPostHogClient } from "@/lib/posthog-server";
 import { logger } from "@/lib/logger";
+import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { handlers } from "./handlers";
 
 export async function POST(request: NextRequest) {
@@ -17,6 +18,26 @@ export async function POST(request: NextRequest) {
     );
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  // SEC-002: Replay protection — deduplicate by Stripe event ID.
+  // upsert with ignoreDuplicates: true returns empty data array on conflict.
+  const { data: dedupRows, error: dedupError } = await supabaseAdmin
+    .from("stripe_events")
+    .upsert(
+      { event_id: event.id, event_type: event.type },
+      { onConflict: "event_id", ignoreDuplicates: true },
+    )
+    .select();
+
+  if (dedupError) {
+    logger.error("[stripe/webhook] dedup insert error:", dedupError);
+    return NextResponse.json({ error: "Dedup check failed" }, { status: 500 });
+  }
+
+  if (!dedupRows || dedupRows.length === 0) {
+    // Row already existed — this is a duplicate delivery. Short-circuit safely.
+    return NextResponse.json({ duplicate: true }, { status: 200 });
   }
 
   try {
