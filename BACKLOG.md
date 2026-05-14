@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-10 PM-4 (post pm-followups wave)** — TD-124/125/127 shipped via PRs #458/#459/#460; TD-126 deferred after LCP investigation (132ms local; below-the-fold image, premise wrong). UX-103/104/105 shipped earlier today via PRs #451/#452/#453. Remaining Ready = 26.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-14 (post oop-wave-a)** — OOP-001/002/005 shipped via PRs #469/#468/#470; TD-128 retro (next 16.2.6 + pnpm overrides via PR #466) and E2E bit-rot fix PR #467 logged in §7. Two new TD-* follow-ups (TD-129 service_role test discipline, TD-130 pdf/route typeof narrowing) opened for adversarial-gate gaps that didn't land before auto-merge fired. Remaining Ready = 40.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 41 | TD-111 · TD-120..123 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 · **OOP-001..015** (+ rows in §3–§5 not enumerated) |
+| 🟢 Ready | 40 | TD-111 · TD-120..123 · **TD-129/130** · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 · **OOP-003/004/006..015** (+ rows in §3–§5 not enumerated) |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -374,17 +374,28 @@ All items below are independent (no shared-state conflicts) — agents may fan o
 
 ---
 
+### OOP wave A adversarial-gate follow-ups (TD-129/130) — opened 2026-05-14
+
+Source: Sonnet adversarial gates flagged two must-fixes on the OOP wave A PRs that did not land before `gh pr merge --auto --squash` fired. Both are narrow, single-file fixes with verifiable acceptance.
+
+| ID | Status | Story | Notes |
+|---|---|---|---|
+| TD-129 | 🟢 Ready | **OOP-001 pgTAP — add `SET LOCAL ROLE service_role` test discipline** | PR #469 merged the `invite_tokens` pgTAP suite without asserting `service_role` can `EXECUTE consume_invite_token` and that grants are enforced. Defense-in-depth gap flagged by the Sonnet adversarial gate. Owned file: `supabase/tests/invite_tokens_rls.test.sql`. **Acceptance:** test wraps role-switch (`SET LOCAL ROLE service_role`) around the `consume_invite_token` execution path and asserts grant enforcement; `supabase test db` green. **Risk:** LOW. **Size:** S (~1h). |
+| TD-130 | 🟢 Ready | **PDF export — restore `typeof string` narrowing on `payload.text`** | PR #470 merged the `CareEvent` union refactor with `apps/web/app/api/history/export/pdf/route.tsx` using `"text" in ev.payload && String(ev.payload.text \|\| "").length > 0`, which now renders non-string `payload.text` values (numbers, objects) by stringifying them — a behavior change vs. the pre-refactor `typeof payload.text === "string"` check. Flagged by the Sonnet adversarial gate as a semantic must-fix. Owned file: `apps/web/app/api/history/export/pdf/route.tsx`. **Acceptance:** route guards with `typeof === "string"` + length check, matching prior behavior; PDF export e2e/unit coverage green. **Risk:** LOW. **Size:** XS (~15min). |
+
+---
+
 ### OOP refactor (OOP-*) — opened 2026-05-14
 
 Source: `/oop` Phase 1 + Phase 2 audit. Plan doc: `docs/plans/2026-05-14-oop-refactor.md`. Fragments in `.claude/state/oop-phase{1,2}-{web,mobile,supabase,cross}.md`. **Invariant-preserving** — no external behavior changes. Suggested sprint sequencing in the plan doc §"Recommended sprint order".
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| OOP-001 | 🟢 Ready | **pgTAP for `invite_tokens` atomicity + expiry** | Zero coverage on `accept_invite()` — 4 error paths (`email_mismatch`, `already_used`, expiry, atomicity) and the concurrent-accept race are unverified. New: `supabase/tests/invite_tokens_rls.test.sql` with 6+ cases (valid, expired, email-mismatch, already-consumed, concurrent-accept, post-accept membership state). RLS unchanged. **Risk:** HIGH (invitation flow is membership-invariant). **Size:** S (2–3h). Plan doc §Wave A. |
-| OOP-002 | 🟢 Ready | **Enable RLS + pgTAP on `journal_reactions`** | Table exists with `UNIQUE(event_id, user_id)` upsert but RLS is **not enabled** — silent access to all rows. New migration: ENABLE RLS + SELECT (team via event→recipient join) + INSERT/UPDATE (`user_id = auth.uid()` + team), no DELETE. pgTAP covers own/other/team/upsert. App behavior preserved (no cross-user reaction reads relied upon). **Risk:** HIGH. **Size:** S (1–2h). Plan doc §Wave A. |
+| OOP-001 | ✅ Shipped · PR #469 | **pgTAP for `invite_tokens` atomicity + expiry** | Promoted to §7 2026-05-14. |
+| OOP-002 | ✅ Shipped · PR #468 | **Enable RLS + pgTAP on `journal_reactions`** | Promoted to §7 2026-05-14. |
 | OOP-003 | 🟢 Ready | **pgTAP for messaging triad — `message_threads`, `message_thread_members`, `messages`** | 3-table module (`is_thread_member()` helper, soft-delete, creator-gating) with zero tests. New: `supabase/tests/messaging_rls.test.sql` — 8–10 cases (thread isolation, creator-only member insert, sender soft-delete, cross-thread denial, DM discovery via `find_dm_thread()`). RLS untouched. **Risk:** MEDIUM-HIGH. **Size:** M (3–4h). Plan doc §Wave A. |
 | OOP-004 | 🟢 Ready | **OCR job state machine + row-level lock** | `apps/web/app/api/ocr/{upload,review,confirm,discard,save-fields}/route.ts` — 5 routes independently read/validate/transition the `ocr_jobs` row with no pessimistic lock. Two concurrent clients can both confirm. Extract `apps/web/lib/ocr/jobStateMachine.ts`; use `select … for update` or SQL function with explicit lock. HTTP contracts (200/400/403) unchanged. **Risk:** MEDIUM. **Size:** M (3–4h). Plan doc §Wave A. |
-| OOP-005 | 🟢 Ready | **`CareEvent` payload discriminated union + type guards** | Inline `typeof e.payload.{text,mood,hours,action}` checks repeat across `lib/handoffSummary.ts:146`, `lib/medAdherenceFromEvents.ts:61`, `lib/sleepFromEvents.ts:22-30`, `app/(app)/journal/[recipientId]/JournalTimeline.tsx:148-151`, `components/VisitSummary.tsx`, `app/api/history/export/pdf/route.tsx:93`. New: `apps/web/lib/careEvent.ts` exporting discriminated union (MedicationEvent\|JournalEvent\|SymptomEvent\|AppointmentEvent\|ShiftEvent\|ExpenseEvent\|HandoffEvent) + `isMedicationEvent(e)` etc. Type-only refactor; runtime unchanged. **Unblocks:** OOP-006, leaky-abstraction follow-ups. **Risk:** LOW. **Size:** M (2–3h). Plan doc §Wave B. |
+| OOP-005 | ✅ Shipped · PR #470 | **`CareEvent` payload discriminated union + type guards** | Promoted to §7 2026-05-14. Follow-up: TD-130. |
 | OOP-006 | 🟢 Ready | **Brief headline classifier → strategy chain** | `apps/web/lib/brief/headline.ts:74-192` — 118-line, 7-branch function (empty/crisis/flagged/difficult_run/single_entry/quiet_stable/default). Comment at L18 reserves space for `meds_missed`, `mood_drop` — linear extension is the cost we're paying. Replace with `HeadlineStrategy` interface + 7 ordered concrete strategies + dispatcher loop returning first non-null. Branch parity verified by existing `lib/__tests__/headline*.test.ts`. **Blocked by:** OOP-005. **Risk:** MEDIUM (boundary conditions). **Size:** M (3–4h). Plan doc §Wave B. |
 | OOP-007 | 🟢 Ready | **RLS helper `is_org_coordinator(uuid)` to dedupe ~23 inline checks** | Same `EXISTS(SELECT 1 FROM memberships WHERE … role='coordinator' AND accepted_at IS NOT NULL)` block copy-pasted across ~23 policies (`care_recipients`, `memberships`, `shifts`, `coverage_windows`, `benefits_screenings`, `documents`, `eol_plans`, `ocr_jobs`, …). New SQL helper (mirror existing `user_is_org_coordinator()` if absent); migration rewrites the 23 USING/WITH CHECK clauses to call it. pgTAP unchanged in pass/fail; add 1 sanity test. **Risk:** MEDIUM. **Size:** S–M (2–3h). Plan doc §Wave B. |
 | OOP-008 | 🟢 Ready | **Standardize immutability enforcement — triggers, not silence** | Three patterns for the same intent: `shift_questions` (BEFORE UPDATE trigger ✓), `care_briefs.recipient_id` (silent, no policy), `visit_recordings.care_event_id` (unrestricted post-confirm). Silent immutability bites when a developer later adds a permissive UPDATE. All audit-critical immutable columns get BEFORE UPDATE triggers + pgTAP for each. Schema comments cite the policy. **Risk:** MEDIUM. **Size:** M (3–4h). Plan doc §Wave B. |
@@ -522,6 +533,14 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-14 — OOP wave A (OOP-001/002/005) + TD-128 dep refresh + E2E bit-rot fix — PRs #466/#467/#468/#469/#470
+Sprint `oop-wave-a` (`/sprint` full pipeline) shipped three invariant-preserving refactors via `/wave §3b` parallel dispatch (Sonnet, file-disjoint). Preceded by an emergency dep + e2e cascade: TD-128 next 16.2.6 + pnpm overrides (PR #466) cleared 14 high vulns; PR #467 fixed expense E2E date bit-rot (hardcoded `incurred_at: "2026-04-13"` fell outside ExpensePanel's 30-day rolling window on 2026-05-14) via relative-date sweep across `e2e/expenses.spec.ts` + `e2e/brief.spec.ts`. Sonnet adversarial gates flagged two must-fixes that didn't land before auto-merge fired → captured as TD-129/TD-130 in §1.
+✅ **TD-128** Next 16.2.6 bump + protobufjs/opentelemetry pnpm overrides (PR #466) — cleared 14 high CVEs blocking OOP wave dep audit. Retroactive entry; no §1 row.
+✅ **E2E bit-rot fix** (PR #467) — `expenses.spec.ts:61` + `brief.spec.ts` ISO timestamps swapped from hardcoded to `new Date().toISOString().slice(0, 10)`-derived. No backlog row; defensive sweep.
+✅ **OOP-002** Enable RLS + pgTAP on `journal_reactions` (PR #468) — migration enables RLS with SELECT/INSERT/UPDATE policies (team via event→recipient join, `user_id = auth.uid()` + team) + pgTAP coverage. No app-behavior change.
+✅ **OOP-001** pgTAP for `invite_tokens` atomicity + expiry (PR #469) — `supabase/tests/invite_tokens_rls.test.sql` covers 6 cases (valid/expired/email-mismatch/already-consumed/concurrent-accept/post-accept membership state). Adversarial-gate gap: missing `SET LOCAL ROLE service_role` discipline → TD-129.
+✅ **OOP-005** `CareEvent` payload discriminated union + type guards (PR #470) — new `apps/web/lib/careEvent.ts` exports `MedicationEvent|JournalEvent|SymptomEvent|AppointmentEvent|ShiftEvent|ExpenseEvent|HandoffEvent` + `isXEvent()` guards; refactored 6 consumer sites. Adversarial-gate gap: `pdf/route.tsx` lost `typeof string` narrowing on `payload.text` → TD-130.
 
 ### 2026-05-10 PM-4 — Local-dev followups (TD-124/125/127) — PRs #458/#459/#460
 Sprint `2026-05-10-pm-followups` shipped 3 of 4 planned tracks; T3 (TD-126) dropped after investigation showed the LCP premise was wrong. Wave executed direct mode after Opus-on-opus review.
