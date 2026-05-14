@@ -1,7 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import type { EventType } from "@carelog/types";
-
-const QUEUE_KEY = "carelog_offline_queue";
+import { KEYS, migratedGet } from "../lib/secureStoreKeys";
 
 export type OfflineEntryKind =
   | "journal_entry"
@@ -23,13 +22,13 @@ export async function enqueue(
 ): Promise<void> {
   const queue = await getQueue();
   const updated = [...queue, { ...write, attempts: 0 }];
-  await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(updated));
+  await SecureStore.setItemAsync(KEYS.offlineQueue, JSON.stringify(updated));
 }
 
 export async function dequeue(id: string): Promise<void> {
   const queue = await getQueue();
   const updated = queue.filter((w) => w.id !== id);
-  await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(updated));
+  await SecureStore.setItemAsync(KEYS.offlineQueue, JSON.stringify(updated));
 }
 
 export async function incrementAttempts(id: string): Promise<void> {
@@ -37,12 +36,13 @@ export async function incrementAttempts(id: string): Promise<void> {
   const updated = queue.map((w) =>
     w.id === id ? { ...w, attempts: w.attempts + 1 } : w,
   );
-  await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(updated));
+  await SecureStore.setItemAsync(KEYS.offlineQueue, JSON.stringify(updated));
 }
 
 export async function getQueue(): Promise<QueuedWrite[]> {
   try {
-    const raw = await SecureStore.getItemAsync(QUEUE_KEY);
+    // migratedGet handles devices with queue stored under old key "carelog_offline_queue".
+    const raw = await migratedGet(KEYS.offlineQueue, "carelog_offline_queue");
     return raw ? (JSON.parse(raw) as QueuedWrite[]) : [];
   } catch {
     return [];
@@ -50,5 +50,5 @@ export async function getQueue(): Promise<QueuedWrite[]> {
 }
 
 export async function clearQueue(): Promise<void> {
-  await SecureStore.deleteItemAsync(QUEUE_KEY);
+  await SecureStore.deleteItemAsync(KEYS.offlineQueue);
 }

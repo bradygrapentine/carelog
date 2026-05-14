@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { KEYS } from "../../lib/secureStoreKeys";
 import { supabase } from "../../utils/supabase";
 import { useAppTheme } from "../../hooks/useAppTheme";
 
@@ -61,7 +62,7 @@ export default function SignInScreen() {
       return;
     }
 
-    await SecureStore.setItemAsync("pending_email", trimmed);
+    await SecureStore.setItemAsync(KEYS.pendingEmail, trimmed);
     router.push("/(auth)/verify");
   }
 
