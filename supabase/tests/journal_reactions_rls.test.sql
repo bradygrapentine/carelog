@@ -5,7 +5,9 @@
 -- This ensures no UUID collision when both test files run under one `supabase test db`.
 
 begin;
-select plan(9);
+-- 8 assertions: 6 cases per plan; cases 4 and 5 each emit 2 ok-lines
+-- (operation + state-verification), giving 8 emitted vs 6 conceptual.
+select plan(8);
 
 -- ─── Fixtures ──────────────────────────────────────────────────────────────
 
