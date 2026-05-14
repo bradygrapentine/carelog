@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-14 PM (OWASP audit seed)** — `/owasp` full-project read-only audit (`docs/security/2026-05-14-owasp-audit.md`) surfaced 1 High + 3 Medium + 2 Low actionable findings. Seeded as **SEC-002..006** + **TD-131/132**. 1 Info finding (FIND-008 LLM ACTION regex) dropped — no action recommended. 13 OOP-* refactors from earlier today already promoted to §7. Remaining Ready = 35.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-14 PM (OWASP wave closeout)** — `/sprint owasp-sec-wave` shipped 4 of the 7 seeded OWASP rows (SEC-002 #488 / SEC-003 #489 / SEC-005 #487 / TD-131 #486) in one parallel `/wave §3b` dispatch. T3 (SEC-005) had 2 must-fixes patched by orchestrator after Sonnet adversarial gate. Remaining OWASP rows in §1 (deferred to next chunk): SEC-004, SEC-006, TD-132. Remaining Ready = 31.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 28 | TD-111 · TD-120..123 · TD-129/130 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
+| 🟢 Ready | 31 | TD-111 · TD-120..123 · TD-129/130 · TD-132 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEC-004 · SEC-006 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -155,12 +155,8 @@ Source: `/owasp` full-project read-only audit. Findings at `docs/security/2026-0
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| SEC-002 | 🟢 Ready · **P1 / High** | **Stripe webhook: add `stripe_events` deduplication table** | FIND-001. Stripe's at-least-once delivery means replayed `checkout.session.completed`/`subscription.deleted`/`invoice.payment_failed` can re-grant subscriptions, double-send emails, or grief-revoke restored state. Signature verification at `apps/web/app/api/stripe/webhook/route.ts:13` confirms authenticity but not first-time receipt. New migration: `stripe_events (event_id text primary key, processed_at timestamptz)`. Dispatcher: `INSERT ... ON CONFLICT DO NOTHING` keyed on `event.id`; short-circuit (200 OK) if row existed. Handlers unchanged. pgTAP: duplicate event_id is a no-op. **Risk:** HIGH. **Size:** S (1–2h). |
-| SEC-003 | 🟢 Ready · **P2 / Medium** | **Rate-limit brief share GET endpoint** | FIND-002. `apps/web/app/api/brief/[shareToken]/route.ts:5-50` has no `rateLimit(...)` call; sibling revoke endpoint at `revoke/route.ts:10` does. Token is 192-bit (cryptographically strong) but missing rate limit enables abuse-via-leaked-token, timing oracles, cheap DoS. Add `await rateLimit(request, "brief/share")` at the top of GET handler matching existing pattern. Acceptance: `grep rateLimit apps/web/app/api/brief/\[shareToken\]/route.ts` returns ≥1 hit; existing tests green. **Risk:** LOW. **Size:** XS (~15min). |
 | SEC-004 | 🟢 Ready · **P2 / Medium** | **OCR input-sanitization scaffold (blocks real-provider wiring story)** | FIND-003. `apps/web/inngest/functions/{ocrPrescription,ocrDocument}.ts` are stubbed today ("Real OCR call would go here"). When real provider wired, raw text → regex parse → `ocr_jobs.parsed_payload` → eventual `medications` insert. Need (1) raw-text length cap (8KB) pre-parse, (2) `drug_name` character allowlist (alphanumeric + space + hyphen + period), (3) audit log of OCR confirm action including raw LLM output for post-incident traceability. Block the real-provider wiring story on this. **Risk:** MEDIUM (pre-realized, becomes High when real OCR ships). **Size:** S–M (2–3h). |
-| SEC-005 | 🟢 Ready · **P2 / Medium** | **AI assistant: PHI-slip observability + Sentry signal** | FIND-004. `apps/web/server/routers/ai.ts:140` calls `deidentifyText` and the system prompt instructs Claude not to reproduce names — both best-effort. No signal today when an instruction-following slip happens. Add LLM-output post-filter that scans response for any `nameMap` value reappearing; on hit log to Sentry (with redacted context per ADR-0001) + emit `ai_phi_slip` PostHog event (UUID only). Optionally weekly Inngest job sampling `ai_conversations` for known PHI patterns. **Risk:** MEDIUM. **Size:** S (1–2h). |
 | SEC-006 | 🟢 Ready · **P3 / Low** | **Normalize share-token entropy to 256-bit across surfaces** | FIND-005. Three surfaces use different entropy: `outer_circle_requests.share_token` = 128-bit (`gen_random_bytes(16)`), `care_briefs.share_token` = 192-bit (24), `invite_tokens.token` = 256-bit (32). All exceed 64-bit guessability threshold, so not exploitable today. Consistency risk: future feature copying outer_circle pattern could land at 64-bit. Recommend: project-wide 256-bit minimum; rewrite outer_circle + care_briefs defaults via new migration; existing tokens preserved (DEFAULT only affects future inserts). Or document rationale for variance. **Risk:** LOW. **Size:** S (1h). |
-| TD-131 | 🟢 Ready · **P3** | **Lint rule + invariant comment: AIChatThread renders LLM output as JSX text only** | FIND-006. `apps/web/components/ai/AIChatThread.tsx:60` renders `{msg.content}` as JSX text node — safe by construction today (no XSS). No documented invariant prevents a future contributor adding markdown rendering or HTML sink. Add (1) inline `// SECURITY:` comment at L60 pinning the rule, (2) project-local ESLint rule in `apps/web/eslint-rules/` (mirror TD-117's `no-phi-in-analytics` pattern) forbidding `dangerouslySetInnerHTML` and `react-markdown` imports inside `components/ai/`. **Risk:** LOW. **Size:** S (1–2h). |
 | TD-132 | 🟢 Ready · **P3** | **Cap `ai_conversations.messages` array length + add archival job** | FIND-007. `supabase/migrations/20260422000001_ai_assistant.sql:7` declares `messages jsonb[] NOT NULL DEFAULT '{}'` with no row-size cap. Long conversations could grow until Postgres' ~1GB jsonb row limit. At ai.ts write site, cap appended array to last 50 messages. Plus periodic Inngest job archiving/trimming conversations older than 90 days. **Risk:** LOW. **Size:** S (1–2h). |
 
 ### SEO discoverability (SEO-001..007) — opened 2026-05-09
@@ -547,6 +543,15 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-14 — OWASP security wave (SEC-002/003/005 + TD-131) — PRs #486/#487/#488/#489
+Sprint `owasp-sec-wave` (`/sprint` full pipeline) closed the highest-leverage findings from the morning's OWASP audit (`docs/security/2026-05-14-owasp-audit.md`) via `/wave §3b` parallel dispatch (Sonnet, 4 file-disjoint tracks). Pre-merge Sonnet adversarial gates ran on each PR; T3 (SEC-005) had 2 must-fixes patched by orchestrator (`thread_id`→`org_id` rename + integration test asserting count-only payload and no raw matchedKeys leak to Sentry/PostHog).
+✅ **SEC-002** (PR #488) Stripe webhook `stripe_events` event-ID dedup table + `upsert ignoreDuplicates` dispatcher short-circuit + 4-arg `throws_ok` pgTAP — closes FIND-001 (replay protection).
+✅ **SEC-003** (PR #489) `rateLimit(request, "brief/share")` mirroring sibling revoke endpoint — closes FIND-002.
+✅ **SEC-005** (PR #487) `detectPhiSlip` post-filter + Sentry/PostHog signals on PHI-name reappearance in LLM output; UUID + counts only per ADR-0001; ESLint `carelog/no-phi-in-analytics` clean — closes FIND-004.
+✅ **TD-131** (PR #486) `// SECURITY:` inline comment on `AIChatThread.tsx` `{msg.content}` render site + new `carelog/no-html-in-ai` ESLint rule scoped to `components/ai/` (forbids `dangerouslySetInnerHTML` + markdown-renderer imports) — closes FIND-006.
+
+**Deferred to next chunk:** SEC-004 (OCR scaffold), SEC-006 (token entropy normalize), TD-132 (`ai_conversations` growth cap) — explicit non-goals of the just-shipped chunk per plan §"Non-goals".
 
 ### 2026-05-14 — OOP refactor Waves B/C/D (10 stories) — PRs #474..#483
 Front-loaded combined plan (`docs/plans/2026-05-14-oop-waves-bcd.md`) shipped the 10 surviving OOP stories from the re-grounded Phase 2 audit (#472) across three sequential `/wave` dispatches. All invariant-preserving — no external behavior changes; full vitest + jest suites green at each merge.
