@@ -189,14 +189,21 @@ export const aiRouter = router({
         .replace(/ACTION:\s*.+?(?:\n|$)/i, "")
         .trim();
 
-      // 6. PHI-slip observability — detect if LLM echoed a raw PHI name
+      // 6. PHI-slip observability — detect if LLM echoed a raw PHI name.
+      // ADR-0001: only count + UUID identifiers go to Sentry/PostHog. The
+      // `matchedKeys` array (raw PHI strings from the response) is intentionally
+      // NOT included in either payload. `ctx.user.id` is the Supabase auth UUID
+      // (Supabase guarantees uuid for auth.users.id) — safe as distinctId.
+      // `input.orgId` is the org UUID and stands in for conversation scope here
+      // (no per-thread id exists yet); event property is named `org_id` to be
+      // honest about what it is, not `thread_id`.
       const phiResult = detectPhiSlip(displayText, nameMap);
       if (phiResult.slipped) {
         Sentry.captureMessage("ai_phi_slip", {
           level: "warning",
           extra: {
             matchedKeyCount: phiResult.matchedKeys.length,
-            threadId: input.orgId,
+            orgId: input.orgId,
           },
         });
         getPostHogClient().capture({
@@ -204,7 +211,7 @@ export const aiRouter = router({
           event: "ai_phi_slip",
           properties: {
             matched_key_count: phiResult.matchedKeys.length,
-            thread_id: input.orgId,
+            org_id: input.orgId,
           },
         });
       }
