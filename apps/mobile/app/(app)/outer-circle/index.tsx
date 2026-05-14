@@ -16,6 +16,7 @@ import { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import { Panel } from "../../../components/Panel";
 
@@ -47,19 +48,23 @@ export default function OuterCircleScreen() {
     { enabled: !!orgId && !!recipientId },
   );
 
-  const createMut = trpc.outerCircle.create.useMutation({
-    onSuccess: () => {
-      setModalVisible(false);
-      setTitle("");
-      setDescription("");
-      setSlotsTotal("");
-      refetch();
+  const createMut = useMutationWithRefresh(
+    trpc.outerCircle.create.useMutation,
+    refetch,
+    {
+      onSuccess: () => {
+        setModalVisible(false);
+        setTitle("");
+        setDescription("");
+        setSlotsTotal("");
+      },
     },
-  });
+  );
 
-  const deactivateMut = trpc.outerCircle.deactivate.useMutation({
-    onSuccess: () => refetch(),
-  });
+  const deactivateMut = useMutationWithRefresh(
+    trpc.outerCircle.deactivate.useMutation,
+    refetch,
+  );
 
   const styles = useMemo(
     () =>

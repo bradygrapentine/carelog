@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import { canInvite } from "../../../utils/wave5Utils";
 import type { Membership } from "@carelog/types";
 import { useAppTheme } from "../../../hooks/useAppTheme";
@@ -53,28 +54,31 @@ export default function TeamScreen() {
     { enabled: !!orgId },
   );
 
-  const inviteMut = trpc.memberships.invite.useMutation({
-    onSuccess: () => {
-      setShowInvite(false);
-      setEmail("");
-      setRole("caregiver");
-      refetch();
-      Alert.alert("Invite sent");
+  const inviteMut = useMutationWithRefresh(
+    trpc.memberships.invite.useMutation,
+    refetch,
+    {
+      onSuccess: () => {
+        setShowInvite(false);
+        setEmail("");
+        setRole("caregiver");
+        Alert.alert("Invite sent");
+      },
+      onError: (err) => Alert.alert("Error", err.message),
     },
-    onError: (err) => {
-      Alert.alert("Error", err.message);
-    },
-  });
+  );
 
-  const changeRoleMut = trpc.memberships.changeRole.useMutation({
-    onSuccess: () => refetch(),
-    onError: (err) => Alert.alert("Error", err.message),
-  });
+  const changeRoleMut = useMutationWithRefresh(
+    trpc.memberships.changeRole.useMutation,
+    refetch,
+    { onError: (err) => Alert.alert("Error", err.message) },
+  );
 
-  const removeMut = trpc.memberships.remove.useMutation({
-    onSuccess: () => refetch(),
-    onError: (err) => Alert.alert("Error", err.message),
-  });
+  const removeMut = useMutationWithRefresh(
+    trpc.memberships.remove.useMutation,
+    refetch,
+    { onError: (err) => Alert.alert("Error", err.message) },
+  );
 
   function handleMemberPress(item: MemberRow) {
     if (currentRole !== "coordinator" || !orgId) return;
