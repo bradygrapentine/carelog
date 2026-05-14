@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-14 PM (OWASP wave closeout)** — `/sprint owasp-sec-wave` shipped 4 of the 7 seeded OWASP rows (SEC-002 #488 / SEC-003 #489 / SEC-005 #487 / TD-131 #486) in one parallel `/wave §3b` dispatch. T3 (SEC-005) had 2 must-fixes patched by orchestrator after Sonnet adversarial gate. Remaining OWASP rows in §1 (deferred to next chunk): SEC-004, SEC-006, TD-132. Remaining Ready = 31.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-14 PM (OWASP followups closeout)** — `/sprint owasp-sec-followups` shipped the 3 remaining OWASP audit rows (SEC-004 #493 / SEC-006 #492 / TD-132 #491) in one parallel `/wave §3b` dispatch. T3 (TD-132) shipped a DB-level CHECK constraint instead of the audit-recommended write-site cap (`ai_conversations` has no app-code writer; pivot proven by grep). Seeded SEC-007 (OCR audit log) / TD-133 (ai_conv archival) / SEC-008 (token rotation) as Ready follow-ups per the plan's pre-committed carve-out trace. Today's OWASP totals: **7 of 7 audit rows shipped** + 3 follow-ups seeded for future work. Remaining Ready = 31.
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 31 | TD-111 · TD-120..123 · TD-129/130 · TD-132 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEC-004 · SEC-006 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
+| 🟢 Ready | 31 | TD-111 · TD-120..123 · TD-129/130 · TD-133 · UX-041..044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEC-007 · SEC-008 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -155,9 +155,9 @@ Source: `/owasp` full-project read-only audit. Findings at `docs/security/2026-0
 
 | ID | Status | Story | Notes |
 |---|---|---|---|
-| SEC-004 | 🟢 Ready · **P2 / Medium** | **OCR input-sanitization scaffold (blocks real-provider wiring story)** | FIND-003. `apps/web/inngest/functions/{ocrPrescription,ocrDocument}.ts` are stubbed today ("Real OCR call would go here"). When real provider wired, raw text → regex parse → `ocr_jobs.parsed_payload` → eventual `medications` insert. Need (1) raw-text length cap (8KB) pre-parse, (2) `drug_name` character allowlist (alphanumeric + space + hyphen + period), (3) audit log of OCR confirm action including raw LLM output for post-incident traceability. Block the real-provider wiring story on this. **Risk:** MEDIUM (pre-realized, becomes High when real OCR ships). **Size:** S–M (2–3h). |
-| SEC-006 | 🟢 Ready · **P3 / Low** | **Normalize share-token entropy to 256-bit across surfaces** | FIND-005. Three surfaces use different entropy: `outer_circle_requests.share_token` = 128-bit (`gen_random_bytes(16)`), `care_briefs.share_token` = 192-bit (24), `invite_tokens.token` = 256-bit (32). All exceed 64-bit guessability threshold, so not exploitable today. Consistency risk: future feature copying outer_circle pattern could land at 64-bit. Recommend: project-wide 256-bit minimum; rewrite outer_circle + care_briefs defaults via new migration; existing tokens preserved (DEFAULT only affects future inserts). Or document rationale for variance. **Risk:** LOW. **Size:** S (1h). |
-| TD-132 | 🟢 Ready · **P3** | **Cap `ai_conversations.messages` array length + add archival job** | FIND-007. `supabase/migrations/20260422000001_ai_assistant.sql:7` declares `messages jsonb[] NOT NULL DEFAULT '{}'` with no row-size cap. Long conversations could grow until Postgres' ~1GB jsonb row limit. At ai.ts write site, cap appended array to last 50 messages. Plus periodic Inngest job archiving/trimming conversations older than 90 days. **Risk:** LOW. **Size:** S (1–2h). |
+| SEC-007 | 🟢 Ready · **P2 / Medium** | **OCR confirm route audit-log site** | Closes part 3 of audit FIND-003 (parts 1+2 shipped via SEC-004 #493). Add `{user_id, ocr_job_id, raw_output_hash, confirmed_fields, ts}` audit log in `apps/web/app/api/ocr/confirm/route.ts` (or equivalent confirm path — verify exact path before starting). MUST land before any real-provider wiring story. Pairs with future Sentry routing for OCR-related anomalies. **Risk:** LOW (audit-only; no behavior change to OCR flow). **Size:** S (1–2h). |
+| TD-133 | 🟢 Ready · **P3 / Low** | **`ai_conversations` archival Inngest job (90-day cutoff)** | Closes the archival half of audit FIND-007; the row-cap half shipped as TD-132 #491 (DB-level CHECK constraint). Periodic Inngest job under `apps/web/inngest/functions/aiConversationsArchive.ts` that deletes rows older than 90 days. **Materialize when the first write site lands** — currently `ai_conversations` is unused (only `revokeConsent` DELETE at `apps/web/server/routers/ai.ts:246`); nothing to archive yet. Story can sit blocked until an AI feature adds an INSERT. **Risk:** LOW. **Size:** S (1–2h). |
+| SEC-008 | 🟢 Ready · **P3 / Low** | **Rotate existing 128/192-bit share tokens to 256-bit** | SEC-006 #492 changed `outer_circle_requests.share_token` and `care_briefs.share_token` DEFAULTs to 256-bit but did NOT rotate existing in-flight tokens. Existing tokens still exceed the 64-bit guessability floor (128-bit minimum is OWASP-compliant) so this is consistency cleanup, not vuln remediation. Implementation: new migration that regenerates each existing `share_token` with `gen_random_bytes(32)`, PLUS a notification email to outer-circle requesters / care-brief owners that their old link is invalidated. **Risk:** MEDIUM (link invalidation is user-visible — requires the email step). **Size:** M (2–3h). |
 
 ### SEO discoverability (SEO-001..007) — opened 2026-05-09
 
@@ -543,6 +543,14 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-14 PM — OWASP audit followups (SEC-004/006 + TD-132) — PRs #491/#492/#493
+Sprint `owasp-sec-followups` (`/sprint` full pipeline) closed the three deferred OWASP audit rows via `/wave §3b` parallel dispatch (Sonnet, 3 file-disjoint tracks). T3 (TD-132) pivoted from the audit's literal write-site cap to a DB-level CHECK constraint after comprehensive grep proved `ai_conversations` has no app-code INSERT/UPDATE site — pivot evidence embedded in the plan. Two `/opus-on-opus` passes: pass-1 1 must-fix + 3 should-fix, pass-2 cleared with the must-fix REJECTED-WITH-EVIDENCE after the grep was reproduced.
+✅ **SEC-004** (PR #493) `apps/web/lib/ocrSanitize.ts` helper: 8KB byte-cap (codepoint-safe `TextEncoder`/`TextDecoder` truncation), `DRUG_NAME_PATTERN` allowlist, `sanitizeOcrFields` returning `{ fields, sanitized }`. Wired `capRawOcrText` into BOTH OCR Inngest stubs, `sanitizeOcrFields` into prescription only — closes audit FIND-003 parts 1+2 (part 3 audit-log site spun out as **SEC-007** below).
+✅ **SEC-006** (PR #492) Migration `20260515010000_share_token_entropy_256.sql` (or near) bumping `outer_circle_requests.share_token` and `care_briefs.share_token` DEFAULTs to 256-bit (`gen_random_bytes(32)`). Existing tokens preserved; rotation deferred to **SEC-008**. Closes audit FIND-005.
+✅ **TD-132** (PR #491) Migration `20260515020000_ai_conversations_messages_cap.sql` adds `CHECK (array_length(messages, 1) IS NULL OR array_length(messages, 1) <= 50)` with 4-arg `throws_ok` pgTAP coverage (50 ok, 51 raises `23514`). Archival job deferred to **TD-133** until a write site materializes. Closes audit FIND-007 cap-half.
+
+**Follow-up seeds in §1:** SEC-007 (OCR audit log) / TD-133 (ai_conv archival) / SEC-008 (existing-token rotation) — pre-committed in the plan's §"Follow-up backlog rows" to trace the partial-closure carve-outs.
 
 ### 2026-05-14 — OWASP security wave (SEC-002/003/005 + TD-131) — PRs #486/#487/#488/#489
 Sprint `owasp-sec-wave` (`/sprint` full pipeline) closed the highest-leverage findings from the morning's OWASP audit (`docs/security/2026-05-14-owasp-audit.md`) via `/wave §3b` parallel dispatch (Sonnet, 4 file-disjoint tracks). Pre-merge Sonnet adversarial gates ran on each PR; T3 (SEC-005) had 2 must-fixes patched by orchestrator (`thread_id`→`org_id` rename + integration test asserting count-only payload and no raw matchedKeys leak to Sentry/PostHog).
