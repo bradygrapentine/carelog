@@ -229,10 +229,12 @@ export async function POST(request: NextRequest) {
                   {ev.entry_kind ? ` (${ev.entry_kind})` : ""}
                 </Text>
                 {ev.payload &&
-                  "text" in ev.payload &&
-                  String(ev.payload.text || "").length > 0 && (
+                  typeof (ev.payload as Record<string, unknown>).text ===
+                    "string" &&
+                  ((ev.payload as Record<string, unknown>).text as string)
+                    .length > 0 && (
                     <Text style={styles.eventText}>
-                      {String(ev.payload.text)}
+                      {(ev.payload as Record<string, unknown>).text as string}
                     </Text>
                   )}
                 {ev.flagged && (
