@@ -26,6 +26,7 @@ import { supabase } from "../utils/supabase";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { isOnboardingComplete } from "../lib/onboarding";
 import { usePushNotifications } from "../hooks/usePushNotifications";
+import { SyncStatusProvider } from "../lib/syncStatusManager";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initSentry();
@@ -117,9 +118,11 @@ function RootLayout() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <RootLayoutInner onSplashReady={hideSplash} />
-        </AppProvider>
+        <SyncStatusProvider>
+          <AppProvider>
+            <RootLayoutInner onSplashReady={hideSplash} />
+          </AppProvider>
+        </SyncStatusProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );
