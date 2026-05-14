@@ -52,6 +52,15 @@ export type VisitSummaryProps = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+/** Safely extract a string value from an unknown payload field. */
+function stringField(
+  payload: Record<string, unknown>,
+  key: string,
+): string | null {
+  const v = payload[key];
+  return typeof v === "string" ? v : null;
+}
+
 function calculateAge(dob: string | null): string | null {
   if (!dob) return null;
   const born = new Date(dob);
@@ -384,11 +393,8 @@ export function VisitSummary({
           <ul className="space-y-3 text-sm">
             {journalHighlights.map((e) => {
               const note =
-                typeof e.payload["note"] === "string"
-                  ? e.payload["note"]
-                  : typeof e.payload["notes"] === "string"
-                    ? e.payload["notes"]
-                    : null;
+                stringField(e.payload, "note") ??
+                stringField(e.payload, "notes");
               const excerpt = note
                 ? note.slice(0, 180) + (note.length > 180 ? "…" : "")
                 : "No details";

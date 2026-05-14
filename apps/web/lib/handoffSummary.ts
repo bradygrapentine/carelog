@@ -1,4 +1,5 @@
 import type { CareEvent } from "@carelog/types";
+import { isJournalEvent, parseMood } from "@/lib/careEvent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,25 +134,22 @@ export function buildHandoffSummary(
 
   // ── 3. Moments (journal entries, top 3 most recent) ──────────────────────
   const journalEvents = inWindow
-    .filter((e) => e.event_type === "journal" && e.entry_kind === "human")
+    .filter((e) => isJournalEvent(e) && e.entry_kind === "human")
     .sort(
       (a, b) =>
         new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime(),
     )
     .slice(0, 3);
 
-  const momentItems: MomentItem[] = journalEvents.map((e) => ({
-    actorId: e.actor_id,
-    excerpt:
-      typeof e.payload?.text === "string"
-        ? e.payload.text.slice(0, 120)
-        : "(no text)",
-    mood:
-      typeof e.payload?.mood === "string" && e.payload.mood !== ""
-        ? e.payload.mood
-        : null,
-    occurredAt: e.occurred_at,
-  }));
+  const momentItems: MomentItem[] = journalEvents.map((e) => {
+    const je = isJournalEvent(e) ? e : null;
+    return {
+      actorId: e.actor_id,
+      excerpt: je?.payload.text ? je.payload.text.slice(0, 120) : "(no text)",
+      mood: parseMood(e.payload?.mood) ?? null,
+      occurredAt: e.occurred_at,
+    };
+  });
 
   const momentsDescription =
     momentItems.length === 0
@@ -179,9 +177,7 @@ export function buildHandoffSummary(
         `${completedAppts} completed ${completedAppts === 1 ? "visit" : "visits"}`,
       );
     if (upcomingAppts.length > 0)
-      parts.push(
-        `${upcomingAppts.length} upcoming in the next 24 h`,
-      );
+      parts.push(`${upcomingAppts.length} upcoming in the next 24 h`);
     appointmentsDescription = parts.join(", ") + ".";
   }
 
@@ -193,7 +189,7 @@ export function buildHandoffSummary(
   const concernItems: ConcernItem[] = concernEvents.map((e) => ({
     actorId: e.actor_id,
     excerpt:
-      typeof e.payload?.text === "string"
+      isJournalEvent(e) && e.payload.text
         ? e.payload.text.slice(0, 120)
         : e.event_type,
     occurredAt: e.occurred_at,
