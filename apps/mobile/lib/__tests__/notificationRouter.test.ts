@@ -1,10 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
 import { NotificationPayloadSchema } from "../notificationRouter/types";
 import { dispatchNotification } from "../notificationRouter";
 import { ocrReviewRouter } from "../notificationRouter/OcrReviewRouter";
 import type { Router } from "expo-router";
-
-const mockRouter = { push: vi.fn() } as unknown as Router;
 
 describe("NotificationPayloadSchema", () => {
   it("parses valid ocr-review payload", () => {
@@ -48,7 +45,7 @@ describe("OcrReviewRouter", () => {
   });
 
   it("handle pushes the correct route — byte-identical to original", () => {
-    const router = { push: vi.fn() } as unknown as Router;
+    const router = { push: jest.fn() } as unknown as Router;
     ocrReviewRouter.handle({ screen: "ocr-review", jobId: "job42" }, router);
     expect(router.push).toHaveBeenCalledWith(
       "/(app)/documents/ocr-review/job42",
@@ -58,7 +55,7 @@ describe("OcrReviewRouter", () => {
 
 describe("dispatchNotification", () => {
   it("routes ocr-review payload to ocrReviewRouter", () => {
-    const router = { push: vi.fn() } as unknown as Router;
+    const router = { push: jest.fn() } as unknown as Router;
     dispatchNotification(
       { screen: "ocr-review", jobId: "job99" },
       [ocrReviewRouter],
@@ -70,7 +67,7 @@ describe("dispatchNotification", () => {
   });
 
   it("unknown screen is no-op — router.push never called", () => {
-    const router = { push: vi.fn() } as unknown as Router;
+    const router = { push: jest.fn() } as unknown as Router;
     dispatchNotification(
       { screen: "some-unknown-screen" },
       [ocrReviewRouter],
@@ -80,8 +77,11 @@ describe("dispatchNotification", () => {
   });
 
   it("calls only the first matching router and stops", () => {
-    const router = { push: vi.fn() } as unknown as Router;
-    const secondRouter = { canHandle: vi.fn(() => true), handle: vi.fn() };
+    const router = { push: jest.fn() } as unknown as Router;
+    const secondRouter = {
+      canHandle: jest.fn(() => true),
+      handle: jest.fn(),
+    };
     dispatchNotification(
       { screen: "ocr-review", jobId: "j1" },
       [ocrReviewRouter, secondRouter],
@@ -91,6 +91,3 @@ describe("dispatchNotification", () => {
     expect(secondRouter.handle).not.toHaveBeenCalled();
   });
 });
-
-// Suppress unused-import warning
-void mockRouter;
