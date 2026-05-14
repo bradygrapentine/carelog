@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Stack, useRouter } from "expo-router";
+import {
+  NotificationPayloadSchema,
+  dispatchNotification,
+} from "../lib/notificationRouter";
+import { ocrReviewRouter } from "../lib/notificationRouter/OcrReviewRouter";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
@@ -68,13 +73,12 @@ function RootLayoutInner({ onSplashReady }: { onSplashReady: () => void }) {
   useEffect(() => {
     notifListenerRef.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data as {
-          jobId?: string;
-          screen?: string;
-        };
-        if (data?.screen === "ocr-review" && data?.jobId) {
-          router.push("/(app)/documents/ocr-review/" + data.jobId);
+        const raw = response.notification.request.content.data;
+        const parsed = NotificationPayloadSchema.safeParse(raw);
+        if (parsed.success) {
+          dispatchNotification(parsed.data, [ocrReviewRouter], router);
         }
+        // Unknown screen or parse failure → no-op (preserves original behavior)
       });
     return () => {
       notifListenerRef.current?.remove();
