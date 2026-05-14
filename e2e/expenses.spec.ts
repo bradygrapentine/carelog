@@ -58,7 +58,12 @@ test.describe("Expenses panel", () => {
                 category: "medication",
                 description: "E2E Prescription refill",
                 paid_by_name: null,
-                incurred_at: "2026-04-13",
+                // Today (relative) — keeps the row inside ExpensePanel's
+                // 30-day rolling window so the category-summary line renders
+                // and `$42.50` appears twice (line item + summary). A
+                // hardcoded date used to drift out of the window on rolling
+                // calendar bit-rot; see fix(e2e): expense bit-rot dates.
+                incurred_at: new Date().toISOString().slice(0, 10),
               },
             ],
           },

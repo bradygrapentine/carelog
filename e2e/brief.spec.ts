@@ -1,5 +1,16 @@
 import { test, expect } from "@playwright/test";
 
+// Relative dates avoid the bit-rot mode where a hardcoded fixture date
+// drifts past a rolling-window assumption in production code. None of
+// brief.spec.ts's assertions currently inspect dates, but using
+// `now`-derived fixtures is the safer default and matches the pattern
+// in expenses.spec.ts. See fix(e2e): expense bit-rot dates.
+const NOW = new Date();
+const TODAY_ISO = NOW.toISOString();
+const YESTERDAY_ISO = new Date(
+  NOW.getTime() - 24 * 60 * 60 * 1000,
+).toISOString();
+
 const validBrief = {
   id: "b1",
   title: "Weekly Care Brief",
@@ -10,13 +21,13 @@ const validBrief = {
   content: {
     recipient_name: "Margaret",
     dob: null,
-    generated_at: "2026-04-13T10:00:00Z",
+    generated_at: TODAY_ISO,
     medications: [
       { drug_name: "Lisinopril", dosage: "10mg", instructions: "once daily" },
     ],
     recent_entries: [
       {
-        occurred_at: "2026-04-12T08:00:00Z",
+        occurred_at: YESTERDAY_ISO,
         text: "Good morning",
         mood: "good",
         flagged: false,
@@ -24,7 +35,7 @@ const validBrief = {
     ],
   },
   includes: ["medications", "journal"],
-  created_at: "2026-04-13T10:00:00Z",
+  created_at: TODAY_ISO,
 };
 
 test.describe("Care Brief public page", () => {
