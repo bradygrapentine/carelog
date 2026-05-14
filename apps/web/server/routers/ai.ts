@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import Anthropic from "@anthropic-ai/sdk";
+import * as Sentry from "@sentry/nextjs";
 import { router, protectedProcedure } from "../trpc/index";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import { formatContextBlob, type PageContext } from "../../lib/ai-context";
 import { buildNameMap, deidentifyText } from "../../lib/ai-deidentify";
+import { detectPhiSlip } from "../../lib/ai-phi-monitor";
+import { getPostHogClient } from "../../lib/posthog-server";
 
 const SYSTEM_PROMPT = `You are a helpful assistant for CareSync, a family caregiving coordination app.
 You help caregivers stay on top of care data, draft communications, and manage schedules.
@@ -185,6 +188,33 @@ export const aiRouter = router({
       const displayText = responseText
         .replace(/ACTION:\s*.+?(?:\n|$)/i, "")
         .trim();
+
+      // 6. PHI-slip observability — detect if LLM echoed a raw PHI name.
+      // ADR-0001: only count + UUID identifiers go to Sentry/PostHog. The
+      // `matchedKeys` array (raw PHI strings from the response) is intentionally
+      // NOT included in either payload. `ctx.user.id` is the Supabase auth UUID
+      // (Supabase guarantees uuid for auth.users.id) — safe as distinctId.
+      // `input.orgId` is the org UUID and stands in for conversation scope here
+      // (no per-thread id exists yet); event property is named `org_id` to be
+      // honest about what it is, not `thread_id`.
+      const phiResult = detectPhiSlip(displayText, nameMap);
+      if (phiResult.slipped) {
+        Sentry.captureMessage("ai_phi_slip", {
+          level: "warning",
+          extra: {
+            matchedKeyCount: phiResult.matchedKeys.length,
+            orgId: input.orgId,
+          },
+        });
+        getPostHogClient().capture({
+          distinctId: ctx.user.id,
+          event: "ai_phi_slip",
+          properties: {
+            matched_key_count: phiResult.matchedKeys.length,
+            org_id: input.orgId,
+          },
+        });
+      }
 
       return { response: displayText, action };
     }),

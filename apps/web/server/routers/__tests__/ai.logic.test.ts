@@ -61,6 +61,18 @@ vi.mock("@/lib/ai-context", () => ({
   formatContextBlob: vi.fn().mockReturnValue("mock context blob"),
 }));
 
+vi.mock("@/lib/ai-phi-monitor", () => ({
+  detectPhiSlip: vi.fn().mockReturnValue({ slipped: false, matchedKeys: [] }),
+}));
+
+vi.mock("@/lib/posthog-server", () => ({
+  getPostHogClient: vi.fn().mockReturnValue({ capture: vi.fn() }),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+  captureMessage: vi.fn(),
+}));
+
 const mockAnthropicCreate = vi.fn();
 vi.mock("@anthropic-ai/sdk", () => {
   const Ctor = function (this: unknown) {
@@ -233,6 +245,115 @@ describe("ai.query — PHI deidentification", () => {
     const [callArgs] = mockAnthropicCreate.mock.calls[0]!;
     const userMessage = (callArgs as any).messages[0].content as string;
     expect(userMessage).toContain("[REDACTED]");
+  });
+});
+
+describe("ai.query — PHI-slip observability (SEC-005)", () => {
+  it("when detectPhiSlip returns slipped=true, Sentry+PostHog receive count-only payload with org_id (never matchedKeys)", async () => {
+    const { detectPhiSlip } = await import("@/lib/ai-phi-monitor");
+    const { getPostHogClient } = await import("@/lib/posthog-server");
+    const Sentry = await import("@sentry/nextjs");
+
+    const phCapture = vi.fn();
+    vi.mocked(getPostHogClient).mockReturnValue({ capture: phCapture } as any);
+    vi.mocked(detectPhiSlip).mockReturnValueOnce({
+      slipped: true,
+      matchedKeys: ["Alice", "Bob"],
+    });
+
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: { ai_assistant_enabled: true }, error: null }),
+    );
+    mockAnthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: "Alice's medications include..." }],
+    });
+
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as any,
+      supabase: {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          lte: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          contains: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          then: (resolve: (v: unknown) => unknown) =>
+            Promise.resolve({ data: [], error: null, count: 0 }).then(resolve),
+        }),
+      } as any,
+      req: undefined,
+    });
+
+    await caller.ai.query(VALID_QUERY_INPUT);
+
+    expect(Sentry.captureMessage).toHaveBeenCalledWith("ai_phi_slip", {
+      level: "warning",
+      extra: { matchedKeyCount: 2, orgId: ORG_ID },
+    });
+    expect(phCapture).toHaveBeenCalledWith({
+      distinctId: USER_ID,
+      event: "ai_phi_slip",
+      properties: { matched_key_count: 2, org_id: ORG_ID },
+    });
+    // PHI invariant: raw matched key strings must NEVER reach Sentry/PostHog.
+    const sentryArgs = JSON.stringify(
+      vi.mocked(Sentry.captureMessage).mock.calls,
+    );
+    const phArgs = JSON.stringify(phCapture.mock.calls);
+    expect(sentryArgs).not.toContain("Alice");
+    expect(sentryArgs).not.toContain("Bob");
+    expect(phArgs).not.toContain("Alice");
+    expect(phArgs).not.toContain("Bob");
+  });
+
+  it("when detectPhiSlip returns slipped=false, neither Sentry nor PostHog are called", async () => {
+    const { detectPhiSlip } = await import("@/lib/ai-phi-monitor");
+    const { getPostHogClient } = await import("@/lib/posthog-server");
+    const Sentry = await import("@sentry/nextjs");
+
+    const phCapture = vi.fn();
+    vi.mocked(getPostHogClient).mockReturnValue({ capture: phCapture } as any);
+    vi.mocked(detectPhiSlip).mockReturnValueOnce({
+      slipped: false,
+      matchedKeys: [],
+    });
+    vi.mocked(Sentry.captureMessage).mockClear();
+
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({ data: { ai_assistant_enabled: true }, error: null }),
+    );
+    mockAnthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: "Safe response." }],
+    });
+
+    const caller = appRouter.createCaller({
+      user: { id: USER_ID, email: "user@example.com" } as any,
+      supabase: {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          lte: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          contains: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          then: (resolve: (v: unknown) => unknown) =>
+            Promise.resolve({ data: [], error: null, count: 0 }).then(resolve),
+        }),
+      } as any,
+      req: undefined,
+    });
+
+    await caller.ai.query(VALID_QUERY_INPUT);
+
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    expect(phCapture).not.toHaveBeenCalled();
   });
 });
 
