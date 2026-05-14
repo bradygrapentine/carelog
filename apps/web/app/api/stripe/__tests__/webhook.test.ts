@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // --- Mocks ---
@@ -150,87 +150,83 @@ describe("POST /api/stripe/webhook", () => {
   });
 });
 
-// --- Pre-refactor dispatch gate (OOP-015 PR1) ---
-// Tests written against the handler-map surface that will be extracted.
-// Skipped until the refactor lands; unskipped in the same PR.
-describe.skip("handler-map dispatch (OOP-015 — skipped until handlers/ extracted)", () => {
-  const mockHandlerFn = vi.fn().mockResolvedValue(undefined);
-
-  afterEach(() => {
-    vi.resetModules();
+// --- Handler-map dispatch gate (OOP-015 PR1) ---
+// Asserts handlers[event.type] is defined for each known event type,
+// that calling it has the expected side-effects (reusing top-level mocks),
+// and unknown event types return undefined (no-op).
+describe("handler-map dispatch (OOP-015)", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
+    process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
+    // Restore mockSupabaseFrom after clearAllMocks wipes implementations.
+    mockUpdate.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+    mockSupabaseFrom.mockImplementation(() => ({
+      update: mockUpdate,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { id: "org-1", stripe_id: null },
+            error: null,
+          }),
+        }),
+      }),
+    }));
   });
 
-  it("dispatches checkout.session.completed to the correct handler exactly once", async () => {
-    vi.doMock("../webhook/handlers/checkoutSessionCompleted", () => ({
-      handle: mockHandlerFn,
-    }));
-    const event = {
-      type: "checkout.session.completed",
-      data: { object: { customer: "cus_123", metadata: { orgId: "org-1" } } },
-    };
+  it("handlers map contains exactly the 4 known event types", async () => {
     const { handlers } = await import("../webhook/handlers/index");
-    const handler = handlers[event.type];
-    expect(handler).toBeDefined();
-    await handler!(event as never);
-    expect(mockHandlerFn).toHaveBeenCalledTimes(1);
-    expect(mockHandlerFn).toHaveBeenCalledWith(event);
-  });
-
-  it("dispatches customer.subscription.updated to the correct handler exactly once", async () => {
-    vi.doMock("../webhook/handlers/customerSubscriptionUpdated", () => ({
-      handle: mockHandlerFn,
-    }));
-    const event = {
-      type: "customer.subscription.updated",
-      data: {
-        object: {
-          customer: "cus_123",
-          id: "sub_1",
-          status: "active",
-          cancel_at_period_end: false,
-        },
-      },
-    };
-    const { handlers } = await import("../webhook/handlers/index");
-    const handler = handlers[event.type];
-    expect(handler).toBeDefined();
-    await handler!(event as never);
-    expect(mockHandlerFn).toHaveBeenCalledTimes(1);
-  });
-
-  it("dispatches customer.subscription.deleted to the correct handler exactly once", async () => {
-    vi.doMock("../webhook/handlers/customerSubscriptionDeleted", () => ({
-      handle: mockHandlerFn,
-    }));
-    const event = {
-      type: "customer.subscription.deleted",
-      data: { object: { customer: "cus_123" } },
-    };
-    const { handlers } = await import("../webhook/handlers/index");
-    const handler = handlers[event.type];
-    expect(handler).toBeDefined();
-    await handler!(event as never);
-    expect(mockHandlerFn).toHaveBeenCalledTimes(1);
-  });
-
-  it("dispatches invoice.payment_failed to the correct handler exactly once", async () => {
-    vi.doMock("../webhook/handlers/invoicePaymentFailed", () => ({
-      handle: mockHandlerFn,
-    }));
-    const event = {
-      type: "invoice.payment_failed",
-      data: { object: { customer: "cus_123" } },
-    };
-    const { handlers } = await import("../webhook/handlers/index");
-    const handler = handlers[event.type];
-    expect(handler).toBeDefined();
-    await handler!(event as never);
-    expect(mockHandlerFn).toHaveBeenCalledTimes(1);
+    expect(Object.keys(handlers).sort()).toEqual([
+      "checkout.session.completed",
+      "customer.subscription.deleted",
+      "customer.subscription.updated",
+      "invoice.payment_failed",
+    ]);
   });
 
   it("unknown event type has no handler entry (no-op)", async () => {
     const { handlers } = await import("../webhook/handlers/index");
     expect(handlers["some.unknown.event"]).toBeUndefined();
+  });
+
+  it("checkout.session.completed handler updates org when invoked directly", async () => {
+    const { handlers } = await import("../webhook/handlers/index");
+    const handler = handlers["checkout.session.completed"];
+    expect(handler).toBeDefined();
+    const event = {
+      type: "checkout.session.completed",
+      data: { object: { customer: "cus_123", metadata: { orgId: "org-1" } } },
+    };
+    await handler!(event as never);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith("organizations");
+    expect(mockUpdate).toHaveBeenCalledWith({
+      plan: "family",
+      stripe_id: "cus_123",
+    });
+  });
+
+  it("customer.subscription.deleted handler resets org when invoked directly", async () => {
+    const { handlers } = await import("../webhook/handlers/index");
+    const handler = handlers["customer.subscription.deleted"];
+    expect(handler).toBeDefined();
+    const event = {
+      type: "customer.subscription.deleted",
+      data: { object: { customer: "cus_123" } },
+    };
+    await handler!(event as never);
+    expect(mockUpdate).toHaveBeenCalledWith({ plan: "free", stripe_id: null });
+  });
+
+  it("invoice.payment_failed handler runs without DB mutation when invoked directly", async () => {
+    const { handlers } = await import("../webhook/handlers/index");
+    const handler = handlers["invoice.payment_failed"];
+    expect(handler).toBeDefined();
+    const event = {
+      type: "invoice.payment_failed",
+      data: { object: { customer: "cus_123" } },
+    };
+    await handler!(event as never);
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 });
