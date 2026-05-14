@@ -61,6 +61,18 @@ vi.mock("@/lib/ai-context", () => ({
   formatContextBlob: vi.fn().mockReturnValue("mock context blob"),
 }));
 
+vi.mock("@/lib/ai-phi-monitor", () => ({
+  detectPhiSlip: vi.fn().mockReturnValue({ slipped: false, matchedKeys: [] }),
+}));
+
+vi.mock("@/lib/posthog-server", () => ({
+  getPostHogClient: vi.fn().mockReturnValue({ capture: vi.fn() }),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+  captureMessage: vi.fn(),
+}));
+
 const mockAnthropicCreate = vi.fn();
 vi.mock("@anthropic-ai/sdk", () => {
   const Ctor = function (this: unknown) {
