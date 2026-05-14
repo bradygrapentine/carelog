@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
+import { capRawOcrText, sanitizeOcrFields } from "../../lib/ocrSanitize";
 
 // Validated at handler entry — defense-in-depth against forged events (R2-014)
 export const ocrJobCreatedEventSchema = z
@@ -63,12 +64,19 @@ export const ocrPrescription = inngest.createFunction(
 
     // Step 4: parse and update to needs_review
     await step.run("update-needs-review", async () => {
-      const parsed = parseOcrText(rawText as string);
+      const capped = capRawOcrText(rawText as string);
+      const parsedRaw = parseOcrText(capped);
+      const { fields: parsed, sanitized } = sanitizeOcrFields(parsedRaw);
+      if (sanitized) {
+        console.warn(
+          `[ocrPrescription] drug_name failed allowlist — zeroed for job ${jobId}`,
+        );
+      }
       await supabaseAdmin
         .from("ocr_jobs")
         .update({
           status: "needs_review",
-          raw_text: rawText,
+          raw_text: capped,
           parsed_payload: parsed,
         })
         .eq("id", jobId);

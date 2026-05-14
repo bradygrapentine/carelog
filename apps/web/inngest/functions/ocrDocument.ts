@@ -2,6 +2,7 @@ import { z } from "zod";
 import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
 import { sendPushToUser } from "../pushNotification";
+import { capRawOcrText } from "../../lib/ocrSanitize";
 
 // Validated at handler entry — defense-in-depth against forged events (R2-014)
 export const ocrDocumentCreatedEventSchema = z
@@ -114,15 +115,16 @@ export const ocrDocument = inngest.createFunction(
     });
 
     await step.run("update-needs-review", async () => {
-      const docType = classifyDocument(rawText as string);
-      const fields = extractFields(docType, rawText as string);
+      const capped = capRawOcrText(rawText as string);
+      const docType = classifyDocument(capped);
+      const fields = extractFields(docType, capped);
       const parsed: ParsedDocument = { document_type: docType, fields };
 
       await supabaseAdmin
         .from("ocr_jobs")
         .update({
           status: "needs_review",
-          raw_text: rawText,
+          raw_text: capped,
           parsed_data: parsed,
         })
         .eq("id", jobId);
