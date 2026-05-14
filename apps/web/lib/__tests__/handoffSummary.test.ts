@@ -32,10 +32,16 @@ function makeEvent(
 describe("buildHandoffSummary — empty input", () => {
   it("returns 'no' copy for all sections", () => {
     const result = buildHandoffSummary([], NOW, 24);
-    expect(result.meds.description).toBe("No medications logged in this window.");
-    expect(result.moments.description).toBe("No journal entries in this window.");
+    expect(result.meds.description).toBe(
+      "No medications logged in this window.",
+    );
+    expect(result.moments.description).toBe(
+      "No journal entries in this window.",
+    );
     expect(result.appointments.description).toBe("No visits in this window.");
-    expect(result.concerns.description).toBe("No concerns flagged in this window.");
+    expect(result.concerns.description).toBe(
+      "No concerns flagged in this window.",
+    );
     expect(result.thanks.description).toBe("No activity in this window.");
   });
 
@@ -234,5 +240,93 @@ describe("buildHandoffSummary — thanks", () => {
     expect(result.thanks.description).toContain("Maya");
     expect(result.thanks.description).toContain("Jordan");
     expect(result.thanks.contributors[0]?.count).toBe(2); // sorted by count desc
+  });
+});
+
+// ─── Characterization snapshot (pre-refactor baseline) ───────────────────────
+// This snapshot locks in the exact output of buildHandoffSummary() before the
+// NameResolver refactor. If the refactor changes behaviour the snapshot will
+// fail — that is intentional and must be investigated before proceeding.
+
+describe("buildHandoffSummary — characterization snapshot", () => {
+  const SNAP_NOW = new Date("2026-01-15T10:00:00Z");
+
+  function snapEvent(
+    overrides: Partial<CareEvent> & Pick<CareEvent, "event_type">,
+    hoursAgo = 1,
+  ): CareEvent {
+    const occurred_at = new Date(
+      SNAP_NOW.getTime() - hoursAgo * 60 * 60 * 1000,
+    ).toISOString();
+    return {
+      id: "snap-id-fixed",
+      org_id: "org-snap",
+      recipient_id: "rec-snap",
+      actor_id: "actor-snap-a",
+      entry_kind: "human",
+      payload: {},
+      flagged: false,
+      occurred_at,
+      created_at: occurred_at,
+      ...overrides,
+    };
+  }
+
+  const snapEvents: CareEvent[] = [
+    snapEvent({ event_type: "medication", actor_id: "actor-maya" }, 2),
+    snapEvent({ event_type: "medication", actor_id: "actor-maya" }, 3),
+    snapEvent({ event_type: "medication", actor_id: "actor-jordan" }, 4),
+    snapEvent(
+      {
+        event_type: "journal",
+        actor_id: "actor-maya",
+        entry_kind: "human",
+        payload: { text: "She had a good morning.", mood: "good" },
+      },
+      1,
+    ),
+    snapEvent({ event_type: "appointment", actor_id: "actor-jordan" }, 5),
+    snapEvent({ event_type: "symptom", actor_id: "actor-maya" }, 6),
+    // actor with no name in map — falls back to "Team member"
+    snapEvent({ event_type: "medication", actor_id: "actor-unknown" }, 7),
+  ];
+
+  const snapNameMap = { "actor-maya": "Maya", "actor-jordan": "Jordan" };
+
+  it("characterization: exact output matches pre-refactor baseline", () => {
+    const result = buildHandoffSummary(
+      snapEvents,
+      SNAP_NOW,
+      24,
+      "viewer-snap",
+      snapNameMap,
+    );
+
+    // Meds — 2 Maya + 1 Jordan + 1 unknown(Team member)
+    expect(result.meds.count).toBe(4);
+    expect(result.meds.description).toContain("4 doses logged");
+    expect(result.meds.description).toContain("2 by Maya");
+    expect(result.meds.description).toContain("1 by Jordan");
+    expect(result.meds.description).toContain("1 by Team member");
+
+    // Moments
+    expect(result.moments.items).toHaveLength(1);
+    expect(result.moments.items[0]?.excerpt).toBe("She had a good morning.");
+    expect(result.moments.items[0]?.mood).toBe("good");
+
+    // Appointments
+    expect(result.appointments.completed).toBe(1);
+    expect(result.appointments.description).toContain("1 completed visit");
+
+    // Concerns
+    expect(result.concerns.hasConcerns).toBe(true);
+    expect(result.concerns.items).toHaveLength(1);
+    expect(result.concerns.items[0]?.excerpt).toBe("symptom");
+
+    // Thanks — viewer "viewer-snap" is not a contributor so viewerOnly=false
+    expect(result.thanks.viewerOnly).toBe(false);
+    expect(result.thanks.description).toContain("Maya");
+    expect(result.thanks.description).toContain("Jordan");
+    expect(result.thanks.description).toContain("Team member");
   });
 });
