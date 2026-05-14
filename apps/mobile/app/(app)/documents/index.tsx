@@ -17,6 +17,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import { getSession } from "../../../utils/auth";
 import {
   DOC_TYPES,
@@ -52,10 +53,11 @@ export default function DocumentsScreen() {
     { enabled: !!orgId && !!recipientId },
   );
 
-  const deleteMut = trpc.documents.delete.useMutation({
-    onSuccess: () => refetch(),
-    onError: (err) => Alert.alert("Error", err.message),
-  });
+  const deleteMut = useMutationWithRefresh(
+    trpc.documents.delete.useMutation,
+    refetch,
+    { onError: (err) => Alert.alert("Error", err.message) },
+  );
 
   const styles = useMemo(
     () =>

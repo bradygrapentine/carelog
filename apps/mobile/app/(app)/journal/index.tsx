@@ -13,6 +13,7 @@ import {
 import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useOfflineWrite } from "../../../hooks/useOfflineWrite";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import { useApp } from "../../../context/AppContext";
 import {
@@ -43,12 +44,14 @@ function EntryReactions({
   colors: ReturnType<typeof useAppTheme>["colors"];
 }) {
   const { data, refetch } = trpc.careEvents.reactions.useQuery({ eventId });
-  const reactMut = trpc.careEvents.react.useMutation({
-    onSuccess: () => refetch(),
-  });
-  const unreactMut = trpc.careEvents.unreact.useMutation({
-    onSuccess: () => refetch(),
-  });
+  const reactMut = useMutationWithRefresh(
+    trpc.careEvents.react.useMutation,
+    refetch,
+  );
+  const unreactMut = useMutationWithRefresh(
+    trpc.careEvents.unreact.useMutation,
+    refetch,
+  );
 
   const counts = data?.counts ?? {};
   const myReaction = data?.myReaction ?? null;

@@ -27,24 +27,34 @@
  *         setShowInvite(false);
  *         Alert.alert("Invite sent");
  *       },
+ *       onError: (err) => Alert.alert("Error", err.message),
  *     },
  *   );
  */
 
-type MutationFactory<TInput, TOutput> = (opts: {
+/** Minimal error shape that tRPC mutation errors satisfy. */
+type MutationError = { message: string };
+
+type MutationHookOptions<TOutput> = {
   onSuccess?: (data: TOutput) => void;
-  onError?: (err: unknown) => void;
-}) => {
+  onError?: (err: MutationError) => void;
+};
+
+type MutationResult<TInput, TOutput> = {
   mutate: (input: TInput, opts?: { onSuccess?: () => void }) => void;
   mutateAsync: (input: TInput) => Promise<TOutput>;
   isPending: boolean;
-  error: unknown;
+  error: MutationError | null;
   reset: () => void;
 };
 
+type UseMutationHook<TInput, TOutput> = (
+  opts: MutationHookOptions<TOutput>,
+) => MutationResult<TInput, TOutput>;
+
 type UseMutationWithRefreshOptions<TOutput> = {
   onSuccess?: (data: TOutput) => void;
-  onError?: (err: unknown) => void;
+  onError?: (err: MutationError) => void;
 };
 
 /**
@@ -59,13 +69,10 @@ type UseMutationWithRefreshOptions<TOutput> = {
  *                           `onSuccess` fires after `refresh`.
  */
 export function useMutationWithRefresh<TInput, TOutput>(
-  useMutationHook: (opts: {
-    onSuccess?: (data: TOutput) => void;
-    onError?: (err: unknown) => void;
-  }) => ReturnType<MutationFactory<TInput, TOutput>>,
+  useMutationHook: UseMutationHook<TInput, TOutput>,
   refresh: () => void,
   options?: UseMutationWithRefreshOptions<TOutput>,
-): ReturnType<MutationFactory<TInput, TOutput>> {
+): MutationResult<TInput, TOutput> {
   return useMutationHook({
     onSuccess: (data: TOutput) => {
       refresh();

@@ -11,6 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import {
   formatCurrency,
   canLogExpense,
@@ -65,10 +66,11 @@ export default function ExpensesScreen() {
     { enabled: !!orgId && !!recipientId },
   );
 
-  const deleteMut = trpc.expenses.delete.useMutation({
-    onSuccess: () => refetch(),
-    onError: (err) => Alert.alert("Error", err.message),
-  });
+  const deleteMut = useMutationWithRefresh(
+    trpc.expenses.delete.useMutation,
+    refetch,
+    { onError: (err) => Alert.alert("Error", (err as { message?: string }).message ?? "Error") },
+  );
 
   function confirmDelete(id: string) {
     Alert.alert("Delete expense?", "This cannot be undone.", [

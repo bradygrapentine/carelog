@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { trpc } from "../../../utils/trpc";
 import { useApp } from "../../../context/AppContext";
+import { useMutationWithRefresh } from "../../../hooks/useMutationWithRefresh";
 import {
   Mood,
   ReactionKey,
@@ -36,12 +37,14 @@ export default function JournalDetailScreen() {
   });
   const { data: reactions, refetch: refetchReactions } =
     trpc.careEvents.reactions.useQuery({ eventId });
-  const reactMut = trpc.careEvents.react.useMutation({
-    onSuccess: () => refetchReactions(),
-  });
-  const unreactMut = trpc.careEvents.unreact.useMutation({
-    onSuccess: () => refetchReactions(),
-  });
+  const reactMut = useMutationWithRefresh(
+    trpc.careEvents.react.useMutation,
+    refetchReactions,
+  );
+  const unreactMut = useMutationWithRefresh(
+    trpc.careEvents.unreact.useMutation,
+    refetchReactions,
+  );
   const flagMut = trpc.careEvents.flag.useMutation({
     onSuccess: () => haptics.success(),
     onError: () => haptics.error(),
