@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { KEYS, migratedGet } from "../../lib/secureStoreKeys";
 import { supabase } from "../../utils/supabase";
 import { useAppTheme } from "../../hooks/useAppTheme";
 
@@ -54,7 +55,8 @@ export default function VerifyScreen() {
   );
 
   useEffect(() => {
-    SecureStore.getItemAsync("pending_email").then((e) => {
+    // migratedGet handles devices with value stored under old key "pending_email".
+    migratedGet(KEYS.pendingEmail, "pending_email").then((e) => {
       if (e) setEmail(e);
     });
   }, []);
@@ -75,9 +77,11 @@ export default function VerifyScreen() {
       return;
     }
 
-    await SecureStore.deleteItemAsync("pending_email");
+    await SecureStore.deleteItemAsync(KEYS.pendingEmail);
 
-    const pendingInvite = await SecureStore.getItemAsync(
+    // migratedGet handles devices with invite token stored under old key "pending_invite_token".
+    const pendingInvite = await migratedGet(
+      KEYS.pendingInviteToken,
       "pending_invite_token",
     );
     if (pendingInvite) {

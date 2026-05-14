@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { KEYS } from "../../../lib/secureStoreKeys";
 import { getSession } from "../../../utils/auth";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 
@@ -59,7 +60,7 @@ export default function InviteScreen() {
     async function init() {
       const session = await getSession();
       if (!session) {
-        await SecureStore.setItemAsync("pending_invite_token", token);
+        await SecureStore.setItemAsync(KEYS.pendingInviteToken, token);
         router.replace("/(auth)/sign-in");
         return;
       }
@@ -93,7 +94,7 @@ export default function InviteScreen() {
       );
       return;
     }
-    await SecureStore.deleteItemAsync("pending_invite_token");
+    await SecureStore.deleteItemAsync(KEYS.pendingInviteToken);
     router.replace("/(app)/journal");
   }
 

@@ -95,12 +95,8 @@ describe("CareRecipientScreen", () => {
   it("renders headline and inputs", () => {
     const { getByText, getByLabelText } = render(<CareRecipientScreen />);
     expect(getByText("Who are you caring for?")).toBeTruthy();
-    expect(
-      getByLabelText("Care recipient display name"),
-    ).toBeTruthy();
-    expect(
-      getByLabelText("Your name as shown to team members"),
-    ).toBeTruthy();
+    expect(getByLabelText("Care recipient display name")).toBeTruthy();
+    expect(getByLabelText("Your name as shown to team members")).toBeTruthy();
   });
 
   it("does not navigate when fields are empty", () => {
@@ -112,10 +108,7 @@ describe("CareRecipientScreen", () => {
   it("navigates when both fields are filled", () => {
     const { getByText, getByLabelText } = render(<CareRecipientScreen />);
 
-    fireEvent.changeText(
-      getByLabelText("Care recipient display name"),
-      "Mom",
-    );
+    fireEvent.changeText(getByLabelText("Care recipient display name"), "Mom");
     fireEvent.changeText(
       getByLabelText("Your name as shown to team members"),
       "Alex",
@@ -141,7 +134,7 @@ describe("InviteTeamScreen", () => {
 
     await waitFor(() => {
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
-        "onboarding_complete",
+        "v1:carelog:onboarding_complete",
         "true",
       );
       expect(mockReplace).toHaveBeenCalledWith("/(app)");
@@ -154,7 +147,7 @@ describe("InviteTeamScreen", () => {
 
     await waitFor(() => {
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
-        "onboarding_complete",
+        "v1:carelog:onboarding_complete",
         "true",
       );
       expect(mockReplace).toHaveBeenCalledWith("/(app)");
@@ -175,9 +168,11 @@ describe("Onboarding flow integration", () => {
 
     // Step 2: Care Recipient
     jest.clearAllMocks();
-    const { getByText: getCare, getByLabelText, unmount: unmountCare } = render(
-      <CareRecipientScreen />,
-    );
+    const {
+      getByText: getCare,
+      getByLabelText,
+      unmount: unmountCare,
+    } = render(<CareRecipientScreen />);
     fireEvent.changeText(getByLabelText("Care recipient display name"), "Mom");
     fireEvent.changeText(
       getByLabelText("Your name as shown to team members"),
@@ -194,7 +189,7 @@ describe("Onboarding flow integration", () => {
 
     await waitFor(() => {
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
-        "onboarding_complete",
+        "v1:carelog:onboarding_complete",
         "true",
       );
       expect(mockReplace).toHaveBeenCalledWith("/(app)");

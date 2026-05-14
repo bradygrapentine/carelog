@@ -115,7 +115,7 @@ describe("offlineQueue", () => {
     const queue = await getQueue();
     expect(queue).toHaveLength(0);
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(
-      "carelog_offline_queue",
+      "v1:carelog:offline_queue",
     );
   });
 });
