@@ -19,7 +19,8 @@
     "test:e2e": "playwright test",
     "test:db": "supabase test db",
     "test:all": "pnpm test && pnpm test:db && pnpm test:e2e",
-    "a11y:contrast": "node scripts/a11y-contrast.mjs"
+    "a11y:contrast": "node scripts/a11y-contrast.mjs",
+    "migration-check": "bash scripts/migration-check.sh"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
