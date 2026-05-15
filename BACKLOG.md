@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-15 (opus-followup-pair sprint close)** — `/sprint opus-followup-pair` shipped TD-139 + TD-140 via single direct-implementation wave (PRs #513/#514). Opus took 3 review cycles to clear (cycle-2 caught the must-fix: helper must live in `apps/web/lib/`, not co-located in `route.tsx`, because the vitest `node` project can't parse JSX). One nit from `/oop --from-sprint` seeded as TD-141 (consolidate JournalPayload parallel slots — needs schema migration, half-day work). §0 net Ready: 30 → 29 (-2 shipped + 1 new). Remaining Ready = 29.
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-15 (ux-044-leave-org sprint close)** — `/sprint ux-044-leave-org` shipped UX-044 (PR #516). 2 Opus review cycles forced a Gate-2 scope re-shape from "swap button for link" to "swap button for honest no-link copy" after both must-fix cycles uncovered that `/team/admin` doesn't deliver a self-remove path for any role. The placebo modal is gone; section now anchors a real leave-org flow when one is built. §0 Ready: 29 → 28 (-1 shipped).
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 29 | TD-111 · TD-120/121/123 · TD-129 · TD-133 · TD-137/138 · TD-141 · UX-044 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEC-007 · SEC-008 · SEC-009 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
+| 🟢 Ready | 28 | TD-111 · TD-120/121/123 · TD-129 · TD-133 · TD-137/138 · TD-141 · UX-048..050 · UX-053 · UX-065 · UX-077 · UX-103b/104b/105b · SEC-007 · SEC-008 · SEC-009 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -538,7 +538,7 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 | UX-041 | ✅ Shipped · PR #507 | **Journal cards: surface author identity** | See §7 entry "2026-05-15 — Journal & meds quick-win trio". |
 | UX-042 | ✅ Shipped · PR #505 | **Journal top bar: show recipient name not org name** | See §7 entry "2026-05-15 — Journal & meds quick-win trio". |
 | UX-043 | ✅ Shipped · PR #506 | **`MedicationChecklist`: format scheduled times + design tokens** | See §7 entry "2026-05-15 — Journal & meds quick-win trio". |
-| UX-044 | 🟢 Ready | **Wire or remove the broken "Leave organization" button in Settings** | `/impeccable critique` 2026-04-29: `apps/web/app/(app)/settings/page.tsx:613–623` shows a confirmation modal that resolves to a toast saying "go to Team panel and leave from there." A user who came to Settings to leave a team gets visual friction with no real action. This is worse than no button. Either implement the API call or remove the button entirely (replace with a small note + link to `/team/admin`). Trust-eroding placebo button is the worst case. |
+| UX-044 | ✅ Shipped · PR #516 | Leave-org placebo button + modal removed; honest copy points to coordinator/support | Removal path chosen after 2 Opus review cycles surfaced that `/team/admin` redirects non-coordinators and doesn't let coordinators self-remove — no link option would have worked. Real leave-org flow is now its own backlog candidate when ready. |
 | UX-046 | 🟡 Spike | **Clinician-readable share surface — does PRODUCT.md's promise have a route?** | `/impeccable critique` 2026-04-29 surfaced a category gap: PRODUCT.md says "a doctor's appointment starts with a real summary." `/care/[shareToken]` is the outer-circle volunteer-claim form (meals, errands), not a clinician share. `/visit-summary` is gated behind authentication and produces a print-only artifact the caregiver must physically deliver. The "real summary for the doctor" promise has no shipped surface. Spike: investigate whether (a) `visit-summary` should also produce a time-limited token URL the caregiver emails to the doctor, (b) a new `/clinician/[shareToken]` route is warranted, or (c) the existing `/brief/[shareToken]` flow already serves the use case if briefs default to clinician-friendly content. Founder/PM decision before any code. |
 | UX-048 | 🟢 Ready | **Empty states polish** | `/impeccable clarify` 2026-04-29 audit found generic-SaaS empty-state copy across journal, medications, team, and dashboard surfaces ("No items", "No projects yet", "Get started"). Replace with PRODUCT.md-aligned warm·candid copy that names the subject + offers a next action ("No journal entries yet. Log how today went."). See `apps/web/copy-audit.md` §3 for the full list. |
 | UX-049 | 🟢 Ready | **Auth + onboarding voice pass** | `/impeccable clarify` 2026-04-29 audit found tone mismatches in the auth flow: `SignInForm.tsx:115` button reads "Sign in" on what is actually a 6-digit OTP verify step ("Verify code" / "Verifying..." is correct). Onboarding has 3 different error strings, only 1 well-pitched. Auth callback / invite-load errors lack remediation. Sweep the 8 auth-surface findings in `apps/web/copy-audit.md` §2 and the onboarding findings in §1 Medium. |
@@ -548,6 +548,10 @@ From `BACKLOG_UI_REDESIGN.md`. Ordered by impact.
 ---
 
 ## 7. Shipped (compact log)
+
+### 2026-05-15 — UX-044 Leave-org placebo removal — PR #516
+Sprint `ux-044-leave-org` (`/sprint` full pipeline) shipped a single tiny removal that turned out to be subtly wrong-shaped at first pass. Two Opus review cycles forced a Gate-2 scope re-shape: the backlog row's "replace with link to /team/admin" promise was a placebo-relocation — coordinators can't self-remove there (`TeamAdminClient.tsx:126`) AND non-coordinators get redirected away (`team/admin/page.tsx:19`). Re-scoped to ship the removal with honest no-link copy, deferring the real leave-org flow to a future feature.
+✅ **UX-044** (PR #516) `apps/web/app/(app)/settings/page.tsx` — deleted the `Leave` button, the confirmation modal, the `useState`, and the orphaned `toast.error` (77 LOC). Replaced with: "To leave a team, ask a coordinator to remove you from the member list. If you're the only coordinator, contact support so we can transfer ownership or close the organization." Danger-zone section stays as the natural anchor for the real flow when it ships.
 
 ### 2026-05-15 — Opus follow-up pair (TD-139/140) — PRs #513/#514
 Sprint `opus-followup-pair` (`/sprint` full pipeline) closed both Should-fix items Opus surfaced during pre-merge review of the prior sprint via single direct-implementation wave (~1h work, file-disjoint). Opus took 3 `/opus-on-opus` cycles to clear (cycle-1 must-fix: spec exact narrowing pattern; cycle-2 must-fix: helper must live in `apps/web/lib/`, not co-located in `route.tsx` — vitest node project can't parse JSX, and route imports `@react-pdf/renderer` + supabase which would be pulled into a unit test for a 10-line helper).
