@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase";
 import { authenticatedFetch } from "../lib/authenticatedFetch";
+import type { JournalEvent } from "@/types/journal";
 
 type OrgInfo = {
   id: string;
@@ -15,15 +16,6 @@ type Member = {
   user_id: string;
   display_name: string | null;
   email: string | null;
-};
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  actor_id: string;
-  payload?: { text?: string; mood?: string };
 };
 
 type Recipient = {

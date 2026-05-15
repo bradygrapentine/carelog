@@ -30,20 +30,11 @@ import { BenefitsNavigator } from "./BenefitsNavigator";
 import { DocumentVault } from "./DocumentVault";
 import { EolPlanner } from "./EolPlanner";
 import { SidebarContext } from "../../../../components/sidebar/SidebarContext";
+import type { JournalEvent } from "@/types/journal";
 
 type OrgInfo = {
   id: string;
   name: string;
-};
-
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  actor_id: string;
-  payload?: { text?: string; mood?: string };
 };
 
 type Member = {

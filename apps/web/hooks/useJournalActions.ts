@@ -4,20 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { authenticatedFetch } from "../lib/authenticatedFetch";
 import { pushEntry, QueueFullError } from "../lib/offline-queue";
+import type { JournalEvent } from "@/types/journal";
 
 type OrgInfo = {
   id: string;
   name: string;
-};
-
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  actor_id: string;
-  payload?: { text?: string; mood?: string };
 };
 
 export function useJournalActions(

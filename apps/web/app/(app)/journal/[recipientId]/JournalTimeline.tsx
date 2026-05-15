@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen } from "lucide-react";
 import { CommentThread } from "@/components/care-events/CommentThread";
 import { useAbortable } from "../../../../hooks/useAbortable";
+import type { JournalEvent } from "@/types/journal";
 import {
   moodDotClass,
   moodBorderClass,
@@ -126,16 +127,6 @@ function useReactions(eventId: string, userId: string | null) {
   return { counts, myReaction, toggle };
 }
 
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  actor_id: string;
-  payload?: { text?: string; mood?: string };
-};
-
 type AuthorMember = {
   user_id: string;
   display_name: string | null;
@@ -147,7 +138,7 @@ type CardProps = {
   canFlag: boolean;
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
-  members: AuthorMember[];
+  membersByUserId: Map<string, string | null>;
 };
 
 function JournalCard({
@@ -156,11 +147,9 @@ function JournalCard({
   canFlag,
   recipientId,
   onFlag,
-  members,
+  membersByUserId,
 }: CardProps) {
-  const authorName =
-    members.find((m) => m.user_id === event.actor_id)?.display_name ??
-    "Former member";
+  const authorName = membersByUserId.get(event.actor_id) ?? "Former member";
   const payload = event.payload ?? {};
   const { counts, myReaction, toggle } = useReactions(event.id, currentUserId);
 
@@ -379,6 +368,15 @@ export function JournalTimeline({
   loadingMore = false,
 }: Props) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // TD-137: pre-compute member display_names keyed by user_id once per
+  // members refresh. Replaces an O(N×M) members.find() in every JournalCard
+  // render with an O(N+M) lookup. Map.get(...) returning undefined coalesces
+  // through `??` identically to the prior `.find(...)?.display_name`.
+  const membersByUserId = useMemo(
+    () => new Map(members.map((m) => [m.user_id, m.display_name] as const)),
+    [members],
+  );
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -612,7 +610,7 @@ export function JournalTimeline({
                       canFlag={canFlag}
                       recipientId={recipientId}
                       onFlag={onFlag}
-                      members={members}
+                      membersByUserId={membersByUserId}
                     />
                   ) : (
                     <div className="flex items-center gap-3 py-2 px-1">
