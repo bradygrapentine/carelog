@@ -166,6 +166,8 @@ describe("getCareTeamForRecipient", () => {
     chain.eq = vi.fn(() => chain);
     chain.or = vi.fn(() => chain);
     chain.not = vi.fn(() => chain);
+    // TD-121: prod chain now terminates at .limit(50) for the rate-limit cap.
+    chain.limit = vi.fn(() => chain);
     chain.then = (resolve: (v: typeof result) => unknown) =>
       Promise.resolve(result).then(resolve);
     return chain;
@@ -217,6 +219,8 @@ describe("getCareTeamForRecipient", () => {
     expect(chain.or).toHaveBeenCalledWith(
       `recipient_id.eq.${RECIPIENT_ID},recipient_id.is.null`,
     );
+    // TD-121: rate-limit cap applied post-filter.
+    expect(chain.limit).toHaveBeenCalledWith(50);
   });
 
   it("falls back to user_metadata.full_name when display_name absent", async () => {
@@ -272,5 +276,47 @@ describe("getCareTeamForRecipient", () => {
     await expect(getCareTeamForRecipient(ORG_ID, RECIPIENT_ID)).rejects.toThrow(
       /getCareTeamForRecipient failed: boom/,
     );
+  });
+
+  it("returns surviving members when getUserById blips on one row", async () => {
+    // TD-121: Promise.allSettled tolerates a rate-limit / network blip on
+    // one member without 500ing the page; rejected settlement is logged.
+    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+      makeListChain({
+        data: [
+          { id: M1, user_id: U1, role: "coordinator", recipient_id: null },
+          {
+            id: M2,
+            user_id: U2,
+            role: "caregiver",
+            recipient_id: RECIPIENT_ID,
+          },
+        ],
+        error: null,
+      }) as unknown as never,
+    );
+    vi.mocked(supabaseAdmin.auth.admin.getUserById)
+      .mockResolvedValueOnce({
+        data: {
+          user: { id: U1, user_metadata: { display_name: "Alice Adams" } },
+        },
+        error: null,
+      } as never)
+      .mockRejectedValueOnce(new Error("rate limit"));
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+
+    expect(result).toEqual([
+      { id: M1, name: "Alice Adams", role: "coordinator", initials: "AA" },
+    ]);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "getCareTeamForRecipient: getUserById rejected",
+      expect.any(Error),
+    );
+
+    warnSpy.mockRestore();
   });
 });
