@@ -19,14 +19,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import posthog from "posthog-js";
-import { MOOD_CHIP_CLS } from "@/lib/mood";
+import { MOOD_CHIP_CLS, MOOD_KEYS, MOOD_LABELS, type Mood } from "@/lib/mood";
 
-const MOODS = [
-  { value: "good", label: "Good" },
-  { value: "okay", label: "Okay" },
-  { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Hard" },
-];
+const MOODS: { value: Mood; label: string }[] = MOOD_KEYS.map((value) => ({
+  value,
+  label: MOOD_LABELS[value],
+}));
 
 type Props = {
   onPost: (text: string, mood: string) => Promise<void>;

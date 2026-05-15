@@ -11,17 +11,29 @@
  * "moodStyle === 'spectrum'" branch.
  */
 
-import type { Mood } from "@/lib/mood";
+import { MOOD_LABELS, type Mood } from "@/lib/mood";
 
 const ORDER: { value: Mood; label: string; tokenVar: string }[] = [
-  { value: "good", label: "Good", tokenVar: "var(--color-mood-good)" },
-  { value: "okay", label: "Okay", tokenVar: "var(--color-mood-okay)" },
+  {
+    value: "good",
+    label: MOOD_LABELS.good,
+    tokenVar: "var(--color-mood-good)",
+  },
+  {
+    value: "okay",
+    label: MOOD_LABELS.okay,
+    tokenVar: "var(--color-mood-okay)",
+  },
   {
     value: "difficult",
-    label: "Difficult",
+    label: MOOD_LABELS.difficult,
     tokenVar: "var(--color-mood-difficult)",
   },
-  { value: "crisis", label: "Hard", tokenVar: "var(--color-mood-crisis)" },
+  {
+    value: "crisis",
+    label: MOOD_LABELS.crisis,
+    tokenVar: "var(--color-mood-crisis)",
+  },
 ];
 
 type Props = {

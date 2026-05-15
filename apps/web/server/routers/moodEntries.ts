@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure } from "../trpc/index";
 import { TRPCError } from "@trpc/server";
 import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
+import { MOOD_LABELS } from "@/lib/mood";
 
 /** Mood score mapping: higher = better. */
 const MOOD_SCORE: Record<string, number> = {
@@ -11,12 +12,16 @@ const MOOD_SCORE: Record<string, number> = {
   crisis: 1,
 };
 
-/** Human-readable label for the most recent mood value. */
+/**
+ * Human-readable label for the most recent mood value. Digest tone: this
+ * surface uses "Settled" instead of "Okay" — softer register matches the
+ * editorial voice of the weekly digest copy. All other UI surfaces use
+ * MOOD_LABELS verbatim. If digest copy is rewritten and "Okay" reads fine,
+ * delete the override and import MOOD_LABELS directly at the call site.
+ */
 const MOOD_LABEL: Record<string, string> = {
-  good: "Good",
+  ...MOOD_LABELS,
   okay: "Settled",
-  difficult: "Difficult",
-  crisis: "Hard",
 };
 
 /**

@@ -10,6 +10,39 @@
 /** The four mood keys used across the journal/symptom UI. */
 export type Mood = "good" | "okay" | "difficult" | "crisis";
 
+/**
+ * Canonical mood order — single source of truth for picker / segmented-control
+ * / digest iteration. `as const satisfies` keeps the tuple narrow without a
+ * cast at call sites.
+ */
+export const MOOD_KEYS = [
+  "good",
+  "okay",
+  "difficult",
+  "crisis",
+] as const satisfies readonly Mood[];
+
+/**
+ * User-facing capitalized labels for the four mood keys. Five UI surfaces
+ * share these verbatim; `server/routers/moodEntries.ts` overrides `okay` to
+ * "Settled" for weekly-digest tone — see that file for the rationale.
+ *
+ * Note: `crisis` renders as "Hard" — intentional softer register for the
+ * caregiver-facing UI (per the UX-050 "Crisis"→"Hard" rename). The TS key
+ * `"crisis"` is kept for stable enum identity in DB rows + analytics.
+ */
+export const MOOD_LABELS: Record<Mood, string> = {
+  good: "Good",
+  okay: "Okay",
+  difficult: "Difficult",
+  crisis: "Hard",
+};
+
+/** Convenience accessor; returns the label for a Mood. */
+export function moodLabel(mood: Mood): string {
+  return MOOD_LABELS[mood];
+}
+
 /** Solid dot / indicator colour per mood key */
 export const MOOD_DOT_CLS: Record<string, string> = {
   good: "bg-[var(--color-mood-good)]",

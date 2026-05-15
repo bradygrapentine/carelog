@@ -7,7 +7,13 @@ import { CardContent, CardTitle } from "@/components/ui/card";
 import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { MOOD_CHIP_CLS, MOOD_BADGE_CLS } from "../../../../lib/mood";
+import {
+  MOOD_CHIP_CLS,
+  MOOD_BADGE_CLS,
+  MOOD_KEYS,
+  MOOD_LABELS,
+  type Mood,
+} from "../../../../lib/mood";
 import { formatMonthDay } from "../../../../lib/format";
 
 type Props = {
@@ -30,12 +36,10 @@ type MoodVal = "good" | "okay" | "difficult" | "crisis" | "";
 type AppetiteVal = "normal" | "reduced" | "poor" | "none" | "";
 type MobilityVal = "normal" | "limited" | "assisted" | "bedbound" | "";
 
-const MOOD_OPTS: { value: MoodVal; label: string }[] = [
-  { value: "good", label: "Good" },
-  { value: "okay", label: "Okay" },
-  { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Hard" },
-];
+const MOOD_OPTS: { value: Mood; label: string }[] = MOOD_KEYS.map((value) => ({
+  value,
+  label: MOOD_LABELS[value],
+}));
 
 const APPETITE_OPTS: { value: AppetiteVal; label: string }[] = [
   { value: "normal", label: "Normal" },

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import posthog from "posthog-js";
-import { MOOD_CHIP_CLS, type Mood } from "@/lib/mood";
+import { MOOD_CHIP_CLS, MOOD_KEYS, MOOD_LABELS, type Mood } from "@/lib/mood";
 import { PromptedComposer } from "@/components/journal/PromptedComposer";
 import { MoodSpectrum } from "@/components/journal/MoodSpectrum";
 
@@ -29,12 +29,10 @@ function pickPrompts(n: number) {
   return shuffled.slice(0, n);
 }
 
-const MOODS = [
-  { value: "good", label: "Good" },
-  { value: "okay", label: "Okay" },
-  { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Hard" },
-];
+const MOODS: { value: Mood; label: string }[] = MOOD_KEYS.map((value) => ({
+  value,
+  label: MOOD_LABELS[value],
+}));
 
 /**
  * UX-059 — composer mode.
