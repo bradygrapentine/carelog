@@ -172,19 +172,20 @@ describe("getCareTeamForRecipient", () => {
   }
 
   it("returns members with names resolved from auth.users.user_metadata.display_name", async () => {
+    const chain = makeListChain({
+      data: [
+        { id: M1, user_id: U1, role: "coordinator", recipient_id: null },
+        {
+          id: M2,
+          user_id: U2,
+          role: "caregiver",
+          recipient_id: RECIPIENT_ID,
+        },
+      ],
+      error: null,
+    });
     vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
-      makeListChain({
-        data: [
-          { id: M1, user_id: U1, role: "coordinator", recipient_id: null },
-          {
-            id: M2,
-            user_id: U2,
-            role: "caregiver",
-            recipient_id: RECIPIENT_ID,
-          },
-        ],
-        error: null,
-      }) as unknown as never,
+      chain as unknown as never,
     );
     vi.mocked(supabaseAdmin.auth.admin.getUserById)
       .mockResolvedValueOnce({
@@ -205,6 +206,17 @@ describe("getCareTeamForRecipient", () => {
       { id: M1, name: "Alice Adams", role: "coordinator", initials: "AA" },
       { id: M2, name: "Bob Brown", role: "caregiver", initials: "BB" },
     ]);
+
+    // TD-140: lock the prod query shape. .select column-list intentionally
+    // matched with stringContaining so a future additive column doesn't break
+    // this test. .not() asserts deferred — called twice with different args.
+    expect(chain.select).toHaveBeenCalledWith(
+      expect.stringContaining("user_id"),
+    );
+    expect(chain.eq).toHaveBeenCalledWith("org_id", ORG_ID);
+    expect(chain.or).toHaveBeenCalledWith(
+      `recipient_id.eq.${RECIPIENT_ID},recipient_id.is.null`,
+    );
   });
 
   it("falls back to user_metadata.full_name when display_name absent", async () => {
