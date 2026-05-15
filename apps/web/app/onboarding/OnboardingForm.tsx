@@ -61,13 +61,17 @@ export function OnboardingForm() {
     try {
       data = await res.json();
     } catch {
-      setError("We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.");
+      setError(
+        "We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.",
+      );
       setLoading(false);
       return;
     }
 
     if (!res.ok || data.error) {
-      setError("We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.");
+      setError(
+        "We couldn't finish setup. Try again, or email hello@care-log.org if it keeps failing.",
+      );
       setLoading(false);
       return;
     }
@@ -98,7 +102,7 @@ export function OnboardingForm() {
           className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          Their name is stored securely and only visible to your care team.
+          Only your care team sees this name. We never sell or share it.
         </p>
       </div>
 
@@ -116,7 +120,7 @@ export function OnboardingForm() {
 
       <div>
         <label className="block text-sm font-medium text-foreground/80 mb-1">
-          What would you like to call this care team?
+          Name your care team
           <span className="text-[var(--color-danger)] ml-1">*</span>
         </label>
         <input
@@ -142,7 +146,7 @@ export function OnboardingForm() {
       </button>
 
       <p className="text-center text-xs text-muted-foreground">
-        You can invite team members after setup.
+        You can invite family or aides on the next screen.
       </p>
     </form>
   );

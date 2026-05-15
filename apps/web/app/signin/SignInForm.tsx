@@ -129,7 +129,7 @@ export function SignInForm() {
           disabled={loading || otp.length !== 6}
           className="w-full rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
         >
-          {loading ? "Signing you in..." : "Sign in"}
+          {loading ? "Verifying..." : "Verify code"}
         </button>
         <button
           type="button"
@@ -171,10 +171,10 @@ export function SignInForm() {
         disabled={loading || !email}
         className="w-full rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
       >
-        {loading ? "Sending code..." : "Continue with email"}
+        {loading ? "Sending..." : "Continue with email"}
       </button>
       <p className="text-center text-xs text-[var(--color-muted)]">
-        We will send you a secure sign-in code. No password needed.
+        We'll email you a 6-digit code. No password needed.
       </p>
     </form>
   );
