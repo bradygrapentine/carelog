@@ -19,6 +19,10 @@ export function PostHogInit() {
       capture_pageview: false,
       capture_exceptions: true,
       debug: process.env.NODE_ENV === "development",
+      // Bootstrap with an empty flags object so the client doesn't render
+      // a loading flicker on first paint while flags are fetched from PostHog.
+      // Server-side flag evaluation uses getFeatureFlag() from lib/featureFlags.ts.
+      bootstrap: { featureFlags: {} },
     });
 
     // Defensive wrap: analytics must never throw into product UX. Unguarded
