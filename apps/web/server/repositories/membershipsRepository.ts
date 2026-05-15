@@ -41,6 +41,12 @@ function initialsFromName(name: string): string | undefined {
   return out || undefined;
 }
 
+// TD-121: bound concurrent supabaseAdmin.auth.admin.getUserById() calls below
+// the Supabase Auth Admin per-second rate limit (50/s/project). Chunking at 8
+// keeps a 50-member team well under the limit even with a concurrent profile
+// load. Pairs with the .limit(50) cap on the memberships query below.
+const CARE_TEAM_CHUNK_SIZE = 8;
+
 /**
  * UX-103: care-team list for the recipient profile page.
  * Returns accepted members of `orgId` whose membership is either scoped to
@@ -61,28 +67,47 @@ export async function getCareTeamForRecipient(
     .eq("org_id", orgId)
     .or(`recipient_id.eq.${recipientId},recipient_id.is.null`)
     .not("accepted_at", "is", null)
-    .not("user_id", "is", null);
+    .not("user_id", "is", null)
+    .limit(50);
 
   if (error)
     throw new Error(`getCareTeamForRecipient failed: ${error.message}`);
 
-  const members = await Promise.all(
-    (rows ?? []).map(async (row) => {
-      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(
-        row.user_id as string,
-      );
-      const meta = userRes?.user?.user_metadata as
-        | { display_name?: string; full_name?: string }
-        | undefined;
-      const name = meta?.display_name ?? meta?.full_name ?? "Member";
-      return {
-        id: row.id as string,
-        name,
-        role: row.role as string,
-        initials: initialsFromName(name),
-      };
-    }),
-  );
+  const rowList = rows ?? [];
+  const members: CareTeamMember[] = [];
+  for (let i = 0; i < rowList.length; i += CARE_TEAM_CHUNK_SIZE) {
+    const chunk = rowList.slice(i, i + CARE_TEAM_CHUNK_SIZE);
+    const settled = await Promise.allSettled(
+      chunk.map(async (row) => {
+        const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(
+          row.user_id as string,
+        );
+        const meta = userRes?.user?.user_metadata as
+          | { display_name?: string; full_name?: string }
+          | undefined;
+        const name = meta?.display_name ?? meta?.full_name ?? "Member";
+        return {
+          id: row.id as string,
+          name,
+          role: row.role as string,
+          initials: initialsFromName(name),
+        };
+      }),
+    );
+    for (const result of settled) {
+      if (result.status === "fulfilled") {
+        members.push(result.value);
+      } else {
+        // Rejected = getUserById blip / 429. Drop the member silently from
+        // the list rather than 500ing the page; surface the cause for prod
+        // observability.
+        console.warn(
+          "getCareTeamForRecipient: getUserById rejected",
+          result.reason,
+        );
+      }
+    }
+  }
 
   return members;
 }
