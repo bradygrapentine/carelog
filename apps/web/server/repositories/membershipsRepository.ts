@@ -58,10 +58,16 @@ const CARE_TEAM_CHUNK_SIZE = 8;
  * in `briefs.ts:232`. Falls back to "Member" when metadata is absent.
  */
 export async function getCareTeamForRecipient(
+  supabase: SupabaseClient,
   orgId: string,
   recipientId: string,
 ): Promise<CareTeamMember[]> {
-  const { data: rows, error } = await supabaseAdmin
+  // TD-120: read memberships via session-scoped supabase (RLS-gated) instead
+  // of supabaseAdmin (service-role bypass). Mirrors the pattern set by
+  // getRecipientPreferences (recipientsRepository.ts:26). Per-member name
+  // resolution below stays on supabaseAdmin — auth.admin.getUserById is the
+  // only way to read user_metadata.
+  const { data: rows, error } = await supabase
     .from("memberships")
     .select("id, user_id, role, recipient_id")
     .eq("org_id", orgId)
