@@ -16,7 +16,7 @@ const MOOD_LABEL: Record<string, string> = {
   good: "Good",
   okay: "Settled",
   difficult: "Difficult",
-  crisis: "Crisis",
+  crisis: "Hard",
 };
 
 /**

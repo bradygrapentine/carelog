@@ -21,7 +21,7 @@ const MOOD_LABEL: Record<Mood, string> = {
   good: "Good",
   okay: "Okay",
   difficult: "Difficult",
-  crisis: "Crisis",
+  crisis: "Hard",
 };
 
 export type RecipientProfileCaregiver = {

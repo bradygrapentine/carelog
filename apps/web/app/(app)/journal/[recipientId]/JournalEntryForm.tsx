@@ -13,7 +13,7 @@ const PROMPTS = [
   "How did they seem today?",
   "Anything the doctor should know?",
   "What was hard today?",
-  "Was there a moment of connection?",
+  "Anything you want to remember about today?",
   "Any changes in sleep or appetite?",
   "What are you noticing lately?",
   "How are you holding up?",
@@ -33,7 +33,7 @@ const MOODS = [
   { value: "good", label: "Good" },
   { value: "okay", label: "Okay" },
   { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Crisis" },
+  { value: "crisis", label: "Hard" },
 ];
 
 /**
@@ -113,7 +113,7 @@ function StandardJournalEntryForm({
               expand();
             }}
             onFocus={expand}
-            placeholder="Share how today went..."
+            placeholder="What happened today? Even one line is enough."
             rows={expanded ? 4 : 2}
             className="border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-muted)]"
           />
@@ -141,7 +141,7 @@ function StandardJournalEntryForm({
               )}
 
               <p className="text-xs text-[var(--color-muted)] mb-2">
-                How is today going?
+                How did today feel?
               </p>
               {mode === "spectrum" ? (
                 <div className="mb-4">
@@ -189,7 +189,7 @@ function StandardJournalEntryForm({
                   disabled={posting || !text.trim()}
                   size="sm"
                 >
-                  {posting ? "Sharing..." : "Share update"}
+                  {posting ? "Posting..." : "Post to journal"}
                 </Button>
               </div>
             </div>

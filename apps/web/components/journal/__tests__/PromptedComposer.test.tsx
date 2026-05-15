@@ -99,13 +99,15 @@ describe("PromptedComposer — mood picker", () => {
   it("only one mood is checked at a time", () => {
     render(<PromptedComposer onPost={vi.fn()} posting={false} />);
     fireEvent.click(screen.getByRole("radio", { name: /Good/i }));
-    fireEvent.click(screen.getByRole("radio", { name: /Crisis/i }));
-    expect(
-      screen.getByRole("radio", { name: /Good/i }),
-    ).toHaveAttribute("aria-checked", "false");
-    expect(
-      screen.getByRole("radio", { name: /Crisis/i }),
-    ).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("radio", { name: /Hard/i }));
+    expect(screen.getByRole("radio", { name: /Good/i })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+    expect(screen.getByRole("radio", { name: /Hard/i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 });
 
