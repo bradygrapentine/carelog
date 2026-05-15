@@ -38,7 +38,11 @@ type Props = {
   readonly recipients?: Recipient[];
   readonly currentUserId: string;
   readonly canInvite: boolean;
-  readonly onInvite: (email: string, role: string, aideRecipientId?: string | null) => Promise<void>;
+  readonly onInvite: (
+    email: string,
+    role: string,
+    aideRecipientId?: string | null,
+  ) => Promise<void>;
   readonly showInvite: boolean;
   readonly onToggleInvite: () => void;
   readonly orgId?: string;
@@ -116,7 +120,11 @@ export function TeamPanel({
     e.preventDefault();
     if (!email.trim()) return;
     setSending(true);
-    await onInvite(email.trim(), role, role === "aide" ? aideRecipientId : null);
+    await onInvite(
+      email.trim(),
+      role,
+      role === "aide" ? aideRecipientId : null,
+    );
     setEmail("");
     setRole("caregiver");
     setAideRecipientId(null);
@@ -221,9 +229,7 @@ export function TeamPanel({
                   <select
                     id="team-invite-aide-recipient"
                     value={aideRecipientId ?? ""}
-                    onChange={(e) =>
-                      setAideRecipientId(e.target.value || null)
-                    }
+                    onChange={(e) => setAideRecipientId(e.target.value || null)}
                     className="w-full px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 bg-card text-foreground"
                     required
                   >
@@ -299,9 +305,7 @@ export function TeamPanel({
                       setRemoveTarget({
                         membershipId: member.id,
                         displayLabel:
-                          member.display_name ??
-                          member.email ??
-                          "this member",
+                          member.display_name ?? member.email ?? "this member",
                       })
                     }
                     disabled={removingId === member.id}
@@ -330,6 +334,10 @@ export function TeamPanel({
               icon={Users}
               title="Just you so far"
               description="Invite family members or caregivers to collaborate on care coordination."
+              actionLabel={
+                canInvite && !showInvite ? "Invite a member" : undefined
+              }
+              onAction={canInvite && !showInvite ? onToggleInvite : undefined}
             />
           )}
         </div>

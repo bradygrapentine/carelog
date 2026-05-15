@@ -576,6 +576,7 @@ export function JournalTimeline({
             </p>
           </div>
         ) : (
+          // UX-053: passive — JournalEntryForm renders on this page above the timeline, so the primary "post" affordance is already in view
           <EmptyState
             icon={BookOpen}
             title="Quiet day in the journal"
