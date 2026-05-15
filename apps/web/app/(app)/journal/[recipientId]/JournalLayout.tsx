@@ -131,6 +131,8 @@ export function JournalLayout({
   // render trips the react-hooks/purity rule under React 19's compiler).
   const [sevenDaysAgo] = useState(() => Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+  const currentRecipient = recipients?.find((r) => r.id === recipientId);
+
   const moodEntries = useMemo(
     () =>
       events
@@ -174,7 +176,7 @@ export function JournalLayout({
         >
           <div className="flex items-center gap-3">
             <span className="font-semibold text-[var(--color-text-primary)] text-sm">
-              {org?.name ?? "Care Journal"}
+              {currentRecipient?.display_name ?? org?.name ?? "Care Journal"}
             </span>
             <span className="text-[var(--color-muted)] text-xs hidden sm:inline">
               {sectionLabel}
