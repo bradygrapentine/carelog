@@ -2,7 +2,7 @@
 
 > **This is the single source of truth for all planned work.** Every task — feature, bug, tech debt, infra, polish — is tracked here with a lifecycle status. Read this file **before** starting any task. Update it **immediately** when status changes. If it isn't here, it isn't planned. Run `/backlog-sync` at least once a day (and on session start) to reconcile against git/PRs.
 
-Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-15 (ux-048-empty-states-polish sprint close)** — `/sprint ux-048-empty-states-polish` shipped UX-048 (PR #525). Strings-only sweep of 12 empty-state surfaces from `copy-audit.md §3` (3 Critical + 8 Medium) + 1 sibling site Opus surfaced (NowBoard). 3 /opus-on-opus cycles before clear: caught 17-day audit-doc line drift, NowBoard sibling collision, and multi-line JSX Find-cell uniqueness. /oop --from-sprint clean (0/0/2). §0 Ready: 24 → 23 (-1 shipped).
+Last consolidated: **2026-04-16** (codebase scan same day). Last `/backlog-sync`: **2026-05-15T21:27:00Z (post-sprint-close sync)** — `/sprint ux-048-empty-states-polish` shipped UX-048 (PR #525) + chore sync (PR #526 merged). All CI checks green. 0 open PRs. SEC-001 flagged as stale (P0 marked In progress since 2026-05-10 with no branch/PR — awaiting operator action on secret rotation). §0 Ready: 23 (no change — UX-048 already reflected in last sync).
 
 Replaces: `BACKLOG_PHASE2–5.md`, `BACKLOG_UI_REDESIGN.md`, `docs/superpowers/plans/CLAUDE_BACKLOG.md`. `BUILD_STATUS.md` and `TECH_DEBT.md` are **historical logs only** — new work is tracked here.
 
