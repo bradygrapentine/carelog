@@ -132,7 +132,13 @@ type JournalEvent = {
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
+  actor_id: string;
   payload?: { text?: string; mood?: string };
+};
+
+type AuthorMember = {
+  user_id: string;
+  display_name: string | null;
 };
 
 type CardProps = {
@@ -141,6 +147,7 @@ type CardProps = {
   canFlag: boolean;
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
+  members: AuthorMember[];
 };
 
 function JournalCard({
@@ -149,7 +156,11 @@ function JournalCard({
   canFlag,
   recipientId,
   onFlag,
+  members,
 }: CardProps) {
+  const authorName =
+    members.find((m) => m.user_id === event.actor_id)?.display_name ??
+    "Former member";
   const payload = event.payload ?? {};
   const { counts, myReaction, toggle } = useReactions(event.id, currentUserId);
 
@@ -215,6 +226,13 @@ function JournalCard({
               </Badge>
             )}
           </div>
+
+          <p
+            className="font-medium text-[11px] text-[var(--color-ink)] mb-1 relative pointer-events-none"
+            data-testid="journal-entry-author"
+          >
+            {authorName}
+          </p>
 
           <div className="flex items-center justify-between mb-2 relative pointer-events-none">
             <p className="eyebrow-mono">{entryTime}</p>
@@ -295,6 +313,7 @@ type Props = {
   recipientId: string;
   onFlag: (eventId: string, flagged: boolean) => void;
   medications?: MedicationOption[];
+  members: AuthorMember[];
   onLoadMore?: () => void;
   hasMore?: boolean;
   loadingMore?: boolean;
@@ -354,6 +373,7 @@ export function JournalTimeline({
   recipientId,
   onFlag,
   medications,
+  members,
   onLoadMore,
   hasMore = false,
   loadingMore = false,
@@ -592,6 +612,7 @@ export function JournalTimeline({
                       canFlag={canFlag}
                       recipientId={recipientId}
                       onFlag={onFlag}
+                      members={members}
                     />
                   ) : (
                     <div className="flex items-center gap-3 py-2 px-1">

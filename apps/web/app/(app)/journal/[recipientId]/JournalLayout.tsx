@@ -42,6 +42,7 @@ type JournalEvent = {
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
+  actor_id: string;
   payload?: { text?: string; mood?: string };
 };
 
@@ -254,6 +255,7 @@ export function JournalLayout({
                     canFlag={currentUserRole !== "supporter"}
                     recipientId={recipientId}
                     onFlag={onFlag}
+                    members={members}
                     onLoadMore={onLoadMore}
                     hasMore={hasMore}
                     loadingMore={loadingMore}

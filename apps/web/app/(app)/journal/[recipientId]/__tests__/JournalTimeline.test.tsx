@@ -61,6 +61,7 @@ function makeEvent(
     entry_kind: string;
     occurred_at: string;
     flagged: boolean;
+    actor_id: string;
     payload: { text?: string; mood?: string };
   }> = {},
 ) {
@@ -70,10 +71,13 @@ function makeEvent(
     entry_kind: "human",
     occurred_at: new Date().toISOString(),
     flagged: false,
+    actor_id: "u1",
     payload: { text: "Dad had a calm day." },
     ...overrides,
   };
 }
+
+const TEST_MEMBERS = [{ user_id: "u1", display_name: "Test User" }];
 
 describe("JournalTimeline — pagination sentinel", () => {
   it("does NOT render the load-more sentinel when hasMore is false", () => {
@@ -84,6 +88,7 @@ describe("JournalTimeline — pagination sentinel", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
         onLoadMore={vi.fn()}
         hasMore={false}
       />,
@@ -101,6 +106,7 @@ describe("JournalTimeline — pagination sentinel", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
         hasMore={true}
       />,
     );
@@ -118,6 +124,7 @@ describe("JournalTimeline — pagination sentinel", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
         onLoadMore={onLoadMore}
         hasMore={true}
       />,
@@ -139,6 +146,7 @@ describe("JournalTimeline — pagination sentinel", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
         onLoadMore={vi.fn()}
         hasMore={true}
         loadingMore={true}
@@ -159,6 +167,7 @@ describe("JournalTimeline — empty state", () => {
         canFlag={true}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
@@ -172,6 +181,7 @@ describe("JournalTimeline — empty state", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
@@ -187,6 +197,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     // C-2: card is a real <Link> (anchor) for keyboard accessibility.
@@ -204,6 +215,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.getByText("Dad had a calm day.")).toBeInTheDocument();
@@ -217,6 +229,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.getByText("good")).toBeInTheDocument();
@@ -230,6 +243,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.queryByText("good")).not.toBeInTheDocument();
@@ -243,6 +257,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={true}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(
@@ -258,6 +273,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(
@@ -273,6 +289,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={true}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(screen.getByText("Flagged for doctor")).toBeInTheDocument();
@@ -290,6 +307,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={true}
         recipientId="r1"
         onFlag={onFlag}
+        members={TEST_MEMBERS}
       />,
     );
     fireEvent.click(
@@ -306,6 +324,7 @@ describe("JournalTimeline — human journal entries", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     // H-3: reactions use aria-label, not title (better screen-reader support).
@@ -334,6 +353,7 @@ describe("JournalTimeline — system events", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     // System events show "<event_type> logged" text, not a full card
@@ -356,6 +376,7 @@ describe("JournalTimeline — system events", () => {
         canFlag={true}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
     expect(
@@ -404,6 +425,7 @@ describe("JournalTimeline — abort on rapid recipient switch", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
 
@@ -415,6 +437,7 @@ describe("JournalTimeline — abort on rapid recipient switch", () => {
         canFlag={false}
         recipientId="r2"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
 
@@ -462,6 +485,7 @@ describe("JournalTimeline — toast on rollback", () => {
         canFlag={false}
         recipientId="r1"
         onFlag={vi.fn()}
+        members={TEST_MEMBERS}
       />,
     );
 
