@@ -173,6 +173,13 @@ describe("getCareTeamForRecipient", () => {
     return chain;
   }
 
+  // TD-120: getCareTeamForRecipient now takes a session-scoped supabase
+  // client as its first arg (RLS-gated read). Wrap a `makeListChain` chain
+  // in a minimal client whose .from() returns it.
+  function makeMockSupabaseClient(chain: Record<string, unknown>) {
+    return { from: vi.fn(() => chain) } as unknown as never;
+  }
+
   it("returns members with names resolved from auth.users.user_metadata.display_name", async () => {
     const chain = makeListChain({
       data: [
@@ -186,9 +193,7 @@ describe("getCareTeamForRecipient", () => {
       ],
       error: null,
     });
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
-      chain as unknown as never,
-    );
+    const mockSupabase = makeMockSupabaseClient(chain);
     vi.mocked(supabaseAdmin.auth.admin.getUserById)
       .mockResolvedValueOnce({
         data: {
@@ -203,7 +208,11 @@ describe("getCareTeamForRecipient", () => {
         error: null,
       } as never);
 
-    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+    const result = await getCareTeamForRecipient(
+      mockSupabase,
+      ORG_ID,
+      RECIPIENT_ID,
+    );
     expect(result).toEqual([
       { id: M1, name: "Alice Adams", role: "coordinator", initials: "AA" },
       { id: M2, name: "Bob Brown", role: "caregiver", initials: "BB" },
@@ -224,64 +233,76 @@ describe("getCareTeamForRecipient", () => {
   });
 
   it("falls back to user_metadata.full_name when display_name absent", async () => {
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+    const mockSupabase = makeMockSupabaseClient(
       makeListChain({
         data: [{ id: M1, user_id: U1, role: "caregiver", recipient_id: null }],
         error: null,
-      }) as unknown as never,
+      }),
     );
     vi.mocked(supabaseAdmin.auth.admin.getUserById).mockResolvedValueOnce({
       data: { user: { id: U1, user_metadata: { full_name: "Carl Carter" } } },
       error: null,
     } as never);
 
-    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+    const result = await getCareTeamForRecipient(
+      mockSupabase,
+      ORG_ID,
+      RECIPIENT_ID,
+    );
     expect(result[0]?.name).toBe("Carl Carter");
     expect(result[0]?.initials).toBe("CC");
   });
 
   it("falls back to 'Member' when user_metadata is empty", async () => {
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+    const mockSupabase = makeMockSupabaseClient(
       makeListChain({
         data: [{ id: M1, user_id: U1, role: "supporter", recipient_id: null }],
         error: null,
-      }) as unknown as never,
+      }),
     );
     vi.mocked(supabaseAdmin.auth.admin.getUserById).mockResolvedValueOnce({
       data: { user: { id: U1, user_metadata: {} } },
       error: null,
     } as never);
 
-    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+    const result = await getCareTeamForRecipient(
+      mockSupabase,
+      ORG_ID,
+      RECIPIENT_ID,
+    );
     expect(result[0]?.name).toBe("Member");
     expect(result[0]?.initials).toBe("M");
   });
 
   it("returns empty array when no memberships match", async () => {
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
-      makeListChain({ data: [], error: null }) as unknown as never,
+    const mockSupabase = makeMockSupabaseClient(
+      makeListChain({ data: [], error: null }),
     );
-    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+    const result = await getCareTeamForRecipient(
+      mockSupabase,
+      ORG_ID,
+      RECIPIENT_ID,
+    );
     expect(result).toEqual([]);
     expect(supabaseAdmin.auth.admin.getUserById).not.toHaveBeenCalled();
   });
 
   it("throws when the memberships query errors", async () => {
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+    const mockSupabase = makeMockSupabaseClient(
       makeListChain({
         data: null,
         error: { message: "boom" },
-      }) as unknown as never,
+      }),
     );
-    await expect(getCareTeamForRecipient(ORG_ID, RECIPIENT_ID)).rejects.toThrow(
-      /getCareTeamForRecipient failed: boom/,
-    );
+    await expect(
+      getCareTeamForRecipient(mockSupabase, ORG_ID, RECIPIENT_ID),
+    ).rejects.toThrow(/getCareTeamForRecipient failed: boom/);
   });
 
   it("returns surviving members when getUserById blips on one row", async () => {
     // TD-121: Promise.allSettled tolerates a rate-limit / network blip on
     // one member without 500ing the page; rejected settlement is logged.
-    vi.mocked(supabaseAdmin.from).mockReturnValueOnce(
+    const mockSupabase = makeMockSupabaseClient(
       makeListChain({
         data: [
           { id: M1, user_id: U1, role: "coordinator", recipient_id: null },
@@ -293,7 +314,7 @@ describe("getCareTeamForRecipient", () => {
           },
         ],
         error: null,
-      }) as unknown as never,
+      }),
     );
     vi.mocked(supabaseAdmin.auth.admin.getUserById)
       .mockResolvedValueOnce({
@@ -306,7 +327,11 @@ describe("getCareTeamForRecipient", () => {
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const result = await getCareTeamForRecipient(ORG_ID, RECIPIENT_ID);
+    const result = await getCareTeamForRecipient(
+      mockSupabase,
+      ORG_ID,
+      RECIPIENT_ID,
+    );
 
     expect(result).toEqual([
       { id: M1, name: "Alice Adams", role: "coordinator", initials: "AA" },

@@ -81,7 +81,7 @@ export default async function RecipientProfilePage({
 
   const [identity, careTeam, preferences] = await Promise.all([
     resolveIdentity(recipient.identity_token, recipient.org_id),
-    getCareTeamForRecipient(recipient.org_id, recipient.id),
+    getCareTeamForRecipient(supabase, recipient.org_id, recipient.id),
     getRecipientPreferences(supabase, recipient.org_id, recipient.id),
   ]);
 
