@@ -251,6 +251,8 @@ export function MedicationPanel({
             icon={Pill}
             title="No medications tracked"
             description="Track medications, dosages, and schedules to keep the whole team informed."
+            actionLabel={isCoordinator ? "Add medication" : undefined}
+            onAction={isCoordinator ? () => setShowForm(true) : undefined}
           />
         )}
 

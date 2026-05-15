@@ -6,7 +6,12 @@ import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FileText } from "lucide-react";
 
-type LinkedDoc = { id: string; display_name: string; doc_type: string; created_at: string };
+type LinkedDoc = {
+  id: string;
+  display_name: string;
+  doc_type: string;
+  created_at: string;
+};
 
 type Props = { medicationId: string; orgId: string };
 
@@ -26,6 +31,7 @@ export function MedicationLinkedDocs({ medicationId, orgId }: Props) {
       <TintedCardHeader title="Linked documents" />
       <CardContent className="pt-2">
         {docs.length === 0 ? (
+          // UX-053: passive — links populate from doc tagging in DocumentVault, no direct affordance on this card
           <EmptyState
             icon={FileText}
             title="No documents linked"

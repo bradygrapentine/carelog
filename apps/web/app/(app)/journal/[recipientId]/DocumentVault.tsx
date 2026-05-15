@@ -219,6 +219,7 @@ export function DocumentVault({
           <p className="text-sm text-muted-foreground pt-3">Loading...</p>
         )}
 
+        {/* UX-053: passive — coordinator upload form below is always-visible (line ~426), so a CTA here would be redundant */}
         {!isLoading && docs.length === 0 && (
           <EmptyState
             icon={FolderOpen}

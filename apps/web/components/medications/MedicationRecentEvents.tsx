@@ -6,7 +6,12 @@ import { TintedCard, TintedCardHeader } from "@/components/ui/tinted-card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ClipboardList } from "lucide-react";
 
-type RecentEvent = { id: string; occurred_at: string; event_type: string; payload: Record<string, unknown> };
+type RecentEvent = {
+  id: string;
+  occurred_at: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+};
 
 type Props = { medicationId: string; orgId: string };
 
@@ -26,6 +31,7 @@ export function MedicationRecentEvents({ medicationId, orgId }: Props) {
       <TintedCardHeader title="Recent entries" />
       <CardContent className="pt-2">
         {events.length === 0 ? (
+          // UX-053: passive — entries populate from journal logs mentioning the medication; primary affordance is the journal form on the journal route
           <EmptyState
             icon={ClipboardList}
             title="No recent entries"
