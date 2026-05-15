@@ -156,17 +156,18 @@ describe("getCareTeamForRecipient", () => {
   const U2 = "99999999-9999-9999-9999-999999999999";
 
   function makeListChain(result: { data: unknown; error: unknown }) {
+    // TD-122: thenable mock (mirrors `makeUpdateChain` at line 34 and the
+    // Supabase client's actual PromiseLike contract). Resolution is decoupled
+    // from filter-call shape — adding a 3rd `.not()` filter (e.g. soft-delete)
+    // no longer silently stalls the mock. All filters are vi.fn so call-site
+    // tests can still assert filter contracts directly (e.g. toHaveBeenCalledWith).
     const chain: Record<string, unknown> = {};
-    chain.select = () => chain;
-    chain.eq = () => chain;
-    chain.or = () => chain;
-    chain.not = vi.fn().mockImplementation(() => {
-      // After the second .not() call, return the resolved query result
-      if ((chain.not as ReturnType<typeof vi.fn>).mock.calls.length >= 2) {
-        return Promise.resolve(result);
-      }
-      return chain;
-    });
+    chain.select = vi.fn(() => chain);
+    chain.eq = vi.fn(() => chain);
+    chain.or = vi.fn(() => chain);
+    chain.not = vi.fn(() => chain);
+    chain.then = (resolve: (v: typeof result) => unknown) =>
+      Promise.resolve(result).then(resolve);
     return chain;
   }
 
