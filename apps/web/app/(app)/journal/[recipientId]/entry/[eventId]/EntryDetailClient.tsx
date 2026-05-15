@@ -10,6 +10,7 @@ import {
   formatLongDateLocale,
   formatTimeOfDay,
 } from "../../../../../../lib/format";
+import type { JournalEvent } from "@/types/journal";
 
 const MOOD_STYLES: Record<string, string> = MOOD_BADGE_CLS;
 
@@ -21,15 +22,6 @@ const REACTIONS = [
 ] as const;
 
 type ReactionKey = (typeof REACTIONS)[number]["key"];
-
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  payload?: { text?: string; mood?: string };
-};
 
 function formatTime(iso: string) {
   return `${formatLongDateLocale(iso)} at ${formatTimeOfDay(iso)}`;

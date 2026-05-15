@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen } from "lucide-react";
 import { CommentThread } from "@/components/care-events/CommentThread";
 import { useAbortable } from "../../../../hooks/useAbortable";
+import type { JournalEvent } from "@/types/journal";
 import {
   moodDotClass,
   moodBorderClass,
@@ -125,16 +126,6 @@ function useReactions(eventId: string, userId: string | null) {
 
   return { counts, myReaction, toggle };
 }
-
-type JournalEvent = {
-  id: string;
-  event_type: string;
-  entry_kind: string;
-  occurred_at: string;
-  flagged: boolean;
-  actor_id: string;
-  payload?: { text?: string; mood?: string };
-};
 
 type AuthorMember = {
   user_id: string;
