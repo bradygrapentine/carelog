@@ -370,7 +370,7 @@ export function SymptomPanel({ orgId, recipientId, currentUserRole }: Props) {
 
         {!isLoading && readings.length === 0 && (
           <p className="text-sm text-muted-foreground mb-3">
-            No readings recorded yet.
+            No readings yet. Log one to start a trend line.
           </p>
         )}
 

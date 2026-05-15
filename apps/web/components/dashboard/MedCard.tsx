@@ -249,7 +249,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
 
       {!isLoading && !isError && rows.length === 0 && (
         <p className="text-sm text-[var(--color-muted)]">
-          No medications tracked yet for this recipient.{" "}
+          No medications tracked yet.{" "}
           <a
             href="/medications"
             className="text-[var(--color-primary)] underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"

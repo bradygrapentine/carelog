@@ -50,7 +50,9 @@ describe("CoverageSettings", () => {
     render(<CoverageSettings orgId="org-1" recipientId="rec-1" />);
     fireEvent.click(screen.getByText("Coverage expectations"));
     expect(
-      screen.getByText("No coverage windows defined yet."),
+      screen.getByText(
+        "No coverage windows set yet. Add one to mark when someone is on duty.",
+      ),
     ).toBeInTheDocument();
   });
 

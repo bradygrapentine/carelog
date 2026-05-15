@@ -165,8 +165,8 @@ function BriefHeroEmpty() {
       eyebrow={"Today’s brief"}
       headline={
         <>
-          Nothing logged yet. Add a note from the <em>journal</em> to get
-          started.
+          Nothing logged yet. The brief fills in once someone writes from the{" "}
+          <em>journal</em>.
         </>
       }
     />
@@ -198,7 +198,6 @@ export function BriefHero({ recipientId, orgId }: BriefHeroProps) {
     isLoading,
     isError,
   } = trpc.briefs.latestForRecipient.useQuery(
-     
     { recipientId: recipientId!, orgId: orgId! },
     { enabled: ready, staleTime: 5 * 60 * 1_000 },
   );

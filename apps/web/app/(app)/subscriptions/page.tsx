@@ -86,7 +86,7 @@ export default function SubscriptionsPage() {
         </h2>
         {BILLING_HISTORY.length === 0 ? (
           <p className="text-sm text-[var(--color-muted)]">
-            No billing history yet.
+            No charges yet. Receipts will show up here once your plan starts.
           </p>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-card">

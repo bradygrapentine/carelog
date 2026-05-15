@@ -578,8 +578,8 @@ export function JournalTimeline({
         ) : (
           <EmptyState
             icon={BookOpen}
-            title="No journal entries yet"
-            description="Journal entries help your care team stay in sync. Add your first entry to get started."
+            title="Quiet day in the journal"
+            description="When you or someone on the team logs an update, it lands here. Even one line — 'good morning, slept well' — is enough."
           />
         ))}
 

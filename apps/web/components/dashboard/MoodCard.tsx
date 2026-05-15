@@ -102,7 +102,7 @@ export function MoodCard({ recipientId, orgId }: Props) {
           data-testid="mood-empty"
           className="text-sm text-[var(--color-muted)]"
         >
-          No mood entries yet — log one from the journal.
+          No mood entries yet. Log one from the journal.
         </p>
       </section>
     );

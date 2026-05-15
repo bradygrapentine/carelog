@@ -279,7 +279,7 @@ export function DashboardClient({ user }: Props) {
           <Card className="p-8 text-center">
             <CardContent className="p-0">
               <p className="text-muted-foreground text-sm mb-6">
-                You do not have any care teams yet. Set one up to get started.
+                You're not on a care team yet. Set one up to start logging.
               </p>
               <Link
                 href="/onboarding"
