@@ -16,6 +16,7 @@ type JournalEvent = {
   entry_kind: string;
   occurred_at: string;
   flagged: boolean;
+  actor_id: string;
   payload?: { text?: string; mood?: string };
 };
 
@@ -35,7 +36,11 @@ export function useJournalActions(
   handlePost: (text: string, mood: string) => Promise<void>;
   handleFlag: (eventId: string, flagged: boolean) => Promise<void>;
   handleGenerateBrief: () => Promise<void>;
-  handleInvite: (email: string, role: string, aideRecipientId?: string | null) => Promise<void>;
+  handleInvite: (
+    email: string,
+    role: string,
+    aideRecipientId?: string | null,
+  ) => Promise<void>;
   onToggleInvite: () => void;
 } {
   const [posting, setPosting] = useState(false);
@@ -121,14 +126,23 @@ export function useJournalActions(
     setGeneratingBrief(false);
   }
 
-  async function handleInvite(email: string, role: string, aideRecipientId?: string | null) {
+  async function handleInvite(
+    email: string,
+    role: string,
+    aideRecipientId?: string | null,
+  ) {
     if (!org) return;
     const effectiveRecipientId =
       role === "aide" && aideRecipientId ? aideRecipientId : recipientId;
     const res = await authenticatedFetch("/api/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orgId: org.id, recipientId: effectiveRecipientId, role, email }),
+      body: JSON.stringify({
+        orgId: org.id,
+        recipientId: effectiveRecipientId,
+        role,
+        email,
+      }),
     });
     const data = await res.json();
     if (data.inviteUrl) {
