@@ -15,14 +15,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOOD_BADGE_CLS, type Mood } from "@/lib/mood";
-
-const MOOD_LABEL: Record<Mood, string> = {
-  good: "Good",
-  okay: "Okay",
-  difficult: "Difficult",
-  crisis: "Hard",
-};
+import { MOOD_BADGE_CLS, MOOD_LABELS, type Mood } from "@/lib/mood";
 
 export type RecipientProfileCaregiver = {
   /** Stable id from team_members; used as React key. */
@@ -113,7 +106,7 @@ export function RecipientProfile({
                   data-testid="recipient-profile-mood"
                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${MOOD_BADGE_CLS[mood]}`}
                 >
-                  {MOOD_LABEL[mood]}
+                  {MOOD_LABELS[mood]}
                 </span>
               ) : null}
             </div>
