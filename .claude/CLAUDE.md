@@ -7,6 +7,7 @@ Family caregiving coordination platform. $14/mo family plan. Bootstrapped. Monor
 - **Pre-commit gate:** related-files vitest only; full via `cd apps/web && npx vitest run`.
 - **Branch protection:** GitHub native auto-merge; merge with `gh pr merge <num> --auto --squash`. No Mergify.
 - **Codex:** disabled until **2026-05-16** (quota exhausted). Adversarial gates route to Sonnet subagent or `/grill`.
+- **Opus 529 fallback:** when status.claude.com shows Opus degraded, `/opus-on-opus` will 529 after ~200s. Fall back to a Sonnet adversarial reviewer with the same brief — same output header (`Must-fix: N | Should-fix: N | Nit: N`). Don't skip the gate to "wait it out".
 - **PHI rule:** `posthog.identify()` and `posthog.capture()` use anonymous UUID only — never email, name, phone. See `docs/adr/0001-phi-anonymous-uuid-only.md`.
 - **BACKLOG-as-SoT:** `BACKLOG.md` is single source of truth. Feature/fix PRs do NOT touch it. New TD/ON rows go in dedicated `chore(backlog):` PRs. See `docs/adr/0002-backlog-as-single-source-of-truth.md`.
 
@@ -60,6 +61,8 @@ pnpm exec playwright test        # E2E — e2e/CLAUDE.md
 - **Pre-commit vitest flake on YAML/markdown-only diffs:** non-deterministic on diffs touching only `*.yml`/`*.md`. If you see `1 failed` and the diff is config/docs only, run vitest manually to verify before retrying. Don't reach for `--no-verify`.
 - **React 19 react-hooks/purity:** `Date.now()`, `Math.random()`, similar impure calls inside `useMemo`/`useCallback`/render body throw a hard lint error. Pre-commit runs only vitest so it surfaces in CI Lint, not locally. Fix: (1) component-internal "now" anchors → `const [now] = useState(() => Date.now())`; (2) pure helpers → accept `now: Date` parameter. Run `cd apps/web && npx eslint --quiet '<path>'` before push when touching hooks.
 - **Subagent context exhaustion mid-commit:** when an agent has 4+ files to write before final commit, the pre-commit vitest hook (~30–60s) can exhaust remaining context. Agent reports "completed" while worktree has staged-but-uncommitted files. Mitigation: brief 4+-file dispatches to push EARLY (after red-phase test commit). Recovery: when agent reports "completed" but no PR exists, `cd .worktrees/<name> && git status` — finish commit+push+PR yourself.
+- **pnpm + git worktree virtual-store mismatch:** subagent worktrees created via `git worktree add` inherit `node_modules` symlinks but the resolver paths target the parent worktree, so package resolution fails for ~all `apps/web` tests. Diagnose: run vitest with changes stashed — identical failure count confirms env, not your diff. Recovery: push the commit and let CI run the real suite. Do NOT reach for `--no-verify` without confirming the failure is env-pre-existing first.
+- **Backlog-seed PR ordering:** a `chore(backlog):` PR seeding rows the same session will work on must merge BEFORE the work PRs OR have auto-merge armed early so it fires first. Otherwise the work PRs land under it and the seed goes DIRTY — fixable with `git rebase origin/main && git push --force-with-lease` but adds ~5 min of cleanup. Cheapest fix: arm `gh pr merge --auto --squash` on the seed PR immediately at open.
 
 ## Code Style
 - `type` over `interface`; no `enum` — string literal unions only.
