@@ -9,7 +9,7 @@
 -- Expiry maps to not_found (function SELECTs WHERE expires_at > now()).
 
 BEGIN;
-SELECT plan(10);
+SELECT plan(13);
 
 -- ============================================================
 -- Fixtures
@@ -31,7 +31,13 @@ INSERT INTO auth.users (
    'bob@oop001.test', now(), now(), now(), '{}', '{}', false),
   -- User for already_used test (separate from happy-path to avoid state leak)
   ('20260514-2003-0000-0000-000000000001', 'authenticated', 'authenticated',
-   'carol@oop001.test', now(), now(), now(), '{}', '{}', false);
+   'carol@oop001.test', now(), now(), now(), '{}', '{}', false),
+  -- Case 7 svcrole grant test (TD-129)
+  ('20260514-2004-0000-0000-000000000001', 'authenticated', 'authenticated',
+   'svc@oop001.test', now(), now(), now(), '{}', '{}', false),
+  -- Case 8 revoked authenticated negative test (TD-129)
+  ('20260514-2005-0000-0000-000000000001', 'authenticated', 'authenticated',
+   'rev@oop001.test', now(), now(), now(), '{}', '{}', false);
 
 -- Memberships (pending — user_id NULL until invite accepted)
 INSERT INTO memberships (id, org_id, user_id, role, recipient_id) VALUES
@@ -49,6 +55,12 @@ INSERT INTO memberships (id, org_id, user_id, role, recipient_id) VALUES
    '20260514-2000-0000-0000-000000000001', NULL, 'caregiver', NULL),
   -- membership for email-normalization test
   ('20260514-2010-0000-0000-000000000005',
+   '20260514-2000-0000-0000-000000000001', NULL, 'caregiver', NULL),
+  -- Case 7 membership (TD-129: filled by accept_invite under service_role)
+  ('20260514-2010-0000-0000-000000000006',
+   '20260514-2000-0000-0000-000000000001', NULL, 'caregiver', NULL),
+  -- Case 8 membership (TD-129: never touched — throws_ok aborts before UPDATE)
+  ('20260514-2010-0000-0000-000000000007',
    '20260514-2000-0000-0000-000000000001', NULL, 'caregiver', NULL);
 
 -- invite_tokens rows
@@ -86,6 +98,21 @@ INSERT INTO invite_tokens (id, token, membership_id, email, expires_at, consumed
    'oop001-norm-token',
    '20260514-2010-0000-0000-000000000005',
    ' BOB@OOP001.TEST ',
+   now() + interval '48 hours',
+   NULL),
+  -- Case 7 (TD-129 svcrole grant): valid token, consumed by service_role
+  ('20260514-2020-0000-0000-000000000006',
+   'oop001-svcrole-token',
+   '20260514-2010-0000-0000-000000000006',
+   'svc@oop001.test',
+   now() + interval '48 hours',
+   NULL),
+  -- Case 8 (TD-129 revoked authenticated): valid token, never actually
+  -- consumed — throws_ok aborts before any UPDATE fires
+  ('20260514-2020-0000-0000-000000000007',
+   'oop001-revoked-token',
+   '20260514-2010-0000-0000-000000000007',
+   'rev@oop001.test',
    now() + interval '48 hours',
    NULL);
 
@@ -190,6 +217,63 @@ SELECT results_eq(
        'bob@oop001.test')).success $$,
   ARRAY[true],
   'case6: padded uppercase token email normalizes to match lowercased caller email'
+);
+
+-- ============================================================
+-- Case 7 — TD-129 svcrole grant: SET LOCAL ROLE service_role then call.
+-- The function is SECURITY DEFINER with REVOKE FROM PUBLIC + GRANT TO
+-- service_role (see migration 20260407000000). Verifies the GRANT line
+-- is load-bearing — if it's ever revoked, this test fails loud.
+-- Per PG semantics, SET LOCAL ROLE is transaction-scoped, NOT
+-- savepoint-scoped — explicitly RESET ROLE between cases.
+-- ============================================================
+SET LOCAL ROLE service_role;
+SELECT results_eq(
+  $$ SELECT (accept_invite('oop001-svcrole-token',
+       '20260514-2004-0000-0000-000000000001'::uuid,
+       'svc@oop001.test')).success $$,
+  ARRAY[true],
+  'case7: service_role can EXECUTE accept_invite (grant enforced)'
+);
+RESET ROLE;
+
+-- ============================================================
+-- Case 8 — TD-129 authenticated REVOKE: migration 20260516000000
+-- explicitly REVOKEd EXECUTE FROM authenticated.
+--
+-- We assert the GRANT STATE via `has_function_privilege` rather than
+-- attempting an actual call from `SET ROLE authenticated`, because
+-- PostgreSQL 17.6 segfaults (signal 11) on the permission-denied path
+-- for SECURITY DEFINER functions in this Supabase build — calling the
+-- function as an under-privileged role would crash the server before
+-- `throws_ok` can catch the 42501 error. The grant-state check below
+-- verifies the exact contract (authenticated cannot EXECUTE) without
+-- triggering the crash.
+-- ============================================================
+SELECT is(
+  has_function_privilege(
+    'authenticated',
+    'accept_invite(text, uuid, text)',
+    'EXECUTE'
+  ),
+  false,
+  'case8: authenticated has NO EXECUTE on accept_invite (REVOKE in migration 20260516000000)'
+);
+
+-- ============================================================
+-- Case 9 — TD-129 anon REVOKE: anon is the more dangerous role (no JWT
+-- required, callable via PostgREST RPC). Migration 20260516000000
+-- explicitly REVOKEs from anon. Same `has_function_privilege` check as
+-- case 8.
+-- ============================================================
+SELECT is(
+  has_function_privilege(
+    'anon',
+    'accept_invite(text, uuid, text)',
+    'EXECUTE'
+  ),
+  false,
+  'case9: anon has NO EXECUTE on accept_invite (PostgREST RPC surface closed)'
 );
 
 SELECT * FROM finish();
