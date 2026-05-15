@@ -71,7 +71,7 @@ describe("SignInForm", () => {
     fireEvent.change(screen.getByLabelText("Enter your code"), {
       target: { value: "123456" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Verify code" }));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/dashboard");
@@ -98,7 +98,7 @@ describe("SignInForm", () => {
     fireEvent.change(screen.getByLabelText("Enter your code"), {
       target: { value: "000000" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Verify code" }));
 
     await waitFor(() => {
       expect(
@@ -127,10 +127,8 @@ describe("SignInForm", () => {
       screen.getByRole("button", { name: "Continue with email" }),
     );
 
-    expect(screen.getByText("Sending code...")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Sending code..." }),
-    ).toBeDisabled();
+    expect(screen.getByText("Sending...")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sending..." })).toBeDisabled();
 
     resolve!({ error: null });
     await waitFor(() => screen.getByText("Check your email"));
@@ -183,12 +181,12 @@ describe("SignInForm", () => {
     fireEvent.change(screen.getByLabelText("Enter your code"), {
       target: { value: "123456" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Verify code" }));
 
     await waitFor(() => expect(mockVerifyOtp).toHaveBeenCalled());
     await waitFor(() => {
       expect(
-        screen.queryByRole("button", { name: "Signing you in..." }),
+        screen.queryByRole("button", { name: "Verifying..." }),
       ).not.toBeInTheDocument();
     });
   });

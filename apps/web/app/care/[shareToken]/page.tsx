@@ -133,11 +133,10 @@ export default function OuterCirclePage({
         <div className="max-w-md text-center">
           <div className="text-3xl mb-4">&#10084;</div>
           <h1 className="text-xl font-semibold text-[var(--color-ink)] mb-2">
-            Thanks! You&apos;re helping out.
+            Thanks for stepping in.
           </h1>
           <p className="text-[var(--color-muted)]">
-            You&apos;ll receive a confirmation email shortly. Your support means
-            everything to this family.
+            The family will get a note that you claimed this slot.
           </p>
         </div>
       </div>
