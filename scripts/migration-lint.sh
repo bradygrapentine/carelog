@@ -36,6 +36,19 @@ for f in "${FILES[@]}"; do
     END { print "" }
   ' "$f" | tr ';' '\n' | awk '{$1=$1; if (length) print}')
 
+  # Pre-scan: collect names of tables CREATEd in THIS file. CREATE INDEX
+  # statements targeting one of these are exempt from the CONCURRENTLY check
+  # (zero rows at index time → zero write-blocking impact). Lowercased,
+  # quotes stripped, schema prefix dropped — same normalization applied to
+  # both the CREATE TABLE capture and the ON-target so they compare equal.
+  # `|| true` on grep: empty match is normal (migration with no CREATE TABLE).
+  # Without it, `set -e` aborts the whole script on a 1-exit from grep.
+  LOCAL_TABLES=$( { echo "$STATEMENTS" \
+    | grep -iE "^CREATE[[:space:]]+TABLE([[:space:]]+IF[[:space:]]+NOT[[:space:]]+EXISTS)?[[:space:]]" \
+    || true; } \
+    | sed -E 's/^[Cc][Rr][Ee][Aa][Tt][Ee][[:space:]]+[Tt][Aa][Bb][Ll][Ee]([[:space:]]+[Ii][Ff][[:space:]]+[Nn][Oo][Tt][[:space:]]+[Ee][Xx][Ii][Ss][Tt][Ss])?[[:space:]]+"?([a-zA-Z_][a-zA-Z0-9_]*\.)?"?([a-zA-Z_][a-zA-Z0-9_]*)"?.*/\3/' \
+    | tr '[:upper:]' '[:lower:]')
+
   RISKY=""
   while IFS= read -r stmt; do
     [ -z "$stmt" ] && continue
@@ -46,10 +59,20 @@ for f in "${FILES[@]}"; do
       RISKY="${RISKY}  - ADD COLUMN ... NOT NULL without DEFAULT (rewrites every row, locks table)\n"
     fi
 
-    # Pattern 2: CREATE INDEX without CONCURRENTLY (blocks writes during build)
+    # Pattern 2: CREATE INDEX without CONCURRENTLY (blocks writes during build).
+    # Exempt: index targets a table created in this same file (zero rows at
+    # index time). The outer `CREATE … INDEX` gate ensures `CREATE POLICY … ON x`
+    # and `CREATE TRIGGER … ON x` are not misread as index targets.
     if echo "$stmt" | grep -iqE "CREATE[[:space:]]+(UNIQUE[[:space:]]+)?INDEX[[:space:]]" && \
        ! echo "$stmt" | grep -iqE "CONCURRENTLY"; then
-      RISKY="${RISKY}  - CREATE INDEX without CONCURRENTLY (blocks writes during index build)\n"
+      TARGET=$( { echo "$stmt" \
+        | grep -ioE "[[:space:]]ON[[:space:]]+\"?([a-zA-Z_][a-zA-Z0-9_]*\.)?\"?[a-zA-Z_][a-zA-Z0-9_]*\"?[[:space:]]*\(" \
+        || true; } \
+        | sed -E 's/.*[[:space:]][Oo][Nn][[:space:]]+"?([a-zA-Z_][a-zA-Z0-9_]*\.)?"?([a-zA-Z_][a-zA-Z0-9_]*)"?[[:space:]]*\(.*/\2/' \
+        | tr '[:upper:]' '[:lower:]')
+      if [ -z "$TARGET" ] || ! echo "$LOCAL_TABLES" | grep -Fxq "$TARGET"; then
+        RISKY="${RISKY}  - CREATE INDEX without CONCURRENTLY (blocks writes during index build)\n"
+      fi
     fi
 
     # Pattern 3: DROP COLUMN (breaks deployed code still reading that column)
