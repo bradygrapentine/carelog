@@ -2,6 +2,7 @@
 
 import { trpc } from "../../../../lib/trpc";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { formatClockTime } from "@/lib/format";
 
 type Props = {
   orgId: string;
@@ -71,15 +72,19 @@ export function MedicationChecklist({
           const isDisabled = isLogged || isSupporter || isPending;
 
           const labelText =
-            med.drug_name + " " + med.dosage + " — " + sched.scheduled_time;
+            med.drug_name +
+            " " +
+            med.dosage +
+            " — " +
+            formatClockTime(sched.scheduled_time);
 
           const gaveClass = isLogged
-            ? "px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 opacity-50 cursor-not-allowed"
-            : "px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+            ? "px-3 py-1 text-xs rounded-lg bg-[var(--color-success-subtle)] text-[var(--color-success)] opacity-50 cursor-not-allowed"
+            : "px-3 py-1 text-xs rounded-lg bg-[var(--color-success-subtle)] text-[var(--color-success)] border border-transparent hover:border-[var(--color-success)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
 
           const missedClass = isLogged
             ? "px-3 py-1 text-xs rounded-lg bg-[var(--color-surface)] text-muted-foreground opacity-50 cursor-not-allowed"
-            : "px-3 py-1 text-xs rounded-lg bg-[var(--color-surface)] text-muted-foreground hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+            : "px-3 py-1 text-xs rounded-lg bg-[var(--color-surface)] text-muted-foreground hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
 
           return (
             <div
@@ -94,7 +99,7 @@ export function MedicationChecklist({
                 {isLogged && (
                   <span
                     data-testid="dose-given-indicator"
-                    className="text-xs text-green-700"
+                    className="text-xs text-[var(--color-success)]"
                   >
                     Given ✓
                   </span>
