@@ -230,10 +230,9 @@ export async function POST(request: NextRequest) {
                 </Text>
                 {ev.payload &&
                   "text" in ev.payload &&
-                  String(ev.payload.text || "").length > 0 && (
-                    <Text style={styles.eventText}>
-                      {String(ev.payload.text)}
-                    </Text>
+                  typeof ev.payload.text === "string" &&
+                  ev.payload.text.length > 0 && (
+                    <Text style={styles.eventText}>{ev.payload.text}</Text>
                   )}
                 {ev.flagged && (
                   <Text style={styles.flagged}>⚑ Flagged for follow-up</Text>
