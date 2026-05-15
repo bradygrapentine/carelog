@@ -1,0 +1,28 @@
+name: Migration Lint
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**.sql'
+
+jobs:
+  migration-lint:
+    name: Lint risky DDL patterns
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find changed migration files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only --diff-filter=AM \
+            "origin/${{ github.base_ref }}...HEAD" \
+            -- 'supabase/migrations/**.sql' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Lint changed migrations
+        if: steps.changed.outputs.files != ''
+        run: |
+          chmod +x scripts/migration-lint.sh
+          bash scripts/migration-lint.sh ${{ steps.changed.outputs.files }}
