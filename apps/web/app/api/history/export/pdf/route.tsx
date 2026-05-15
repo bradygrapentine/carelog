@@ -20,6 +20,7 @@ import {
 } from "@react-pdf/renderer";
 import { StyleSheet } from "@react-pdf/renderer";
 import { pdfTokens } from "@/lib/pdfTokens";
+import { pickJournalBody } from "@/lib/pickJournalBody";
 
 const requestSchema = z.object({
   org_id: z.string().uuid(),
@@ -228,12 +229,12 @@ export async function POST(request: NextRequest) {
                   {formatLocaleDateTime(ev.occurred_at)} · {ev.event_type}
                   {ev.entry_kind ? ` (${ev.entry_kind})` : ""}
                 </Text>
-                {ev.payload &&
-                  "text" in ev.payload &&
-                  typeof ev.payload.text === "string" &&
-                  ev.payload.text.length > 0 && (
-                    <Text style={styles.eventText}>{ev.payload.text}</Text>
-                  )}
+                {(() => {
+                  const body = pickJournalBody(ev.payload);
+                  return body ? (
+                    <Text style={styles.eventText}>{body}</Text>
+                  ) : null;
+                })()}
                 {ev.flagged && (
                   <Text style={styles.flagged}>⚑ Flagged for follow-up</Text>
                 )}
