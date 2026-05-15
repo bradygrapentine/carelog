@@ -84,9 +84,9 @@ describe("MedicationChecklist — rendered list", () => {
     expect(screen.getByText(/today's medications/i)).toBeInTheDocument();
   });
 
-  it("shows medication label: Lisinopril 10mg — 08:00:00", () => {
+  it("shows medication label with formatted time: Lisinopril 10mg — 8:00a", () => {
     render(<MedicationChecklist {...defaultProps} />);
-    expect(screen.getByText("Lisinopril 10mg — 08:00:00")).toBeInTheDocument();
+    expect(screen.getByText("Lisinopril 10mg — 8:00a")).toBeInTheDocument();
   });
 
   it('both "Gave it" and "Missed" buttons are enabled for coordinator with no logs', () => {
