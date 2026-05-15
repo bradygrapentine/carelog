@@ -25,7 +25,7 @@ const MOODS = [
   { value: "good", label: "Good" },
   { value: "okay", label: "Okay" },
   { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Crisis" },
+  { value: "crisis", label: "Hard" },
 ];
 
 type Props = {

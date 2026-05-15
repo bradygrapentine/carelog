@@ -21,7 +21,7 @@ const ORDER: { value: Mood; label: string; tokenVar: string }[] = [
     label: "Difficult",
     tokenVar: "var(--color-mood-difficult)",
   },
-  { value: "crisis", label: "Crisis", tokenVar: "var(--color-mood-crisis)" },
+  { value: "crisis", label: "Hard", tokenVar: "var(--color-mood-crisis)" },
 ];
 
 type Props = {

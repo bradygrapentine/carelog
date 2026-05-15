@@ -15,7 +15,9 @@ function setup(
   const utils = render(
     <JournalEntryForm onPost={onPost} posting={false} {...overrides} />,
   );
-  const textarea = screen.getByPlaceholderText("Share how today went...");
+  const textarea = screen.getByPlaceholderText(
+    "What happened today? Even one line is enough.",
+  );
   return { onPost, textarea, ...utils };
 }
 
@@ -23,7 +25,9 @@ describe("JournalEntryForm", () => {
   it("renders a collapsed textarea with the correct placeholder", () => {
     setup();
     expect(
-      screen.getByPlaceholderText("Share how today went..."),
+      screen.getByPlaceholderText(
+        "What happened today? Even one line is enough.",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
   });
@@ -32,7 +36,7 @@ describe("JournalEntryForm", () => {
     const { textarea } = setup();
     fireEvent.focus(textarea);
     expect(screen.getByText("Cancel")).toBeInTheDocument();
-    expect(screen.getByText("Share update")).toBeInTheDocument();
+    expect(screen.getByText("Post to journal")).toBeInTheDocument();
   });
 
   it("expands when text is typed", () => {
@@ -62,7 +66,7 @@ describe("JournalEntryForm", () => {
     expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.getByText("Okay")).toBeInTheDocument();
     expect(screen.getByText("Difficult")).toBeInTheDocument();
-    expect(screen.getByText("Crisis")).toBeInTheDocument();
+    expect(screen.getByText("Hard")).toBeInTheDocument();
   });
 
   it("selects a mood when clicked", () => {
@@ -110,14 +114,14 @@ describe("JournalEntryForm", () => {
   it("submit button is disabled when textarea is empty", () => {
     const { textarea } = setup();
     fireEvent.focus(textarea);
-    const submitBtn = screen.getByText("Share update");
+    const submitBtn = screen.getByText("Post to journal");
     expect(submitBtn).toBeDisabled();
   });
 
   it("submit button is disabled when textarea contains only whitespace", () => {
     const { textarea } = setup();
     fireEvent.change(textarea, { target: { value: "   " } });
-    expect(screen.getByText("Share update")).toBeDisabled();
+    expect(screen.getByText("Post to journal")).toBeDisabled();
   });
 
   it("calls onPost with trimmed text and selected mood on submit", async () => {
@@ -127,7 +131,7 @@ describe("JournalEntryForm", () => {
       target: { value: "  Dad was calm today.  " },
     });
     fireEvent.click(screen.getByText("Good"));
-    fireEvent.click(screen.getByText("Share update"));
+    fireEvent.click(screen.getByText("Post to journal"));
 
     await waitFor(() => {
       expect(onPost).toHaveBeenCalledWith("Dad was calm today.", "good");
@@ -138,7 +142,7 @@ describe("JournalEntryForm", () => {
     const { textarea, onPost } = setup();
     fireEvent.focus(textarea);
     fireEvent.change(textarea, { target: { value: "A note." } });
-    fireEvent.click(screen.getByText("Share update"));
+    fireEvent.click(screen.getByText("Post to journal"));
 
     await waitFor(() => {
       expect(onPost).toHaveBeenCalledWith("A note.", "");
@@ -150,7 +154,7 @@ describe("JournalEntryForm", () => {
     fireEvent.change(textarea, { target: { value: "A note." } });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("Share update"));
+      fireEvent.click(screen.getByText("Post to journal"));
     });
 
     await waitFor(() => {
@@ -159,10 +163,12 @@ describe("JournalEntryForm", () => {
     });
   });
 
-  it('shows "Sharing..." on the submit button while posting', () => {
+  it('shows "Posting..." on the submit button while posting', () => {
     render(<JournalEntryForm onPost={vi.fn()} posting={true} />);
-    const textarea = screen.getByPlaceholderText("Share how today went...");
+    const textarea = screen.getByPlaceholderText(
+      "What happened today? Even one line is enough.",
+    );
     fireEvent.focus(textarea);
-    expect(screen.getByText("Sharing...")).toBeInTheDocument();
+    expect(screen.getByText("Posting...")).toBeInTheDocument();
   });
 });

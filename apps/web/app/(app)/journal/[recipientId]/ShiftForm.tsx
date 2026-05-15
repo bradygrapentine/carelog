@@ -178,7 +178,7 @@ export function ShiftForm({
             }}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Times are stored in UTC — enter local time carefully.
+            Use the device's local time. We handle time zones for you.
           </p>
         </div>
       </div>
@@ -246,7 +246,7 @@ export function ShiftForm({
           }}
           className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none bg-card text-foreground"
         >
-          <option value="">Select a caregiver...</option>
+          <option value="">Choose a caregiver</option>
           {assignableMembers.map((m) => (
             <option key={m.user_id} value={m.user_id}>
               {m.display_name ?? (m.email ? m.email.split("@")[0] : m.user_id)}
@@ -254,8 +254,8 @@ export function ShiftForm({
           ))}
         </select>
         <p className="text-xs text-muted-foreground mt-1">
-          Supporters are not shown — only caregivers, coordinators, and aides
-          can be assigned shifts.
+          Only caregivers, coordinators, and aides take shifts. Supporters help
+          in other ways.
         </p>
       </div>
 

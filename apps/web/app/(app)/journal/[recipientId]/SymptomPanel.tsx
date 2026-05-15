@@ -34,7 +34,7 @@ const MOOD_OPTS: { value: MoodVal; label: string }[] = [
   { value: "good", label: "Good" },
   { value: "okay", label: "Okay" },
   { value: "difficult", label: "Difficult" },
-  { value: "crisis", label: "Crisis" },
+  { value: "crisis", label: "Hard" },
 ];
 
 const APPETITE_OPTS: { value: AppetiteVal; label: string }[] = [
