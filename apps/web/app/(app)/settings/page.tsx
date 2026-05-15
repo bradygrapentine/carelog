@@ -537,8 +537,6 @@ function LanguageSection() {
 // ─── Danger Zone Section ──────────────────────────────────────────────────────
 
 function DangerZoneSection() {
-  const [showLeaveModal, setShowLeaveModal] = useState(false);
-
   // pattern: TintedCard (custom layout — danger-zone uses danger-subtle bg, not primary-subtle)
   return (
     <Card className="shadow-sm gap-2 border-[var(--color-danger)]/30">
@@ -549,84 +547,18 @@ function DangerZoneSection() {
       </CardHeader>
       <CardContent className="pt-4">
         <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-[var(--color-ink)]">
-                Leave organization
-              </p>
-              <p className="text-xs text-[var(--color-muted)] mt-0.5">
-                Remove yourself from the care team. You will lose access to all
-                shared data.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowLeaveModal(true)}
-              className="shrink-0 border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
-            >
-              Leave
-            </Button>
+          <div>
+            <p className="text-sm font-medium text-[var(--color-ink)]">
+              Leave organization
+            </p>
+            <p className="text-xs text-[var(--color-muted)] mt-0.5">
+              To leave a team, ask a coordinator to remove you from the member
+              list. If you&apos;re the only coordinator, contact support so we
+              can transfer ownership or close the organization.
+            </p>
           </div>
         </div>
       </CardContent>
-
-      {/* Leave confirmation modal */}
-      {showLeaveModal && (
-        <div
-          role="presentation"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowLeaveModal(false);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setShowLeaveModal(false);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-dialog-title"
-            className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl"
-          >
-            <h2
-              id="leave-dialog-title"
-              className="text-lg font-bold text-[var(--color-ink)]"
-            >
-              Leave this organization?
-            </h2>
-            <p className="mt-3 text-sm text-[var(--color-muted)]">
-              You will immediately lose access to all shared journals,
-              medications, documents, and shifts. A coordinator can re-invite
-              you later.
-            </p>
-            <div className="mt-6 flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowLeaveModal(false)}
-                className="flex-1 border-[var(--color-border)] text-[var(--color-ink)] hover:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-              >
-                Keep access
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  // Destructive action: not yet wired — requires org context.
-                  // Surface a clear message rather than silently failing.
-                  setShowLeaveModal(false);
-                  toast.error(
-                    "Leave organization: select your org first from the dashboard, then use the Team panel to remove yourself.",
-                  );
-                }}
-                className="flex-1 bg-[var(--color-danger)] text-white hover:opacity-90 focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2"
-              >
-                Leave team
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </Card>
   );
 }
