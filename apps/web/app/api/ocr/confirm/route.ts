@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
@@ -51,10 +52,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch job — read recipient_id and status from the row, never trust client-supplied value
+    // Fetch job — read recipient_id and status from the row, never trust
+    // client-supplied value. Widened to include raw_text for SEC-007 audit hash.
     const { data: job } = await supabaseAdmin
       .from("ocr_jobs")
-      .select("id, recipient_id, status")
+      .select("id, recipient_id, status, raw_text")
       .eq("id", jobId)
       .eq("org_id", orgId)
       .single();
@@ -75,6 +77,40 @@ export async function POST(request: NextRequest) {
         );
       }
       throw e;
+    }
+
+    // SEC-007: append-only audit log of the confirm attempt. PHI-free —
+    // stores SHA-256 of raw_text + allowlist of confirmed field KEYS, never
+    // the values themselves. Insert audit BEFORE medication so a failed audit
+    // returns 500 and leaves ocr_jobs.status unchanged (idempotent retry).
+    // Audit semantics: per-attempt (records 409-losers too — see TD-144).
+    const raw_output_hash = createHash("sha256")
+      .update((job.raw_text ?? "").normalize("NFC"), "utf8")
+      .digest();
+    const confirmed_field_keys = [
+      typeof drug_name === "string" && drug_name.length > 0
+        ? "drug_name"
+        : null,
+      typeof dosage === "string" && dosage.length > 0 ? "dosage" : null,
+      typeof instructions === "string" && instructions.length > 0
+        ? "instructions"
+        : null,
+    ].filter((k): k is string => k !== null);
+
+    const { error: auditError } = await supabaseAdmin
+      .from("ocr_audit_log")
+      .insert({
+        ocr_job_id: jobId,
+        org_id_snapshot: orgId,
+        user_id: user.id,
+        raw_output_hash,
+        confirmed_field_keys,
+        field_count: confirmed_field_keys.length,
+      });
+
+    if (auditError) {
+      // Audit failure must fail the request loudly (no swallow). T-06.
+      return NextResponse.json({ error: auditError.message }, { status: 500 });
     }
 
     // Create medication row using recipient_id from the job (not from client body)

@@ -1270,6 +1270,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ocr_audit_log: {
+        Row: {
+          backfilled: boolean
+          confirmed_field_keys: string[]
+          field_count: number
+          id: string
+          ocr_job_id: string
+          org_id_snapshot: string
+          raw_output_hash: string
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          backfilled?: boolean
+          confirmed_field_keys: string[]
+          field_count: number
+          id?: string
+          ocr_job_id: string
+          org_id_snapshot: string
+          raw_output_hash: string
+          ts?: string
+          user_id: string
+        }
+        Update: {
+          backfilled?: boolean
+          confirmed_field_keys?: string[]
+          field_count?: number
+          id?: string
+          ocr_job_id?: string
+          org_id_snapshot?: string
+          raw_output_hash?: string
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ocr_jobs: {
         Row: {
           category: string
