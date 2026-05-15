@@ -125,8 +125,8 @@ export function EolPlanner({ orgId, recipientId, currentUserRole }: Props) {
             {!plan ? (
               <div className="pt-3">
                 <p className="text-sm text-muted-foreground mb-3">
-                  No end-of-life plan on file yet. Create one to document
-                  wishes, preferences, and key contacts.
+                  No end-of-life plan yet. Use this space to document wishes
+                  ahead of time, so the team isn't guessing in a hard moment.
                 </p>
                 <Button
                   type="button"

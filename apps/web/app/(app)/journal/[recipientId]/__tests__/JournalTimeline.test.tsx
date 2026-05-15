@@ -170,7 +170,7 @@ describe("JournalTimeline — empty state", () => {
         members={TEST_MEMBERS}
       />,
     );
-    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
+    expect(screen.getByText("Quiet day in the journal")).toBeInTheDocument();
   });
 
   it("shows empty state when canFlag is false", () => {
@@ -184,7 +184,7 @@ describe("JournalTimeline — empty state", () => {
         members={TEST_MEMBERS}
       />,
     );
-    expect(screen.getByText("No journal entries yet")).toBeInTheDocument();
+    expect(screen.getByText("Quiet day in the journal")).toBeInTheDocument();
   });
 });
 

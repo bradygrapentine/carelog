@@ -132,7 +132,7 @@ describe("DashboardClient", () => {
     await waitFor(() =>
       expect(
         screen.getByText(
-          "You do not have any care teams yet. Set one up to get started.",
+          "You're not on a care team yet. Set one up to start logging.",
         ),
       ).toBeInTheDocument(),
     );

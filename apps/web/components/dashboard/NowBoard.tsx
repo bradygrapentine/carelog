@@ -31,7 +31,9 @@ const VALID_MOODS: ReadonlySet<string> = new Set([
 ]);
 
 /** Pull a mood key off a CareEvent payload, returning null if unrecognised. */
-function pickMood(payload: Record<string, unknown> | null | undefined): Mood | null {
+function pickMood(
+  payload: Record<string, unknown> | null | undefined,
+): Mood | null {
   if (!payload || typeof payload !== "object") return null;
   const raw = (payload as { mood?: unknown }).mood;
   if (typeof raw !== "string") return null;
@@ -164,7 +166,10 @@ function NowMarker({ label }: { label: string }) {
       role="separator"
       aria-label={label}
     >
-      <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true" />
+      <span
+        className="h-2 w-2 rounded-full bg-[var(--color-primary)]"
+        aria-hidden="true"
+      />
       <span className="font-mono text-[11px] uppercase tracking-wide font-semibold text-[var(--color-primary)]">
         {label}
       </span>
@@ -227,14 +232,11 @@ export function NowBoard({ recipientId, now }: NowBoardProps) {
       <CardContent className="pt-2">
         {totalEvents === 0 ? (
           <p className="text-sm text-[var(--color-muted)] py-6 text-center">
-            Nothing logged yet today. Add a note from the journal to start your
-            timeline.
+            Nothing logged yet today. The first note from the journal lands
+            here.
           </p>
         ) : (
-          <ol
-            aria-label="Now Board timeline"
-            className="space-y-4 list-none"
-          >
+          <ol aria-label="Now Board timeline" className="space-y-4 list-none">
             {buckets.past.length > 0 && (
               <li>
                 <GroupHeading>Past</GroupHeading>

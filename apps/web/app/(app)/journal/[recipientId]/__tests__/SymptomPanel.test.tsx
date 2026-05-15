@@ -60,9 +60,11 @@ describe("SymptomPanel — renders expanded by default", () => {
 });
 
 describe("SymptomPanel — empty state", () => {
-  it('shows "No readings recorded yet" for empty data', () => {
+  it("shows empty state for empty data", () => {
     renderPanel();
-    expect(screen.getByText(/no readings recorded yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no readings yet\. log one to start a trend line/i),
+    ).toBeInTheDocument();
   });
 });
 

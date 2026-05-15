@@ -59,7 +59,7 @@ export function ThreadList({ orgId, userId }: Props) {
       </h2>
       {threads.length === 0 && (
         <p className="px-2 py-4 text-sm text-[var(--color-muted)]">
-          No conversations yet. Start a DM from the Team page.
+          No conversations yet. Start one from the Team page.
         </p>
       )}
       {threads.map((thread) => {

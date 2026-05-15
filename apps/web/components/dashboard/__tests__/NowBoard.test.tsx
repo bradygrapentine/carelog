@@ -72,7 +72,11 @@ describe("NowBoard", () => {
   it("renders an empty state when there are no events", () => {
     setEvents([]);
     render(<NowBoard recipientId={REC_ID} now={NOW} />);
-    expect(screen.getByText(/Nothing logged yet today/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Nothing logged yet today\. The first note from the journal/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renders only Past when all events are past", () => {

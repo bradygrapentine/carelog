@@ -27,9 +27,9 @@ export function BurnoutOrgSummary({ orgId, currentUserRole }: Props) {
         )}
         {!isLoading && (!data || data.length === 0) && (
           <p className="text-sm text-muted-foreground">
-            Not enough check-ins yet to show a summary. Individual scores are
-            never shown — we need at least 3 check-ins per week before trends
-            appear.
+            We need a few more check-ins to draw a summary. Individual scores
+            are never shown — we need at least 3 check-ins per week before
+            trends appear.
           </p>
         )}
         {!isLoading && data && data.length > 0 && (

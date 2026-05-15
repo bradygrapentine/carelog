@@ -102,7 +102,8 @@ export default function CoverageSettings({ orgId, recipientId }: Props) {
 
           {listQuery.data && listQuery.data.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              No coverage windows defined yet.
+              No coverage windows set yet. Add one to mark when someone is on
+              duty.
             </p>
           )}
 
