@@ -396,6 +396,28 @@ Set a calendar reminder in `BACKLOG.md` (via a separate `chore(backlog):` PR per
 
 ---
 
+## Section 6.6 — Operator verification result (ON-76, 2026-05-15 evening)
+
+Operator captured the two data points the §6 recommendation was conditional on:
+
+- **Current Inngest billing tier:** Hobby
+- **30-day function-run count:** not visible (Hobby tier does not expose a 30-day window; dashboard caps at 1-day visibility for free accounts)
+- **Last-24h function runs:** 0 events
+
+**Implication for the §6 recommendation.** The Hobby tier confirmed the "if Hobby" branch of the §2 conditional cost analysis, but the empirical 0-events-in-24h observation contradicts the doc's worked estimate that crons alone fire ~387×/day (rateLimit429Monitor 288/day + shiftTradeExpiry 96/day + daily/weekly crons ≈ 3/day). One of three explanations must be true:
+
+1. **The crons aren't actually wired in prod.** Most likely. Inngest functions only fire when (a) the Inngest SDK is registered against a deployed app, AND (b) the app is reachable from Inngest cloud (Vercel deployment URL signed into the Inngest dashboard). If carelog's prod Inngest app registration is missing or broken, none of the 14 functions fire — including the crons. Verify via Inngest dashboard → Apps → `carelog` (or whatever the prod app name is) → "Last seen" timestamp.
+
+2. **The dashboard's 1-day window is reading something narrower than total runs** (e.g. only failed runs, or only events not function invocations). Less likely but worth eyeballing.
+
+3. **The §2 cron-runs/mo math was wrong AGAIN.** Possible — the original Cowork estimate was 6 crons × ~1/day = 200/mo; the post-validation pass corrected to 8 crons with rateLimit429Monitor + shiftTradeExpiry dominating to ~11,622/mo. If those two high-frequency crons are themselves gated by an env var or kill-switch that's currently set to "off" in prod, actual firings could be near-zero.
+
+**Recommended next step.** Don't make the Inngest-vs-Queues migration decision on the doc's pricing math until prod cron-firing state is verified. The §6 recommendation ("stay on Inngest with medium confidence") still holds for now — Hobby tier + zero observed runs means there is no current cost pressure, and migration cost (rewrite 14 functions across 3 Vercel products) is genuinely high. But the underlying premise of the doc's §2 ("you ARE running 170k executions/month, so cost is the deciding factor") needs verification.
+
+**Action (separate row, not this one).** Seed a TD-* follow-up to audit prod cron-firing state: confirm the Inngest app is registered + reachable, confirm the high-frequency crons (`rateLimit429Monitor`, `shiftTradeExpiry`) are running and not silently disabled, and capture an actual 24h sample once visibility is non-zero. Until that audit closes, the cost half of §6's recommendation is structurally unverifiable on Hobby tier.
+
+---
+
 ## Sources (with retrieval date)
 
 All sources retrieved 2026-05-15 unless otherwise noted.
