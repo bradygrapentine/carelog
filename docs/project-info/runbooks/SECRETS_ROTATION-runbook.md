@@ -1,6 +1,6 @@
 # SEC-001 — Production Secrets Rotation (Interactive)
 
-Step-by-step rotation of the 6 production secrets that landed in `apps/web/.env.local` via `vercel env pull` on 2026-05-10. Companion to the reference doc at [SECRETS_ROTATION.md](./SECRETS_ROTATION.md) — that file explains *why*; this one is the clickable checklist for *when*. The 2026-05-14 audit memo at [SECRETS_ROTATION-audit-2026-05-14.md](./SECRETS_ROTATION-audit-2026-05-14.md) confirms the reference doc is operationally accurate.
+Step-by-step rotation of the 6 production secrets that landed in `apps/web/.env.local` via `vercel env pull` on 2026-05-10. Companion to the reference doc at [SECRETS_ROTATION.md](./SECRETS_ROTATION.md) — that file explains *why*; this one is the clickable checklist for *when*. The 2026-05-14 audit memo at [SECRETS_ROTATION-audit-2026-05-14.md](./SECRETS_ROTATION-audit-2026-05-14.md) confirms the reference doc is operationally accurate. **Last revised 2026-05-15** to confirm TD-134/135/136 safety nets shipped and reference today's [OWASP audit](../../security/2026-05-14-owasp-audit.md).
 
 > Watch: Schedule the rotation when production traffic is low. Stripe webhook secret roll has the narrowest verification window — old-signature requests fail with 400 between rotation and redeploy.
 
@@ -311,13 +311,13 @@ git log --all -p -S "<PREFIX>" 2>/dev/null
 
 These safety nets (TD-134, TD-135, TD-136) were introduced alongside SEC-009 to reduce future exposure. Verify each is wired before marking the rotation complete.
 
-- [ ] **TD-134 — pre-migration check script:** Before opening any migration PR, run `pnpm migration-check` to catch destructive DDL patterns locally before CI sees them. (TD-134 — wired if merged; script at `scripts/migration-check.sh`.)
+- [ ] **TD-134 — pre-migration check script** (✅ shipped 2026-05-14, PR #500): before opening any migration PR, run `pnpm migration-check` to catch destructive DDL patterns locally before CI sees them. Script at `scripts/migration-check.sh`.
 
-- [ ] **TD-135 — PostHog feature-flag SDK:** Wrap risky launches (schema changes, new analytics events, auth changes) in a feature flag via `useFeatureFlag('feature_<scope>_<feature>')` so you can roll back without a redeploy. (TD-135 — wired if merged; see `docs/adr/0004-feature-flag-rollout-pattern.md` for the PHI-safe signature.)
+- [ ] **TD-135 — PostHog feature-flag SDK** (✅ shipped 2026-05-14, PR #499): wrap risky launches (schema changes, new analytics events, auth changes) in a feature flag via `useFeatureFlag('feature_<scope>_<feature>')` so you can roll back without a redeploy. See [ADR-0004](../../adr/0004-feature-flag-rollout-pattern.md) for the PHI-safe signature.
 
-- [ ] **TD-136 — migration SQL lint CI gate:** CI will now block migration PRs that contain risky DDL patterns (`DROP TABLE`, `DROP COLUMN`, `ALTER COLUMN ... TYPE` without explicit `USING`, etc.) unless the statement includes a `-- safe-migration: <reason>` annotation. (TD-136 — wired if merged; lint script at `scripts/migration-lint.sh`.)
+- [ ] **TD-136 — migration SQL lint CI gate** (✅ shipped 2026-05-14, PR #497; refined 2026-05-15 by TD-145, PR #533): CI blocks migration PRs containing risky DDL patterns (`ADD COLUMN ... NOT NULL` without DEFAULT, `CREATE INDEX` without CONCURRENTLY on existing tables, `DROP COLUMN`) unless the statement carries a `-- safe-migration: <reason>` annotation. TD-145 added a same-migration new-table whitelist so indexes on tables created in the same file no longer false-positive. Lint script at `scripts/migration-lint.sh`.
 
-> If any of the three TDs above show as `🟢 Ready` (not `✅ Shipped`) in BACKLOG.md when you run this runbook, skip that item — the safety net is not yet live.
+> Note: All three safety nets are live on `main`. If you forked an old branch, rebase before running migration-related steps.
 
 ---
 
