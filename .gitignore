@@ -51,3 +51,12 @@ test-results/
 
 # Vercel CLI link state (per-developer, contains project IDs)
 .vercel/
+
+# Local notes (post-sprint plan archives, scratch)
+.claude/notes/
+
+# Sibling-of-.worktrees variant (older worktree placement)
+worktrees/
+
+# Generated runbook HTML (source .md is the artifact)
+docs/project-info/runbooks/*.html
