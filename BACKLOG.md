@@ -20,7 +20,7 @@ Counts reflect items in §1–§6 only; §7 is the shipped log.
 
 | Lifecycle | Count | Where |
 |---|---|---|
-| 🟢 Ready | 18 | TD-111 · TD-133 · TD-141 · TD-142 · TD-144 · UX-065 · UX-077 · UX-103b/105b · SEC-008 · SEC-009 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 (+ rows in §3–§5 not enumerated) |
+| 🟢 Ready | 19 | TD-111 · TD-133 · TD-141 · TD-142 · TD-144 · UX-065 · UX-077 · UX-103b/105b · SEC-008 · SEC-009 · SEO-005 · PP-009 · ON-70 · ON-71 · ON-74 · ON-76 (+ rows in §3–§5 not enumerated) |
 | 🔎 In review | 0 | — |
 | 🟡 Spike | 2 | UX-046 (clinician-share surface) · TD-87 (Lighthouse a11y path) |
 | 🔴 Blocked | 0 | — |
@@ -330,6 +330,7 @@ Surfaced by the 2026-05-09 audit (`docs/audits/2026-05-09-roadmap-and-harness-au
 | ON-72 | 🧊 Deferred | **Prescription label scanning OCR pipeline** | Per ROADMAP Phase 3. Mobile camera → Apple Vision/Google ML Kit OCR → LLM parse → `ocr_jobs` status: needs_review → caregiver confirms → medication created. Never auto-creates without human confirmation. **Blocked by:** stable medication catalog (Phase 3 prereq before OCR makes sense). |
 | ON-73 | 🧊 Deferred | **Burnout tracker** | Per ROADMAP Phase 4. Weekly check-in: how are YOU doing? Sleep, stress, support. If scores trend bad, surface respite resources. **Blocked by:** roadmap rationale says "needs 2-3 mo of data to show meaningful trends" — defer until families have that history. |
 | ON-74 | 🟢 Ready | **Full history export (PDF / structured)** | Per ROADMAP Phase 4. Every journal entry, medication log, shift record, symptom reading. Formatted for a doctor or new care facility. Trust feature: families who can export everything are more likely to put everything in. ~3 days. **Pairs with /visit-summary work (UX-20) — share components.** |
+| ON-76 | 🟢 Ready · **P2 / Medium** · operator action | **Verify Inngest billing tier + 30-day execution count before any cron/queue migration decision** | Surfaced by the 2026-05-15 Cowork research doc at `docs/research/2026-05-15-inngest-vs-queues.md`. Validation pass corrected the original recommendation: cron count is **8 of 14 functions** (not 6) and corrected pricing math puts current monthly execution at **~170k**, well above the Hobby tier 50k cap. The "stay on Inngest" recommendation is **conditional** on the project being on Pro tier or above with comfortable headroom; if actually on Hobby tier, the no-cost-pressure premise of the doc fails and the cron/queue migration calculus changes. **Deliverable:** (1) open the Inngest dashboard, capture current billing tier; (2) capture 30-day actual execution count from the usage page; (3) drop both numbers into a short note appended to `docs/research/2026-05-15-inngest-vs-queues.md` §6.5 or open a follow-up TD-* row with the verified state. **Unblocks:** TD-133, TD-142, TD-144, ON-70, ON-71 — anything currently waiting on the Inngest-vs-Queues decision. **Risk:** LOW (read-only dashboard check). **Size:** ~15 min. |
 
 ### Audit-remediation follow-ups (TD-111) — opened 2026-05-09 PM
 
