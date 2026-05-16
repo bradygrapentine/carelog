@@ -79,11 +79,19 @@ export default async function RecipientProfilePage({
 
   if (!recipient) notFound();
 
-  const [identity, careTeam, preferences] = await Promise.all([
+  const [identity, careTeam, preferences, membership] = await Promise.all([
     resolveIdentity(recipient.identity_token, recipient.org_id),
     getCareTeamForRecipient(supabase, recipient.org_id, recipient.id),
     getRecipientPreferences(supabase, recipient.org_id, recipient.id),
+    supabase
+      .from("memberships")
+      .select("role")
+      .eq("org_id", recipient.org_id)
+      .eq("user_id", user.id)
+      .not("accepted_at", "is", null)
+      .maybeSingle(),
   ]);
+  const isCoordinator = membership.data?.role === "coordinator";
 
   // UX-094: compose the full profile page. Likes/dislikes, care team, and
   // emergency-footer data are not yet plumbed — the components render their
@@ -98,6 +106,9 @@ export default async function RecipientProfilePage({
       <LikesDislikesList
         likes={preferences.likes}
         dislikes={preferences.dislikes}
+        orgId={recipient.org_id}
+        recipientId={recipient.id}
+        canEdit={isCoordinator}
       />
       <CareTeamList members={careTeam} />
       <EmergencyFooterCard
