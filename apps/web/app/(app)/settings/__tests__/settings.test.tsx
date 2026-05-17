@@ -44,17 +44,25 @@ vi.mock("@/components/theme/ThemeToggle", () => ({
   ThemeToggle: () => <div>ThemeToggle</div>,
 }));
 
-// GrowCareSyncSection (UX-039a) calls createClient — mock to avoid supabase env requirement
+// GrowCareSyncSection (UX-039a) + HistoryExportLink (TD-159) call createClient —
+// hoisted refs so individual tests can vary the user / memberships response.
+const { mockSupabaseGetUser, mockMembershipsResult } = vi.hoisted(() => ({
+  mockSupabaseGetUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+  mockMembershipsResult: { value: { data: [] as unknown[] } },
+}));
+
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      getUser: mockSupabaseGetUser,
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      not: vi.fn().mockResolvedValue({ data: [] }),
-      limit: vi.fn().mockResolvedValue({ data: [] }),
+      not: vi.fn().mockReturnThis(),
+      limit: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve(mockMembershipsResult.value)),
     }),
   }),
 }));
@@ -295,5 +303,104 @@ describe("SettingsPage — rapid-click protection (TD-97)", () => {
     // Rapid clicks should not fire additional calls
     for (let i = 0; i < 5; i++) fireEvent.click(digestToggle);
     expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+// ─── TD-159: HistoryExportLink role gating ──────────────────────────────────
+
+describe("SettingsPage - HistoryExportLink (TD-159)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Stub the trpc + push notification hooks so the page renders without warnings.
+    vi.mocked(trpc.user.getProfile.useQuery).mockReturnValue({
+      data: mockProfile,
+      isLoading: false,
+      error: null,
+      status: "success",
+      fetchStatus: "idle",
+      isPending: false,
+      isFetching: false,
+      isSuccess: true,
+      isError: false,
+    } as any);
+    vi.mocked(trpc.user.updateNotifications.useMutation).mockReturnValue({
+      mutateAsync: vi.fn().mockResolvedValue({ ok: true }),
+      isPending: false,
+      isError: false,
+      error: null,
+      data: { ok: true },
+    } as any);
+    vi.mocked(trpc.useUtils).mockReturnValue({
+      user: { getProfile: { invalidate: vi.fn() } },
+    } as any);
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+  });
+
+  it("renders the Export care history link for a coordinator", async () => {
+    mockSupabaseGetUser.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+    });
+    mockMembershipsResult.value = { data: [{ role: "coordinator" }] };
+
+    render(<SettingsPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: /export full care history/i }),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("link", { name: /export full care history/i }),
+    ).toHaveAttribute("href", "/settings/history-export");
+  });
+
+  it("hides the link for a non-coordinator (empty memberships query result)", async () => {
+    mockSupabaseGetUser.mockResolvedValue({
+      data: { user: { id: "user-2" } },
+    });
+    mockMembershipsResult.value = { data: [] };
+
+    render(<SettingsPage />);
+
+    // Wait long enough for the effect to complete + render; link must NOT appear.
+    await waitFor(() => {
+      // Some other element from the page must be present (sanity check render)
+      expect(screen.getByText("Settings")).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByRole("link", { name: /export full care history/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the link for a signed-out user", async () => {
+    mockSupabaseGetUser.mockResolvedValue({ data: { user: null } });
+    mockMembershipsResult.value = { data: [] };
+
+    render(<SettingsPage />);
+    await waitFor(() => {
+      expect(screen.getByText("Settings")).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByRole("link", { name: /export full care history/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does NOT leak the '(coordinators only)' sub-label anywhere on the page", async () => {
+    mockSupabaseGetUser.mockResolvedValue({
+      data: { user: { id: "user-3" } },
+    });
+    mockMembershipsResult.value = { data: [{ role: "coordinator" }] };
+
+    render(<SettingsPage />);
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: /export full care history/i }),
+      ).toBeInTheDocument();
+    });
+    // The disclosure copy is removed — coordinators see the link, non-coords don't see anything.
+    expect(screen.queryByText(/coordinators only/i)).not.toBeInTheDocument();
   });
 });
