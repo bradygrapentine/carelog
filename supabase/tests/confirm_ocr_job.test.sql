@@ -34,8 +34,13 @@ INSERT INTO auth.users (
   ('20260517-1001-0000-0000-000000000001', 'authenticated', 'authenticated',
    'coord@td144.test', now(), now(), now(), '{}', '{}', false);
 
-INSERT INTO care_recipients (id, org_id, name) VALUES
-  ('20260517-1002-0000-0000-000000000001', '20260517-1000-0000-0000-000000000001', 'Test Recipient');
+INSERT INTO identity_vault (token, org_id, full_name) VALUES
+  ('20260517-1f00-0000-0000-000000000001', '20260517-1000-0000-0000-000000000001', 'TD-144 Test Recipient');
+
+INSERT INTO care_recipients (id, org_id, identity_token) VALUES
+  ('20260517-1002-0000-0000-000000000001',
+   '20260517-1000-0000-0000-000000000001',
+   '20260517-1f00-0000-0000-000000000001');
 
 -- Job 1: needs_review → for happy path + already_confirmed
 INSERT INTO ocr_jobs (id, org_id, recipient_id, image_url, raw_text, status) VALUES
