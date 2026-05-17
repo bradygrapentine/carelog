@@ -101,7 +101,7 @@ describe("memberships.invite — coordinator authorization", () => {
     expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        tags: { component: "memberships.invite", path: "membership.error" },
+        tags: { component: "memberships.invite", path: "caller.error" },
       }),
     );
   });

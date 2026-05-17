@@ -41,8 +41,10 @@ export const membershipsRouter = router({
       // TD-171: distinguish transport/SQL failures from legitimate
       // "no membership" (PGRST116). Mirrors TD-169 on changeRole/remove.
       if (membershipError && membershipError.code !== "PGRST116") {
+        // TD-172: `path` matches changeRole/remove ("caller.error") so
+        // cross-router Sentry alert filters catch invite captures too.
         Sentry.captureException(wrapAdminError(membershipError), {
-          tags: { component: "memberships.invite", path: "membership.error" },
+          tags: { component: "memberships.invite", path: "caller.error" },
         });
       }
       if (
