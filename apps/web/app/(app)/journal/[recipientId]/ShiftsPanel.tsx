@@ -17,6 +17,7 @@ import { trpc } from "../../../../lib/trpc";
 import { ShiftLanes } from "@/components/shifts/ShiftLanes";
 import { TeamNowBoard } from "@/components/shifts/TeamNowBoard";
 import { NarrativeHandoff } from "@/components/shifts/NarrativeHandoff";
+import { BriefingHandoffPanel } from "@/components/shifts/BriefingHandoff";
 import { ShiftWeekGrid } from "@/components/shifts/ShiftWeekGrid";
 import { ShiftTeamList } from "@/components/shifts/ShiftTeamList";
 import { OpenQuestionsCard } from "@/components/shifts/OpenQuestionsCard";
@@ -44,7 +45,8 @@ type Layout =
   | "questions"
   | "calendar"
   | "lanes"
-  | "now";
+  | "now"
+  | "briefing";
 
 const LAYOUT_LABELS: Record<Layout, string> = {
   narrative: "Handoff",
@@ -54,6 +56,7 @@ const LAYOUT_LABELS: Record<Layout, string> = {
   calendar: "Calendar",
   lanes: "Lanes",
   now: "Now",
+  briefing: "Briefing",
 };
 
 type Props = {
@@ -403,6 +406,10 @@ export function ShiftsPanel(props: Props) {
             <TeamNowBoard members={nowBoardMembers} />
           </CardContent>
         </TintedCard>
+      )}
+
+      {layout === "briefing" && (
+        <BriefingHandoffPanel recipientId={props.recipientId} />
       )}
     </div>
   );
