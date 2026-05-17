@@ -88,7 +88,7 @@ export async function signIn(page: Page, email: string): Promise<void> {
 
   await Promise.all([
     page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
-    page.getByRole("button", { name: /^Sign in$/ }).click(),
+    page.getByRole("button", { name: /^Verify code$/ }).click(),
   ]);
 }
 
@@ -213,7 +213,7 @@ export async function acceptInviteAsNewUser(
   // Redirected back to invite URL by DashboardClient pending invite bridge
   await Promise.all([
     page.waitForURL(/\/invite\//, { timeout: 30_000 }),
-    page.getByRole("button", { name: /^Sign in$/ }).click(),
+    page.getByRole("button", { name: /^Verify code$/ }).click(),
   ]);
   await Promise.all([
     page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
