@@ -14,6 +14,18 @@ Human Backlog Items:
 - ability to schedule team wide meetings and embed zoom links
 
 
+## Prioritization principle — UI styling Pareto (added 2026-05-16)
+
+UI styling work obeys Pareto: ~20% of the styling effort gets the UI to ~80% — past the interpretability threshold where users can read and use the surface. The remaining 80% of polish effort (micro-spacing, motion, edge-case visual states, theming nuance) compounds slowly and should not block product progress.
+
+**Rule:** when triaging UX-*, A11Y-*, PP-*, or impeccable-extracted polish rows, ask "does shipping this move the surface *from broken/illegible to readable*, or *from readable to refined*?"
+
+- **From broken to readable** → keep at current priority. Interpretability fixes block usability.
+- **From readable to refined** → demote. Move to §6 (Deferred UI polish) or stack at the bottom of §1. Revisit only after core feature work clears.
+
+Apply during `/next-best-backlog-items` scoring and during `/backlog-sync` re-tiering. This is the user's explicit directive — don't override it without checking in.
+
+
 ## 0. Status board (at-a-glance)
 
 Counts reflect items in §1–§6 only; §7 is the shipped log.
