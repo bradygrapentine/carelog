@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import * as Sentry from "@sentry/nextjs";
 import { router, protectedProcedure } from "../trpc/index";
 import { supabaseAdmin, wrapAdminError } from "../supabaseAdmin.server";
 import {
@@ -93,9 +94,16 @@ export const membershipsRouter = router({
       });
 
       if (error) {
+        // TD-167: never echo raw Postgres / wrapAdminError strings as the
+        // TRPCError message — that field reaches the client. Keep the rich
+        // diagnostic in `cause` (server-only per trpc/index.ts errorFormatter)
+        // and surface it to Sentry, return a generic client-facing message.
+        Sentry.captureException(wrapAdminError(error), {
+          tags: { component: "memberships.accept", path: "rpc.error" },
+        });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: wrapAdminError(error).message,
+          message: "Failed to accept invite",
           cause: error,
         });
       }
@@ -119,9 +127,19 @@ export const membershipsRouter = router({
             message: "This invite has already been used",
           });
         }
+        // TD-167: unknown sentinel — log server-side, return generic.
+        Sentry.captureException(
+          new Error(`Unknown invite sentinel: ${data.error ?? "(empty)"}`),
+          {
+            tags: {
+              component: "memberships.accept",
+              path: "rpc.fallthrough",
+            },
+          },
+        );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: data.error ?? "Unknown error",
+          message: "Failed to accept invite",
         });
       }
 
