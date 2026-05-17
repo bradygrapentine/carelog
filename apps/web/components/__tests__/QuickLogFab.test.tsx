@@ -75,7 +75,9 @@ describe("<QuickLogFab />", () => {
     it("Log medication navigates to medications panel", () => {
       renderFab();
       fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
-      fireEvent.click(screen.getByRole("menuitem", { name: /log medication/i }));
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /log medication/i }),
+      );
       expect(mockPush).toHaveBeenCalledWith(
         "/journal/recipient-123?panel=medications",
       );
@@ -139,14 +141,58 @@ describe("<QuickLogFab />", () => {
     });
   });
 
-  it("navigates to dashboard when no recipientId in URL", () => {
-    mockPathnameValue = "/dashboard";
+  describe("no recipientId in URL (TD-150)", () => {
+    beforeEach(() => {
+      mockPathnameValue = "/dashboard";
+    });
+
+    it("shows the 'open a recipient' hint", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      expect(
+        screen.getByText(/open a recipient's journal first to log/i),
+      ).toBeInTheDocument();
+    });
+
+    it("disables every menuitem (live-test silent-failure repro)", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      for (const label of [
+        /log medication/i,
+        /log mood/i,
+        /log note/i,
+        /log bp/i,
+      ]) {
+        const btn = screen.getByRole("menuitem", { name: label });
+        expect(btn).toBeDisabled();
+        expect(btn).toHaveAttribute("aria-disabled", "true");
+      }
+    });
+
+    it("clicking a disabled menuitem does not navigate", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /log medication/i }),
+      );
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it("aria-describedby points at the hint when recipientId is null", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      expect(screen.getByRole("menu")).toHaveAttribute(
+        "aria-describedby",
+        "quick-log-no-recipient-hint",
+      );
+    });
+  });
+
+  it("aria-describedby is absent when recipientId is present", () => {
+    mockPathnameValue = "/journal/recipient-123";
     renderFab();
     fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
-    fireEvent.click(
-      screen.getByRole("menuitem", { name: /log medication/i }),
-    );
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
+    expect(screen.getByRole("menu")).not.toHaveAttribute("aria-describedby");
   });
 
   it("FAB has aria-controls pointing to quick-log-menu", () => {
