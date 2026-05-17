@@ -74,13 +74,36 @@ const inviteBase = {
 };
 
 describe("memberships.invite — coordinator authorization", () => {
-  it("throws FORBIDDEN when caller has no membership in org", async () => {
+  it("throws FORBIDDEN when caller has no membership in org (PGRST116)", async () => {
     vi.mocked(supabaseAdmin.from).mockReturnValue(
-      makeSelectChain({ data: null, error: { message: "not found" } }),
+      makeSelectChain({
+        data: null,
+        error: { code: "PGRST116", message: "no rows" },
+      }),
     );
     await expect(caller.memberships.invite(inviteBase)).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
+    // TD-171: PGRST116 is legitimate "no rows" — must NOT spam Sentry.
+    expect(vi.mocked(Sentry.captureException)).not.toHaveBeenCalled();
+  });
+
+  it("captures Sentry on membership transport error (TD-171)", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({
+        data: null,
+        error: { code: "08006", message: "connection failure" },
+      }),
+    );
+    await expect(caller.memberships.invite(inviteBase)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.invite", path: "membership.error" },
+      }),
+    );
   });
 
   it("throws FORBIDDEN when caller role is caregiver", async () => {
@@ -442,6 +465,20 @@ describe("memberships.remove — TD-168 error mapping", () => {
         tags: { component: "memberships.remove", path: "count.error" },
       }),
     );
+  });
+
+  it("does NOT capture Sentry when caller is PGRST116 — no rows (TD-169 should-fix)", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({
+        data: null,
+        error: { code: "PGRST116", message: "no rows" },
+      }),
+    );
+    await expect(caller.memberships.remove(removeBase)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    // Mirrors the changeRole PGRST116 assertion — locks the filter in place.
+    expect(vi.mocked(Sentry.captureException)).not.toHaveBeenCalled();
   });
 
   it("captures Sentry on caller transport error (TD-169)", async () => {

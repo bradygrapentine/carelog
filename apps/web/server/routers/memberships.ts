@@ -38,6 +38,13 @@ export const membershipsRouter = router({
         .eq("user_id", ctx.user.id)
         .single();
 
+      // TD-171: distinguish transport/SQL failures from legitimate
+      // "no membership" (PGRST116). Mirrors TD-169 on changeRole/remove.
+      if (membershipError && membershipError.code !== "PGRST116") {
+        Sentry.captureException(wrapAdminError(membershipError), {
+          tags: { component: "memberships.invite", path: "membership.error" },
+        });
+      }
       if (
         membershipError ||
         !membership ||
