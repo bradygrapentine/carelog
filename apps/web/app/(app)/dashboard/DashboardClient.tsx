@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 import { createClient } from "../../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
@@ -175,6 +176,31 @@ export function DashboardClient({ user }: Props) {
                 .order("created_at", { ascending: true })
                 .limit(1),
             ]);
+
+            // TD-152: Supabase JS client returns errors via result.error, never
+            // throws. Capture explicitly so the dashboard degrades visibly
+            // instead of silently (root cause of TD-149 + TD-150 going undetected).
+            // PHI: org.id is a UUID; no PII pushed to Sentry.
+            if (countResult.error) {
+              Sentry.captureException(countResult.error, {
+                tags: {
+                  component: "DashboardClient",
+                  path: "care_events.count",
+                },
+                contexts: {
+                  query: { orgId: org.id, mode: "estimated" },
+                },
+              });
+            }
+            if (earliestResult.error) {
+              Sentry.captureException(earliestResult.error, {
+                tags: {
+                  component: "DashboardClient",
+                  path: "care_events.earliest",
+                },
+                contexts: { query: { orgId: org.id } },
+              });
+            }
 
             const eventCount = countResult.count ?? 0;
             let months = 0;

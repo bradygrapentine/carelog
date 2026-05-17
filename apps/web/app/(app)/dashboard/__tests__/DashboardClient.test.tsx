@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import * as Sentry from "@sentry/nextjs";
 import { DashboardClient } from "../DashboardClient";
 
 // Mock Supabase client
@@ -9,6 +10,13 @@ vi.mock("@/lib/supabase", () => ({
   createClient: () => ({
     from: mockFrom,
   }),
+}));
+
+// TD-152: mock Sentry so captureException assertions don't hit the real SDK
+// in jsdom and so we can verify error-path observability.
+vi.mock("@sentry/nextjs", () => ({
+  addBreadcrumb: vi.fn(),
+  captureException: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -374,4 +382,73 @@ describe("DashboardClient", () => {
       });
     },
   );
+
+  describe("Sentry observability (TD-152)", () => {
+    const mockCareEventsErrorChain = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi
+        .fn()
+        .mockResolvedValue({ count: null, error: { message: "RLS timeout" } }),
+    });
+
+    function setupErrorScenario() {
+      let careEventsCallCount = 0;
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "memberships")
+          return mockMembershipsChain([
+            {
+              org_id: "org-1",
+              recipient_id: "r-1",
+              role: "coordinator",
+              organizations: { id: "org-1", name: "Test Team" },
+            },
+          ]);
+        if (table === "care_recipients")
+          return mockRecipientsChain([{ id: "r-1" }]);
+        if (table === "display_names") return mockDisplayNamesChain("Robert");
+        if (table === "care_events") {
+          // Promise.all calls care_events twice — first count (errors), then earliest (ok)
+          careEventsCallCount++;
+          return careEventsCallCount === 1
+            ? mockCareEventsErrorChain()
+            : mockCareEventsEarliestChain(null);
+        }
+        return mockCareEventsEarliestChain(null);
+      });
+    }
+
+    it("captures Sentry exception when care_events count query errors", async () => {
+      setupErrorScenario();
+      render(<DashboardClient user={mockUser} />);
+
+      await waitFor(() => {
+        expect(Sentry.captureException).toHaveBeenCalled();
+      });
+
+      const calls = vi.mocked(Sentry.captureException).mock.calls;
+      const careEventsCall = calls.find(
+        (c) =>
+          (c[1] as { tags?: { path?: string } })?.tags?.path ===
+          "care_events.count",
+      );
+      expect(careEventsCall).toBeDefined();
+      expect(careEventsCall![1]).toMatchObject({
+        tags: { component: "DashboardClient", path: "care_events.count" },
+        contexts: { query: { orgId: "org-1", mode: "estimated" } },
+      });
+    });
+
+    it("dashboard still renders when care_events count errors (no white-screen)", async () => {
+      setupErrorScenario();
+      render(<DashboardClient user={mockUser} />);
+
+      await waitFor(() => {
+        // Heading is "Caring for Robert" once the team loads; if rendering broke,
+        // we'd see the loading skeleton or nothing.
+        expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+          /Caring for Robert|Your care dashboard/,
+        );
+      });
+    });
+  });
 });
