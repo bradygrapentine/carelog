@@ -163,7 +163,10 @@ export function DashboardClient({ user }: Props) {
             const [countResult, earliestResult] = await Promise.all([
               supabase
                 .from("care_events")
-                .select("*", { count: "exact", head: true })
+                // TD-149: count=exact + RLS on care_events times out (503).
+                // The dashboard stat tolerates planner-estimated counts.
+                // See docs/research/2026-05-17-td-149-care-events-head-503.md.
+                .select("*", { count: "estimated", head: true })
                 .eq("org_id", org.id),
               supabase
                 .from("care_events")
