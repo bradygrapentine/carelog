@@ -76,6 +76,9 @@ export function DashboardClient({ user }: Props) {
       const pendingInvite = sessionStorage.getItem("pending_invite");
       if (pendingInvite) {
         sessionStorage.removeItem("pending_invite");
+        // TD-166: clear loading before navigation so a slow router.push or
+        // back-navigation doesn't leave the skeleton rendered forever.
+        setLoading(false);
         router.push("/invite/" + pendingInvite);
         return;
       }
@@ -107,6 +110,9 @@ export function DashboardClient({ user }: Props) {
             });
             if (res.ok) {
               const { url } = await res.json();
+              // TD-166: clear loading before navigation to Stripe Checkout —
+              // mirrors the pending_invite path above.
+              setLoading(false);
               router.push(url);
               return;
             }
