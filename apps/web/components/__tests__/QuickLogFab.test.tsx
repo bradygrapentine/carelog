@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi, beforeEach } from "vitest";
+import * as Sentry from "@sentry/nextjs";
 import { QuickLogFab } from "@/components/QuickLogFab";
 
 // Mock next/navigation
@@ -11,6 +12,13 @@ vi.mock("next/navigation", () => ({
   usePathname: () => mockPathnameValue,
 }));
 
+// TD-152: mock Sentry so addBreadcrumb assertions don't hit the real SDK
+// in jsdom and so we can verify the breadcrumb shape.
+vi.mock("@sentry/nextjs", () => ({
+  addBreadcrumb: vi.fn(),
+  captureException: vi.fn(),
+}));
+
 function renderFab() {
   return render(<QuickLogFab />);
 }
@@ -18,6 +26,7 @@ function renderFab() {
 describe("<QuickLogFab />", () => {
   beforeEach(() => {
     mockPush.mockClear();
+    vi.mocked(Sentry.addBreadcrumb).mockClear();
     mockPathnameValue = "/journal/recipient-123";
   });
 
@@ -199,5 +208,26 @@ describe("<QuickLogFab />", () => {
     renderFab();
     const fab = screen.getByRole("button", { name: "Quick log" });
     expect(fab).toHaveAttribute("aria-controls", "quick-log-menu");
+  });
+
+  describe("Sentry breadcrumbs (TD-152)", () => {
+    it("addBreadcrumb fires on enabled menu click with action metadata", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: /log mood/i }));
+      expect(Sentry.addBreadcrumb).toHaveBeenCalledWith({
+        category: "quicklog",
+        message: "menu item clicked",
+        data: { actionId: "mood", hasRecipient: true, disabled: false },
+      });
+    });
+
+    it("breadcrumb payload does not include recipientId (PHI rule)", () => {
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: /log mood/i }));
+      const [call] = vi.mocked(Sentry.addBreadcrumb).mock.calls;
+      expect(call?.[0]?.data).not.toHaveProperty("recipientId");
+    });
   });
 });

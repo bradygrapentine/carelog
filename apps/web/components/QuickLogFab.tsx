@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
 import {
   Plus,
   X,
@@ -88,7 +89,19 @@ export function QuickLogFab() {
   // Quick log can't target a journal. Items are rendered disabled with a
   // hint banner above; clicks fall through to a no-op (defense-in-depth
   // since `disabled` HTMLButtonElement already blocks click handlers).
+  // TD-152: breadcrumb every menu click so future silent failures on this
+  // surface are visible in Sentry. PHI rule: `actionId` is an enum string;
+  // `recipientId` is intentionally omitted (only its truthiness reported).
   function handleActionClick(action: QuickLogAction) {
+    Sentry.addBreadcrumb({
+      category: "quicklog",
+      message: "menu item clicked",
+      data: {
+        actionId: action.id,
+        hasRecipient: !!recipientId,
+        disabled: !!action.disabled,
+      },
+    });
     if (action.disabled) return;
     if (!recipientId) return;
     close();
