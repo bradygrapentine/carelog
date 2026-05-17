@@ -60,3 +60,7 @@ worktrees/
 
 # Generated runbook HTML (source .md is the artifact)
 docs/project-info/runbooks/*.html
+.mcp.json
+.claude/scratch/
+.claude/sessions/
+.claude/state/
