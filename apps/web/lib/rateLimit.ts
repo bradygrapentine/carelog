@@ -7,6 +7,22 @@ import { logger } from "@/lib/logger";
 // use a looser limit because legitimate users retry after a mistyped code.
 // In production, throws when Upstash env vars are missing so rate limits are
 // never silently disabled. In dev/test, no-ops with a clear log line.
+//
+// TD-155 — Keying design (deliberate choice, IP-only, not email-keyed):
+//   The middleware keys on (endpoint + IP) — see the `key` assembly below.
+//   This is the right model for the surfaces it guards (`auth/verify`,
+//   `invite/accept`, `journal/*`):
+//   - `auth/verify` (6-digit OTP): IP-keying defends against rotating-IP
+//     brute force on a single victim's code. Email-keying would weaken the
+//     gate by letting an attacker brute-force a known victim's code as fast
+//     as they can rotate residential proxies.
+//   - Household false-positive concern is bounded by `max=30` per 15min on
+//     verify (route at `apps/web/app/api/auth/verify/route.ts:17`).
+//   OTP **send** is Supabase Auth's responsibility — the carelog client
+//   calls `supabase.auth.signInWithOtp` directly (see `SignInForm.tsx:46`);
+//   Supabase enforces its own per-email + per-IP send-rate limits. The 429s
+//   the 2026-05-17 Cowork live-test caught on attempt 2 came from Supabase
+//   Auth, NOT this middleware.
 const DEFAULT_WINDOW_SECONDS = 15 * 60;
 const DEFAULT_MAX_REQUESTS = 5;
 
