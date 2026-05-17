@@ -19,8 +19,9 @@ vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
 }));
 
+const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
   usePathname: () => "/dashboard",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -482,6 +483,80 @@ describe("DashboardClient", () => {
           document.querySelector(".animate-pulse"),
         ).not.toBeInTheDocument();
       });
+    });
+  });
+
+  describe("Redirect-path loading cleanup (TD-166)", () => {
+    it("pending_invite path: clears loading before navigating to /invite/...", async () => {
+      sessionStorage.setItem("pending_invite", "abc123");
+      // Memberships query won't be reached (return fires before it), but stub
+      // a never-resolving mockFrom so any rogue fall-through hangs visibly.
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        not: vi.fn().mockReturnValue(new Promise(() => {})),
+      });
+      render(<DashboardClient user={mockUser} />);
+
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/invite/abc123");
+      });
+      await waitFor(() => {
+        expect(
+          document.querySelector(".animate-pulse"),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it("pendingPlan success path: clears loading before navigating to Stripe URL", async () => {
+      sessionStorage.setItem(
+        "pendingPlan",
+        JSON.stringify({ interval: "month" }),
+      );
+
+      // memberships query must resolve with one org so the checkout fetch fires
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "memberships") {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            not: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockResolvedValue({ data: [{ org_id: "org-1" }] }),
+          };
+        }
+        // anything else: never-resolving (we should return before reaching it)
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnValue(new Promise(() => {})),
+        };
+      });
+
+      // Mock the Stripe checkout fetch to succeed with a redirect URL
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(
+          JSON.stringify({ url: "https://stripe.example/checkout" }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+
+      render(<DashboardClient user={mockUser} />);
+
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith(
+          "https://stripe.example/checkout",
+        );
+      });
+      await waitFor(() => {
+        expect(
+          document.querySelector(".animate-pulse"),
+        ).not.toBeInTheDocument();
+      });
+
+      fetchSpy.mockRestore();
     });
   });
 });
