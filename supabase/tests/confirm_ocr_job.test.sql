@@ -18,7 +18,7 @@
 --   9. empty confirmed_field_keys array → field_count=0 (not NULL), no constraint violation
 
 BEGIN;
-SELECT plan(15);
+SELECT plan(18);
 
 -- ============================================================
 -- Fixtures
