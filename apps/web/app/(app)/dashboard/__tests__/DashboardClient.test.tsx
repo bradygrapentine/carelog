@@ -451,4 +451,37 @@ describe("DashboardClient", () => {
       });
     });
   });
+
+  describe("Network failure path (TD-165)", () => {
+    it("catches a thrown network rejection, captures with path=network tag, and clears the loading state", async () => {
+      // Force the first .from() call to reject — simulates DNS failure / fetch reject
+      // (NOT the Supabase {data, error} envelope — an actual thrown rejection).
+      mockFrom.mockImplementation(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        not: vi.fn().mockRejectedValue(new Error("network down")),
+      }));
+
+      render(<DashboardClient user={mockUser} />);
+
+      await waitFor(() => {
+        const calls = vi.mocked(Sentry.captureException).mock.calls;
+        const networkCall = calls.find(
+          (c) =>
+            (c[1] as { tags?: { path?: string } })?.tags?.path === "network",
+        );
+        expect(networkCall).toBeDefined();
+        expect(networkCall![1]).toMatchObject({
+          tags: { component: "DashboardClient", path: "network" },
+        });
+      });
+
+      // Skeleton must clear — `setLoading(false)` runs in finally even on throw.
+      await waitFor(() => {
+        expect(
+          document.querySelector(".animate-pulse"),
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
 });
