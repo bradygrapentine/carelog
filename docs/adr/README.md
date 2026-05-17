@@ -1,5 +1,7 @@
 # Architecture Decision Records
 
+> **Canonical surface for architecture and system-design decisions** (audience: engineers reading code). Product language, tone, and UX decisions belong in [`docs/project-info/product/UX_DECISIONS.md`](../project-info/product/UX_DECISIONS.md).
+
 This directory captures load-bearing architectural decisions for Carelog. Each ADR records a single decision with its context, the choice made, and the consequences accepted.
 
 New ADRs are written via the global `write-adr` skill or by hand. Sequence: `NNNN-kebab-case-slug.md` (zero-padded, monotonically increasing). Status is `Accepted` for codified rules; use `Proposed` / `Superseded` only when a decision is genuinely in flux.
