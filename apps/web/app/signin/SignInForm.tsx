@@ -13,11 +13,19 @@ function friendlyOtpError(message: string): string {
   if (m.includes("rate limit") || m.includes("too many")) {
     return "Too many attempts. Wait a minute and try again.";
   }
+  // TD-154: Supabase /auth/v1/verify returns a 403 with "expired" in the
+  // message for BOTH genuinely-expired codes AND wrong codes. The previous
+  // "The code expired. Send a new one." copy on this branch caused a
+  // self-reinforcing loop: a user who mistyped was told the code expired and
+  // re-requested, invalidating their actually-still-valid current code. The
+  // copy below intentionally matches the "invalid"/"not match" branch — no
+  // wrong-vs-expired oracle is exposed (security-equivalent), and the user
+  // is no longer pushed to discard a valid code.
   if (m.includes("expired")) {
-    return "The code expired. Send a new one.";
+    return "That code didn't work. Check the digits or send a new code.";
   }
   if (m.includes("invalid") || m.includes("not match")) {
-    return "That code didn't match. Check the digits or send a new code.";
+    return "That code didn't work. Check the digits or send a new code.";
   }
   return "Couldn't sign you in. Try again, or send a fresh code.";
 }

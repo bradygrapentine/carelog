@@ -102,13 +102,50 @@ describe("SignInForm", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("The code expired. Send a new one."),
+        screen.getByText(
+          "That code didn't work. Check the digits or send a new code.",
+        ),
       ).toBeInTheDocument();
     });
+    // TD-154: the old "expired" wording pushed users to discard a valid code
+    expect(screen.queryByText(/The code expired/i)).not.toBeInTheDocument();
     // The raw Supabase error string must NOT leak to the UI.
     expect(
       screen.queryByText("Token has expired or is invalid"),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows the same code-didn't-work copy for a genuinely-expired OTP (TD-154)", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+    mockVerifyOtp.mockResolvedValue({
+      data: {},
+      error: { message: "OTP has expired" },
+    });
+
+    render(<SignInForm />);
+    fireEvent.change(screen.getByLabelText("Email address"), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue with email" }),
+    );
+
+    await waitFor(() => screen.getByLabelText("Enter your code"));
+
+    fireEvent.change(screen.getByLabelText("Enter your code"), {
+      target: { value: "654321" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Verify code" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "That code didn't work. Check the digits or send a new code.",
+        ),
+      ).toBeInTheDocument();
+    });
+    // Same copy as the wrong-code path: no wrong-vs-expired oracle
+    expect(screen.queryByText(/The code expired/i)).not.toBeInTheDocument();
   });
 
   it("button is disabled while submitting email", async () => {
