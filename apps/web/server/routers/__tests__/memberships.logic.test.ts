@@ -170,7 +170,7 @@ describe("memberships.invite — logic", () => {
         eq: () => chain,
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: "not found" },
+          error: { code: "PGRST116", message: "no rows" },
         }),
       };
       return chain as unknown as ReturnType<typeof supabaseAdmin.from>;
@@ -649,7 +649,7 @@ describe("memberships.changeRole — logic", () => {
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({
               data: null,
-              error: { message: "not found" },
+              error: { code: "PGRST116", message: "no rows" },
             }),
           };
           return chain;

@@ -61,6 +61,7 @@ function makeSelectChain(result: object) {
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
   vi.mocked(supabaseAdmin.rpc).mockReset();
+  vi.mocked(Sentry.captureException).mockReset();
 });
 
 // ─── memberships.invite — coordinator authorization ───────────────────────────
@@ -246,13 +247,61 @@ const changeRoleBase = {
 };
 
 describe("memberships.changeRole — authorization", () => {
-  it("throws FORBIDDEN when caller has no membership (null from supabaseAdmin)", async () => {
+  it("throws FORBIDDEN when caller has no membership (PGRST116 — no rows)", async () => {
     vi.mocked(supabaseAdmin.from).mockReturnValue(
-      makeSelectChain({ data: null, error: { message: "not found" } }),
+      makeSelectChain({
+        data: null,
+        error: { code: "PGRST116", message: "no rows" },
+      }),
     );
     await expect(
       caller.memberships.changeRole(changeRoleBase),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    // TD-169: PGRST116 is legitimate "no rows" — must NOT spam Sentry.
+    expect(vi.mocked(Sentry.captureException)).not.toHaveBeenCalled();
+  });
+
+  it("captures Sentry on caller transport error (TD-169)", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({
+        data: null,
+        error: { code: "08006", message: "connection failure" },
+      }),
+    );
+    await expect(
+      caller.memberships.changeRole(changeRoleBase),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.changeRole", path: "caller.error" },
+      }),
+    );
+  });
+
+  it("captures Sentry on target transport error (TD-169)", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { role: "coordinator", accepted_at: new Date().toISOString() },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: null,
+          error: { code: "08006", message: "connection failure" },
+        }),
+      );
+    await expect(
+      caller.memberships.changeRole(changeRoleBase),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.changeRole", path: "target.error" },
+      }),
+    );
   });
 
   it("throws FORBIDDEN when caller is caregiver (not coordinator)", async () => {
@@ -391,6 +440,49 @@ describe("memberships.remove — TD-168 error mapping", () => {
       expect.anything(),
       expect.objectContaining({
         tags: { component: "memberships.remove", path: "count.error" },
+      }),
+    );
+  });
+
+  it("captures Sentry on caller transport error (TD-169)", async () => {
+    vi.mocked(supabaseAdmin.from).mockReturnValue(
+      makeSelectChain({
+        data: null,
+        error: { code: "08006", message: "connection failure" },
+      }),
+    );
+    await expect(caller.memberships.remove(removeBase)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.remove", path: "caller.error" },
+      }),
+    );
+  });
+
+  it("captures Sentry on target transport error (TD-169)", async () => {
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { role: "coordinator", accepted_at: new Date().toISOString() },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: null,
+          error: { code: "08006", message: "connection failure" },
+        }),
+      );
+    await expect(caller.memberships.remove(removeBase)).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.remove", path: "target.error" },
       }),
     );
   });

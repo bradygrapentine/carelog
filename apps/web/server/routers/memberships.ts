@@ -162,6 +162,14 @@ export const membershipsRouter = router({
         .eq("user_id", ctx.user.id)
         .single();
 
+      // TD-169: distinguish transport/SQL failures from legitimate
+      // "no membership" (PGRST116). Without this capture, a DB outage
+      // is indistinguishable from an unauthorized caller in Sentry.
+      if (callerError && callerError.code !== "PGRST116") {
+        Sentry.captureException(wrapAdminError(callerError), {
+          tags: { component: "memberships.changeRole", path: "caller.error" },
+        });
+      }
       if (
         callerError ||
         !caller ||
@@ -177,6 +185,11 @@ export const membershipsRouter = router({
         .eq("id", input.membershipId)
         .single();
 
+      if (targetError && targetError.code !== "PGRST116") {
+        Sentry.captureException(wrapAdminError(targetError), {
+          tags: { component: "memberships.changeRole", path: "target.error" },
+        });
+      }
       if (targetError || !target) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
@@ -229,6 +242,12 @@ export const membershipsRouter = router({
         .eq("user_id", ctx.user.id)
         .single();
 
+      // TD-169: transport/SQL failure capture; PGRST116 = legitimate "no rows".
+      if (callerError && callerError.code !== "PGRST116") {
+        Sentry.captureException(wrapAdminError(callerError), {
+          tags: { component: "memberships.remove", path: "caller.error" },
+        });
+      }
       if (
         callerError ||
         !caller ||
@@ -244,6 +263,11 @@ export const membershipsRouter = router({
         .eq("id", input.membershipId)
         .single();
 
+      if (targetError && targetError.code !== "PGRST116") {
+        Sentry.captureException(wrapAdminError(targetError), {
+          tags: { component: "memberships.remove", path: "target.error" },
+        });
+      }
       if (targetError || !target) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
