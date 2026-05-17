@@ -618,6 +618,66 @@ function GrowCareSyncSection() {
   );
 }
 
+// ─── History Export Link (coordinator-only) ──────────────────────────────────
+//
+// TD-159: gate the "Export care history" affordance on coordinator role so
+// non-coordinators don't see a capability they can't use (and so we don't
+// leak the existence of the capability to non-coordinators via the
+// "(coordinators only)" sub-label). Server-side enforcement lives at
+// apps/web/app/(app)/settings/history-export/page.tsx (redirects to /settings
+// if not a coordinator); this is a UI visibility tweak only.
+
+function HistoryExportLink() {
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setChecked(true);
+        return;
+      }
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "coordinator")
+        .not("accepted_at", "is", null)
+        .limit(1);
+      if (memberships && memberships.length > 0) {
+        setIsCoordinator(true);
+      }
+      setChecked(true);
+    })();
+  }, []);
+
+  if (!checked || !isCoordinator) return null;
+
+  return (
+    <a
+      href="/settings/history-export"
+      className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-card px-5 py-4 shadow-sm hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
+      aria-label="Export full care history"
+    >
+      <div>
+        <p className="text-sm font-medium text-[var(--color-ink)]">
+          Export care history
+        </p>
+        <p className="text-xs text-[var(--color-muted)] mt-0.5">
+          Download a full PDF or JSON export of all care records.
+        </p>
+      </div>
+      <span className="ml-4 text-[var(--color-muted)]" aria-hidden="true">
+        →
+      </span>
+    </a>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -634,25 +694,7 @@ export default function SettingsPage() {
         <LanguageSection />
         <GrowCareSyncSection />
         <DangerZoneSection />
-        {/* History export — coordinator-only, rendered as a link card */}
-        <a
-          href="/settings/history-export"
-          className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-card px-5 py-4 shadow-sm hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
-          aria-label="Export full care history"
-        >
-          <div>
-            <p className="text-sm font-medium text-[var(--color-ink)]">
-              Export care history
-            </p>
-            <p className="text-xs text-[var(--color-muted)] mt-0.5">
-              Download a full PDF or JSON export of all care records
-              (coordinators only).
-            </p>
-          </div>
-          <span className="ml-4 text-[var(--color-muted)]" aria-hidden="true">
-            →
-          </span>
-        </a>
+        <HistoryExportLink />
       </div>
     </div>
   );
