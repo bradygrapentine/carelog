@@ -418,6 +418,12 @@ Operator captured the two data points the §6 recommendation was conditional on:
 
 ---
 
+## Section 6.7 — Per-function cron-firing audit (TD-146, 2026-05-17)
+
+Source-level audit of all 14 Inngest functions completed; full per-function table, env-gate analysis, and operator dashboard verification steps live at `docs/research/2026-05-17-td-146-inngest-cron-audit.md`. TL;DR: 8 crons + 6 event handlers, no dark crons in source, projected ~388 cron firings/24h (23% of Hobby tier monthly quota). The §6 queue-migration decision is **unblocked** — Inngest is firing as expected.
+
+---
+
 ## Sources (with retrieval date)
 
 All sources retrieved 2026-05-15 unless otherwise noted.
