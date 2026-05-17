@@ -7,13 +7,17 @@ Source: `docs/audits/2026-05-09-roadmap-and-harness-audit.md`. Four execution wa
 
 Revised after Opus peer review on 2026-05-09. Key revisions: D.2 hoisted into Wave A; C.3 budget lifted from 1.5 → 3–4 hr with diff-triage; C.4 made line-for-line move with stub pointers; missing audit findings (§C Outer-circle, copy-audit.md, codex-adversarial-gate) added; verification steps tightened.
 
-## Guiding decisions (decide once, applies everywhere)
+## Guiding decisions (archived — 2026-05-17)
 
-1. **Backlog edits ship in dedicated `chore(backlog): …` PRs.** Project rule: feature/fix PRs do NOT touch `BACKLOG.md`.
-2. **One audit-finding per PR** unless two findings touch overlapping files (then bundle).
-3. **No autopilot dispatches** for any of this work. Direct implementation only — every fix is a low-LOC config/markdown change where dispatch overhead exceeds the fix cost.
-4. **Each PR ships behind the existing `queue` Mergify label flow.** No `--auto --squash`.
-5. **No deletes for skill dedup** until the project copy and global copy are diff'd and the better content lives in global. Diff first, merge content, then delete.
+> These five entries were execution-time decisions for this plan, not standing canonical rules. Audit conducted as part of TD-147. Disposition of each entry:
+>
+> 1. **Backlog edits ship in dedicated `chore(backlog):` PRs** — redundant; already codified in `.claude/CLAUDE.md` §BACKLOG-as-SoT and root `CLAUDE.md` §Project conventions. Struck.
+> 2. **One audit-finding per PR** — plan-specific execution rule, not a standing decision. Struck.
+> 3. **No autopilot dispatches** — plan-specific. Struck.
+> 4. **Each PR ships behind Mergify `queue` label** — superseded; Mergify removed 2026-05-10. Already noted in the doc header. Struck.
+> 5. **No deletes for skill dedup until diff'd** — still load-bearing for TD-111. Does not fit ADR (not architecture) or UX_DECISIONS (not product/language). Belongs in `.claude/CLAUDE.md` §Parallel Work. Track C (TD-111) should migrate this rule there.
+>
+> Canonical decision surfaces: `docs/adr/` (architecture) and `docs/project-info/product/UX_DECISIONS.md` (product/language). See root `CLAUDE.md` §Decision docs.
 
 ---
 

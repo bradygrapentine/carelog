@@ -1,5 +1,7 @@
 # Carelog — UX & Language Decisions
 
+> **Canonical surface for product language, tone, and UX decisions** (audience: engineers writing copy + product folk). Architecture and system-design decisions belong in [`docs/adr/`](../../adr/README.md).
+
 These decisions are as important as the technical ones.
 The language and emotional framing of this product are deliberate.
 Do not change them without understanding the reasoning.
