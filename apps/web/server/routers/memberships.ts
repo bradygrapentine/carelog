@@ -198,9 +198,16 @@ export const membershipsRouter = router({
         .eq("id", input.membershipId);
 
       if (updateError) {
+        // TD-168: mirror TD-167 — never echo raw Postgres error strings to the
+        // client. Keep diagnostic in `cause` (server-only per errorFormatter)
+        // and surface to Sentry; return a generic client-facing message.
+        Sentry.captureException(wrapAdminError(updateError), {
+          tags: { component: "memberships.changeRole", path: "update.error" },
+        });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: updateError.message,
+          message: "Failed to change role",
+          cause: updateError,
         });
       }
 
@@ -261,9 +268,14 @@ export const membershipsRouter = router({
           .not("accepted_at", "is", null);
 
         if (countError) {
+          // TD-168: generic client message; raw error to Sentry only.
+          Sentry.captureException(wrapAdminError(countError), {
+            tags: { component: "memberships.remove", path: "count.error" },
+          });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: countError.message,
+            message: "Failed to remove member",
+            cause: countError,
           });
         }
 
@@ -281,9 +293,14 @@ export const membershipsRouter = router({
         .eq("id", input.membershipId);
 
       if (deleteError) {
+        // TD-168: generic client message; raw error to Sentry only.
+        Sentry.captureException(wrapAdminError(deleteError), {
+          tags: { component: "memberships.remove", path: "delete.error" },
+        });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: deleteError.message,
+          message: "Failed to remove member",
+          cause: deleteError,
         });
       }
 

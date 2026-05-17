@@ -303,4 +303,132 @@ describe("memberships.changeRole — authorization", () => {
       caller.memberships.changeRole(changeRoleBase),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("returns generic message + captures Sentry on updateError (TD-168)", async () => {
+    // (1) caller lookup, (2) target lookup, (3) update call
+    const updateChain: any = {
+      update: () => updateChain,
+      eq: vi
+        .fn()
+        .mockResolvedValue({ error: { message: "connection refused" } }),
+    };
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { role: "coordinator", accepted_at: new Date().toISOString() },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: {
+            id: TARGET_MEMBERSHIP_ID,
+            user_id: "other-user-id",
+            org_id: ORG_ID,
+          },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(updateChain);
+    await expect(
+      caller.memberships.changeRole(changeRoleBase),
+    ).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to change role",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.changeRole", path: "update.error" },
+      }),
+    );
+  });
+});
+
+// ─── memberships.remove — authorization + error mapping ──────────────────────
+
+const removeBase = {
+  orgId: ORG_ID,
+  membershipId: TARGET_MEMBERSHIP_ID,
+};
+
+describe("memberships.remove — TD-168 error mapping", () => {
+  it("returns generic message + captures Sentry on countError (last-coordinator check)", async () => {
+    // (1) caller lookup (accepted coordinator)
+    // (2) target lookup (coordinator in same org)
+    // (3) count query — fails
+    const countChain: any = {
+      select: () => countChain,
+      eq: () => countChain,
+      not: vi
+        .fn()
+        .mockResolvedValue({ count: null, error: { message: "boom" } }),
+    };
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { role: "coordinator", accepted_at: new Date().toISOString() },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: {
+            id: TARGET_MEMBERSHIP_ID,
+            user_id: "other-user-id",
+            role: "coordinator",
+            org_id: ORG_ID,
+          },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(countChain);
+    await expect(caller.memberships.remove(removeBase)).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to remove member",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.remove", path: "count.error" },
+      }),
+    );
+  });
+
+  it("returns generic message + captures Sentry on deleteError", async () => {
+    // (1) caller (accepted coordinator), (2) target (caregiver — skips count branch), (3) delete fails
+    const deleteChain: any = {
+      delete: () => deleteChain,
+      eq: vi.fn().mockResolvedValue({ error: { message: "fk violation" } }),
+    };
+    vi.mocked(supabaseAdmin.from)
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: { role: "coordinator", accepted_at: new Date().toISOString() },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        makeSelectChain({
+          data: {
+            id: TARGET_MEMBERSHIP_ID,
+            user_id: "other-user-id",
+            role: "caregiver",
+            org_id: ORG_ID,
+          },
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(deleteChain);
+    await expect(caller.memberships.remove(removeBase)).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to remove member",
+    });
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tags: { component: "memberships.remove", path: "delete.error" },
+      }),
+    );
+  });
 });
