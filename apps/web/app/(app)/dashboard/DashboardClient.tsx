@@ -116,116 +116,131 @@ export function DashboardClient({ user }: Props) {
         }
       }
 
-      // Only fetch accepted (active) memberships — pending invites have accepted_at = null.
-      // Also fetch role to determine if user is a coordinator for any org.
-      const { data: memberships } = await supabase
-        .from("memberships")
-        .select("org_id, recipient_id, role, organizations(id, name)")
-        .eq("user_id", user.id)
-        .not("accepted_at", "is", null);
+      // TD-165: wrap data fetch in try/catch/finally so a thrown network
+      // rejection (DNS down, fetch reject) doesn't leave the skeleton state
+      // rendered forever. Supabase JS errors flow via result.error (handled
+      // inline below) and never throw; this catch fires only for true
+      // network/runtime exceptions that bypass the { data, error } envelope.
+      try {
+        // Only fetch accepted (active) memberships — pending invites have accepted_at = null.
+        // Also fetch role to determine if user is a coordinator for any org.
+        const { data: memberships } = await supabase
+          .from("memberships")
+          .select("org_id, recipient_id, role, organizations(id, name)")
+          .eq("user_id", user.id)
+          .not("accepted_at", "is", null);
 
-      type Membership = {
-        org_id: string;
-        recipient_id: string;
-        role: string;
-        organizations: { id: string; name: string } | null;
-      };
+        type Membership = {
+          org_id: string;
+          recipient_id: string;
+          role: string;
+          organizations: { id: string; name: string } | null;
+        };
 
-      if (memberships) {
-        const seen = new Set<string>();
-        const result: CareTeam[] = [];
-        for (const m of memberships as unknown as Membership[]) {
-          const org = m.organizations;
-          if (!org || seen.has(org.id)) continue;
-          seen.add(org.id);
+        if (memberships) {
+          const seen = new Set<string>();
+          const result: CareTeam[] = [];
+          for (const m of memberships as unknown as Membership[]) {
+            const org = m.organizations;
+            if (!org || seen.has(org.id)) continue;
+            seen.add(org.id);
 
-          // Each org can have multiple recipients (agency model), but for
-          // family use we only need the first one to navigate to the journal.
-          const { data: recipients } = await supabase
-            .from("care_recipients")
-            .select("id")
-            .eq("org_id", org.id)
-            .limit(1);
+            // Each org can have multiple recipients (agency model), but for
+            // family use we only need the first one to navigate to the journal.
+            const { data: recipients } = await supabase
+              .from("care_recipients")
+              .select("id")
+              .eq("org_id", org.id)
+              .limit(1);
 
-          // Fetch recipient display name from the PHI-safe display_names cache
-          // (RLS allows team members to read; identity_vault is service_role only).
-          let recipientName: string | null = null;
-          if (recipients?.[0]) {
-            const { data: dn } = await supabase
-              .from("display_names")
-              .select("full_name")
-              .eq("recipient_id", recipients[0].id)
-              .maybeSingle();
-            recipientName = dn?.full_name ?? null;
-          }
+            // Fetch recipient display name from the PHI-safe display_names cache
+            // (RLS allows team members to read; identity_vault is service_role only).
+            let recipientName: string | null = null;
+            if (recipients?.[0]) {
+              const { data: dn } = await supabase
+                .from("display_names")
+                .select("full_name")
+                .eq("recipient_id", recipients[0].id)
+                .maybeSingle();
+              recipientName = dn?.full_name ?? null;
+            }
 
-          if (recipients?.[0]) {
-            // Parallel queries: count of events and earliest event date
-            const [countResult, earliestResult] = await Promise.all([
-              supabase
-                .from("care_events")
-                // TD-149: count=exact + RLS on care_events times out (503).
-                // The dashboard stat tolerates planner-estimated counts.
-                // See docs/research/2026-05-17-td-149-care-events-head-503.md.
-                .select("*", { count: "estimated", head: true })
-                .eq("org_id", org.id),
-              supabase
-                .from("care_events")
-                .select("created_at")
-                .eq("org_id", org.id)
-                .order("created_at", { ascending: true })
-                .limit(1),
-            ]);
+            if (recipients?.[0]) {
+              // Parallel queries: count of events and earliest event date
+              const [countResult, earliestResult] = await Promise.all([
+                supabase
+                  .from("care_events")
+                  // TD-149: count=exact + RLS on care_events times out (503).
+                  // The dashboard stat tolerates planner-estimated counts.
+                  // See docs/research/2026-05-17-td-149-care-events-head-503.md.
+                  .select("*", { count: "estimated", head: true })
+                  .eq("org_id", org.id),
+                supabase
+                  .from("care_events")
+                  .select("created_at")
+                  .eq("org_id", org.id)
+                  .order("created_at", { ascending: true })
+                  .limit(1),
+              ]);
 
-            // TD-152: Supabase JS client returns errors via result.error, never
-            // throws. Capture explicitly so the dashboard degrades visibly
-            // instead of silently (root cause of TD-149 + TD-150 going undetected).
-            // PHI: org.id is a UUID; no PII pushed to Sentry.
-            if (countResult.error) {
-              Sentry.captureException(countResult.error, {
-                tags: {
-                  component: "DashboardClient",
-                  path: "care_events.count",
-                },
-                contexts: {
-                  query: { orgId: org.id, mode: "estimated" },
-                },
+              // TD-152: Supabase JS client returns errors via result.error, never
+              // throws. Capture explicitly so the dashboard degrades visibly
+              // instead of silently (root cause of TD-149 + TD-150 going undetected).
+              // PHI: org.id is a UUID; no PII pushed to Sentry.
+              if (countResult.error) {
+                Sentry.captureException(countResult.error, {
+                  tags: {
+                    component: "DashboardClient",
+                    path: "care_events.count",
+                  },
+                  contexts: {
+                    query: { orgId: org.id, mode: "estimated" },
+                  },
+                });
+              }
+              if (earliestResult.error) {
+                Sentry.captureException(earliestResult.error, {
+                  tags: {
+                    component: "DashboardClient",
+                    path: "care_events.earliest",
+                  },
+                  contexts: { query: { orgId: org.id } },
+                });
+              }
+
+              const eventCount = countResult.count ?? 0;
+              let months = 0;
+              if (eventCount > 0 && earliestResult.data?.[0]?.created_at) {
+                const daysDiff =
+                  (Date.now() -
+                    new Date(earliestResult.data[0].created_at).getTime()) /
+                  86400000;
+                months = Math.round(daysDiff / 30.44);
+              }
+
+              result.push({
+                org,
+                recipientId: recipients[0].id,
+                recipientName,
+                role: m.role,
+                eventCount,
+                months,
               });
             }
-            if (earliestResult.error) {
-              Sentry.captureException(earliestResult.error, {
-                tags: {
-                  component: "DashboardClient",
-                  path: "care_events.earliest",
-                },
-                contexts: { query: { orgId: org.id } },
-              });
-            }
-
-            const eventCount = countResult.count ?? 0;
-            let months = 0;
-            if (eventCount > 0 && earliestResult.data?.[0]?.created_at) {
-              const daysDiff =
-                (Date.now() -
-                  new Date(earliestResult.data[0].created_at).getTime()) /
-                86400000;
-              months = Math.round(daysDiff / 30.44);
-            }
-
-            result.push({
-              org,
-              recipientId: recipients[0].id,
-              recipientName,
-              role: m.role,
-              eventCount,
-              months,
-            });
           }
+          setTeams(result);
         }
-        setTeams(result);
+      } catch (err) {
+        // TD-165: network/runtime failure path. Supabase data-errors flow
+        // via result.error (handled inline above); this catches actual
+        // throws (DNS down, fetch reject). PHI: err message + stack come
+        // from runtime/Supabase library code, not user input.
+        Sentry.captureException(err, {
+          tags: { component: "DashboardClient", path: "network" },
+        });
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     })();
   }, [user.id]);
 
