@@ -1,22 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "./route";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
-  supabaseAdmin: { from: vi.fn() },
+  supabaseAdmin: { from: vi.fn(), rpc: vi.fn() },
+  wrapAdminError: vi.fn((e: unknown) =>
+    e instanceof Error
+      ? e
+      : new Error(String((e as { message?: string })?.message ?? e)),
+  ),
 }));
 
 vi.mock("@/lib/supabaseServer", () => ({
   getRequestUser: vi.fn(),
 }));
 
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+}));
+
+import { POST } from "./route";
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { getRequestUser } from "@/lib/supabaseServer";
+import * as Sentry from "@sentry/nextjs";
 
 const VALID_UUID = "18dc6d19-6712-4b26-8797-b4e544e01b84";
 const VALID_ORG_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 const VALID_JOB_ID = "cccccccc-dddd-eeee-ffff-000000000000";
-const VALID_REC_ID = "dddddddd-eeee-ffff-0000-111111111111";
 
 const VALID_BODY = {
   jobId: VALID_JOB_ID,
@@ -46,206 +55,214 @@ function postRequest(body: unknown) {
   });
 }
 
+// Sets up the membership + job lookup chain (the two `from(...)` calls before
+// the RPC). Returns the rpc mock for the test to control its return shape.
+function mockHappyPathBeforeRpc(opts?: {
+  jobStatus?: string;
+  rawText?: string;
+}) {
+  vi.mocked(supabaseAdmin.from)
+    .mockImplementationOnce(
+      () =>
+        makeSelectChain({
+          data: { role: "coordinator" },
+          error: null,
+        }) as never,
+    )
+    .mockImplementationOnce(
+      () =>
+        makeSelectChain({
+          data: {
+            id: VALID_JOB_ID,
+            raw_text: opts?.rawText ?? "Metformin 500mg twice daily",
+          },
+          error: null,
+        }) as never,
+    );
+}
+
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
-  vi.mocked(getRequestUser).mockResolvedValue({ id: VALID_UUID } as any);
+  vi.mocked(supabaseAdmin.rpc).mockReset();
+  vi.mocked(getRequestUser).mockResolvedValue({ id: VALID_UUID } as never);
+  vi.mocked(Sentry.captureException).mockReset();
 });
 
 describe("POST /api/ocr/confirm", () => {
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(getRequestUser).mockResolvedValue(null as any);
+    vi.mocked(getRequestUser).mockResolvedValue(null as never);
 
     const res = await POST(postRequest(VALID_BODY));
     expect(res.status).toBe(401);
-    const body = await res.json();
-    expect(body.error).toMatch(/Unauthorized/);
+    expect((await res.json()).error).toMatch(/Unauthorized/);
   });
 
   it("returns 400 when jobId is not a UUID", async () => {
     const res = await POST(postRequest({ ...VALID_BODY, jobId: "not-a-uuid" }));
     expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toMatch(/Invalid request body/);
+    expect((await res.json()).error).toMatch(/Invalid request body/);
   });
 
   it("returns 403 when caller is not a coordinator", async () => {
     vi.mocked(supabaseAdmin.from).mockImplementationOnce(
       () =>
-        makeSelectChain({ data: { role: "caregiver" }, error: null }) as any,
+        makeSelectChain({
+          data: { role: "caregiver" },
+          error: null,
+        }) as never,
     );
 
     const res = await POST(postRequest(VALID_BODY));
     expect(res.status).toBe(403);
-    const body = await res.json();
-    expect(body.error).toMatch(/Forbidden/);
+    expect((await res.json()).error).toMatch(/Forbidden/);
   });
 
-  it("returns 404 when job not found", async () => {
+  it("returns 404 when pre-RPC job lookup misses", async () => {
     vi.mocked(supabaseAdmin.from)
       .mockImplementationOnce(
         () =>
           makeSelectChain({
             data: { role: "coordinator" },
             error: null,
-          }) as any,
+          }) as never,
       )
       .mockImplementationOnce(
-        () => makeSelectChain({ data: null, error: null }) as any,
+        () => makeSelectChain({ data: null, error: null }) as never,
       );
 
     const res = await POST(postRequest(VALID_BODY));
     expect(res.status).toBe(404);
-    const body = await res.json();
-    expect(body.error).toMatch(/Job not found/);
+    expect((await res.json()).error).toMatch(/Job not found/);
   });
 
-  it("returns 200 { ok: true } on success", async () => {
-    vi.mocked(supabaseAdmin.from)
-      // membership check
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: { role: "coordinator" },
-            error: null,
-          }) as any,
-      )
-      // job lookup — recipient_id + status + raw_text come from the row, never from client body
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: {
-              id: VALID_JOB_ID,
-              recipient_id: VALID_REC_ID,
-              status: "needs_review",
-              raw_text: "Metformin 500mg twice daily",
-            },
-            error: null,
-          }) as any,
-      )
-      // SEC-007: audit log insert
-      .mockImplementationOnce(
-        () => makeSelectChain({ data: null, error: null }) as any,
-      )
-      // medication insert
-      .mockImplementationOnce(
-        () => makeSelectChain({ data: null, error: null }) as any,
-      )
-      // ocr_jobs update — optimistic lock: count: 1 indicates row was updated
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({ data: null, error: null, count: 1 } as any) as any,
-      );
+  it("returns 200 { ok: true } on RPC success", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: true, error: null },
+      error: null,
+    } as never);
 
     const res = await POST(postRequest(VALID_BODY));
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.ok).toBe(true);
+    expect((await res.json()).ok).toBe(true);
   });
 
-  it("SEC-007: returns 500 when audit insert fails AND does not insert medication", async () => {
-    const medInsertSpy = vi.fn(() =>
-      makeSelectChain({ data: null, error: null }),
-    );
+  it("RPC sentinel 'org_mismatch' → 403 with generic message + raw error NOT echoed", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: false, error: "org_mismatch" },
+      error: null,
+    } as never);
 
-    vi.mocked(supabaseAdmin.from)
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: { role: "coordinator" },
-            error: null,
-          }) as any,
-      )
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: {
-              id: VALID_JOB_ID,
-              recipient_id: VALID_REC_ID,
-              status: "needs_review",
-              raw_text: "Metformin 500mg twice daily",
-            },
-            error: null,
-          }) as any,
-      )
-      // Audit insert FAILS — fail-loud, no swallow
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: null,
-            error: { message: "audit table down" },
-          }) as any,
-      )
-      // medication-insert mock — should NOT be called
-      .mockImplementationOnce(medInsertSpy as any);
+    const res = await POST(postRequest(VALID_BODY));
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toBe("Forbidden");
+  });
+
+  it("RPC sentinel 'not_pending' → 400", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: false, error: "not_pending" },
+      error: null,
+    } as never);
+
+    const res = await POST(postRequest(VALID_BODY));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/Invalid transition/);
+  });
+
+  it("RPC sentinel 'already_confirmed' → 409 (race-loser path)", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: false, error: "already_confirmed" },
+      error: null,
+    } as never);
+
+    const res = await POST(postRequest(VALID_BODY));
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toMatch(/already confirmed/);
+  });
+
+  it("RPC sentinel 'not_found' → 404", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: false, error: "not_found" },
+      error: null,
+    } as never);
+
+    const res = await POST(postRequest(VALID_BODY));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toMatch(/Job not found/);
+  });
+
+  it("RPC transport error → 500 generic + Sentry captured (TD-167 pattern)", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: null,
+      error: { message: "connection refused", code: "08006" },
+    } as never);
 
     const res = await POST(postRequest(VALID_BODY));
     expect(res.status).toBe(500);
-    const body = await res.json();
-    expect(body.error).toMatch(/audit table down/);
-    // Medication insert must NOT have been reached
-    expect(medInsertSpy).not.toHaveBeenCalled();
+    expect((await res.json()).error).toBe("Failed to confirm OCR job");
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    const tags = vi.mocked(Sentry.captureException).mock.calls[0]?.[1] as {
+      tags: { component: string; path: string };
+    };
+    expect(tags?.tags.path).toBe("rpc.error");
   });
 
-  it("SEC-007: audit insert payload has SHA-256 hash + only confirmed field keys", async () => {
-    const auditInsertSpy = vi.fn((payload: unknown) => {
-      // Capture audit payload via insert(...) call shape
-      return makeSelectChain({ data: null, error: null });
-    });
+  it("Unknown sentinel falls through to 500 + Sentry capture", async () => {
+    mockHappyPathBeforeRpc();
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: false, error: "made_up_sentinel" },
+      error: null,
+    } as never);
 
-    const auditFrom = () => ({
-      insert: auditInsertSpy,
-      select: () => ({}),
-      eq: () => ({}),
-    });
+    const res = await POST(postRequest(VALID_BODY));
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toBe("Failed to confirm OCR job");
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    const tags = vi.mocked(Sentry.captureException).mock.calls[0]?.[1] as {
+      tags: { component: string; path: string };
+    };
+    expect(tags?.tags.path).toBe("rpc.fallthrough");
+  });
 
-    vi.mocked(supabaseAdmin.from)
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: { role: "coordinator" },
-            error: null,
-          }) as any,
-      )
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({
-            data: {
-              id: VALID_JOB_ID,
-              recipient_id: VALID_REC_ID,
-              status: "needs_review",
-              raw_text: "Metformin 500mg",
-            },
-            error: null,
-          }) as any,
-      )
-      .mockImplementationOnce(auditFrom as any)
-      .mockImplementationOnce(
-        () => makeSelectChain({ data: null, error: null }) as any,
-      )
-      .mockImplementationOnce(
-        () =>
-          makeSelectChain({ data: null, error: null, count: 1 } as any) as any,
-      );
+  it("RPC payload includes correctly built confirmed_field_keys + raw_output_hash buffer", async () => {
+    mockHappyPathBeforeRpc({ rawText: "Metformin 500mg" });
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+      data: { success: true, error: null },
+      error: null,
+    } as never);
 
     await POST(postRequest({ ...VALID_BODY, instructions: "with food" }));
 
-    expect(auditInsertSpy).toHaveBeenCalledTimes(1);
-    const payload = auditInsertSpy.mock.calls[0]?.[0] as Record<
-      string,
-      unknown
-    >;
-    expect(payload).toBeDefined();
-    expect(payload.ocr_job_id).toBe(VALID_JOB_ID);
-    expect(payload.org_id_snapshot).toBe(VALID_ORG_ID);
-    expect(payload.user_id).toBe(VALID_UUID);
-    expect(payload.confirmed_field_keys).toEqual([
+    expect(supabaseAdmin.rpc).toHaveBeenCalledTimes(1);
+    const [fnName, args] = vi.mocked(supabaseAdmin.rpc).mock.calls[0] ?? [];
+    expect(fnName).toBe("confirm_ocr_job");
+    const payload = args as {
+      p_user_id: string;
+      p_org_id: string;
+      p_job_id: string;
+      p_drug_name: string;
+      p_dosage: string;
+      p_instructions: string;
+      p_raw_output_hash: Buffer;
+      p_confirmed_field_keys: string[];
+    };
+    expect(payload.p_user_id).toBe(VALID_UUID);
+    expect(payload.p_org_id).toBe(VALID_ORG_ID);
+    expect(payload.p_job_id).toBe(VALID_JOB_ID);
+    expect(payload.p_drug_name).toBe("Metformin");
+    expect(payload.p_dosage).toBe("500mg");
+    expect(payload.p_instructions).toBe("with food");
+    expect(payload.p_confirmed_field_keys).toEqual([
       "drug_name",
       "dosage",
       "instructions",
     ]);
-    expect(payload.field_count).toBe(3);
-    // SHA-256 of "Metformin 500mg" NFC-normalized — verify it's a Buffer of length 32
-    expect(Buffer.isBuffer(payload.raw_output_hash)).toBe(true);
-    expect((payload.raw_output_hash as Buffer).length).toBe(32);
+    expect(Buffer.isBuffer(payload.p_raw_output_hash)).toBe(true);
+    expect(payload.p_raw_output_hash.length).toBe(32);
   });
 });
