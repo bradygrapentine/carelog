@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deploy Fix + Live Test (SEC-001 sequencing)</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-alt: #161b22;
+  --fg: #c9d1d9;
+  --fg-muted: #8b949e;
+  --cyan: #56d4dd;
+  --cyan-hot: #79f2eb;
+  --green: #56d364;
+  --yellow: #e3b341;
+  --red: #ff7b72;
+  --border: #30363d;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; line-height: 1.55; }
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+nav { background: var(--bg-alt); border-right: 1px solid var(--border); padding: 20px 16px; position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+nav h2 { font-size: 12px; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 12px 0; letter-spacing: 1px; }
+nav ol { list-style: none; padding: 0; margin: 0; counter-reset: section; }
+nav ol li { counter-increment: section; margin-bottom: 6px; }
+nav ol li a { color: var(--fg); text-decoration: none; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+nav ol li a:hover { background: rgba(86, 212, 221, 0.08); color: var(--cyan); }
+nav ol li a::before { content: counter(section) "."; color: var(--fg-muted); font-weight: 600; }
+nav .progress { margin-top: 16px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--fg-muted); }
+nav .progress strong { color: var(--cyan); font-size: 14px; }
+nav .actions { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+nav .actions button { background: transparent; border: 1px solid var(--border); color: var(--fg); padding: 6px 10px; border-radius: 4px; font: inherit; font-size: 11px; cursor: pointer; text-align: left; }
+nav .actions button:hover { border-color: var(--cyan); color: var(--cyan); }
+nav .actions button.reset-confirm { color: var(--red); border-color: var(--red); }
+main { padding: 32px 48px; max-width: 920px; }
+h1 { color: var(--cyan); font-size: 22px; margin: 0 0 16px 0; }
+h2 { color: var(--cyan); font-size: 16px; margin-top: 36px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+h3 { color: var(--cyan); font-size: 14px; margin-top: 24px; }
+h2 .anchor { color: var(--fg-muted); margin-right: 4px; font-weight: 400; }
+p { margin: 8px 0; }
+ul, ol { padding-left: 22px; }
+ul.checklist { list-style: none; padding-left: 0; margin: 12px 0; }
+ul.checklist li { margin: 6px 0; padding: 6px 8px; border-radius: 4px; transition: background 80ms ease; display: flex; align-items: flex-start; gap: 10px; }
+ul.checklist li.checklist__note { display: list-item; list-style: disc inside; padding-left: 8px; color: var(--fg-muted); }
+ul.checklist li:has(input:checked) { background: rgba(86, 211, 100, 0.06); color: var(--fg-muted); text-decoration: line-through; text-decoration-color: rgba(139, 148, 158, 0.4); }
+ul.checklist li:has(input:checked) code, ul.checklist li:has(input:checked) strong { text-decoration: none; }
+ul.checklist input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1px solid var(--border); border-radius: 3px; margin-top: 2px; cursor: pointer; position: relative; background: transparent; }
+ul.checklist input[type="checkbox"]:checked { background: var(--green); border-color: var(--green); }
+ul.checklist input[type="checkbox"]:checked::after { content: "✓"; position: absolute; top: -2px; left: 2px; color: var(--bg); font-weight: 700; font-size: 13px; }
+ul.checklist input[type="checkbox"]:hover { border-color: var(--cyan); }
+code { background: var(--bg-alt); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--cyan); border: 1px solid var(--border); }
+pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 5px; padding: 12px 14px; overflow-x: auto; position: relative; }
+pre code { background: transparent; border: none; padding: 0; color: var(--fg); display: block; white-space: pre; font-size: 12.5px; }
+pre .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--fg-muted); padding: 4px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; font-family: inherit; opacity: 0; transition: opacity 120ms ease; }
+pre:hover .copy-btn { opacity: 1; }
+pre .copy-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+pre .copy-btn.copied { color: var(--green); border-color: var(--green); opacity: 1; }
+.callout { padding: 10px 14px; margin: 12px 0; font-size: 13px; border-left: 3px solid var(--border); background: rgba(255,255,255,0.02); border-radius: 0 4px 4px 0; }
+.callout--watch { border-left-color: var(--yellow); background: rgba(227, 179, 65, 0.08); }
+.callout--note { border-left-color: var(--cyan); background: rgba(86, 212, 221, 0.06); }
+.callout--tip { border-left-color: var(--green); background: rgba(86, 211, 100, 0.06); }
+.callout--ask {
+  border-left-color: #d2a8ff;
+  background: rgba(210, 168, 255, 0.08);
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.callout--ask .callout__label { color: #d2a8ff; font-weight: 600; flex: 0 0 auto; }
+.callout--ask .callout__prompt { color: var(--fg); font-style: italic; flex: 1 1 200px; }
+.callout--ask .copy-prompt-btn {
+  background: var(--bg);
+  border: 1px solid #d2a8ff;
+  color: #d2a8ff;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.callout--ask .copy-prompt-btn:hover { background: rgba(210, 168, 255, 0.15); }
+.callout--ask .copy-prompt-btn.copied { background: var(--green); border-color: var(--green); color: var(--bg); }
+.callout--cowork {
+  border-left-color: #f0883e;
+  background: rgba(240, 136, 62, 0.08);
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.callout--cowork .callout__label { color: #f0883e; font-weight: 600; flex: 0 0 auto; }
+.callout--cowork .callout__prompt { color: var(--fg); font-style: italic; flex: 1 1 200px; }
+.callout--cowork .copy-prompt-btn {
+  background: var(--bg);
+  border: 1px solid #f0883e;
+  color: #f0883e;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.callout--cowork .copy-prompt-btn:hover { background: rgba(240, 136, 62, 0.15); }
+.callout--cowork .copy-prompt-btn.copied { background: var(--green); border-color: var(--green); color: var(--bg); }
+hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+a { color: var(--cyan); }
+a:hover { color: var(--cyan-hot); }
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  nav { position: relative; max-height: none; }
+  main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<nav>
+  <h2>Contents</h2>
+  <ol>
+      <li><a href="#s1">1. Pre-flight</a></li>
+      <li><a href="#s2">2. Rotation order (do these one at a time, full loop per secret)</a></li>
+      <li><a href="#s3">3. The per-secret loop (rotate → update Vercel → redeploy → verify)</a></li>
+      <li><a href="#s4">4. Post-rotation: local dev hygiene (Part 3 of SECRETS_ROTATION.md)</a></li>
+      <li><a href="#s5">5. Close-out</a></li>
+      <li><a href="#s6">6. Rollback (if a rotation breaks production)</a></li>
+      <li><a href="#s7">Related</a></li>
+  </ol>
+  <div class="progress" id="progress">0 / 0</div>
+  <div class="actions">
+    <button id="reset">Reset checkboxes</button>
+    <button id="check-all">Check all</button>
+  </div>
+</nav>
+<main>
+<h1>Deploy Fix + Live Test (SEC-001 sequencing)</h1>
+<p>Operational runbook for redeploying production after a secret rotation OR after a deployment-time error. Sequencing matters: <strong>rotation must complete per-secret before redeploy, and redeploy must complete before live verification, or the verification step will fail and pollute the signal.</strong></p>
+<p>Tied to SEC-001 (secrets rotation, see <code>docs/project-info/runbooks/SECRETS_ROTATION.md</code>). At time of writing, <strong>rotation has NOT yet been executed</strong> — Part 1 walks through it for the first time. If you&#39;ve already rotated, skip to Part 3.</p>
+<div class="callout callout--note">Note: this runbook is per-secret. Run Parts 2 + 3 once for EACH of the 6 secrets. Do not batch-rotate then batch-verify — you lose the ability to bisect a failure to a specific secret.</div>
+<hr>
+<h2 id="s1"><span class="anchor">1.</span> 1. Pre-flight</h2>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-1"><span>Confirm you&#39;re the only deploying operator right now (no parallel teammate redeploys)</span></li>
+<li><input type="checkbox" data-id="cb-2"><span>On a clean main with no in-flight PRs that would race with redeploy</span></li>
+</ul>
+<pre><code data-lang="bash">git fetch origin &amp;&amp; git status &amp;&amp; gh pr list --state open --limit 5</code><button class="copy-btn">copy</button></pre>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">from /Users/bradygrapentine/projects/carelog, run <code>git fetch origin &amp;&amp; git status &amp;&amp; gh pr list --state open --limit 5</code> and report whether main is clean and what PRs are open</span><button class="copy-prompt-btn" data-prompt="from /Users/bradygrapentine/projects/carelog, run `git fetch origin &amp;&amp; git status &amp;&amp; gh pr list --state open --limit 5` and report whether main is clean and what PRs are open">copy prompt</button></div>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-3"><span>Vercel CLI authenticated and on the right project</span></li>
+</ul>
+<pre><code data-lang="bash">cd apps/web &amp;&amp; vercel whoami &amp;&amp; vercel project ls | head -5</code><button class="copy-btn">copy</button></pre>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-4"><span>Have password manager / 1Password open and ready to receive 6 new secret values</span></li>
+<li><input type="checkbox" data-id="cb-5"><span>Have these 6 dashboards open in tabs (avoids context-switch errors mid-rotation):</span></li>
+</ul>
+<p>  <a href="https://supabase.com/dashboard/project/_/settings/api">Supabase project settings → API</a>   <a href="https://dashboard.stripe.com/webhooks">Stripe webhooks</a>   <a href="https://resend.com/api-keys">Resend API keys</a>   <a href="https://app.inngest.com/env/production/manage/signing-key">Inngest signing keys</a>   <a href="https://console.upstash.com/">Upstash console</a>   <a href="https://vercel.com/dashboard">Vercel project env vars</a> → carelog → Settings → Environment Variables</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-6"><span>Block off ~45 min. Stripe webhook step has a brief window where signature failures are possible — schedule during low traffic if possible.</span></li>
+</ul>
+<div class="callout callout--watch">Watch: do NOT begin rotation until you have Part 3 (verification commands) understood. Rotating without immediate verification leaves you blind to which secret broke what.</div>
+<hr>
+<h2 id="s2"><span class="anchor">2.</span> 2. Rotation order (do these one at a time, full loop per secret)</h2>
+<p>The order is chosen to minimize blast radius: lowest-traffic surfaces first, Stripe webhook LAST (it&#39;s the most sensitive to a stale-signature window).</p>
+<p>| Order | Secret | Surface tested | Why this order | |---|---|---|---| | 1 | <code>UPSTASH_REDIS_REST_TOKEN</code> | rate limiter | Low blast — failures degrade to permissive | | 2 | <code>RESEND_API_KEY</code> | transactional email | Easy to test, no inbound traffic at risk | | 3 | <code>INNGEST_SIGNING_KEY</code> + <code>INNGEST_EVENT_KEY</code> | background jobs / crons | Rotate both together (paired keys); see TD-146 cron-firing concern below | | 4 | <code>SUPABASE_SERVICE_ROLE_KEY</code> | RLS-bypass endpoints | Higher blast — many endpoints depend | | 5 | <code>STRIPE_WEBHOOK_SECRET</code> | billing webhooks | Last — narrow signature-failure window |</p>
+<p>For EACH row above, run Part 3 in full before moving to the next row.</p>
+<hr>
+<h2 id="s3"><span class="anchor">3.</span> 3. The per-secret loop (rotate → update Vercel → redeploy → verify)</h2>
+<div class="callout callout--tip">Tip: this is the loop you&#39;ll run 5 times (Inngest&#39;s 2 keys roll together). Bookmark this section.</div>
+<h3>3a. Rotate in source dashboard</h3>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-7"><span>Open the dashboard tab for the current secret</span></li>
+<li><input type="checkbox" data-id="cb-8"><span>Capture the new value into 1Password / password manager <strong>before</strong> revealing it</span></li>
+<li><input type="checkbox" data-id="cb-9"><span>Copy the new value to clipboard</span></li>
+</ul>
+<div class="callout callout--watch">Watch: never paste the new value into a terminal, file, or chat. Clipboard → Vercel field → clear clipboard.</div>
+<h3>3b. Update Vercel (Production environment only)</h3>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-10"><span>In Vercel dashboard: Project → Settings → Environment Variables → find the variable → Edit → paste → Save</span></li>
+</ul>
+<p>OR via CLI from <code>apps/web/</code>:</p>
+<pre><code data-lang="bash">vercel env rm &lt;NAME&gt; production
+vercel env add &lt;NAME&gt; production
+# paste new value when prompted</code><button class="copy-btn">copy</button></pre>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">from /Users/bradygrapentine/projects/carelog/apps/web, list current Vercel production env vars with <code>vercel env ls production | head -30</code> and confirm &lt;NAME&gt; is present (do NOT print values)</span><button class="copy-prompt-btn" data-prompt="from /Users/bradygrapentine/projects/carelog/apps/web, list current Vercel production env vars with `vercel env ls production | head -30` and confirm &lt;NAME&gt; is present (do NOT print values)">copy prompt</button></div>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-11"><span>Confirm <code>&lt;NAME&gt;</code> still listed in production env after edit (presence check, not value check)</span></li>
+</ul>
+<h3>3c. Redeploy production</h3>
+<div class="callout callout--cowork"><span class="callout__label">Cowork:</span> <span class="callout__prompt">from /Users/bradygrapentine/projects/carelog/apps/web, run <code>vercel --prod</code> to redeploy carelog production. Tail the build until the new deployment is live (status: Ready). Report the deployment URL, build duration, and any warnings. Do NOT print env var values from the build log.</span><button class="copy-prompt-btn" data-prompt="from /Users/bradygrapentine/projects/carelog/apps/web, run `vercel --prod` to redeploy carelog production. Tail the build until the new deployment is live (status: Ready). Report the deployment URL, build duration, and any warnings. Do NOT print env var values from the build log.">copy for Cowork</button></div>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-12"><span>Confirm Vercel dashboard shows new deployment as &quot;Ready&quot;</span></li>
+<li><input type="checkbox" data-id="cb-13"><span>Click through to the deployment and verify the commit SHA matches <code>git rev-parse origin/main</code></span></li>
+</ul>
+<div class="callout callout--watch">Watch: if redeploy lands but the new env var didn&#39;t propagate (rare Vercel cache bug), the new deployment will still hold the OLD value. Symptom: verification in 3d fails identically to pre-rotation. Recovery: <code>vercel env pull --environment=production .env.production.local</code> in a scratch dir, grep for the var to confirm propagation, then redeploy again.</div>
+<h3>3d. Live verification (the actual &quot;live test&quot;)</h3>
+<p>Match the row from Part 2 to its verification:</p>
+<p>#### Upstash (rate limiter)</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-14"><span>Hit any rate-limited endpoint from a curl, observe response headers</span></li>
+</ul>
+<pre><code data-lang="bash">curl -sI https://caresync.app/api/onboarding/create | grep -i &#39;ratelimit\|x-ratelimit&#39;</code><button class="copy-btn">copy</button></pre>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">run <code>curl -sI https://caresync.app/api/onboarding/create | grep -i &#39;ratelimit&#39;</code> and report whether x-ratelimit-* headers are present and the values are sensible (not 0)</span><button class="copy-prompt-btn" data-prompt="run `curl -sI https://caresync.app/api/onboarding/create | grep -i &#39;ratelimit&#39;` and report whether x-ratelimit-* headers are present and the values are sensible (not 0)">copy prompt</button></div>
+<p>#### Resend (email)</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-15"><span>Trigger a magic-link send to your own test account</span></li>
+<li><input type="checkbox" data-id="cb-16"><span>Confirm receipt in inbox within 60s</span></li>
+</ul>
+<p>Test account: <code>brady.grapentine@gmail.com</code> (per project memory — production superuser test account).</p>
+<p>#### Inngest (jobs + crons)</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-17"><span>Trigger a job manually via the Inngest dashboard (&quot;Send Event&quot; → any registered event)</span></li>
+<li><input type="checkbox" data-id="cb-18"><span>Confirm the run appears in the Runs list with status &quot;Success&quot;</span></li>
+<li><input type="checkbox" data-id="cb-19"><span><strong>TD-146 check</strong>: inspect the cron-events feed for the last 60 min — confirm at least ONE scheduled cron has fired since redeploy</span></li>
+</ul>
+<div class="callout callout--watch">Watch: TD-146 (2026-05-15 audit) found Inngest production showed zero events in 24h despite ~387 cron firings/day expected. After rotating Inngest keys, verify crons are actually firing — this rotation is the natural moment to re-check. If still zero events, escalate to TD-146 investigation (Hobby tier metric window may be the cause, but rule out env-gated cron registration).</div>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">fetch the last 24h of Inngest run events for the production env via the Inngest API or dashboard, count total runs, and report. Reference TD-146 in /Users/bradygrapentine/projects/carelog/BACKLOG.md if the count is still zero.</span><button class="copy-prompt-btn" data-prompt="fetch the last 24h of Inngest run events for the production env via the Inngest API or dashboard, count total runs, and report. Reference TD-146 in /Users/bradygrapentine/projects/carelog/BACKLOG.md if the count is still zero.">copy prompt</button></div>
+<p>#### Supabase service role</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-20"><span>Hit an RLS-bypassing endpoint with a fresh signup flow</span></li>
+</ul>
+<pre><code data-lang="bash"># trigger by signing up a throwaway account in incognito at caresync.app</code><button class="copy-btn">copy</button></pre>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-21"><span>Confirm <code>/api/onboarding/create</code> returns 200 (Vercel runtime logs)</span></li>
+<li><input type="checkbox" data-id="cb-22"><span>If 500 + &quot;row violates row-level security policy&quot;: the new service-role key didn&#39;t propagate. Go back to 3c.</span></li>
+</ul>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">fetch the last 10 minutes of Vercel runtime logs for the carelog production deployment, filter for /api/onboarding/create, and report any non-200 responses with their error messages</span><button class="copy-prompt-btn" data-prompt="fetch the last 10 minutes of Vercel runtime logs for the carelog production deployment, filter for /api/onboarding/create, and report any non-200 responses with their error messages">copy prompt</button></div>
+<p>#### Stripe webhook (LAST — see Part 2 ordering)</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-23"><span>In Stripe dashboard → Webhooks → endpoint → &quot;Send test event&quot; (use <code>invoice.payment_succeeded</code>)</span></li>
+<li><input type="checkbox" data-id="cb-24"><span>Confirm 200 response in Stripe&#39;s delivery log within 10s</span></li>
+<li><input type="checkbox" data-id="cb-25"><span>Confirm corresponding handler log line in Vercel runtime logs</span></li>
+</ul>
+<div class="callout callout--watch">Watch: Stripe retries 400s aggressively for up to 3 days. Any window where the OLD secret is in the deployed function but the NEW secret is in Stripe will generate retry noise. Verify within 60s of redeploy completing.</div>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-26"><span>Send a request with a STALE signature (use a saved curl from before rotation) → expect 400. This confirms the old secret is dead.</span></li>
+</ul>
+<h3>3e. Loop or proceed</h3>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-27"><span>If more secrets remain in Part 2, return to 3a with the next secret</span></li>
+<li><input type="checkbox" data-id="cb-28"><span>If all 6 rotated + verified, proceed to Part 4</span></li>
+</ul>
+<hr>
+<h2 id="s4"><span class="anchor">4.</span> 4. Post-rotation: local dev hygiene (Part 3 of SECRETS_ROTATION.md)</h2>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-29"><span>Replace <code>apps/web/.env.local</code> with <strong>dev-tier</strong> values, not the just-rotated prod values</span></li>
+</ul>
+<pre><code data-lang="bash">cd apps/web &amp;&amp; vercel env pull --environment=development .env.local</code><button class="copy-btn">copy</button></pre>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-30"><span>Confirm <code>SUPABASE_SERVICE_ROLE_KEY</code> in the new <code>.env.local</code> begins with <code>eyJ</code> (local Supabase JWT, not <code>sb_secret_*</code>)</span></li>
+</ul>
+<pre><code data-lang="bash">cd apps/web &amp;&amp; grep &#39;^SUPABASE_SERVICE_ROLE_KEY=&#39; .env.local | head -c 50 &amp;&amp; echo ...</code><button class="copy-btn">copy</button></pre>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-31"><span>Add the <code>vepull</code> alias to your zsh profile (per SECRETS_ROTATION.md Part 3)</span></li>
+<li><input type="checkbox" data-id="cb-32"><span>Restart <code>pnpm web</code> and confirm care-team creation still works locally</span></li>
+</ul>
+<pre><code data-lang="bash">pnpm web</code><button class="copy-btn">copy</button></pre>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">from /Users/bradygrapentine/projects/carelog/apps/web, confirm <code>.env.local</code> now begins with <code># Created by Vercel CLI</code> and the SUPABASE_SERVICE_ROLE_KEY line starts with &#39;eyJ&#39;. Do NOT print the full key value.</span><button class="copy-prompt-btn" data-prompt="from /Users/bradygrapentine/projects/carelog/apps/web, confirm `.env.local` now begins with `# Created by Vercel CLI` and the SUPABASE_SERVICE_ROLE_KEY line starts with &#39;eyJ&#39;. Do NOT print the full key value.">copy prompt</button></div>
+<hr>
+<h2 id="s5"><span class="anchor">5.</span> 5. Close-out</h2>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-33"><span>Update SEC-001 checklist in <code>docs/project-info/runbooks/SECRETS_ROTATION.md</code> (the copy-to-PR block at lines 56-73)</span></li>
+<li><input type="checkbox" data-id="cb-34"><span>Run <code>/backlog-sync</code> to flip SEC-001 row to ✅ Shipped</span></li>
+<li><input type="checkbox" data-id="cb-35"><span>If TD-146 cron-firing was resolved by Inngest rotation, note that in the TD-146 row and close</span></li>
+</ul>
+<div class="callout callout--ask"><span class="callout__label">Ask Claude:</span> <span class="callout__prompt">from /Users/bradygrapentine/projects/carelog, invoke the /backlog-sync skill to promote SEC-001 to shipped and update TD-146 with the Inngest cron-firing finding from tonight&#39;s rotation</span><button class="copy-prompt-btn" data-prompt="from /Users/bradygrapentine/projects/carelog, invoke the /backlog-sync skill to promote SEC-001 to shipped and update TD-146 with the Inngest cron-firing finding from tonight&#39;s rotation">copy prompt</button></div>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-36"><span>Git history scrub check (per SECRETS_ROTATION.md lines 75-85):</span></li>
+</ul>
+<pre><code data-lang="bash">git log --all --full-history --source -- apps/web/.env.local
+git log --all -p -S &quot;sb_secret_NBtixZ&quot; 2&gt;/dev/null
+git log --all -p -S &quot;signkey-prod-&quot; 2&gt;/dev/null</code><button class="copy-btn">copy</button></pre>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-37"><span>If any output above: STOP and escalate. If empty: scrub not needed.</span></li>
+</ul>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-38"><span>Notify any teammates that production secrets rotated — they need to re-pull dev env</span></li>
+</ul>
+<hr>
+<h2 id="s6"><span class="anchor">6.</span> 6. Rollback (if a rotation breaks production)</h2>
+<p>Vercel keeps env-var history. If a freshly-rotated secret breaks production AND you cannot quickly fix:</p>
+<ul class="checklist">
+<li><input type="checkbox" data-id="cb-39"><span>Vercel dashboard → Settings → Environment Variables → variable → History → restore previous value</span></li>
+<li><input type="checkbox" data-id="cb-40"><span>Redeploy production</span></li>
+<li><input type="checkbox" data-id="cb-41"><span>Verify the affected surface</span></li>
+<li><input type="checkbox" data-id="cb-42"><span>DO NOT consider this success — the OLD key is now back in active use but the source dashboard may have already revoked it. Coordinate immediately:</span></li>
+<li class="checklist__note">Supabase / Resend / Upstash: revocation is immediate; rollback won&#39;t help. Must roll forward.</li>
+<li class="checklist__note">Stripe / Inngest: signing keys can sometimes coexist briefly. Confirm in dashboard.</li>
+</ul>
+<div class="callout callout--watch">Watch: rollback is a last resort. The correct path is almost always to fix forward — diagnose why the new key didn&#39;t take effect (3c &quot;Watch&quot; note), and redeploy.</div>
+<hr>
+<h2 id="s7"><span class="anchor">7.</span> Related</h2>
+<ul>
+<li><code>docs/project-info/runbooks/SECRETS_ROTATION.md</code> — the source rotation runbook (this runbook operationalizes its sequencing)</li>
+<li><code>docs/project-info/runbooks/SECRETS_ROTATION-audit-2026-05-14.md</code> — 2026-05-14 audit findings</li>
+<li><code>docs/research/2026-05-15-inngest-vs-queues.md</code> §6.6 — TD-146 cron-firing concern raised tonight</li>
+<li><code>BACKLOG.md</code> — SEC-001 and TD-146 rows</li>
+</ul>
+<p style="color: var(--fg-muted); font-size: 11px; margin-top: 48px; border-top: 1px solid var(--border); padding-top: 12px;">
+Generated from <code>/Users/bradygrapentine/projects/carelog/docs/runbooks/deploy-fix-and-live-test.md</code> · <code>runbook-to-html</code>
+</p>
+</main>
+</div>
+<script>
+const STORAGE_KEY = "runbook-deploy-fix-live-test-sec-001-sequencing";
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveState(s) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+}
+const state = loadState();
+const checkboxes = document.querySelectorAll('input[type="checkbox"][data-id]');
+const total = checkboxes.length;
+const progress = document.getElementById('progress');
+function updateProgress() {
+  if (total === 0) { progress.textContent = 'no checkboxes'; return; }
+  const done = Array.from(checkboxes).filter((c) => c.checked).length;
+  progress.innerHTML = '<strong>' + done + '</strong> / ' + total + ' done' + (done === total ? ' 🎉' : '');
+}
+checkboxes.forEach((cb) => {
+  const id = cb.dataset.id;
+  if (state[id] === true) cb.checked = true;
+  if (state[id] === false) cb.checked = false;
+  cb.addEventListener('change', () => {
+    state[id] = cb.checked;
+    saveState(state);
+    updateProgress();
+  });
+});
+updateProgress();
+document.getElementById('reset').addEventListener('click', (e) => {
+  const btn = e.target;
+  if (!btn.classList.contains('reset-confirm')) {
+    btn.classList.add('reset-confirm');
+    btn.textContent = 'Click again to confirm';
+    setTimeout(() => {
+      btn.classList.remove('reset-confirm');
+      btn.textContent = 'Reset checkboxes';
+    }, 3000);
+    return;
+  }
+  checkboxes.forEach((cb) => { cb.checked = false; });
+  localStorage.removeItem(STORAGE_KEY);
+  Object.keys(state).forEach((k) => delete state[k]);
+  btn.classList.remove('reset-confirm');
+  btn.textContent = 'Reset checkboxes';
+  updateProgress();
+});
+document.getElementById('check-all').addEventListener('click', () => {
+  checkboxes.forEach((cb) => { cb.checked = true; state[cb.dataset.id] = true; });
+  saveState(state);
+  updateProgress();
+});
+document.querySelectorAll('pre .copy-btn').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const code = btn.parentElement.querySelector('code').textContent;
+    try {
+      await navigator.clipboard.writeText(code);
+      btn.classList.add('copied');
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = orig; }, 1200);
+    } catch { btn.textContent = 'copy failed'; }
+  });
+});
+document.querySelectorAll('.copy-prompt-btn').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const prompt = btn.dataset.prompt || '';
+    try {
+      await navigator.clipboard.writeText(prompt);
+      btn.classList.add('copied');
+      const orig = btn.textContent;
+      btn.textContent = 'copied! paste in Claude';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = orig; }, 1600);
+    } catch { btn.textContent = 'copy failed'; }
+  });
+});
+</script>
+</body>
+</html>
