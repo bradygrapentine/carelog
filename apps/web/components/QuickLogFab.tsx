@@ -84,14 +84,16 @@ export function QuickLogFab() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
+  // TD-150: when there's no recipientId in the URL (e.g. on /dashboard),
+  // Quick log can't target a journal. Items are rendered disabled with a
+  // hint banner above; clicks fall through to a no-op (defense-in-depth
+  // since `disabled` HTMLButtonElement already blocks click handlers).
   function handleActionClick(action: QuickLogAction) {
     if (action.disabled) return;
+    if (!recipientId) return;
     close();
-    if (action.panel && recipientId) {
+    if (action.panel) {
       router.push(`/journal/${recipientId}?panel=${action.panel}`);
-    } else if (action.panel) {
-      // No recipientId in URL — navigate to dashboard as fallback
-      router.push("/dashboard");
     }
   }
 
@@ -115,41 +117,55 @@ export function QuickLogFab() {
             id="quick-log-menu"
             role="menu"
             aria-label="Quick log actions"
+            aria-describedby={
+              recipientId ? undefined : "quick-log-no-recipient-hint"
+            }
             className="flex flex-col gap-2 rounded-xl bg-card p-3 shadow-xl border border-[var(--color-border)]"
           >
-            {ACTIONS.map((action) => (
-              <button
-                key={action.id}
-                type="button"
-                role="menuitem"
-                onClick={() => handleActionClick(action)}
-                disabled={action.disabled}
-                aria-disabled={action.disabled ? "true" : undefined}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-colors",
-                  "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2",
-                  action.disabled
-                    ? "cursor-not-allowed opacity-50 text-[var(--color-muted)]"
-                    : "text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)]",
-                )}
+            {!recipientId && (
+              <p
+                id="quick-log-no-recipient-hint"
+                className="px-2 py-1 text-xs text-[var(--color-muted)] border-b border-[var(--color-border)] mb-1"
               >
-                <span
-                  className={
-                    action.disabled
-                      ? "text-[var(--color-muted)]"
-                      : "text-[var(--color-primary)]"
-                  }
+                Open a recipient&apos;s journal first to log
+              </p>
+            )}
+            {ACTIONS.map((action) => {
+              const blocked = action.disabled || !recipientId;
+              return (
+                <button
+                  key={action.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleActionClick(action)}
+                  disabled={blocked}
+                  aria-disabled={blocked ? "true" : undefined}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-colors",
+                    "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2",
+                    blocked
+                      ? "cursor-not-allowed opacity-50 text-[var(--color-muted)]"
+                      : "text-[var(--color-ink)] hover:bg-[var(--color-primary-subtle)]",
+                  )}
                 >
-                  {action.icon}
-                </span>
-                <span>{action.label}</span>
-                {action.comingSoon && (
-                  <span className="ml-auto text-xs text-[var(--color-muted)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full px-2 py-0.5">
-                    Soon
+                  <span
+                    className={
+                      blocked
+                        ? "text-[var(--color-muted)]"
+                        : "text-[var(--color-primary)]"
+                    }
+                  >
+                    {action.icon}
                   </span>
-                )}
-              </button>
-            ))}
+                  <span>{action.label}</span>
+                  {action.comingSoon && (
+                    <span className="ml-auto text-xs text-[var(--color-muted)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full px-2 py-0.5">
+                      Soon
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
 
