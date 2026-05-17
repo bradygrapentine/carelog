@@ -110,14 +110,16 @@ export const aiRouter = router({
           : Promise.resolve({ data: null }),
         ctx.supabase
           .from("care_events")
-          .select("id", { count: "exact", head: true })
+          // TD-162: estimated count to avoid the RLS-eval 503 documented in
+          // docs/research/2026-05-17-td-149-care-events-head-503.md
+          .select("id", { count: "estimated", head: true })
           .eq("org_id", input.orgId)
           .eq("event_type", "medication")
           .contains("payload", { action: "missed" })
           .gte("occurred_at", since7d),
         ctx.supabase
           .from("shifts")
-          .select("id", { count: "exact", head: true })
+          .select("id", { count: "estimated", head: true })
           .eq("org_id", input.orgId)
           .gte("start_at", new Date().toISOString())
           .lte(
@@ -126,7 +128,7 @@ export const aiRouter = router({
           ),
         ctx.supabase
           .from("care_events")
-          .select("id", { count: "exact", head: true })
+          .select("id", { count: "estimated", head: true })
           .eq("org_id", input.orgId)
           .eq("event_type", "journal")
           .gte("occurred_at", since7d),
