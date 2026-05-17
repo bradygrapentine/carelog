@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// TD-164: hoisted module-scope so useEffect deps don't churn each render.
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 type QuickLogAction = {
   id: string;
   label: string;
@@ -70,8 +74,33 @@ export function QuickLogFab() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // TD-164: validate the pathname-extracted segment is a UUID before treating
+  // it as a recipientId. The capture group permits `..` and URL-encoded
+  // characters; the value flows directly into router.push(), so defense-in-
+  // depth dictates UUID validation, consistent with the UUID type on tRPC
+  // inputs elsewhere. Non-UUID segments fall through to the no-recipient
+  // code path (items disabled, hint banner shown).
   const journalMatch = pathname?.match(/^\/journal\/([^/?]+)/);
-  const recipientId = journalMatch ? journalMatch[1] : null;
+  const recipientId =
+    journalMatch && UUID_RE.test(journalMatch[1]) ? journalMatch[1] : null;
+
+  // TD-164: surface failed UUID validation via Sentry breadcrumb so a
+  // malformed pathname stops being a silent fall-through. PHI rule: do NOT
+  // log the raw segment or the pathname — both can carry PII if the URL was
+  // built with user input. Emit only matched/valid/segmentLength.
+  useEffect(() => {
+    if (!journalMatch) return;
+    if (UUID_RE.test(journalMatch[1])) return;
+    Sentry.addBreadcrumb({
+      category: "quicklog",
+      message: "recipientId failed uuid validation",
+      data: {
+        matched: true,
+        valid: false,
+        segmentLength: journalMatch[1].length,
+      },
+    });
+  }, [journalMatch]);
 
   const close = useCallback(() => setOpen(false), []);
 

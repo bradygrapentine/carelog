@@ -5,7 +5,7 @@ import { QuickLogFab } from "@/components/QuickLogFab";
 
 // Mock next/navigation
 const mockPush = vi.fn();
-let mockPathnameValue = "/journal/recipient-123";
+let mockPathnameValue = "/journal/11111111-1111-4111-8111-111111111111";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
@@ -27,7 +27,7 @@ describe("<QuickLogFab />", () => {
   beforeEach(() => {
     mockPush.mockClear();
     vi.mocked(Sentry.addBreadcrumb).mockClear();
-    mockPathnameValue = "/journal/recipient-123";
+    mockPathnameValue = "/journal/11111111-1111-4111-8111-111111111111";
   });
 
   it("renders with aria-label='Quick log'", () => {
@@ -88,7 +88,7 @@ describe("<QuickLogFab />", () => {
         screen.getByRole("menuitem", { name: /log medication/i }),
       );
       expect(mockPush).toHaveBeenCalledWith(
-        "/journal/recipient-123?panel=medications",
+        "/journal/11111111-1111-4111-8111-111111111111?panel=medications",
       );
     });
 
@@ -97,7 +97,7 @@ describe("<QuickLogFab />", () => {
       fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
       fireEvent.click(screen.getByRole("menuitem", { name: /log mood/i }));
       expect(mockPush).toHaveBeenCalledWith(
-        "/journal/recipient-123?panel=journal",
+        "/journal/11111111-1111-4111-8111-111111111111?panel=journal",
       );
     });
 
@@ -106,7 +106,7 @@ describe("<QuickLogFab />", () => {
       fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
       fireEvent.click(screen.getByRole("menuitem", { name: /log note/i }));
       expect(mockPush).toHaveBeenCalledWith(
-        "/journal/recipient-123?panel=journal",
+        "/journal/11111111-1111-4111-8111-111111111111?panel=journal",
       );
     });
 
@@ -115,7 +115,7 @@ describe("<QuickLogFab />", () => {
       fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
       fireEvent.click(screen.getByRole("menuitem", { name: /log bp/i }));
       expect(mockPush).toHaveBeenCalledWith(
-        "/journal/recipient-123?panel=journal",
+        "/journal/11111111-1111-4111-8111-111111111111?panel=journal",
       );
     });
   });
@@ -198,7 +198,7 @@ describe("<QuickLogFab />", () => {
   });
 
   it("aria-describedby is absent when recipientId is present", () => {
-    mockPathnameValue = "/journal/recipient-123";
+    mockPathnameValue = "/journal/11111111-1111-4111-8111-111111111111";
     renderFab();
     fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
     expect(screen.getByRole("menu")).not.toHaveAttribute("aria-describedby");
@@ -228,6 +228,62 @@ describe("<QuickLogFab />", () => {
       fireEvent.click(screen.getByRole("menuitem", { name: /log mood/i }));
       const [call] = vi.mocked(Sentry.addBreadcrumb).mock.calls;
       expect(call?.[0]?.data).not.toHaveProperty("recipientId");
+    });
+  });
+
+  describe("UUID validation (TD-164)", () => {
+    it("non-UUID journal segment is treated as no-recipient (items disabled, hint shown)", () => {
+      mockPathnameValue = "/journal/foo";
+      renderFab();
+      fireEvent.click(screen.getByRole("button", { name: "Quick log" }));
+      expect(
+        screen.getByText(/open a recipient's journal first to log/i),
+      ).toBeInTheDocument();
+      const medBtn = screen.getByRole("menuitem", { name: /log medication/i });
+      expect(medBtn).toBeDisabled();
+    });
+
+    it("non-UUID segment fires uuid-validation breadcrumb once on render", () => {
+      mockPathnameValue = "/journal/..";
+      renderFab();
+      const calls = vi
+        .mocked(Sentry.addBreadcrumb)
+        .mock.calls.filter(
+          (c) => c[0]?.message === "recipientId failed uuid validation",
+        );
+      expect(calls).toHaveLength(1);
+    });
+
+    it("uuid-validation breadcrumb data has only matched/valid/segmentLength (PHI rule)", () => {
+      mockPathnameValue = "/journal/not-a-uuid-but-could-be-pii@example.com";
+      renderFab();
+      const call = vi
+        .mocked(Sentry.addBreadcrumb)
+        .mock.calls.find(
+          (c) => c[0]?.message === "recipientId failed uuid validation",
+        );
+      expect(call).toBeDefined();
+      const data = call?.[0]?.data ?? {};
+      expect(Object.keys(data).sort()).toEqual([
+        "matched",
+        "segmentLength",
+        "valid",
+      ]);
+      // Defense-in-depth: no PHI/PII keys leak via different names
+      expect(data).not.toHaveProperty("pathname");
+      expect(data).not.toHaveProperty("rawValue");
+      expect(data).not.toHaveProperty("segment");
+    });
+
+    it("non-journal pathnames do NOT fire uuid-validation breadcrumb", () => {
+      mockPathnameValue = "/dashboard";
+      renderFab();
+      const calls = vi
+        .mocked(Sentry.addBreadcrumb)
+        .mock.calls.filter(
+          (c) => c[0]?.message === "recipientId failed uuid validation",
+        );
+      expect(calls).toHaveLength(0);
     });
   });
 });
