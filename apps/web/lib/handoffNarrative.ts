@@ -50,6 +50,9 @@ export function summarizeSleep(events: unknown): string {
     if (journalEvents.length === 0) return "No sleep activity recorded";
 
     const overnightEntries = journalEvents.filter((e) => {
+      // occurred_at is Supabase timestamptz (ISO 8601 with Z or offset);
+      // getUTCHours() normalizes to UTC, so the 0–6 window is UTC-anchored
+      // regardless of caregiver locale.
       const h = new Date(e.occurred_at).getUTCHours();
       return h >= 0 && h < 6;
     });
