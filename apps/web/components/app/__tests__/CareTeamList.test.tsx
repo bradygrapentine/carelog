@@ -201,18 +201,28 @@ describe("CareTeamList — UX-103b edit affordances", () => {
     expect(submit).toBeDisabled();
   });
 
-  it("on invite error, surfaces a generic 'Failed to invite' alert (no raw error)", () => {
-    const callbacks: { onError?: () => void } = {};
-    mockInviteHook.mockImplementation((opts: { onError?: () => void }) => {
-      callbacks.onError = opts.onError;
-      return { mutate: mockInviteMutate, isPending: false };
-    });
+  it("on invite error, surfaces the formatted alert via formatMutationError", () => {
+    const callbacks: { onError?: (err: unknown) => void } = {};
+    mockInviteHook.mockImplementation(
+      (opts: { onError?: (err: unknown) => void }) => {
+        callbacks.onError = opts.onError;
+        return { mutate: mockInviteMutate, isPending: false };
+      },
+    );
     render(<CareTeamList {...editableProps} />);
     fireEvent.click(screen.getByRole("button", { name: /invite member/i }));
     act(() => {
-      callbacks.onError?.();
+      // BAD_REQUEST with PG constraint name — formatter strips the suffix
+      // so the surfaced message does not leak the constraint identifier.
+      callbacks.onError?.({
+        data: { code: "BAD_REQUEST" },
+        message:
+          "duplicate key value violates memberships_org_id_user_id_key",
+      });
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(/failed to invite/i);
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeInTheDocument();
+    expect(alert.textContent ?? "").not.toMatch(/_key\b/);
   });
 
   it("on invite success, refreshes the router and closes the form", () => {
@@ -262,17 +272,22 @@ describe("CareTeamList — UX-103b edit affordances", () => {
     });
   });
 
-  it("on remove error, surfaces a generic 'Failed to remove' alert", () => {
-    const callbacks: { onError?: () => void } = {};
-    mockRemoveHook.mockImplementation((opts: { onError?: () => void }) => {
-      callbacks.onError = opts.onError;
-      return { mutate: mockRemoveMutate, isPending: false };
-    });
+  it("on remove error, surfaces the formatted alert via formatMutationError", () => {
+    const callbacks: { onError?: (err: unknown) => void } = {};
+    mockRemoveHook.mockImplementation(
+      (opts: { onError?: (err: unknown) => void }) => {
+        callbacks.onError = opts.onError;
+        return { mutate: mockRemoveMutate, isPending: false };
+      },
+    );
     render(<CareTeamList {...editableProps} />);
     act(() => {
-      callbacks.onError?.();
+      callbacks.onError?.({
+        data: { code: "INTERNAL_SERVER_ERROR" },
+        message: "DB pool exhausted",
+      });
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(/failed to remove/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/something went wrong/i);
   });
 
   it("on remove success, refreshes the router", () => {

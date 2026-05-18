@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 
 /**
@@ -9,9 +10,14 @@ import { useRouter } from "next/navigation";
  * @property onSuccessRefresh - When true (default), the returned
  *   `handlers.onSuccess` invokes `router.refresh()` after closing edit mode.
  *   Pass `false` to opt out (e.g. when the caller manages its own refresh).
+ * @property onCancel - Optional side-effect invoked from `cancel()` AFTER
+ *   `isEditing` has flipped to `false` and `error` has been cleared. Use
+ *   this to reset caller-owned form fields so the next open() starts clean.
+ *   See `cancel()` JSDoc for the ordering contract.
  */
 export type UseEditModeArgs = {
   onSuccessRefresh?: boolean;
+  onCancel?: () => void;
 };
 
 /**
@@ -45,8 +51,21 @@ export type UseEditModeReturn = {
  * Does NOT observe mutation state post-hoc. The mutation lifecycle stays
  * with the caller; this hook only models the open/close/error UI state.
  *
+ * ## Cancel contract (LOCKED — TD-186)
+ *
+ * `cancel()` flips `isEditing` to `false` and clears `error` FIRST, THEN
+ * invokes the optional `onCancel` callback. Callers see the post-close state
+ * when running their reset side-effects — any state-derived rendering inside
+ * `onCancel` observes the closed UI. If a niche caller needs pre-close
+ * visibility we can add a separate `onBeforeCancel` arg later.
+ *
  * @example
- * const editMode = useEditMode();
+ * const editMode = useEditMode({
+ *   onCancel: () => {
+ *     setNameInput("");
+ *     setPhoneError(null);
+ *   },
+ * });
  * const mutation = trpc.x.update.useMutation({
  *   onSuccess: () => {
  *     editMode.handlers.onSuccess(); // closes + router.refresh()
@@ -57,6 +76,7 @@ export type UseEditModeReturn = {
  */
 export function useEditMode(args?: UseEditModeArgs): UseEditModeReturn {
   const onSuccessRefresh = args?.onSuccessRefresh ?? true;
+  const onCancelCallback = args?.onCancel;
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,9 +87,17 @@ export function useEditMode(args?: UseEditModeArgs): UseEditModeReturn {
   }, []);
 
   const cancel = useCallback(() => {
-    setIsEditing(false);
-    setError(null);
-  }, []);
+    // Ordering LOCKED (TD-186): flip closed-state FIRST so onCancel observes
+    // isEditing === false and error === null when it reads from React state
+    // via a fresh render. `flushSync` commits the setters synchronously so
+    // any caller-supplied onCancel that re-reads React state (or triggers
+    // its own renders) sees the post-close values.
+    flushSync(() => {
+      setIsEditing(false);
+      setError(null);
+    });
+    onCancelCallback?.();
+  }, [onCancelCallback]);
 
   const onSuccess = useCallback(() => {
     setIsEditing(false);

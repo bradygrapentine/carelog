@@ -86,4 +86,58 @@ describe("useEditMode", () => {
     expect(result.current.isEditing).toBe(false);
     expect(refreshMock).not.toHaveBeenCalled();
   });
+
+  it("onCancel — invoked AFTER isEditing flips to false and error is cleared (LOCKED ordering)", () => {
+    // Capture closure-visible state at the moment onCancel fires. The hook
+    // promises that cancel() updates state FIRST, then invokes onCancel. By
+    // recording values reachable from the cancel() callback site, we observe
+    // the ordering.
+    let sawIsEditingBeforeFlip: boolean | null = null;
+    const onCancel = vi.fn(() => {
+      // result.current.isEditing reflects the latest committed state when
+      // React batches synchronously inside `act()`. After cancel() runs its
+      // setters, the closure here can re-read state via the ref captured
+      // below.
+      sawIsEditingBeforeFlip = capturedHookRef.current?.isEditing ?? null;
+    });
+
+    const capturedHookRef: { current: ReturnType<typeof useEditMode> | null } = {
+      current: null,
+    };
+
+    const { result } = renderHook(() => {
+      const hook = useEditMode({ onCancel });
+      capturedHookRef.current = hook;
+      return hook;
+    });
+
+    act(() => {
+      result.current.open();
+      result.current.handlers.onError({ message: "boom" });
+    });
+    expect(result.current.isEditing).toBe(true);
+    expect(result.current.error).toBe("boom");
+
+    act(() => {
+      result.current.cancel();
+    });
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    // Inside the onCancel body, the freshest committed React state already
+    // shows the post-close values — proving the setters ran first.
+    expect(sawIsEditingBeforeFlip).toBe(false);
+    expect(result.current.isEditing).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("onCancel — omitted: cancel() still flips closed without throwing", () => {
+    const { result } = renderHook(() => useEditMode());
+    act(() => {
+      result.current.open();
+    });
+    act(() => {
+      result.current.cancel();
+    });
+    expect(result.current.isEditing).toBe(false);
+  });
 });

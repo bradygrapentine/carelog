@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { User, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useEditMode } from "@/hooks/useEditMode";
+import { formatMutationError } from "@/lib/formatMutationError";
 
 type CareTeamMember = {
   id: string;
@@ -119,10 +120,8 @@ export function CareTeamList({
       setInviteRole("caregiver");
       inviteEdit.handlers.onSuccess();
     },
-    onError: () => {
-      inviteEdit.handlers.onError({
-        message: "Failed to invite. Check the email and try again.",
-      });
+    onError: (err) => {
+      inviteEdit.handlers.onError({ message: formatMutationError(err) });
     },
   });
 
@@ -132,9 +131,9 @@ export function CareTeamList({
       setRemoveError(null);
       router.refresh();
     },
-    onError: () => {
+    onError: (err) => {
       setConfirmingRemoveId(null);
-      setRemoveError("Failed to remove member.");
+      setRemoveError(formatMutationError(err));
     },
   });
 
