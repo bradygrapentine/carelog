@@ -1,6 +1,6 @@
 # Carelog — Product Roadmap
 
-> **Status as of 2026-05-10:** Phases 1–5 substantially shipped. Phase 6 (launch readiness) is the active phase — most engineering is done; remaining work is human-gated (DNS, Sentry env, BAA, App Store submission). Open polish/a11y/observability follow-ups are tracked in `BACKLOG.md` §1. Source of truth audit: `docs/audits/2026-05-10-state-and-gaps.md`.
+> **Status as of 2026-05-18:** Phases 1–5 substantially shipped. Phase 6 (launch readiness) is the active phase — most engineering is done; remaining work is human-gated (DNS, Sentry env, BAA, App Store submission). Open polish/a11y/observability follow-ups are tracked in `BACKLOG.md` §1. Source-of-truth audits: `docs/audits/2026-05-10-state-and-gaps.md` (broad state survey), `docs/audits/2026-05-18-roadmap-cascade-audit.md` (roadmap-vs-backlog coverage check).
 
 ## Guiding principle
 
@@ -215,16 +215,16 @@ OG/Twitter meta on all marketing pages, `sitemap.xml`, `robots.txt`, and `Organi
 Publish a privacy policy and Terms of Service at stable URLs linked from the signup flow and site footer. Obtain a Business Associate Agreement from Supabase (HIPAA) and from Resend if email bodies contain PHI. Document a data-retention and right-to-erasure runbook covering how to honor deletion requests within the required timeframe. Requires legal review.
 
 ### SEO discoverability (in-progress)
-LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: SEO-001/002/004 shipped via PR #386 (intent-shaped titles, FAQPage JSON-LD on `/contact` + `/pricing`, footer cross-links). SEO-003 (HowTo JSON-LD) deferred — `/carezone-alternative` was consolidated into `/about` via PRs #316/#317 and `/about` lacks step-by-step content the schema would describe. Remaining work: SEO-005 (Core Web Vitals tightening on `/`, `/pricing`, `/about`); SEO-006/007 (Google Search Console verification + cornerstone content at `/learn/*`) — both 🧑 human-gated. Tracked in BACKLOG.md §1.
+LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: SEO-001/002/004 shipped via PR #386 (intent-shaped titles, FAQPage JSON-LD on `/contact` + `/pricing`, footer cross-links). SEO-003 (HowTo JSON-LD) deferred — `/carezone-alternative` was consolidated into `/about` via PRs #316/#317 and `/about` lacks step-by-step content the schema would describe. SEO-005 shipped 2026-05-17 via PR #588 (Geist `display: "swap"` for FOIT fix on `/`, `/pricing`, `/about`; CWV baseline doc at `docs/runbooks/lighthouse-cwv-baseline-2026-05-17.md`). Remaining work: SEO-006/007 (Google Search Console verification + cornerstone content at `/learn/*`) — both 🧑 human-gated. Tracked in BACKLOG.md §1.
 
 ## Beyond Phase 6 — open follow-ups
 
 The product is shipped. Open work beyond launch readiness lives entirely in `BACKLOG.md`:
 - **UX polish** (`UX-*` rows) — author-name surfacing, recipient-led titles, copy passes, empty-state polish.
-- **Accessibility** (`A11Y-*` rows + the spike `TD-87`) — Lighthouse a11y path, mobile a11y sweeps under A11Y-006.
-- **Tech debt + observability** (`TD-*` rows) — Tier-1/Tier-2 test coverage gaps (TD-113..116), skill-dedup phase 2 (TD-111).
+- **Accessibility** (`A11Y-*` rows) — mobile a11y sweeps under A11Y-006; physical-device VoiceOver verification (A11Y-018, 🧑 human). **Lighthouse a11y CI gate restored 2026-05-18 (TD-87 path b, PRs #602/#603, ADR-0005)** — `/`=100, `/pricing`=96, `/about`=96 at 90-threshold.
+- **Tech debt + observability** (`TD-*` rows) — Tier-1/Tier-2 test coverage gaps (TD-113..116 shipped), skill-dedup phase 2 (TD-111 shipped). Active: TD-170b (E2E chronic-red root-cause investigation).
 - **Mobile parity** (`PP-*` rows) — Android visual QA pass (PP-009).
-- **Roadmap-promised but-not-yet-needed** — coverage request board claim flow (ON-70), refill alert delivery polish (ON-71), full-history structured export (ON-74).
+- **Roadmap-promised but-not-yet-needed** — coverage request board claim flow (ON-70 🟢), refill alerts shipped 2026-05-17 via PR #599 (Phase 1+2; follow-ups ON-71c/d for opt-out and bounce handling), full-history structured export (ON-74 🟢).
 
 ## Feature sequencing rationale
 
