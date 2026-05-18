@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useEditMode } from "@/hooks/useEditMode";
 
 type CareTeamMember = {
   id: string;
@@ -104,10 +105,9 @@ export function CareTeamList({
   currentMembershipId = null,
 }: CareTeamListProps) {
   const router = useRouter();
-  const [showInviteForm, setShowInviteForm] = useState(false);
+  const inviteEdit = useEditMode();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("caregiver");
-  const [inviteError, setInviteError] = useState<string | null>(null);
   const [confirmingRemoveId, setConfirmingRemoveId] = useState<string | null>(
     null,
   );
@@ -115,14 +115,14 @@ export function CareTeamList({
 
   const inviteMutation = trpc.memberships.invite.useMutation({
     onSuccess: () => {
-      setShowInviteForm(false);
       setInviteEmail("");
       setInviteRole("caregiver");
-      setInviteError(null);
-      router.refresh();
+      inviteEdit.handlers.onSuccess();
     },
     onError: () => {
-      setInviteError("Failed to invite. Check the email and try again.");
+      inviteEdit.handlers.onError({
+        message: "Failed to invite. Check the email and try again.",
+      });
     },
   });
 
@@ -143,7 +143,6 @@ export function CareTeamList({
   const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!orgId) return;
-    setInviteError(null);
     inviteMutation.mutate({
       orgId,
       recipientId,
@@ -170,14 +169,13 @@ export function CareTeamList({
         <div className="mb-2 flex items-center justify-end">
           <button
             type="button"
-            onClick={() => {
-              setShowInviteForm((v) => !v);
-              setInviteError(null);
-            }}
-            aria-expanded={showInviteForm}
+            onClick={() =>
+              inviteEdit.isEditing ? inviteEdit.cancel() : inviteEdit.open()
+            }
+            aria-expanded={inviteEdit.isEditing}
             className="text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded px-2 py-1"
           >
-            {showInviteForm ? (
+            {inviteEdit.isEditing ? (
               <span className="inline-flex items-center gap-1">
                 <X size={12} strokeWidth={2} aria-hidden="true" /> Cancel
               </span>
@@ -188,7 +186,7 @@ export function CareTeamList({
         </div>
       )}
 
-      {showEditAffordances && showInviteForm && (
+      {showEditAffordances && inviteEdit.isEditing && (
         <form
           onSubmit={handleInviteSubmit}
           className="mb-3 space-y-2 rounded border border-[var(--color-border)] bg-[var(--color-primary-subtle)] p-3"
@@ -232,9 +230,9 @@ export function CareTeamList({
               ))}
             </select>
           </div>
-          {inviteError && (
+          {inviteEdit.error && (
             <p role="alert" className="text-xs text-[var(--color-danger)]">
-              {inviteError}
+              {inviteEdit.error}
             </p>
           )}
           <div className="flex justify-end">

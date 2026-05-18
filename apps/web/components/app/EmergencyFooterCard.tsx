@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { AlertTriangle, Phone, Pencil } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useEditMode } from "@/hooks/useEditMode";
 
 type EmergencyContact = {
   name: string;
@@ -38,25 +38,23 @@ export function EmergencyFooterCard({
   recipientId,
   orgId,
 }: EmergencyFooterCardProps) {
-  const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
+  const editMode = useEditMode();
   const [dnrInput, setDnrInput] = useState(dnrStatus ?? "");
   const [hospitalInput, setHospitalInput] = useState(hospital ?? "");
   const [nameInput, setNameInput] = useState(primaryContact?.name ?? "");
   const [relInput, setRelInput] = useState(primaryContact?.relationship ?? "");
   const [phoneInput, setPhoneInput] = useState(primaryContact?.phone ?? "");
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const mutation = trpc.recipients.updateEmergencyInfo.useMutation({
     onSuccess: () => {
-      setIsEditing(false);
-      setSubmitError(null);
       setPhoneError(null);
-      router.refresh();
+      editMode.handlers.onSuccess();
     },
     onError: () => {
-      setSubmitError("Failed to update emergency info.");
+      editMode.handlers.onError({
+        message: "Failed to update emergency info.",
+      });
     },
   });
 
@@ -65,7 +63,6 @@ export function EmergencyFooterCard({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!recipientId || !orgId) return;
-    setSubmitError(null);
     // Soft client validation: phone is optional, but if provided must match.
     if (phoneInput.trim() && !PHONE_REGEX.test(phoneInput.trim())) {
       setPhoneError("Enter a phone like +1 555 123 4567 or leave blank.");
@@ -86,13 +83,12 @@ export function EmergencyFooterCard({
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
+    editMode.cancel();
     setDnrInput(dnrStatus ?? "");
     setHospitalInput(hospital ?? "");
     setNameInput(primaryContact?.name ?? "");
     setRelInput(primaryContact?.relationship ?? "");
     setPhoneInput(primaryContact?.phone ?? "");
-    setSubmitError(null);
     setPhoneError(null);
   };
 
@@ -111,10 +107,10 @@ export function EmergencyFooterCard({
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Emergency
         </p>
-        {canEdit && !isEditing && (
+        {canEdit && !editMode.isEditing && (
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={() => editMode.open()}
             aria-label="Edit emergency information"
             className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-tertiary)] hover:text-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)] focus:ring-offset-1"
           >
@@ -124,7 +120,7 @@ export function EmergencyFooterCard({
         )}
       </div>
 
-      {canEdit && isEditing ? (
+      {canEdit && editMode.isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label
@@ -226,9 +222,9 @@ export function EmergencyFooterCard({
               )}
             </div>
           </fieldset>
-          {submitError && (
+          {editMode.error && (
             <p role="alert" className="text-xs text-[var(--color-danger)]">
-              {submitError}
+              {editMode.error}
             </p>
           )}
           <div className="flex justify-end gap-2">
