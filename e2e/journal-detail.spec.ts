@@ -13,7 +13,7 @@ async function goToJournal(page: import("@playwright/test").Page) {
   await ensureCareTeam(page);
   await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
-  await page.waitForSelector('[placeholder="Share how today went..."]', {
+  await page.waitForSelector('[placeholder="What happened today? Even one line is enough."]', {
     timeout: 10000,
   });
 }
@@ -25,10 +25,10 @@ async function postEntry(
   page: import("@playwright/test").Page,
   text: string,
 ): Promise<void> {
-  const textarea = page.getByPlaceholder("Share how today went...");
+  const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
   await textarea.click();
   await textarea.fill(text);
-  await page.getByRole("button", { name: "Share update" }).click();
+  await page.getByRole("button", { name: "Post to journal" }).click();
   await expect(textarea).toHaveValue("", { timeout: 12000 });
   await expect(page.getByText(text)).toBeVisible({ timeout: 5000 });
 }
@@ -74,7 +74,7 @@ test.describe("Journal entry detail navigation", () => {
 
     await page.goBack();
     await expect(page).toHaveURL(journalUrl, { timeout: 10000 });
-    await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
+    await expect(page.getByPlaceholder("What happened today? Even one line is enough.")).toBeVisible({
       timeout: 5000,
     });
   });

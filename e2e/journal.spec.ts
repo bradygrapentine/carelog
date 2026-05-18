@@ -11,11 +11,11 @@ test.beforeEach(async () => {
 });
 
 async function writeEntry(page: any, text: string) {
-  const textarea = page.getByPlaceholder("Share how today went...");
+  const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
   await textarea.click();
   await textarea.fill(text);
-  await page.waitForSelector("text=Share update", { timeout: 3000 });
-  await page.click("text=Share update");
+  await page.waitForSelector("text=Post to journal", { timeout: 3000 });
+  await page.click("text=Post to journal");
   // Wait for the form to reset — setText('') is called after loadEvents() returns,
   // so an empty textarea means the entry is now in the DB and rendered in the timeline.
   await expect(textarea).toHaveValue("", { timeout: 12000 });
@@ -26,7 +26,7 @@ test("journal page loads after signing in", async ({ page }) => {
   const TEST_EMAIL = uniqueEmail("e2e-journal");
   await signIn(page, TEST_EMAIL);
   await navigateToJournal(page);
-  await expect(page.getByPlaceholder("Share how today went...")).toBeVisible();
+  await expect(page.getByPlaceholder("What happened today? Even one line is enough.")).toBeVisible();
 });
 
 test("can write a journal entry", async ({ page }) => {
@@ -42,7 +42,7 @@ test("coordinator sees entry form and invite button", async ({ page }) => {
   await navigateToJournal(page);
 
   // Coordinator should see the entry form
-  await expect(page.getByPlaceholder("Share how today went...")).toBeVisible();
+  await expect(page.getByPlaceholder("What happened today? Even one line is enough.")).toBeVisible();
 
   // (TD-73) The invite button lives on the Team panel, not Journal.
   // Click the Team tab and assert the invite form rendered.
