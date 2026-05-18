@@ -1,18 +1,92 @@
 name: Lighthouse A11Y
+
+# TD-87 path b: build apps/web locally in CI, serve via `pnpm start`, audit
+# marketing routes against the Lighthouse a11y category. Replaces the prior
+# `deployment_status` trigger that was silently skipping every preview because
+# Vercel preview auth returned 401/403 to the audit script.
+#
+# v1: NOT a required check. Re-evaluate after one week of green runs; promoting
+# to required requires the `merge_group` trigger to be wired first.
+# Decision record: docs/adr/0005-lighthouse-a11y-gate-path.md
+
 on:
-  deployment_status:
+  pull_request:
+    paths:
+      - 'apps/web/app/(marketing)/**'
+      - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/globals.css'
+      - 'apps/web/components/marketing/**'
+      - 'apps/web/components/ui/**'
+      - 'apps/web/package.json'
+      - 'pnpm-lock.yaml'
+      - 'scripts/lighthouse-a11y.mjs'
+      - '.github/workflows/lighthouse-a11y.yml'
+
+concurrency:
+  group: lighthouse-a11y-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:
-    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4.2.2
+
+      - uses: pnpm/action-setup@v3.0.0
         with:
-          node-version: 20
+          version: 9
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
+
+      # Sign HS256 JWTs in-step so build/start can satisfy NEXT_PUBLIC env vars.
+      # Mirrors ci.yml:283–296 (E2E job). Decoupled from CLI version forever.
+      - name: Mint dev-tier JWTs
+        run: |
+          node -e "
+          const c = require('crypto');
+          const s = 'super-secret-jwt-token-with-at-least-32-characters-long';
+          const b = x => Buffer.from(x).toString('base64url');
+          const sign = p => {
+            const h = b(JSON.stringify({alg:'HS256',typ:'JWT'}));
+            const y = b(JSON.stringify(p));
+            const g = c.createHmac('sha256', s).update(h+'.'+y).digest('base64url');
+            return h+'.'+y+'.'+g;
+          };
+          const iat = Math.floor(Date.now()/1000);
+          const exp = iat + 60*60*24*365*5;
+          console.log('ANON_KEY=' + sign({role:'anon', iss:'supabase-demo', iat, exp}));
+          console.log('SERVICE_ROLE_KEY=' + sign({role:'service_role', iss:'supabase-demo', iat, exp}));
+          " >> $GITHUB_ENV
+
+      - name: Build web app
+        run: |
+          NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+          pnpm --filter web build
+
+      - name: Start web app
+        run: |
+          NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+          pnpm --filter web start > /tmp/start.log 2>&1 &
+          npx wait-on http://localhost:3000 --timeout 60000
+
       - name: Run Lighthouse a11y audit
-        run: node scripts/lighthouse-a11y.mjs "${{ github.event.deployment_status.target_url }}"
+        run: |
+          node scripts/lighthouse-a11y.mjs \
+            http://localhost:3000 \
+            http://localhost:3000/pricing \
+            http://localhost:3000/about
+
+      - name: Dump server log on failure
+        if: failure()
+        run: cat /tmp/start.log || true

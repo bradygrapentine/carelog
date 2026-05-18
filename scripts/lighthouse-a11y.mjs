@@ -1,96 +1,111 @@
 #!/usr/bin/env node
 // scripts/lighthouse-a11y.mjs
-// Runs a Lighthouse accessibility audit against a URL.
-// Exits non-zero if a11y score < 90.
+// Runs Lighthouse accessibility audits against one or more URLs.
+// Exits non-zero if ANY audited URL scores below 90.
 //
-// Usage: node scripts/lighthouse-a11y.mjs [url]
-//   url defaults to http://localhost:3000
+// Usage: node scripts/lighthouse-a11y.mjs [url ...]
+//   url(s) default to http://localhost:3000
 
 import { spawnSync } from "node:child_process";
 import { readFileSync, unlinkSync } from "node:fs";
 
-const url = process.argv[2] ?? "http://localhost:3000";
-const outFile = `/tmp/lighthouse-${Date.now()}.json`;
+const LHCI_VERSION = "0.15.1";
+const SCORE_THRESHOLD = 90;
+const DEFAULT_URLS = ["http://localhost:3000"];
 
-console.log(`Running Lighthouse a11y audit on: ${url}`);
+const urls = process.argv.slice(2).length > 0 ? process.argv.slice(2) : DEFAULT_URLS;
 
-// Pre-flight: skip gracefully if the URL is unreachable or auth-gated.
-// Vercel preview deployments default to auth-gated (401) — Lighthouse can't
-// audit them, but the workflow runs on every deploy_status event including
-// these. Treat 401/403 as a non-blocking skip rather than a CI failure.
-const probe = spawnSync(
-  "curl",
-  ["-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "10", url],
-  { stdio: ["ignore", "pipe", "inherit"], shell: false },
-);
-const httpCode = probe.stdout?.toString().trim() ?? "";
-if (httpCode === "401" || httpCode === "403") {
-  console.log(
-    `⚠ ${url} is auth-gated (HTTP ${httpCode}) — skipping Lighthouse a11y audit. ` +
-      `Run on a public URL to enforce a11y score gating.`,
-  );
-  process.exit(0);
-}
-if (probe.status !== 0 || !httpCode || httpCode === "000") {
-  console.log(
-    `⚠ ${url} unreachable from CI — skipping Lighthouse a11y audit.`,
-  );
-  process.exit(0);
-}
-
-let score;
-try {
+function probe(url) {
   const result = spawnSync(
-    "npx",
-    [
-      "--yes",
-      "@lhci/cli@latest",
-      "collect",
-      `--url=${url}`,
-      "--settings.onlyCategories=accessibility",
-      "--output=json",
-      `--outputPath=${outFile}`,
-    ],
-    { stdio: "inherit", shell: false },
+    "curl",
+    ["-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "10", url],
+    { stdio: ["ignore", "pipe", "inherit"], shell: false },
   );
+  return result.stdout?.toString().trim() ?? "";
+}
 
-  if (result.status !== 0) {
-    console.error("❌ @lhci/cli collect failed");
-    process.exit(1);
+function auditOne(url) {
+  const httpCode = probe(url);
+  if (httpCode !== "200") {
+    const inCI = process.env.CI === "true";
+    const msg = `${url} returned HTTP ${httpCode || "unreachable"}`;
+    if (inCI) {
+      console.error(`❌ ${msg} — failing CI run`);
+      return { url, score: 0, failed: true, audits: [], reason: msg };
+    }
+    console.log(`⚠ ${msg} — skipping (CI=false)`);
+    return { url, score: null, failed: false, audits: [], reason: msg };
   }
 
-  const raw = readFileSync(outFile, "utf-8");
-  const report = JSON.parse(raw);
-
-  if (typeof report?.categories?.accessibility?.score !== "number") {
-    console.error("❌ Unexpected Lighthouse output format — missing accessibility score");
-    process.exit(1);
-  }
-
-  score = Math.round(report.categories.accessibility.score * 100);
-  console.log(`\nAccessibility score: ${score}/100`);
-
-  const failing = Object.values(report.audits)
-    .filter((a) => a.score !== null && a.score < 1 && a.details?.items?.length)
-    .sort((a, b) => a.score - b.score)
-    .slice(0, 5);
-
-  if (failing.length) {
-    console.log("\nTop failing audits:");
-    for (const audit of failing) {
-      console.log(`  - ${audit.id}: ${audit.title} (${audit.details.items.length} elements)`);
+  const outFile = `/tmp/lighthouse-${Date.now()}-${Math.random().toString(36).slice(2)}.json`;
+  let score = null;
+  let failingAudits = [];
+  try {
+    const result = spawnSync(
+      "npx",
+      [
+        "--yes",
+        `@lhci/cli@${LHCI_VERSION}`,
+        "collect",
+        `--url=${url}`,
+        "--settings.onlyCategories=accessibility",
+        "--output=json",
+        `--outputPath=${outFile}`,
+      ],
+      { stdio: "inherit", shell: false },
+    );
+    if (result.status !== 0) {
+      return { url, score: 0, failed: true, audits: [], reason: "@lhci/cli collect failed" };
+    }
+    const report = JSON.parse(readFileSync(outFile, "utf-8"));
+    const raw = report?.categories?.accessibility?.score;
+    if (typeof raw !== "number") {
+      return { url, score: 0, failed: true, audits: [], reason: "missing accessibility score" };
+    }
+    score = Math.round(raw * 100);
+    failingAudits = Object.values(report.audits)
+      .filter((a) => a.score !== null && a.score < 1 && a.details?.items?.length)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 5)
+      .map((a) => ({ id: a.id, title: a.title, elements: a.details.items.length }));
+  } finally {
+    try {
+      unlinkSync(outFile);
+    } catch {
+      // temp file may not exist if collection failed before writing
     }
   }
-} finally {
-  try {
-    unlinkSync(outFile);
-  } catch {
-    // temp file may not exist if collection failed before writing
+
+  return {
+    url,
+    score,
+    failed: score < SCORE_THRESHOLD,
+    audits: failingAudits,
+    reason: score < SCORE_THRESHOLD ? `score ${score} < ${SCORE_THRESHOLD}` : null,
+  };
+}
+
+console.log(`Lighthouse a11y audit — ${urls.length} URL(s), threshold ${SCORE_THRESHOLD}/100`);
+
+const results = urls.map((url) => {
+  console.log(`\n→ Auditing ${url}`);
+  return auditOne(url);
+});
+
+console.log("\n=== Results ===");
+for (const r of results) {
+  const status = r.failed ? "❌" : r.score === null ? "⚠ " : "✅";
+  const scoreStr = r.score === null ? "(skipped)" : `${r.score}/100`;
+  console.log(`${status}  ${scoreStr}  ${r.url}${r.reason ? `  — ${r.reason}` : ""}`);
+  for (const audit of r.audits) {
+    console.log(`     · ${audit.id}: ${audit.title} (${audit.elements} elements)`);
   }
 }
 
-if (score < 90) {
-  console.error(`\n❌ Accessibility score ${score} < 90 threshold`);
+const anyFailed = results.some((r) => r.failed);
+if (anyFailed) {
+  const failedCount = results.filter((r) => r.failed).length;
+  console.error(`\n❌ ${failedCount}/${results.length} URL(s) failed Lighthouse a11y threshold`);
   process.exit(1);
 }
-console.log("\n✅ Accessibility audit passed");
+console.log("\n✅ All audited URLs passed");
