@@ -118,6 +118,84 @@ export async function getCareTeamForRecipient(
   return members;
 }
 
+/**
+ * ON-71 Phase 2: refill alert email recipients.
+ * Returns active emails for (a) all coordinators in the org and (b) caregivers
+ * whose membership is either scoped to this recipient OR org-wide (recipient_id IS NULL).
+ *
+ * Active = `accepted_at IS NOT NULL` AND row exists. Memberships have no
+ * revocation column — removal is DELETE (per `memberships.remove` server-side
+ * enforcement at `memberships.ts:291`/`:318`).
+ *
+ * Always filters by `org_id` explicitly even though Inngest runs as service-role
+ * (bypasses RLS). Defense-in-depth per the ON-71 Phase 2 threat model finding C1.
+ *
+ * Mirrors `getCareTeamForRecipient`'s `CARE_TEAM_CHUNK_SIZE=8` rate-limit pattern
+ * for `auth.admin.getUserById` (50/s/project hard cap).
+ */
+export type RefillRecipient = {
+  membershipId: string;
+  userId: string;
+  email: string;
+  role: string;
+};
+
+export async function getRefillRecipients(
+  orgId: string,
+  recipientId: string,
+): Promise<RefillRecipient[]> {
+  // C1: explicit org_id filter on every membership read — even though Inngest
+  // service-role bypasses RLS, we keep this as defense-in-depth.
+  const { data: rows, error } = await supabaseAdmin
+    .from("memberships")
+    .select("id, user_id, role, recipient_id")
+    .eq("org_id", orgId)
+    .or(
+      `role.eq.coordinator,and(role.eq.caregiver,or(recipient_id.eq.${recipientId},recipient_id.is.null)),and(role.eq.aide,or(recipient_id.eq.${recipientId},recipient_id.is.null))`,
+    )
+    .not("accepted_at", "is", null)
+    .not("user_id", "is", null)
+    .limit(50);
+
+  if (error) {
+    throw new Error(`getRefillRecipients failed: ${error.message}`);
+  }
+
+  const rowList = rows ?? [];
+  const out: RefillRecipient[] = [];
+  for (let i = 0; i < rowList.length; i += CARE_TEAM_CHUNK_SIZE) {
+    const chunk = rowList.slice(i, i + CARE_TEAM_CHUNK_SIZE);
+    const settled = await Promise.allSettled(
+      chunk.map(async (row) => {
+        const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(
+          row.user_id as string,
+        );
+        const email = userRes?.user?.email;
+        if (!email || typeof email !== "string") return null;
+        return {
+          membershipId: row.id as string,
+          userId: row.user_id as string,
+          email,
+          role: row.role as string,
+        };
+      }),
+    );
+    for (const result of settled) {
+      if (result.status === "fulfilled" && result.value) {
+        out.push(result.value);
+      } else if (result.status === "rejected") {
+        // 429 / transient — drop the member silently so one bad call doesn't
+        // tank the whole alert. Logged for prod observability.
+        console.warn(
+          "getRefillRecipients: getUserById rejected",
+          result.reason,
+        );
+      }
+    }
+  }
+  return out;
+}
+
 export async function createMembershipAndInvite(params: {
   orgId: string;
   recipientId: string | null;
