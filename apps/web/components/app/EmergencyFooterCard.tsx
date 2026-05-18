@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, Phone, Pencil } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useEditMode } from "@/hooks/useEditMode";
+import { formatMutationError } from "@/lib/formatMutationError";
 
 type EmergencyContact = {
   name: string;
@@ -38,7 +39,6 @@ export function EmergencyFooterCard({
   recipientId,
   orgId,
 }: EmergencyFooterCardProps) {
-  const editMode = useEditMode();
   const [dnrInput, setDnrInput] = useState(dnrStatus ?? "");
   const [hospitalInput, setHospitalInput] = useState(hospital ?? "");
   const [nameInput, setNameInput] = useState(primaryContact?.name ?? "");
@@ -46,15 +46,24 @@ export function EmergencyFooterCard({
   const [phoneInput, setPhoneInput] = useState(primaryContact?.phone ?? "");
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
+  const editMode = useEditMode({
+    onCancel: () => {
+      setDnrInput(dnrStatus ?? "");
+      setHospitalInput(hospital ?? "");
+      setNameInput(primaryContact?.name ?? "");
+      setRelInput(primaryContact?.relationship ?? "");
+      setPhoneInput(primaryContact?.phone ?? "");
+      setPhoneError(null);
+    },
+  });
+
   const mutation = trpc.recipients.updateEmergencyInfo.useMutation({
     onSuccess: () => {
       setPhoneError(null);
       editMode.handlers.onSuccess();
     },
-    onError: () => {
-      editMode.handlers.onError({
-        message: "Failed to update emergency info.",
-      });
+    onError: (err) => {
+      editMode.handlers.onError({ message: formatMutationError(err) });
     },
   });
 
@@ -80,16 +89,6 @@ export function EmergencyFooterCard({
         phone: phoneInput,
       },
     });
-  };
-
-  const handleCancel = () => {
-    editMode.cancel();
-    setDnrInput(dnrStatus ?? "");
-    setHospitalInput(hospital ?? "");
-    setNameInput(primaryContact?.name ?? "");
-    setRelInput(primaryContact?.relationship ?? "");
-    setPhoneInput(primaryContact?.phone ?? "");
-    setPhoneError(null);
   };
 
   return (
@@ -230,7 +229,7 @@ export function EmergencyFooterCard({
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={handleCancel}
+              onClick={() => editMode.cancel()}
               disabled={mutation.isPending}
               className="rounded px-3 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
             >

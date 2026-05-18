@@ -66,6 +66,14 @@ ruleTester.run("no-phi-in-analytics", rule, {
         // — must NOT trigger spreadIdentifier; distinctId is conventionally a
         // UUID variable and flagging it is noise.
         { code: "posthog.identify(userId);" },
+        // TD-186: Sentry.setTag with safe key — allowed.
+        { code: "Sentry.setTag('env', 'prod');" },
+        // TD-186: Sentry.setExtra with safe key — allowed.
+        { code: "Sentry.setExtra('request_id', 'abc-123');" },
+        // TD-186: Sentry.setTags with safe object — allowed.
+        { code: "Sentry.setTags({ env: 'prod', region: 'us-east-1' });" },
+        // TD-186: Sentry.setExtras with safe object — allowed.
+        { code: "Sentry.setExtras({ request_id: 'abc', org_id: 'org-1' });" },
       ],
       invalid: [
         // PostHog identify with email.
@@ -199,6 +207,53 @@ ruleTester.run("no-phi-in-analytics", rule, {
               data: { call: "resend.emails.send", name: "payload" },
             },
           ],
+        },
+        // TD-186 — Sentry.setTag with PHI literal key (the key itself lands in
+        // Sentry's indexed tag UI).
+        {
+          code: "Sentry.setTag('email', 'leak@x');",
+          errors: [
+            {
+              messageId: "forbiddenTagKey",
+              data: { call: "setTag", key: "email" },
+            },
+          ],
+        },
+        // TD-186 — Sentry.setExtra with PHI literal key.
+        {
+          code: "Sentry.setExtra('phone', '555-leak');",
+          errors: [
+            {
+              messageId: "forbiddenTagKey",
+              data: { call: "setExtra", key: "phone" },
+            },
+          ],
+        },
+        // TD-186 — Sentry.setTag with 'name' literal key — forbidden in tags
+        // (the setContext name-allowance does NOT apply here).
+        {
+          code: "Sentry.setTag('name', 'Alice');",
+          errors: [
+            {
+              messageId: "forbiddenTagKey",
+              data: { call: "setTag", key: "name" },
+            },
+          ],
+        },
+        // TD-186 — Sentry.setTags object form with forbidden key.
+        {
+          code: "Sentry.setTags({ email: 'leak@x', env: 'prod' });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "email" } }],
+        },
+        // TD-186 — Sentry.setExtras object form with forbidden key.
+        {
+          code: "Sentry.setExtras({ phone: '555-leak' });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "phone" } }],
+        },
+        // TD-186 — Sentry.setTags case-insensitive (FirstName).
+        {
+          code: "Sentry.setTags({ FirstName: 'Alice' });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "FirstName" } }],
         },
   ],
 });

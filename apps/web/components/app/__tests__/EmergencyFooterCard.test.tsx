@@ -219,17 +219,24 @@ describe("EmergencyFooterCard — UX-105b edit affordance", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("on error, surfaces a generic 'Failed to update' alert", () => {
-    const callbacks: { onError?: () => void } = {};
-    mockHook.mockImplementation((opts: { onError?: () => void }) => {
-      callbacks.onError = opts.onError;
-      return { mutate: mockMutate, isPending: false };
-    });
+  it("on error, surfaces the formatted alert via formatMutationError", () => {
+    const callbacks: { onError?: (err: unknown) => void } = {};
+    mockHook.mockImplementation(
+      (opts: { onError?: (err: unknown) => void }) => {
+        callbacks.onError = opts.onError;
+        return { mutate: mockMutate, isPending: false };
+      },
+    );
     render(<EmergencyFooterCard {...editableProps} />);
     fireEvent.click(screen.getByRole("button", { name: /edit emergency/i }));
     act(() => {
-      callbacks.onError?.();
+      // Simulate an INTERNAL_SERVER_ERROR — formatMutationError returns
+      // the generic string, never leaking internals.
+      callbacks.onError?.({
+        data: { code: "INTERNAL_SERVER_ERROR" },
+        message: "ECONNREFUSED",
+      });
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(/failed to update/i);
+    expect(screen.getByRole("alert")).toHaveTextContent(/something went wrong/i);
   });
 });

@@ -6,6 +6,15 @@
  *   - posthog.capture(eventName, propertiesObject?)
  *   - Sentry.setUser(userObject)
  *   - Sentry.setContext(name, contextObject)
+ *   - Sentry.setTags(tagsObject) / Sentry.setExtras(extrasObject)
+ *
+ * Also fails the SINGULAR form `Sentry.setTag(key, value)` /
+ * `Sentry.setExtra(key, value)` when `key` is a forbidden literal — those
+ * forms put the literal `key` into Sentry's indexed UI, so a key like
+ * `"email"` is itself a PHI leak surface regardless of the value's runtime
+ * shape. Non-literal `value` arguments are not inspected (the rule only
+ * checks static keys); dynamic PHI passed via variable still requires
+ * review per the spreadIdentifier convention used elsewhere in this rule.
  *
  * Forbidden keys (case-insensitive): email, phone, dob, ssn, first_name,
  * last_name, full_name, address, zip, street, city. Plus `name` — except
@@ -72,6 +81,13 @@ function resolveArgPosition(obj, method) {
     if (method === "setContext") return { argIndices: [1], allowName: true };
     if (method === "captureException") return { argIndices: [1], allowName: false };
     if (method === "addBreadcrumb") return { argIndices: [0], allowName: false };
+    // setTags/setExtras take a single object literal — inspect like setUser.
+    if (method === "setTags" || method === "setExtras") {
+      return { argIndices: [0], allowName: false };
+    }
+    // setTag/setExtra SINGULAR — (key, value). Handled separately because
+    // the leak surface is the STRING-LITERAL KEY at args[0], not an object.
+    // resolveArgPosition returns null; the CallExpression visitor branches.
   }
   if (obj === "resend" || obj === "Resend") {
     // resend.emails.send(payload) — handled by MemberExpression chain matcher.
@@ -87,10 +103,21 @@ function isTargetCall(obj, method) {
       method === "setUser" ||
       method === "setContext" ||
       method === "captureException" ||
-      method === "addBreadcrumb"
+      method === "addBreadcrumb" ||
+      method === "setTag" ||
+      method === "setTags" ||
+      method === "setExtra" ||
+      method === "setExtras"
     );
   }
   return false;
+}
+
+// Sentry.setTag(key, value) / Sentry.setExtra(key, value) — singular form
+// has a string-literal KEY as args[0]. That key lands in Sentry's indexed
+// tag/extra UI verbatim, so a key of `"email"` is itself a PHI surface.
+function isSentrySingularTagOrExtra(obj, method) {
+  return obj === "Sentry" && (method === "setTag" || method === "setExtra");
 }
 
 // Matches `resend.emails.send(payload)` callee shape. Returns true if the
@@ -173,6 +200,8 @@ module.exports = {
         "PHI rule: property key '{{key}}' is forbidden in analytics calls. Use anonymous UUID only — never email, name, phone, or other PII. See docs/adr/0001-phi-anonymous-uuid-only.md.",
       spreadIdentifier:
         "PHI rule: '{{call}}' was called with an Identifier ('{{name}}') instead of an inline object literal — the rule cannot statically inspect its keys for PHI. Verify the value carries no email/name/phone/PII, or pass an object literal. Suppress with `// eslint-disable-next-line carelog/no-phi-in-analytics` after manual review.",
+      forbiddenTagKey:
+        "Sentry.{{call}} key '{{key}}' is PHI — use anonymous UUID or a non-PHI label (e.g. user_id, org_id). See docs/adr/0001-phi-anonymous-uuid-only.md.",
     },
   },
 
@@ -215,6 +244,31 @@ module.exports = {
         const method = callee.property.name;
 
         if (!isTargetCall(obj, method)) return;
+
+        // Sentry.setTag(key, value) / Sentry.setExtra(key, value) — inspect
+        // the literal string KEY at args[0], not an object. The `name` key
+        // is also forbidden here (no setContext-style allowance).
+        if (isSentrySingularTagOrExtra(obj, method)) {
+          const keyArg = node.arguments[0];
+          if (
+            keyArg &&
+            keyArg.type === "Literal" &&
+            typeof keyArg.value === "string"
+          ) {
+            const norm = normalizeKey(keyArg.value);
+            if (
+              FORBIDDEN_KEYS.has(norm) ||
+              norm === NAME_FORBIDDEN_BUT_ALLOWED_IN_SETCONTEXT
+            ) {
+              context.report({
+                node: keyArg,
+                messageId: "forbiddenTagKey",
+                data: { call: method, key: keyArg.value },
+              });
+            }
+          }
+          return;
+        }
 
         const position = resolveArgPosition(obj, method);
         if (!position) return;
