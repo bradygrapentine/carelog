@@ -79,12 +79,10 @@ export async function resolveIdentity(
  * - `null` or empty string → clear (remove) the key from contact_info
  * - non-empty value → set
  *
- * Implementation uses read-merge-write rather than a Postgres `jsonb_set`
- * RPC because adding an RPC requires a migration which is out of scope for
- * UX-105b. The lost-update window under concurrent edits is accepted: this
- * surface has at most one coordinator editing the recipient profile at a
- * time. If concurrent-edit conflicts surface in practice, promote to an
- * RPC-backed jsonb_set in a follow-up.
+ * TD-179: backed by `public.update_emergency_info` SECURITY DEFINER RPC
+ * (migration 20260518090000). RPC does an atomic shallow top-level merge via
+ * `jsonb_strip_nulls(existing || patch)` server-side. Eliminates the JS
+ * read-merge-write race the prior implementation carried.
  */
 export type EmergencyInfoPatch = {
   dnrStatus?: string | null;
@@ -101,63 +99,48 @@ export async function updateEmergencyInfo(
   recipientId: string,
   patch: EmergencyInfoPatch,
 ): Promise<EmergencyInfo> {
-  const { data: recipient, error: recipientError } = await supabaseAdmin
-    .from("care_recipients")
-    .select("identity_token")
-    .eq("id", recipientId)
-    .eq("org_id", orgId)
-    .single();
-  if (recipientError || !recipient) {
-    throw new Error("recipient_not_found");
-  }
-  const identityToken = (recipient as { identity_token: string })
-    .identity_token;
-
-  const { data: current, error: readError } = await supabaseAdmin
-    .from("identity_vault")
-    .select("contact_info")
-    .eq("token", identityToken)
-    .eq("org_id", orgId)
-    .single();
-  if (readError || !current) {
-    throw new Error("identity_not_found");
-  }
-  const existing = ((
-    current as { contact_info: Record<string, unknown> | null }
-  ).contact_info ?? {}) as Record<string, unknown>;
-  const merged: Record<string, unknown> = { ...existing };
-
+  // Build snake_case jsonb patch.
+  // - undefined → skip key entirely (server preserves existing value)
+  // - null/"" → pass null (server's jsonb_strip_nulls clears the key)
+  // - value → pass through
+  const patchJson: Record<string, unknown> = {};
   if (patch.dnrStatus !== undefined) {
-    if (patch.dnrStatus === null || patch.dnrStatus === "") {
-      delete merged.dnr_status;
-    } else {
-      merged.dnr_status = patch.dnrStatus;
-    }
+    patchJson.dnr_status =
+      patch.dnrStatus === null || patch.dnrStatus === "" ? null : patch.dnrStatus;
   }
   if (patch.hospital !== undefined) {
-    if (patch.hospital === null || patch.hospital === "") {
-      delete merged.hospital;
-    } else {
-      merged.hospital = patch.hospital;
-    }
+    patchJson.hospital =
+      patch.hospital === null || patch.hospital === "" ? null : patch.hospital;
   }
   if (patch.primaryContact !== undefined) {
-    if (patch.primaryContact === null) {
-      delete merged.primary_contact;
-    } else {
-      merged.primary_contact = patch.primaryContact;
-    }
+    patchJson.primary_contact =
+      patch.primaryContact === null ? null : patch.primaryContact;
   }
 
-  const { error: writeError } = await supabaseAdmin
-    .from("identity_vault")
-    .update({ contact_info: merged })
-    .eq("token", identityToken)
-    .eq("org_id", orgId);
-  if (writeError) {
-    throw new Error(`identity_update_failed: ${writeError.message}`);
+  const { data, error } = await supabaseAdmin.rpc("update_emergency_info", {
+    p_org_id: orgId,
+    p_recipient_id: recipientId,
+    p_patch: patchJson,
+  });
+
+  if (error) {
+    // SQLSTATE-based mapping (NOT string-matching error.message).
+    // P0002 → recipient missing or cross-org access denied.
+    // 45IDF → recipient resolved but identity vault row missing.
+    if (error.code === "P0002") {
+      throw new Error("recipient_not_found");
+    }
+    if (error.code === "45IDF") {
+      throw new Error("identity_not_found");
+    }
+    // Preserve prior catch-all shape. error.message comes from Supabase/PG;
+    // do NOT add orgId/recipientId here — keeps PHI boundary clean.
+    throw new Error(`identity_update_failed: ${error.message}`);
   }
-  return parseEmergencyInfo(merged);
+
+  return parseEmergencyInfo(
+    (data ?? {}) as Record<string, unknown>,
+  );
 }
 
 export async function createIdentity(params: {

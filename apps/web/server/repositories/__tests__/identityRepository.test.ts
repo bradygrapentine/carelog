@@ -8,7 +8,7 @@ import {
 } from "../identityRepository";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
-  supabaseAdmin: { from: vi.fn() },
+  supabaseAdmin: { from: vi.fn(), rpc: vi.fn() },
 }));
 
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
@@ -50,6 +50,7 @@ function makeUpsertChain() {
 
 beforeEach(() => {
   vi.mocked(supabaseAdmin.from).mockReset();
+  vi.mocked(supabaseAdmin.rpc).mockReset();
 });
 
 describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
@@ -338,131 +339,112 @@ describe("parseEmergencyInfo (UX-105)", () => {
   });
 });
 
-describe("updateEmergencyInfo — UX-105b", () => {
+describe("updateEmergencyInfo — UX-105b / TD-179 (RPC-backed)", () => {
   const ORG = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
   const REC = "dddddddd-dddd-dddd-dddd-dddddddddddd";
-  const TOKEN = "cccccccc-cccc-cccc-cccc-cccccccccccc";
 
-  function makeUpdateChain(result: { error: unknown }) {
-    const chain: Record<string, unknown> = {};
-    chain.update = vi.fn(() => chain);
-    chain.eq = vi.fn(() => chain);
-    chain.then = (resolve: (v: unknown) => unknown) =>
-      Promise.resolve(result).then(resolve);
-    return chain;
-  }
-
-  it("merges patch into existing contact_info, preserving untouched keys", async () => {
-    let capturedUpdate: Record<string, unknown> | undefined;
-    vi.mocked(supabaseAdmin.from).mockImplementation(((table: string) => {
-      if (table === "care_recipients") {
-        return makeSelectChain({
-          data: { identity_token: TOKEN },
-          error: null,
-        }) as never;
-      }
-      if (table === "identity_vault") {
-        // First call: select current contact_info
-        const callCount = vi.mocked(supabaseAdmin.from).mock.calls.length;
-        if (callCount === 2) {
-          return makeSelectChain({
-            data: {
-              contact_info: {
-                dnr_status: "Old",
-                hospital: "Old Hospital",
-                phone_alt: "555-9999", // untouched key
-              },
-            },
-            error: null,
-          }) as never;
-        }
-        // Third call: update
-        const updateChain = makeUpdateChain({ error: null });
-        updateChain.update = vi.fn((payload: Record<string, unknown>) => {
-          capturedUpdate = payload;
-          return updateChain;
-        });
-        return updateChain as never;
-      }
-      return makeSelectChain({ data: null, error: null }) as never;
+  it("calls update_emergency_info RPC with snake_case patch and returns parsed result", async () => {
+    let capturedArgs: unknown;
+    vi.mocked(supabaseAdmin.rpc).mockImplementation(((
+      name: string,
+      args: unknown,
+    ) => {
+      capturedArgs = { name, args };
+      return Promise.resolve({
+        data: {
+          dnr_status: "DNR",
+          hospital: "New Hospital",
+          primary_contact: { name: "Jane Doe", phone: "+15551234567" },
+        },
+        error: null,
+      });
     }) as never);
 
-    await updateEmergencyInfo(ORG, REC, {
+    const result = await updateEmergencyInfo(ORG, REC, {
       dnrStatus: "DNR",
       hospital: "New Hospital",
       primaryContact: { name: "Jane Doe", phone: "+15551234567" },
     });
 
-    expect(capturedUpdate).toBeDefined();
-    const newContactInfo = capturedUpdate!.contact_info as Record<
-      string,
-      unknown
-    >;
-    // Patched keys
-    expect(newContactInfo.dnr_status).toBe("DNR");
-    expect(newContactInfo.hospital).toBe("New Hospital");
-    expect(newContactInfo.primary_contact).toEqual({
-      name: "Jane Doe",
-      phone: "+15551234567",
+    expect(capturedArgs).toEqual({
+      name: "update_emergency_info",
+      args: {
+        p_org_id: ORG,
+        p_recipient_id: REC,
+        p_patch: {
+          dnr_status: "DNR",
+          hospital: "New Hospital",
+          primary_contact: { name: "Jane Doe", phone: "+15551234567" },
+        },
+      },
     });
-    // Untouched keys survive
-    expect(newContactInfo.phone_alt).toBe("555-9999");
+    expect(result).toEqual({
+      dnrStatus: "DNR",
+      hospital: "New Hospital",
+      primaryContact: { name: "Jane Doe", phone: "+15551234567" },
+    });
   });
 
-  it("clearing a field (empty string) removes it from contact_info", async () => {
-    let capturedUpdate: Record<string, unknown> | undefined;
-    vi.mocked(supabaseAdmin.from).mockImplementation(((table: string) => {
-      if (table === "care_recipients") {
-        return makeSelectChain({
-          data: { identity_token: TOKEN },
-          error: null,
-        }) as never;
-      }
-      const callCount = vi.mocked(supabaseAdmin.from).mock.calls.length;
-      if (callCount === 2) {
-        return makeSelectChain({
-          data: {
-            contact_info: {
-              dnr_status: "Full code",
-              hospital: "Memorial",
-            },
-          },
-          error: null,
-        }) as never;
-      }
-      const updateChain = makeUpdateChain({ error: null });
-      updateChain.update = vi.fn((payload: Record<string, unknown>) => {
-        capturedUpdate = payload;
-        return updateChain;
-      });
-      return updateChain as never;
+  it("passes null for empty-string/null patch values (clears via jsonb_strip_nulls)", async () => {
+    let capturedArgs: unknown;
+    vi.mocked(supabaseAdmin.rpc).mockImplementation(((
+      _name: string,
+      args: unknown,
+    ) => {
+      capturedArgs = args;
+      return Promise.resolve({ data: {}, error: null });
     }) as never);
 
     await updateEmergencyInfo(ORG, REC, {
       dnrStatus: "",
-      hospital: undefined, // skip
+      hospital: undefined, // skip — must NOT appear in patch
       primaryContact: null,
     });
 
-    const newContactInfo = capturedUpdate!.contact_info as Record<
-      string,
-      unknown
-    >;
-    expect(newContactInfo).not.toHaveProperty("dnr_status");
-    expect(newContactInfo.hospital).toBe("Memorial"); // untouched
-    expect(newContactInfo).not.toHaveProperty("primary_contact");
+    const args = capturedArgs as { p_patch: Record<string, unknown> };
+    expect(args.p_patch).toEqual({
+      dnr_status: null,
+      primary_contact: null,
+    });
+    expect(args.p_patch).not.toHaveProperty("hospital");
   });
 
-  it("throws recipient_not_found when care_recipients lookup misses", async () => {
-    vi.mocked(supabaseAdmin.from).mockImplementationOnce(
-      () =>
-        makeSelectChain({
-          data: null,
-          error: { message: "no rows" },
-        }) as never,
-    );
+  it("throws recipient_not_found when RPC returns error.code === 'P0002'", async () => {
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
+      data: null,
+      error: { code: "P0002", message: "recipient_not_found" },
+    } as never);
     await expect(updateEmergencyInfo(ORG, REC, {})).rejects.toThrow(
       "recipient_not_found",
     );
+  });
+
+  it("throws identity_not_found when RPC returns error.code === '45IDF'", async () => {
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
+      data: null,
+      error: { code: "45IDF", message: "identity_not_found" },
+    } as never);
+    await expect(updateEmergencyInfo(ORG, REC, {})).rejects.toThrow(
+      "identity_not_found",
+    );
+  });
+
+  it("throws identity_update_failed for any other error code (no PHI in message)", async () => {
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
+      data: null,
+      error: { code: "23505", message: "duplicate key" },
+    } as never);
+    let err: Error | undefined;
+    try {
+      await updateEmergencyInfo(ORG, REC, { dnrStatus: "DNR" });
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err).toBeDefined();
+    expect(err!.message).toMatch("identity_update_failed");
+    expect(err!.message).toMatch("duplicate key");
+    // PHI guard: orgId/recipientId must NOT appear in error output
+    expect(err!.message).not.toMatch(ORG);
+    expect(err!.message).not.toMatch(REC);
   });
 });
