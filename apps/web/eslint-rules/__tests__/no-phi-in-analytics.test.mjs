@@ -74,6 +74,9 @@ ruleTester.run("no-phi-in-analytics", rule, {
         { code: "Sentry.setTags({ env: 'prod', region: 'us-east-1' });" },
         // TD-186: Sentry.setExtras with safe object — allowed.
         { code: "Sentry.setExtras({ request_id: 'abc', org_id: 'org-1' });" },
+        // TD-188: Sentry.setTag with TemplateLiteral key containing an
+        // interpolation — dynamic key, can't be statically checked, skipped.
+        { code: "Sentry.setTag(`user_${id}`, x);" },
       ],
       invalid: [
         // PostHog identify with email.
@@ -254,6 +257,17 @@ ruleTester.run("no-phi-in-analytics", rule, {
         {
           code: "Sentry.setTags({ FirstName: 'Alice' });",
           errors: [{ messageId: "forbiddenKey", data: { key: "FirstName" } }],
+        },
+        // TD-188 — Sentry.setTag with TemplateLiteral PHI key (no
+        // interpolations) — same semantics as a string literal.
+        {
+          code: "Sentry.setTag(`email`, x);",
+          errors: [
+            {
+              messageId: "forbiddenTagKey",
+              data: { call: "setTag", key: "email" },
+            },
+          ],
         },
   ],
 });

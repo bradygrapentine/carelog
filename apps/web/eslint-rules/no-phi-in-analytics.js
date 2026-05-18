@@ -248,14 +248,28 @@ module.exports = {
         // Sentry.setTag(key, value) / Sentry.setExtra(key, value) — inspect
         // the literal string KEY at args[0], not an object. The `name` key
         // is also forbidden here (no setContext-style allowance).
+        // TD-188: accept TemplateLiteral with no interpolations as a static
+        // key — `setTag(\`email\`, x)` is semantically identical to
+        // `setTag('email', x)`. Templates with expressions are dynamic and
+        // skipped (no static key to check).
         if (isSentrySingularTagOrExtra(obj, method)) {
           const keyArg = node.arguments[0];
+          let keyName = null;
           if (
             keyArg &&
             keyArg.type === "Literal" &&
             typeof keyArg.value === "string"
           ) {
-            const norm = normalizeKey(keyArg.value);
+            keyName = keyArg.value;
+          } else if (
+            keyArg &&
+            keyArg.type === "TemplateLiteral" &&
+            keyArg.expressions.length === 0
+          ) {
+            keyName = keyArg.quasis[0].value.cooked;
+          }
+          if (keyName !== null) {
+            const norm = normalizeKey(keyName);
             if (
               FORBIDDEN_KEYS.has(norm) ||
               norm === NAME_FORBIDDEN_BUT_ALLOWED_IN_SETCONTEXT
@@ -263,7 +277,7 @@ module.exports = {
               context.report({
                 node: keyArg,
                 messageId: "forbiddenTagKey",
-                data: { call: method, key: keyArg.value },
+                data: { call: method, key: keyName },
               });
             }
           }
