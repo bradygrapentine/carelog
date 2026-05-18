@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (rpcError) {
       Sentry.captureException(wrapAdminError(rpcError), {
-        tags: { component: "ocr.confirm", path: "rpc.error" },
+        tags: { component: "api.ocr.confirm", path: "rpc.error" },
       });
       return NextResponse.json(
         { error: "Failed to confirm OCR job" },
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
           new Error(
             `Unknown confirm_ocr_job sentinel: ${sentinel || "(empty)"}`,
           ),
-          { tags: { component: "ocr.confirm", path: "rpc.fallthrough" } },
+          { tags: { component: "api.ocr.confirm", path: "rpc.fallthrough" } },
         );
         return NextResponse.json(
           { error: "Failed to confirm OCR job" },
