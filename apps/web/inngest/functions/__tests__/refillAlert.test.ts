@@ -4,10 +4,10 @@ import {
   detectLowSupply,
   batchByOrgRecipient,
   buildRefillEmailBody,
-  isoWeekStamp,
   refillDedupKey,
   type MedicationRow,
 } from "../refillAlert";
+import { isoWeekStamp } from "@carelog/utils";
 
 const BASE: MedicationRow = {
   id: "00000000-0000-0000-0000-000000000001",
