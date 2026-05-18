@@ -10,6 +10,22 @@ vi.mock("@/server/supabaseAdmin.server", () => ({
   wrapAdminError: (e: any) => e,
 }));
 
+const { mockCaptureException } = vi.hoisted(() => ({
+  mockCaptureException: vi.fn(),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+  captureException: mockCaptureException,
+}));
+
+const { mockRepoUpdateEmergencyInfo } = vi.hoisted(() => ({
+  mockRepoUpdateEmergencyInfo: vi.fn(),
+}));
+
+vi.mock("@/server/repositories/identityRepository", () => ({
+  updateEmergencyInfo: mockRepoUpdateEmergencyInfo,
+}));
+
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
 import { appRouter } from "@/server/trpc/router";
 
@@ -149,5 +165,130 @@ describe("recipients.updatePreferences", () => {
         dislikes: validInput.dislikes,
       },
     });
+  });
+});
+
+describe("recipients.updateEmergencyInfo — UX-105b", () => {
+  beforeEach(() => {
+    mockCaptureException.mockReset();
+    mockRepoUpdateEmergencyInfo.mockReset();
+  });
+
+  const validEmergencyInput = {
+    org_id: ORG_ID,
+    recipient_id: REC_ID,
+    dnr_status: "Full code",
+    hospital: "Memorial Cooper",
+    primary_contact: {
+      name: "Sarah H.",
+      relationship: "Daughter",
+      phone: "+15555550123",
+    },
+  };
+
+  it("throws FORBIDDEN when caller has no membership", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation(() =>
+      makeSelectChain({ data: null, error: null }),
+    );
+    await expect(
+      caller.recipients.updateEmergencyInfo(validEmergencyInput),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(mockRepoUpdateEmergencyInfo).not.toHaveBeenCalled();
+  });
+
+  it("throws FORBIDDEN when caller is non-coordinator", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation(() =>
+      makeSelectChain({ data: { role: "caregiver" }, error: null }),
+    );
+    await expect(
+      caller.recipients.updateEmergencyInfo(validEmergencyInput),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(mockRepoUpdateEmergencyInfo).not.toHaveBeenCalled();
+  });
+
+  it("coordinator + valid payload calls repository with the right shape", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation(() =>
+      makeSelectChain({ data: { role: "coordinator" }, error: null }),
+    );
+    mockRepoUpdateEmergencyInfo.mockResolvedValue({
+      dnrStatus: "Full code",
+      hospital: "Memorial Cooper",
+      primaryContact: validEmergencyInput.primary_contact,
+    });
+    const result =
+      await caller.recipients.updateEmergencyInfo(validEmergencyInput);
+    expect(mockRepoUpdateEmergencyInfo).toHaveBeenCalledWith(ORG_ID, REC_ID, {
+      dnrStatus: "Full code",
+      hospital: "Memorial Cooper",
+      primaryContact: validEmergencyInput.primary_contact,
+    });
+    expect(result).toMatchObject({ ok: true });
+  });
+
+  it("empty primary_contact.name clears the primary contact (null patch)", async () => {
+    vi.mocked(supabaseAdmin.from).mockImplementation(() =>
+      makeSelectChain({ data: { role: "coordinator" }, error: null }),
+    );
+    mockRepoUpdateEmergencyInfo.mockResolvedValue({});
+    await caller.recipients.updateEmergencyInfo({
+      ...validEmergencyInput,
+      primary_contact: { name: "", relationship: "", phone: "" },
+    });
+    expect(mockRepoUpdateEmergencyInfo).toHaveBeenCalledWith(
+      ORG_ID,
+      REC_ID,
+      expect.objectContaining({ primaryContact: null }),
+    );
+  });
+
+  it("PHI sentinel: zod failure on invalid phone NEVER leaks name or phone into Sentry", async () => {
+    // No need to mock memberships — zod failure short-circuits before assertCoordinator.
+    const NAME_SENTINEL = "JANE-DOE-SENTINEL";
+    const PHONE_SENTINEL = "+15551234567-INVALID-XXX"; // fails regex (length>20 + 'X')
+    await expect(
+      caller.recipients.updateEmergencyInfo({
+        ...validEmergencyInput,
+        primary_contact: {
+          name: NAME_SENTINEL,
+          relationship: "x",
+          phone: PHONE_SENTINEL,
+        },
+      }),
+    ).rejects.toThrow();
+    // No Sentry call should mention either sentinel anywhere in its payload.
+    const allSentryCallsStr = JSON.stringify(mockCaptureException.mock.calls);
+    expect(allSentryCallsStr).not.toContain(NAME_SENTINEL);
+    expect(allSentryCallsStr).not.toContain(PHONE_SENTINEL);
+  });
+
+  it("PHI sentinel: repository error NEVER leaks name or phone into Sentry", async () => {
+    const NAME_SENTINEL = "JANE-DOE-SENTINEL";
+    const PHONE_SENTINEL = "+15551234567";
+    vi.mocked(supabaseAdmin.from).mockImplementation(() =>
+      makeSelectChain({ data: { role: "coordinator" }, error: null }),
+    );
+    mockRepoUpdateEmergencyInfo.mockRejectedValue(
+      new Error("identity_update_failed"),
+    );
+    await expect(
+      caller.recipients.updateEmergencyInfo({
+        ...validEmergencyInput,
+        primary_contact: {
+          name: NAME_SENTINEL,
+          relationship: "Daughter",
+          phone: PHONE_SENTINEL,
+        },
+      }),
+    ).rejects.toThrow();
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+    // Sentry call: 1st arg is the Error; 2nd arg is { tags }. Neither should
+    // contain name or phone strings.
+    const sentryCallStr = JSON.stringify({
+      err: String(mockCaptureException.mock.calls[0][0]),
+      opts: mockCaptureException.mock.calls[0][1],
+    });
+    expect(sentryCallStr).not.toContain(NAME_SENTINEL);
+    expect(sentryCallStr).not.toContain(PHONE_SENTINEL);
+    expect(sentryCallStr).toContain("recipients.updateEmergencyInfo");
   });
 });

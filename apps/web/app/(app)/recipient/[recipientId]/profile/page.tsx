@@ -113,6 +113,9 @@ export default async function RecipientProfilePage({
       <CareTeamList members={careTeam} />
       <EmergencyFooterCard
         {...parseEmergencyInfo(identity.contact_info ?? {})}
+        editable={isCoordinator}
+        recipientId={recipient.id}
+        orgId={recipient.org_id}
       />
     </main>
   );

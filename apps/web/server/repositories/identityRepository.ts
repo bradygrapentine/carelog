@@ -73,6 +73,93 @@ export async function resolveIdentity(
   return data as IdentityRecord;
 }
 
+/**
+ * UX-105b: write-side patch shape for the emergency-info edit affordance.
+ * - `undefined` → leave the existing key untouched
+ * - `null` or empty string → clear (remove) the key from contact_info
+ * - non-empty value → set
+ *
+ * Implementation uses read-merge-write rather than a Postgres `jsonb_set`
+ * RPC because adding an RPC requires a migration which is out of scope for
+ * UX-105b. The lost-update window under concurrent edits is accepted: this
+ * surface has at most one coordinator editing the recipient profile at a
+ * time. If concurrent-edit conflicts surface in practice, promote to an
+ * RPC-backed jsonb_set in a follow-up.
+ */
+export type EmergencyInfoPatch = {
+  dnrStatus?: string | null;
+  primaryContact?: {
+    name: string;
+    relationship?: string;
+    phone?: string;
+  } | null;
+  hospital?: string | null;
+};
+
+export async function updateEmergencyInfo(
+  orgId: string,
+  recipientId: string,
+  patch: EmergencyInfoPatch,
+): Promise<EmergencyInfo> {
+  const { data: recipient, error: recipientError } = await supabaseAdmin
+    .from("care_recipients")
+    .select("identity_token")
+    .eq("id", recipientId)
+    .eq("org_id", orgId)
+    .single();
+  if (recipientError || !recipient) {
+    throw new Error("recipient_not_found");
+  }
+  const identityToken = (recipient as { identity_token: string })
+    .identity_token;
+
+  const { data: current, error: readError } = await supabaseAdmin
+    .from("identity_vault")
+    .select("contact_info")
+    .eq("token", identityToken)
+    .eq("org_id", orgId)
+    .single();
+  if (readError || !current) {
+    throw new Error("identity_not_found");
+  }
+  const existing = ((
+    current as { contact_info: Record<string, unknown> | null }
+  ).contact_info ?? {}) as Record<string, unknown>;
+  const merged: Record<string, unknown> = { ...existing };
+
+  if (patch.dnrStatus !== undefined) {
+    if (patch.dnrStatus === null || patch.dnrStatus === "") {
+      delete merged.dnr_status;
+    } else {
+      merged.dnr_status = patch.dnrStatus;
+    }
+  }
+  if (patch.hospital !== undefined) {
+    if (patch.hospital === null || patch.hospital === "") {
+      delete merged.hospital;
+    } else {
+      merged.hospital = patch.hospital;
+    }
+  }
+  if (patch.primaryContact !== undefined) {
+    if (patch.primaryContact === null) {
+      delete merged.primary_contact;
+    } else {
+      merged.primary_contact = patch.primaryContact;
+    }
+  }
+
+  const { error: writeError } = await supabaseAdmin
+    .from("identity_vault")
+    .update({ contact_info: merged })
+    .eq("token", identityToken)
+    .eq("org_id", orgId);
+  if (writeError) {
+    throw new Error(`identity_update_failed: ${writeError.message}`);
+  }
+  return parseEmergencyInfo(merged);
+}
+
 export async function createIdentity(params: {
   orgId: string;
   fullName: string;
