@@ -127,7 +127,7 @@ test.describe("Outer Circle volunteer page", () => {
     await page.fill("#claimer-name", "Jane Doe");
     await page.fill("#claimer-email", "jane@example.com");
     await page.getByRole("button", { name: "Claim a slot" }).click();
-    await expect(page.getByText("Thanks! You're helping out.")).toBeVisible({
+    await expect(page.getByText("Thanks for stepping in.")).toBeVisible({
       timeout: 10000,
     });
   });
