@@ -5,6 +5,7 @@ import {
   getRefillRecipients,
   type RefillRecipient,
 } from "../../server/repositories/membershipsRepository";
+import { isoWeekStamp } from "@carelog/utils";
 import * as Sentry from "@sentry/nextjs";
 
 // ─── pure detection logic (testable without Inngest) ─────────────────────────
@@ -72,21 +73,6 @@ export function buildRefillEmailBody(batch: RefillBatch): string {
     'To stop receiving these reminders, reply to this email with "unsubscribe".',
   );
   return lines.join("\n");
-}
-
-/** ISO week stamp `YYYY-Www` (1-indexed weeks) for dedup_key construction. */
-export function isoWeekStamp(date: Date): string {
-  // Per ISO 8601: Thursday of the week determines the year.
-  const d = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNum = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
-  );
-  return d.getUTCFullYear() + "-W" + String(weekNum).padStart(2, "0");
 }
 
 /** Compose the dedup_key for refill emails. */

@@ -3,14 +3,32 @@ export function digestMinuteOffset(orgId: string): number {
   return parseInt(orgId.slice(-4), 16) % 240;
 }
 
-/** Returns the current ISO week string (e.g. `"2025-W04"`) used as an idempotency key for weekly jobs. */
-export function getWeekStamp(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const week = Math.ceil(
-    ((now.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7,
+/**
+ * Returns the ISO 8601 week stamp for the given date, formatted `YYYY-Www`
+ * (e.g. `"2025-W04"`, `"2026-W53"`). Used as an idempotency key for weekly jobs.
+ *
+ * Implements ISO 8601 §3.4: the Thursday of a given week determines the ISO
+ * week-numbering year — so 2024-12-30 (Monday) is in week 1 of 2025, and
+ * 2026-12-28 (Monday) is in week 53 of 2026 (a 53-week ISO year).
+ *
+ * **TZ-deterministic.** Uses `Date.UTC()` and `getUTC*` exclusively, so the
+ * result depends only on the absolute instant the `Date` represents — not on
+ * the host's local time zone. Two `Date` values referring to the same instant
+ * (e.g. `new Date("2026-01-04T23:00:00-08:00")` and `new Date("2026-01-05T07:00:00Z")`)
+ * always yield the same stamp.
+ */
+export function isoWeekStamp(date: Date): string {
+  // Per ISO 8601: Thursday of the week determines the year.
+  const d = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
   );
-  return `${year}-W${week}`;
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil(
+    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+  );
+  return d.getUTCFullYear() + "-W" + String(weekNum).padStart(2, "0");
 }
 
 /** Returns today's date as `YYYY-MM-DD`, used as an idempotency key for daily jobs. */

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   digestMinuteOffset,
-  getWeekStamp,
+  isoWeekStamp,
   getDayStamp,
   truncate,
   formatCurrency,
@@ -35,13 +35,31 @@ describe('digestMinuteOffset', () => {
   })
 })
 
-describe('getWeekStamp', () => {
-  it('returns a string matching YYYY-WN format', () => {
-    expect(getWeekStamp()).toMatch(/^\d{4}-W\d{1,2}$/)
+describe('isoWeekStamp', () => {
+  it('returns W53 for a 53-week ISO year (2026-12-28 Monday)', () => {
+    // 2026 has 53 ISO weeks. 2026-12-28 is a Monday — start of W53.
+    expect(isoWeekStamp(new Date('2026-12-28T00:00:00Z'))).toBe('2026-W53')
   })
 
-  it('returns same value when called twice in the same week', () => {
-    expect(getWeekStamp()).toBe(getWeekStamp())
+  it('treats Sunday 2024-12-29 as ISO week 52 of 2024', () => {
+    // ISO 8601 §3.4: Thursday of that week (2024-12-26) falls in 2024 → W52.
+    expect(isoWeekStamp(new Date('2024-12-29T00:00:00Z'))).toBe('2024-W52')
+  })
+
+  it('returns 2025-W23 for midweek Wednesday 2025-06-04', () => {
+    expect(isoWeekStamp(new Date('2025-06-04T00:00:00Z'))).toBe('2025-W23')
+  })
+
+  it('zero-pads single-digit week numbers (YYYY-W04, not YYYY-W4)', () => {
+    // 2025-01-22 is a Wednesday → ISO week 4 of 2025.
+    expect(isoWeekStamp(new Date('2025-01-22T00:00:00Z'))).toBe('2025-W04')
+  })
+
+  it('is TZ-deterministic — same instant in different wall-clock zones yields same stamp', () => {
+    // Both Date values reference the exact same UTC instant (2026-01-05T07:00:00Z).
+    const pacific = isoWeekStamp(new Date('2026-01-04T23:00:00-08:00'))
+    const utc = isoWeekStamp(new Date('2026-01-05T07:00:00Z'))
+    expect(pacific).toBe(utc)
   })
 })
 
