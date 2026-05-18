@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CareSync — Mobile preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&display=swap" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Geist', system-ui, sans-serif;
+    background: #F0E8DD;
+    color: #2A1810;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+  .head {
+    max-width: 920px;
+    margin: 0 auto 32px;
+  }
+  .eyebrow {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #7A6558;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: #2A1810;
+    margin: 0 0 14px;
+    max-width: 720px;
+  }
+  h1 em { font-style: italic; font-weight: 300; color: #6B3210; }
+  p.lead {
+    max-width: 640px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #5A453A;
+    margin: 0 0 24px;
+  }
+
+  .route-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 920px;
+    margin: 0 auto 24px;
+  }
+  .route-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    border: 1px solid #E8DFD4;
+    background: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #2A1810;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .route-chip.active {
+    background: #FAEFE0;
+    border-color: #D2691E;
+    color: #6B3210;
+  }
+  .route-chip:focus-visible { outline: 2px solid #D2691E; outline-offset: 2px; }
+
+  /* device frame */
+  .stage {
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .phone {
+    width: 402px;
+    height: 874px;
+    position: relative;
+    background: #0c0a0a;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 30px 70px -20px rgba(42, 24, 16, 0.4),
+      0 0 0 1.5px #2a201c;
+    flex-shrink: 0;
+  }
+  .phone::before {
+    content: "";
+    position: absolute;
+    top: 22px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 28px;
+    background: #0c0a0a;
+    border-radius: 999px;
+    z-index: 3;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 44px;
+    overflow: hidden;
+    background: #FBF7F2;
+    position: relative;
+  }
+  iframe.preview {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .legend {
+    flex: 1;
+    min-width: 280px;
+    max-width: 360px;
+    padding-top: 12px;
+  }
+  .legend h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 0 0 8px;
+    color: #2A1810;
+  }
+  .legend p {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #5A453A;
+    margin: 0 0 14px;
+  }
+  .legend ul {
+    list-style: none; padding: 0; margin: 0;
+  }
+  .legend li {
+    padding: 8px 0;
+    border-top: 1px solid #E8DFD4;
+    font-size: 13.5px;
+    color: #2A1810;
+  }
+  .legend li:first-child { border-top: none; }
+  .legend li strong {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6B3210;
+    margin-right: 8px;
+  }
+
+  @media (max-width: 920px) {
+    body { padding: 20px 14px 60px; }
+    .phone { width: 360px; height: 780px; padding: 12px; border-radius: 48px; }
+    .screen { border-radius: 36px; }
+  }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="eyebrow">CareSync · 2.0 — mobile companion</div>
+    <h1>Caring for <em>Margaret</em>, one-handed at <em>11pm</em>.</h1>
+    <p class="lead">
+      Same Living Room palette, recompacted for a phone in the dark. Bottom-tab navigation,
+      a calmer page head, the weekly grid replaced by an agenda list, the medication table
+      replaced by labeled cards.
+    </p>
+  </div>
+
+  <div class="route-chips" role="tablist" aria-label="Switch route in preview">
+    <button class="route-chip active" data-route="today" aria-selected="true">Today</button>
+    <button class="route-chip" data-route="journal">Journal</button>
+    <button class="route-chip" data-route="shifts">Shifts</button>
+    <button class="route-chip" data-route="meds">Medications</button>
+    <button class="route-chip" data-route="team">Team</button>
+    <button class="route-chip" data-route="documents">Documents</button>
+    <button class="route-chip" data-route="brief">Visit brief</button>
+    <button class="route-chip" data-route="settings">Settings</button>
+  </div>
+
+  <div class="stage">
+    <div class="phone" aria-label="iPhone-sized preview">
+      <div class="screen">
+        <iframe class="preview" id="preview" src="caresync_dashboard.html#today"
+          title="CareSync mobile preview"></iframe>
+      </div>
+    </div>
+
+    <aside class="legend" aria-label="What changed for mobile">
+      <h2>What changed on small screens</h2>
+      <p>
+        Every page reflows under 720&nbsp;px. The sidebar dissolves into a fixed bottom
+        tab bar in Deep Plum Ink; primary actions take the head; secondary actions slide
+        into a More sheet.
+      </p>
+      <ul>
+        <li><strong>Nav</strong>Five tab bar: Today, Journal, Shifts, Meds, More — Team, Documents, Brief, Settings live in the More sheet.</li>
+        <li><strong>Today</strong>Hero stays editorial; cards stack; pattern footer slips below Coming up.</li>
+        <li><strong>Journal</strong>Quick-log composer is full-width; filter chips scroll horizontally; entry actions floats absolute.</li>
+        <li><strong>Shifts</strong>The weekly calendar is hidden and replaced by an agenda list grouped by day.</li>
+        <li><strong>Meds</strong>The table becomes labeled cards — name + dose, schedule, supply, last-taken stacked.</li>
+        <li><strong>Documents</strong>Folder grid stays 2-up; row metadata simplifies to name + folder.</li>
+        <li><strong>Settings</strong>Vertical tab nav becomes a horizontal pill scroller; fields stack label-over-input.</li>
+        <li><strong>Brief</strong>Editorial Fraunces holds up at narrow widths; body type rescales.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <script>
+    // Sync chips with the preview iframe's hash route.
+    const iframe = document.getElementById("preview");
+    const chips = document.querySelectorAll(".route-chip");
+    chips.forEach(c => c.addEventListener("click", () => {
+      const r = c.dataset.route;
+      iframe.src = "caresync_dashboard.html#" + r;
+      chips.forEach(x => {
+        x.classList.toggle("active", x === c);
+        x.setAttribute("aria-selected", x === c ? "true" : "false");
+      });
+    }));
+  </script>
+</body>
+</html>
