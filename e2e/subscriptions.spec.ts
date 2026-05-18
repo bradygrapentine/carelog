@@ -37,7 +37,7 @@ test.describe("Subscriptions page", () => {
     await signIn(page, COORDINATOR_EMAIL);
     await navigateToJournal(page);
     await page.goto("/subscriptions");
-    await expect(page.getByText("No billing history yet.")).toBeVisible({
+    await expect(page.getByText("No charges yet. Receipts will show up here once your plan starts.")).toBeVisible({
       timeout: 10000,
     });
   });
