@@ -31,7 +31,7 @@ async function goToCoverageSettings(page: import("@playwright/test").Page) {
   await expect(
     page
       .getByRole("button", { name: "Add window" })
-      .or(page.getByText("No coverage windows defined yet.")),
+      .or(page.getByText("No coverage windows set yet. Add one to mark when someone is on duty.")),
   ).toBeVisible({ timeout: 8000 });
 }
 
