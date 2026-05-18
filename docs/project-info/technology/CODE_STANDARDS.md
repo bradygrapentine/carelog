@@ -179,6 +179,22 @@ Use client-side form handlers. Server actions don't reliably propagate session c
 
 ---
 
+## Sentry tag convention (TD-176)
+
+Every `Sentry.captureException` call carries a `component` tag for dashboard filtering. Use one of three shapes depending on the call site:
+
+| Surface | Shape | Example |
+|---|---|---|
+| tRPC procedure | `<routerName>.<procedureName>` | `"memberships.invite"`, `"recipients.updateEmergencyInfo"` |
+| API route (`apps/web/app/api/...`) | `api.<resource>.<verb>` | `"api.ocr.confirm"`, `"api.invite.accept"` |
+| Inngest function | `inngest.<functionName>` | `"inngest.refillAlert"`, `"inngest.weeklyDigest"` |
+
+The `api.` prefix on API-route tags lets Sentry dashboards distinguish HTTP-handler captures from tRPC-procedure captures at a glance. The `inngest.` prefix does the same for cron/event functions vs request-driven code.
+
+Also include a `path` tag identifying the specific error branch (e.g. `"caller.error"`, `"resend.error"`, `"rpc.fallthrough"`). The path is informational; `component` is the primary dashboard filter.
+
+PHI rule: per [ADR-0001](../../adr/0001-phi-anonymous-uuid-only.md), tags must contain only stable identifiers (component name, path label). Never spread `input`/`patch`/`ctx` into Sentry calls. Never include PHI field names (`name`, `phone`, `dob`, `email`).
+
 ## API routes
 
 All API routes in `apps/web/app/api/`:
