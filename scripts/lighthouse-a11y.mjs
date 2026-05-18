@@ -7,7 +7,9 @@
 //   url(s) default to http://localhost:3000
 
 import { spawnSync } from "node:child_process";
-import { readFileSync, unlinkSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const LHCI_VERSION = "0.15.1";
 const SCORE_THRESHOLD = 90;
@@ -37,7 +39,11 @@ function auditOne(url) {
     return { url, score: null, failed: false, audits: [], reason: msg };
   }
 
-  const outFile = `/tmp/lighthouse-${Date.now()}-${Math.random().toString(36).slice(2)}.json`;
+  // @lhci/cli collect writes to .lighthouseci/lhr-<unix-ms>.json relative to cwd
+  // (NOT to a path you pass via --outputPath — that flag is for `lhci upload`).
+  // Use a per-URL tempdir so each audit's reports stay isolated and the
+  // readdir below can pick the single output deterministically.
+  const workDir = mkdtempSync(join(tmpdir(), "lh-"));
   let score = null;
   let failingAudits = [];
   try {
@@ -48,16 +54,20 @@ function auditOne(url) {
         `@lhci/cli@${LHCI_VERSION}`,
         "collect",
         `--url=${url}`,
+        "--numberOfRuns=1",
         "--settings.onlyCategories=accessibility",
-        "--output=json",
-        `--outputPath=${outFile}`,
       ],
-      { stdio: "inherit", shell: false },
+      { stdio: "inherit", shell: false, cwd: workDir },
     );
     if (result.status !== 0) {
       return { url, score: 0, failed: true, audits: [], reason: "@lhci/cli collect failed" };
     }
-    const report = JSON.parse(readFileSync(outFile, "utf-8"));
+    const lhciDir = join(workDir, ".lighthouseci");
+    const reports = readdirSync(lhciDir).filter((f) => f.startsWith("lhr-") && f.endsWith(".json"));
+    if (reports.length === 0) {
+      return { url, score: 0, failed: true, audits: [], reason: "no lhr-*.json in .lighthouseci/" };
+    }
+    const report = JSON.parse(readFileSync(join(lhciDir, reports[0]), "utf-8"));
     const raw = report?.categories?.accessibility?.score;
     if (typeof raw !== "number") {
       return { url, score: 0, failed: true, audits: [], reason: "missing accessibility score" };
@@ -70,9 +80,9 @@ function auditOne(url) {
       .map((a) => ({ id: a.id, title: a.title, elements: a.details.items.length }));
   } finally {
     try {
-      unlinkSync(outFile);
+      rmSync(workDir, { recursive: true, force: true });
     } catch {
-      // temp file may not exist if collection failed before writing
+      // tempdir may already be cleaned up
     }
   }
 
