@@ -47,14 +47,18 @@ SELECT has_function(
 );
 
 SELECT is(
-  (SELECT prosecdef FROM pg_proc WHERE proname = 'update_emergency_info'),
+  (SELECT prosecdef FROM pg_proc
+   WHERE proname = 'update_emergency_info'
+     AND pronamespace = 'public'::regnamespace),
   true,
   'update_emergency_info is SECURITY DEFINER'
 );
 
 SELECT ok(
   (SELECT 'search_path=public, pg_temp' = ANY(proconfig)
-   FROM pg_proc WHERE proname = 'update_emergency_info'),
+   FROM pg_proc
+   WHERE proname = 'update_emergency_info'
+     AND pronamespace = 'public'::regnamespace),
   'update_emergency_info has search_path = public, pg_temp pinned (CVE-2018-1058 control)'
 );
 

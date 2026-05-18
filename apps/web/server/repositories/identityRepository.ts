@@ -106,7 +106,9 @@ export async function updateEmergencyInfo(
   const patchJson: Record<string, unknown> = {};
   if (patch.dnrStatus !== undefined) {
     patchJson.dnr_status =
-      patch.dnrStatus === null || patch.dnrStatus === "" ? null : patch.dnrStatus;
+      patch.dnrStatus === null || patch.dnrStatus === ""
+        ? null
+        : patch.dnrStatus;
   }
   if (patch.hospital !== undefined) {
     patchJson.hospital =
@@ -125,22 +127,25 @@ export async function updateEmergencyInfo(
 
   if (error) {
     // SQLSTATE-based mapping (NOT string-matching error.message).
-    // P0002 → recipient missing or cross-org access denied.
-    // 45IDF → recipient resolved but identity vault row missing.
+    // P0002  → recipient missing or cross-org access denied.
+    // P0IDF  → recipient resolved but identity vault row missing.
+    //          (User-defined SQLSTATE; class P0 is documented PL/pgSQL user
+    //          space; class 45 was originally chosen but is non-conformant
+    //          per SQLSTATE spec — see TD-188 hotfix.)
     if (error.code === "P0002") {
       throw new Error("recipient_not_found");
     }
-    if (error.code === "45IDF") {
+    if (error.code === "P0IDF") {
       throw new Error("identity_not_found");
     }
-    // Preserve prior catch-all shape. error.message comes from Supabase/PG;
-    // do NOT add orgId/recipientId here — keeps PHI boundary clean.
-    throw new Error(`identity_update_failed: ${error.message}`);
+    // Catch-all: DROP raw error.message entirely. PG error messages may
+    // include column values (e.g. `Key (email)=(jane@x.com)`), which is
+    // a PHI leak path into thrown Error → Sentry capture → log aggregator.
+    // Code-only signal preserves debuggability without leaking PII.
+    throw new Error(`identity_update_failed: ${error.code ?? "UNKNOWN"}`);
   }
 
-  return parseEmergencyInfo(
-    (data ?? {}) as Record<string, unknown>,
-  );
+  return parseEmergencyInfo((data ?? {}) as Record<string, unknown>);
 }
 
 export async function createIdentity(params: {
