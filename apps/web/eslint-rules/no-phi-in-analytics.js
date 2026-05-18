@@ -11,8 +11,17 @@
  * last_name, full_name, address, zip, street, city. Plus `name` — except
  * inside Sentry.setContext where it's commonly legitimate metadata.
  *
- * Walks nested object literals. Cannot resolve spread elements, variable
- * references, or computed keys — flag those manually in code review.
+ * Also inspects:
+ *   - resend.emails.send(payload) — payload's keys + nested object literals
+ *     (including {to: [{ email: ... }]} array-of-objects shapes).
+ *
+ * Walks nested object literals AND ObjectExpression elements inside
+ * ArrayExpressions (Resend's `to: [{ email: ... }]` shape). Cannot resolve
+ * spread elements, variable references, or computed keys.
+ *
+ * When the inspected argument position holds a bare Identifier (e.g.
+ * `Sentry.captureException(err, ctx)` where `ctx` is a variable), emits a
+ * `spreadIdentifier` warning so reviewers can manually confirm PHI safety.
  */
 
 "use strict";
@@ -49,32 +58,26 @@ const NAME_FORBIDDEN_BUT_ALLOWED_IN_SETCONTEXT = "name";
 //
 // `name` is allowed in the inspected object only for Sentry.setContext,
 // where it commonly carries non-identity metadata (e.g. browser name).
-function resolveArgsToInspect(obj, method, args) {
+// Returns { argIndex, allowName } describing which positional argument the
+// rule should inspect for a given target call. Returns null if not a target.
+function resolveArgPosition(obj, method) {
   if (obj === "posthog") {
     if (method === "identify" || method === "capture") {
-      // Single-arg object form (posthog-node) — first arg is itself the props bag.
-      if (args[0]?.type === "ObjectExpression") return [args[0]];
-      // Two-arg form (posthog-js) — second arg is the props.
-      if (args[1]?.type === "ObjectExpression") return [args[1]];
+      // posthog has two shapes; both are checked below by the caller.
+      return { argIndices: [0, 1], allowName: false };
     }
   }
   if (obj === "Sentry") {
-    if (method === "setUser") {
-      if (args[0]?.type === "ObjectExpression") return [args[0]];
-    }
-    if (method === "setContext") {
-      if (args[1]?.type === "ObjectExpression") return [args[1]];
-    }
-    if (method === "captureException") {
-      // captureException(err, captureContext) — captureContext.extra/tags/contexts.
-      if (args[1]?.type === "ObjectExpression") return [args[1]];
-    }
-    if (method === "addBreadcrumb") {
-      // addBreadcrumb({ message, data, category, ... }) — data is the leak surface.
-      if (args[0]?.type === "ObjectExpression") return [args[0]];
-    }
+    if (method === "setUser") return { argIndices: [0], allowName: false };
+    if (method === "setContext") return { argIndices: [1], allowName: true };
+    if (method === "captureException") return { argIndices: [1], allowName: false };
+    if (method === "addBreadcrumb") return { argIndices: [0], allowName: false };
   }
-  return [];
+  if (obj === "resend" || obj === "Resend") {
+    // resend.emails.send(payload) — handled by MemberExpression chain matcher.
+    return null;
+  }
+  return null;
 }
 
 function isTargetCall(obj, method) {
@@ -88,6 +91,22 @@ function isTargetCall(obj, method) {
     );
   }
   return false;
+}
+
+// Matches `resend.emails.send(payload)` callee shape. Returns true if the
+// CallExpression's callee is a `<id>.emails.send` member access where the
+// root identifier is the literal `resend` (lowercase, the conventional name
+// in the codebase for the Resend client instance).
+function isResendEmailsSend(callee) {
+  if (callee.type !== "MemberExpression") return false;
+  if (callee.property.type !== "Identifier" || callee.property.name !== "send")
+    return false;
+  const inner = callee.object;
+  if (inner.type !== "MemberExpression") return false;
+  if (inner.property.type !== "Identifier" || inner.property.name !== "emails")
+    return false;
+  if (inner.object.type !== "Identifier") return false;
+  return inner.object.name === "resend" || inner.object.name === "Resend";
 }
 
 function allowsName(obj, method) {
@@ -128,6 +147,15 @@ function checkObjectExpression(context, node, allowName) {
     if (prop.value && prop.value.type === "ObjectExpression") {
       checkObjectExpression(context, prop.value, allowName);
     }
+    // Recurse into ArrayExpression elements that are object literals
+    // (e.g. Resend `to: [{ email: "x@y" }]`).
+    if (prop.value && prop.value.type === "ArrayExpression") {
+      for (const el of prop.value.elements) {
+        if (el && el.type === "ObjectExpression") {
+          checkObjectExpression(context, el, allowName);
+        }
+      }
+    }
   }
 }
 
@@ -143,13 +171,38 @@ module.exports = {
     messages: {
       forbiddenKey:
         "PHI rule: property key '{{key}}' is forbidden in analytics calls. Use anonymous UUID only — never email, name, phone, or other PII. See docs/adr/0001-phi-anonymous-uuid-only.md.",
+      spreadIdentifier:
+        "PHI rule: '{{call}}' was called with an Identifier ('{{name}}') instead of an inline object literal — the rule cannot statically inspect its keys for PHI. Verify the value carries no email/name/phone/PII, or pass an object literal. Suppress with `// eslint-disable-next-line carelog/no-phi-in-analytics` after manual review.",
     },
   },
 
   create(context) {
+    function inspectArg(arg, allowName, callDesc) {
+      if (!arg) return;
+      if (arg.type === "ObjectExpression") {
+        checkObjectExpression(context, arg, allowName);
+        return;
+      }
+      if (arg.type === "Identifier") {
+        context.report({
+          node: arg,
+          messageId: "spreadIdentifier",
+          data: { call: callDesc, name: arg.name },
+        });
+      }
+    }
+
     return {
       CallExpression(node) {
         const { callee } = node;
+
+        // resend.emails.send(payload)
+        if (isResendEmailsSend(callee)) {
+          const arg = node.arguments[0];
+          inspectArg(arg, false, "resend.emails.send");
+          return;
+        }
+
         if (callee.type !== "MemberExpression") return;
         if (
           callee.object.type !== "Identifier" ||
@@ -163,12 +216,28 @@ module.exports = {
 
         if (!isTargetCall(obj, method)) return;
 
-        const argsToInspect = resolveArgsToInspect(obj, method, node.arguments);
-        if (argsToInspect.length === 0) return;
+        const position = resolveArgPosition(obj, method);
+        if (!position) return;
 
-        const allowName = allowsName(obj, method);
-        for (const arg of argsToInspect) {
-          checkObjectExpression(context, arg, allowName);
+        const callDesc = `${obj}.${method}`;
+        for (const idx of position.argIndices) {
+          const arg = node.arguments[idx];
+          if (!arg) continue;
+          if (arg.type === "ObjectExpression") {
+            checkObjectExpression(context, arg, position.allowName);
+          } else if (
+            arg.type === "Identifier" &&
+            // For posthog 2-arg form, skip Identifier at arg[0] (it's distinctId,
+            // typically a UUID variable — flagging it is noise). Only flag the
+            // properties-bag positions.
+            !(obj === "posthog" && idx === 0)
+          ) {
+            context.report({
+              node: arg,
+              messageId: "spreadIdentifier",
+              data: { call: callDesc, name: arg.name },
+            });
+          }
         }
       },
     };

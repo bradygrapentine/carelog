@@ -57,6 +57,15 @@ ruleTester.run("no-phi-in-analytics", rule, {
         {
           code: "Sentry.addBreadcrumb({ message: 'cache miss', category: 'cache', data: { key: 'k' } });",
         },
+        // TD-181: Resend transactional email with safe `from` (literal string in
+        // safe key — keys-only rule should not flag the string value).
+        {
+          code: "resend.emails.send({ from: 'CareSync <noreply@carelog.app>', to: 'user-uuid@example.com', subject: 'hello', html: '<p>hi</p>' });",
+        },
+        // TD-181: posthog.identify with bare Identifier as distinctId (1st arg)
+        // — must NOT trigger spreadIdentifier; distinctId is conventionally a
+        // UUID variable and flagging it is noise.
+        { code: "posthog.identify(userId);" },
       ],
       invalid: [
         // PostHog identify with email.
@@ -138,6 +147,58 @@ ruleTester.run("no-phi-in-analytics", rule, {
         {
           code: "Sentry.addBreadcrumb({ message: 'login', data: { phone: '555-1234' } });",
           errors: [{ messageId: "forbiddenKey", data: { key: "phone" } }],
+        },
+        // TD-181 — Resend.emails.send: forbidden key in headers (top-level recursion).
+        {
+          code:
+            "resend.emails.send({ from: 'a@b', to: 'c@d', subject: 's', html: '<p/>', headers: { email: 'leak@x' } });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "email" } }],
+        },
+        // TD-181 — Resend.emails.send: forbidden key in `to` array-of-objects
+        // (proves ArrayExpression walker recursion).
+        {
+          code:
+            "resend.emails.send({ from: 'a@b', to: [{ phone: '555-1234' }], subject: 's', html: '<p/>' });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "phone" } }],
+        },
+        // TD-181 — Resend.emails.send: forbidden key in nested `attachments` array.
+        {
+          code:
+            "resend.emails.send({ from: 'a@b', to: 'c@d', subject: 's', html: '<p/>', attachments: [{ filename: 'x', dob: '1990-01-01' }] });",
+          errors: [{ messageId: "forbiddenKey", data: { key: "dob" } }],
+        },
+        // TD-181 — Sentry.captureException called with bare Identifier as the
+        // captureContext arg — emits spreadIdentifier so reviewer manually
+        // confirms PHI safety.
+        {
+          code: "Sentry.captureException(err, ctx);",
+          errors: [
+            {
+              messageId: "spreadIdentifier",
+              data: { call: "Sentry.captureException", name: "ctx" },
+            },
+          ],
+        },
+        // TD-181 — posthog.capture 2-arg form with Identifier in properties
+        // position emits spreadIdentifier.
+        {
+          code: "posthog.capture('event', props);",
+          errors: [
+            {
+              messageId: "spreadIdentifier",
+              data: { call: "posthog.capture", name: "props" },
+            },
+          ],
+        },
+        // TD-181 — resend.emails.send called with bare Identifier payload.
+        {
+          code: "resend.emails.send(payload);",
+          errors: [
+            {
+              messageId: "spreadIdentifier",
+              data: { call: "resend.emails.send", name: "payload" },
+            },
+          ],
         },
   ],
 });

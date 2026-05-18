@@ -210,6 +210,24 @@ describe("refillDedupKey", () => {
 // On Resend dispatch error, captureException MUST NOT carry the drug name,
 // pharmacy data, or recipient email. The ESLint rule cannot catch spreads or
 // variable refs (per CLAUDE.md). This sentinel test is the live guard.
+//
+// TD-181 update — static/dynamic coverage split:
+//   The `carelog/no-phi-in-analytics` ESLint rule now covers more surface area
+//   (Resend `emails.send` payloads, including `to: [{ email }]` array-of-
+//   objects shapes, plus a `spreadIdentifier` warning when a target call is
+//   passed a bare Identifier instead of an inline object literal). But it
+//   remains a STATIC, keys-only check on object literals. It CANNOT catch:
+//     • forbidden field-name STRINGS appearing inside Sentry call bodies
+//       (e.g. a hand-rolled string `"pharmacy_name"` slipped into an extra
+//       payload — caught here by source-file substring assertions)
+//     • spreads like `...input` / `...patch` / `...event` that smuggle
+//       caller-controlled PHI into analytics extras
+//     • template-string interpolation in `subject:` / `html:` fields where
+//       PHI (drug name, recipient name) might be inlined
+//     • the bare presence of `html:` and the substring `pharmacy` at the
+//       resend.emails.send call site, which would indicate PHI leak surface
+//   These are the gaps this sentinel test closes. DO NOT replace the
+//   sentinel with the static rule — they are complementary, not redundant.
 
 describe("PHI sentinel (M2) — refillAlert source file invariants", async () => {
   const fs = await import("node:fs");
