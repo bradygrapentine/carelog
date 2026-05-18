@@ -685,6 +685,36 @@ export type Database = {
           },
         ]
       }
+      email_dispatch_log: {
+        Row: {
+          created_at: string
+          dedup_key: string
+          id: string
+          kind: string
+          org_id: string
+          recipient_id: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          dedup_key: string
+          id?: string
+          kind: string
+          org_id: string
+          recipient_id?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          dedup_key?: string
+          id?: string
+          kind?: string
+          org_id?: string
+          recipient_id?: string | null
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
       eol_plans: {
         Row: {
           attorney_contact: string | null
@@ -1938,6 +1968,25 @@ export type Database = {
         }
         Returns: string
       }
+      confirm_ocr_job: {
+        Args: {
+          p_confirmed_field_keys: string[]
+          p_dosage: string
+          p_drug_name: string
+          p_instructions: string
+          p_job_id: string
+          p_org_id: string
+          p_raw_output_hash: string
+          p_user_id: string
+        }
+        Returns: Database["public"]["CompositeTypes"]["confirm_ocr_job_result"]
+        SetofOptions: {
+          from: "*"
+          to: "confirm_ocr_job_result"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       find_dm_thread: {
         Args: { p_org_id: string; p_user_a: string; p_user_b: string }
         Returns: string
@@ -1998,6 +2047,10 @@ export type Database = {
         | "failed"
     }
     CompositeTypes: {
+      confirm_ocr_job_result: {
+        success: boolean | null
+        error: string | null
+      }
       invite_accept_result: {
         success: boolean | null
         error: string | null
