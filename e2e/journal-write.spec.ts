@@ -14,13 +14,13 @@ test.describe("Journal write flows", () => {
     await navigateToJournal(page);
 
     const uniqueText = "E2E test entry " + Date.now();
-    const textarea = page.getByPlaceholder("Share how today went...");
+    const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.click();
     await textarea.fill(uniqueText);
 
     // Select a mood
     await page.click('button:has-text("Good")');
-    await page.click('button:has-text("Share update")');
+    await page.click('button:has-text("Post to journal")');
 
     // Entry appears in timeline
     await expect(
@@ -36,10 +36,10 @@ test.describe("Journal write flows", () => {
     await navigateToJournal(page);
 
     const uniqueText = "Persist test " + Date.now();
-    const textarea = page.getByPlaceholder("Share how today went...");
+    const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.click();
     await textarea.fill(uniqueText);
-    await page.click('button:has-text("Share update")');
+    await page.click('button:has-text("Post to journal")');
 
     await expect(
       page
@@ -61,10 +61,10 @@ test.describe("Journal write flows", () => {
     await signIn(page, AUTHOR_EMAIL);
     await navigateToJournal(page);
 
-    const textarea = page.getByPlaceholder("Share how today went...");
+    const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.click();
     await textarea.fill("Clearing test " + Date.now());
-    await page.click('button:has-text("Share update")');
+    await page.click('button:has-text("Post to journal")');
 
     // Form returns to empty state after submit
     await expect(textarea).toHaveValue("", { timeout: 8000 });

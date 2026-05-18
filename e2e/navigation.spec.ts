@@ -16,7 +16,7 @@ async function goToJournal(page: import("@playwright/test").Page) {
   await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
   await page.waitForURL(/\/journal\/[^/]+/, { timeout: 15000 });
   // Confirm default panel loaded
-  await page.waitForSelector('[placeholder="Share how today went..."]', {
+  await page.waitForSelector('[placeholder="What happened today? Even one line is enough."]', {
     timeout: 10000,
   });
 }
@@ -25,7 +25,7 @@ test.describe("Panel tab navigation", () => {
   test("default panel is Journal — entry form visible", async ({ page }) => {
     await goToJournal(page);
     await expect(
-      page.getByPlaceholder("Share how today went..."),
+      page.getByPlaceholder("What happened today? Even one line is enough."),
     ).toBeVisible();
     await expect(page.getByRole("tab", { name: "Journal" })).toHaveAttribute(
       "aria-selected",
@@ -180,7 +180,7 @@ test.describe("Panel tab navigation", () => {
 
     await page.getByRole("tab", { name: "Journal" }).click();
     await expect(page).toHaveURL(/panel=journal/, { timeout: 8000 });
-    await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
+    await expect(page.getByPlaceholder("What happened today? Even one line is enough.")).toBeVisible({
       timeout: 5000,
     });
   });

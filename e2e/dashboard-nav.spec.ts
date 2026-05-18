@@ -37,7 +37,7 @@ test.describe("Dashboard and sign-out navigation", () => {
     });
     await page.locator(CARE_JOURNAL_LINK_SELECTOR).first().click();
     await expect(page).toHaveURL(/\/journal\/[^/]+/, { timeout: 15000 });
-    await expect(page.getByPlaceholder("Share how today went...")).toBeVisible({
+    await expect(page.getByPlaceholder("What happened today? Even one line is enough.")).toBeVisible({
       timeout: 10000,
     });
   });

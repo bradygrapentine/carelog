@@ -11,11 +11,11 @@ test.beforeEach(async () => {
 });
 
 async function writeEntry(page: any, text: string) {
-  const textarea = page.getByPlaceholder("Share how today went...");
+  const textarea = page.getByPlaceholder("What happened today? Even one line is enough.");
   await textarea.click();
   await textarea.fill(text);
-  await page.waitForSelector("text=Share update", { timeout: 3000 });
-  await page.click("text=Share update");
+  await page.waitForSelector("text=Post to journal", { timeout: 3000 });
+  await page.click("text=Post to journal");
   await expect(textarea).toHaveValue("", { timeout: 12000 });
   await expect(page.getByText(text)).toBeVisible({ timeout: 5000 });
 }

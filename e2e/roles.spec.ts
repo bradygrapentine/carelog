@@ -61,7 +61,7 @@ test("supporter sees read-only message instead of entry form", async ({
       inviteePage.getByText("You're here as a Supporter"),
     ).toBeVisible();
     await expect(
-      inviteePage.getByPlaceholder("Share how today went..."),
+      inviteePage.getByPlaceholder("What happened today? Even one line is enough."),
     ).not.toBeVisible();
   } finally {
     await coordinatorCtx.close();
@@ -93,13 +93,13 @@ test.fixme("supporter does not see flag button on journal entries", async ({
   try {
     const entryText = "Supporter flag test " + Date.now();
     const textarea = coordinatorPage.getByPlaceholder(
-      "Share how today went...",
+      "What happened today? Even one line is enough.",
     );
     await textarea.fill(entryText);
-    await coordinatorPage.waitForSelector("text=Share update", {
+    await coordinatorPage.waitForSelector("text=Post to journal", {
       timeout: 3000,
     });
-    await coordinatorPage.click("text=Share update");
+    await coordinatorPage.click("text=Post to journal");
     await expect(textarea).toHaveValue("", { timeout: 12000 });
 
     await inviteePage.reload();
@@ -124,13 +124,13 @@ test.fixme("supporter can react to a journal entry", async ({ browser }) => {
   try {
     const entryText = "Supporter reaction test " + Date.now();
     const textarea = coordinatorPage.getByPlaceholder(
-      "Share how today went...",
+      "What happened today? Even one line is enough.",
     );
     await textarea.fill(entryText);
-    await coordinatorPage.waitForSelector("text=Share update", {
+    await coordinatorPage.waitForSelector("text=Post to journal", {
       timeout: 3000,
     });
-    await coordinatorPage.click("text=Share update");
+    await coordinatorPage.click("text=Post to journal");
     await expect(textarea).toHaveValue("", { timeout: 12000 });
 
     await inviteePage.reload();
@@ -164,7 +164,7 @@ test("caregiver sees the entry form", async ({ browser }) => {
   );
   try {
     await expect(
-      inviteePage.getByPlaceholder("Share how today went..."),
+      inviteePage.getByPlaceholder("What happened today? Even one line is enough."),
     ).toBeVisible();
     await expect(
       inviteePage.getByText("You're here as a Supporter"),
@@ -184,10 +184,10 @@ test("caregiver can write a journal entry", async ({ browser }) => {
   );
   try {
     const entryText = "Caregiver entry test " + Date.now();
-    const textarea = inviteePage.getByPlaceholder("Share how today went...");
+    const textarea = inviteePage.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.fill(entryText);
-    await inviteePage.waitForSelector("text=Share update", { timeout: 3000 });
-    await inviteePage.click("text=Share update");
+    await inviteePage.waitForSelector("text=Post to journal", { timeout: 3000 });
+    await inviteePage.click("text=Post to journal");
     await expect(textarea).toHaveValue("", { timeout: 12000 });
     await expect(inviteePage.getByText(entryText)).toBeVisible({
       timeout: 5000,
@@ -207,10 +207,10 @@ test("caregiver can flag an entry", async ({ browser }) => {
   );
   try {
     const entryText = "Caregiver flag test " + Date.now();
-    const textarea = inviteePage.getByPlaceholder("Share how today went...");
+    const textarea = inviteePage.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.fill(entryText);
-    await inviteePage.waitForSelector("text=Share update", { timeout: 3000 });
-    await inviteePage.click("text=Share update");
+    await inviteePage.waitForSelector("text=Post to journal", { timeout: 3000 });
+    await inviteePage.click("text=Post to journal");
     await expect(textarea).toHaveValue("", { timeout: 12000 });
 
     const entryCard = inviteePage.locator('[data-testid="journal-entry"]', {
@@ -254,17 +254,17 @@ test("aide sees the entry form and can flag entries", async ({ browser }) => {
   );
   try {
     await expect(
-      inviteePage.getByPlaceholder("Share how today went..."),
+      inviteePage.getByPlaceholder("What happened today? Even one line is enough."),
     ).toBeVisible();
     await expect(
       inviteePage.getByText("You're here as a Supporter"),
     ).not.toBeVisible();
 
     const entryText = "Aide flag test " + Date.now();
-    const textarea = inviteePage.getByPlaceholder("Share how today went...");
+    const textarea = inviteePage.getByPlaceholder("What happened today? Even one line is enough.");
     await textarea.fill(entryText);
-    await inviteePage.waitForSelector("text=Share update", { timeout: 3000 });
-    await inviteePage.click("text=Share update");
+    await inviteePage.waitForSelector("text=Post to journal", { timeout: 3000 });
+    await inviteePage.click("text=Post to journal");
     await expect(textarea).toHaveValue("", { timeout: 12000 });
 
     const entryCard = inviteePage.locator('[data-testid="journal-entry"]', {
