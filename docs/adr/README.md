@@ -12,3 +12,4 @@ New ADRs are written via the global `write-adr` skill or by hand. Sequence: `NNN
 - [0002 — BACKLOG.md is the single source of truth for planned work](./0002-backlog-as-single-source-of-truth.md)
 - [0003 — `needs-phi-review` label removal protocol](./0003-phi-review-label-protocol.md)
 - [0004 — Feature flag rollout pattern (PostHog, PHI-safe distinctId)](./0004-feature-flag-rollout-pattern.md)
+- [0005 — Lighthouse a11y CI gate: build locally and audit in CI (path b)](./0005-lighthouse-a11y-gate-path.md)
