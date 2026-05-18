@@ -24,7 +24,7 @@ async function addMedication(page: any, drugName: string) {
   // Click "Medications" accordion/tab to open panel
   await page.getByRole("tab", { name: "Medications" }).click();
   // Click "+ Add medication" button
-  await page.getByRole("button", { name: /add medication/i }).click();
+  await page.getByTestId("add-medication-btn").click();
   // (TD-73) Form inputs use data-testids — `name=` attrs were removed.
   // Both drug name AND dosage are required.
   await page.locator('[data-testid="medication-name-input"]').fill(drugName);
