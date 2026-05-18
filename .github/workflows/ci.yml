@@ -102,6 +102,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
 
+  # TD-170d: E2E string-drift detector. Catches the UX-04x-class regression
+  # where a UI string is renamed in apps/web/ without sweeping e2e/ callsites.
+  # NOT a required check in v1; promote to required after one week of clean runs.
+  e2e-string-drift:
+    name: E2E string drift
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # full history so `git diff origin/main...HEAD` works
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: node scripts/check-e2e-string-drift.mjs
+
   # ─── Unit tests ──────────────────────────────────────────────────────────────
 
   web-tests:
