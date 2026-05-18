@@ -419,20 +419,27 @@ describe("updateEmergencyInfo — UX-105b / TD-179 (RPC-backed)", () => {
     );
   });
 
-  it("throws identity_not_found when RPC returns error.code === '45IDF'", async () => {
+  it("throws identity_not_found when RPC returns error.code === 'P0IDF'", async () => {
     vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
       data: null,
-      error: { code: "45IDF", message: "identity_not_found" },
+      error: { code: "P0IDF", message: "identity_not_found" },
     } as never);
     await expect(updateEmergencyInfo(ORG, REC, {})).rejects.toThrow(
       "identity_not_found",
     );
   });
 
-  it("throws identity_update_failed for any other error code (no PHI in message)", async () => {
+  it("throws identity_update_failed:<code> for any other error (raw message DROPPED to prevent PHI leak)", async () => {
+    // PG error.message can include column values like
+    // `Key (email)=(jane@x.com)` — that's PII. Drop the message entirely;
+    // surface the SQLSTATE code only.
     vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
       data: null,
-      error: { code: "23505", message: "duplicate key" },
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "x" DETAIL: Key (email)=(jane@x.com).',
+      },
     } as never);
     let err: Error | undefined;
     try {
@@ -441,10 +448,21 @@ describe("updateEmergencyInfo — UX-105b / TD-179 (RPC-backed)", () => {
       err = e as Error;
     }
     expect(err).toBeDefined();
-    expect(err!.message).toMatch("identity_update_failed");
-    expect(err!.message).toMatch("duplicate key");
-    // PHI guard: orgId/recipientId must NOT appear in error output
+    expect(err!.message).toBe("identity_update_failed: 23505");
+    // PHI guards
+    expect(err!.message).not.toMatch("jane@x.com");
+    expect(err!.message).not.toMatch("duplicate key");
     expect(err!.message).not.toMatch(ORG);
     expect(err!.message).not.toMatch(REC);
+  });
+
+  it("throws identity_update_failed: UNKNOWN when error has no code", async () => {
+    vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
+      data: null,
+      error: { message: "boom" },
+    } as never);
+    await expect(updateEmergencyInfo(ORG, REC, {})).rejects.toThrow(
+      "identity_update_failed: UNKNOWN",
+    );
   });
 });

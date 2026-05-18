@@ -13,8 +13,10 @@
 --
 -- SQLSTATE codes (LOCKED — JS branches on error.code, not on error.message):
 --   P0002 (no_data_found)    → recipient_not_found
---   45IDF (user-defined 45*) → identity_not_found
+--   P0IDF (user-defined; class P0 is PL/pgSQL user space) → identity_not_found
 -- P0003 is NOT free — Postgres reserves it for too_many_rows.
+-- Class 45 was originally chosen but is non-conformant per the SQLSTATE spec
+-- (TD-188 hotfix); class P0 is the documented PL/pgSQL user-defined space.
 
 CREATE OR REPLACE FUNCTION public.update_emergency_info(
   p_org_id        uuid,
@@ -52,7 +54,7 @@ BEGIN
     -- Vault row missing for a recipient that resolved a token. Distinct from
     -- recipient_not_found so the JS layer can disambiguate without string
     -- matching the message.
-    RAISE EXCEPTION 'identity_not_found' USING ERRCODE = '45IDF';
+    RAISE EXCEPTION 'identity_not_found' USING ERRCODE = 'P0IDF';
   END IF;
 
   RETURN v_result;
