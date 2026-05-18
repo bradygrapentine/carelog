@@ -21,7 +21,6 @@ apps/web/sonar-report.xml
 
 # Claude memory search index
 .memsearch/
-.claude/routing-metrics.jsonl
 
 # Expo prebuild output — never commit
 apps/mobile/ios/
@@ -43,17 +42,11 @@ test-results/
 # Lighthouse CI runtime artifacts
 .lighthouseci/
 
-# Subagent heartbeat logs (per-session, ephemeral)
-.claude/agent-status/
-
 # Codex adversarial-review run artifacts (per-session, ephemeral)
 .codex-runs/
 
 # Vercel CLI link state (per-developer, contains project IDs)
 .vercel/
-
-# Local notes (post-sprint plan archives, scratch)
-.claude/notes/
 
 # Sibling-of-.worktrees variant (older worktree placement)
 worktrees/
@@ -61,6 +54,13 @@ worktrees/
 # Generated runbook HTML (source .md is the artifact)
 docs/project-info/runbooks/*.html
 .mcp.json
-.claude/scratch/
-.claude/sessions/
-.claude/state/
+
+# Claude Code state — track multi-session substrate, ignore everything else
+.claude/*
+!.claude/state/
+.claude/state/*
+!.claude/state/sessions/
+.claude/state/sessions/*
+!.claude/state/sessions/INDEX.md
+!.claude/state/claims.json
+.claude/state/.counter.lock

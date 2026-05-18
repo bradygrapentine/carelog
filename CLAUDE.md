@@ -75,3 +75,7 @@ Plan-embedded "guiding decisions" sections are execution artifacts, not canonica
 - In-flight research: Inngest vs. Vercel Queues (`docs/research/2026-05-15-inngest-vs-queues.md`).
 - Security cycle: 2026-05-14 OWASP audit landed; SEC-001 secrets-rotation runbook refreshed for 2026-05-15.
 - Next chunk: pick via `/next-best-backlog-items` against `BACKLOG.md` §1 Ready.
+
+## Multi-session workflow
+
+This repo is bootstrapped for multi-session shared-backlog work. See `~/.claude/docs/multi-session-setup.md` for the canonical adoption guide. Sessions claim backlog rows via `.claude/state/claims.json`; `/sprint --session <alias>` is the entry point. `/sessions-init` and `/sessions-prune` manage the layer.
