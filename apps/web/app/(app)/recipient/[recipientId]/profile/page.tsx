@@ -85,13 +85,14 @@ export default async function RecipientProfilePage({
     getRecipientPreferences(supabase, recipient.org_id, recipient.id),
     supabase
       .from("memberships")
-      .select("role")
+      .select("id, role")
       .eq("org_id", recipient.org_id)
       .eq("user_id", user.id)
       .not("accepted_at", "is", null)
       .maybeSingle(),
   ]);
   const isCoordinator = membership.data?.role === "coordinator";
+  const currentMembershipId = membership.data?.id ?? null;
 
   // UX-094: compose the full profile page. Likes/dislikes, care team, and
   // emergency-footer data are not yet plumbed — the components render their
@@ -110,7 +111,13 @@ export default async function RecipientProfilePage({
         recipientId={recipient.id}
         canEdit={isCoordinator}
       />
-      <CareTeamList members={careTeam} />
+      <CareTeamList
+        members={careTeam}
+        orgId={recipient.org_id}
+        recipientId={recipient.id}
+        editable={isCoordinator}
+        currentMembershipId={currentMembershipId}
+      />
       <EmergencyFooterCard
         {...parseEmergencyInfo(identity.contact_info ?? {})}
       />
