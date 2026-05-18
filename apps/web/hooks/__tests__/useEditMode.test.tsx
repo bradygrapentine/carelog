@@ -87,29 +87,16 @@ describe("useEditMode", () => {
     expect(refreshMock).not.toHaveBeenCalled();
   });
 
-  it("onCancel — invoked AFTER isEditing flips to false and error is cleared (LOCKED ordering)", () => {
-    // Capture closure-visible state at the moment onCancel fires. The hook
-    // promises that cancel() updates state FIRST, then invokes onCancel. By
-    // recording values reachable from the cancel() callback site, we observe
-    // the ordering.
-    let sawIsEditingBeforeFlip: boolean | null = null;
-    const onCancel = vi.fn(() => {
-      // result.current.isEditing reflects the latest committed state when
-      // React batches synchronously inside `act()`. After cancel() runs its
-      // setters, the closure here can re-read state via the ref captured
-      // below.
-      sawIsEditingBeforeFlip = capturedHookRef.current?.isEditing ?? null;
-    });
+  it("onCancel — invoked after cancel() with hook in closed state when act() flushes (TD-188 ordering)", () => {
+    // TD-188: flushSync removed. onCancel runs synchronously after the
+    // setters are queued. Once React flushes (end of act()), isEditing/error
+    // observe the post-close values. The contract guarantees onCancel fires
+    // exactly once per cancel(), and that AFTER act() completes the hook is
+    // closed — that's what the UI cares about. Callers must NOT read
+    // isEditing synchronously from inside onCancel.
+    const onCancel = vi.fn();
 
-    const capturedHookRef: { current: ReturnType<typeof useEditMode> | null } = {
-      current: null,
-    };
-
-    const { result } = renderHook(() => {
-      const hook = useEditMode({ onCancel });
-      capturedHookRef.current = hook;
-      return hook;
-    });
+    const { result } = renderHook(() => useEditMode({ onCancel }));
 
     act(() => {
       result.current.open();
@@ -123,11 +110,47 @@ describe("useEditMode", () => {
     });
 
     expect(onCancel).toHaveBeenCalledTimes(1);
-    // Inside the onCancel body, the freshest committed React state already
-    // shows the post-close values — proving the setters ran first.
-    expect(sawIsEditingBeforeFlip).toBe(false);
     expect(result.current.isEditing).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it("TD-188: cancel() does NOT emit a React warning when onCancel triggers a parent state update", () => {
+    // Regression for the flushSync-related "Cannot update a component while
+    // rendering a different component" warning that prompted TD-188. With
+    // flushSync removed, dispatching a parent setter from inside onCancel
+    // must not log a console.error from React.
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    let parentSetterCallCount = 0;
+    const parentSetter = vi.fn(() => {
+      parentSetterCallCount += 1;
+    });
+
+    const { result } = renderHook(() =>
+      useEditMode({
+        onCancel: () => {
+          // Simulate a parent state mutation triggered from inside onCancel.
+          parentSetter();
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.open();
+    });
+    act(() => {
+      result.current.cancel();
+    });
+
+    expect(parentSetterCallCount).toBe(1);
+    // No React warnings should have been emitted.
+    const reactWarnings = consoleErrorSpy.mock.calls.filter((call) => {
+      const first = call[0];
+      return typeof first === "string" && /react|warning/i.test(first);
+    });
+    expect(reactWarnings).toHaveLength(0);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("onCancel — omitted: cancel() still flips closed without throwing", () => {

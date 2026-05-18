@@ -1,7 +1,12 @@
 "use client";
 
+// TD-188 contract migration: dropped flushSync (React 19 batches setters in
+// event handlers; flushSync was warning-prone when caller is mid-commit).
+// onCancel now runs synchronously after setters; callers MUST NOT read
+// isEditing inside onCancel. Verified callers (CareTeamList, EmergencyFooterCard)
+// only reset local form state in onCancel — no isEditing reads.
+
 import { useCallback, useState } from "react";
-import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 
 /**
@@ -51,13 +56,17 @@ export type UseEditModeReturn = {
  * Does NOT observe mutation state post-hoc. The mutation lifecycle stays
  * with the caller; this hook only models the open/close/error UI state.
  *
- * ## Cancel contract (LOCKED — TD-186)
+ * ## Cancel contract (TD-188 — flushSync removed)
  *
- * `cancel()` flips `isEditing` to `false` and clears `error` FIRST, THEN
- * invokes the optional `onCancel` callback. Callers see the post-close state
- * when running their reset side-effects — any state-derived rendering inside
- * `onCancel` observes the closed UI. If a niche caller needs pre-close
- * visibility we can add a separate `onBeforeCancel` arg later.
+ * `cancel()` calls `setIsEditing(false)` and `setError(null)` FIRST, then
+ * invokes the optional `onCancel` callback. The setters are NOT flushed
+ * synchronously — React 19 batches event-handler setters automatically, and
+ * `flushSync` was warning-prone when the caller was mid-commit (TD-188).
+ *
+ * Callers MUST NOT read `isEditing` synchronously inside `onCancel`. The
+ * callback exists to reset caller-owned form fields, not to observe hook
+ * state. Verified callers (CareTeamList, EmergencyFooterCard) only do
+ * setter side-effects on local component state — no isEditing reads.
  *
  * @example
  * const editMode = useEditMode({
@@ -87,15 +96,11 @@ export function useEditMode(args?: UseEditModeArgs): UseEditModeReturn {
   }, []);
 
   const cancel = useCallback(() => {
-    // Ordering LOCKED (TD-186): flip closed-state FIRST so onCancel observes
-    // isEditing === false and error === null when it reads from React state
-    // via a fresh render. `flushSync` commits the setters synchronously so
-    // any caller-supplied onCancel that re-reads React state (or triggers
-    // its own renders) sees the post-close values.
-    flushSync(() => {
-      setIsEditing(false);
-      setError(null);
-    });
+    // TD-188: setters run synchronously (React 19 batches in event handlers),
+    // then onCancel fires. Callers MUST NOT read isEditing inside onCancel —
+    // see hook-level JSDoc for the migration rationale.
+    setIsEditing(false);
+    setError(null);
     onCancelCallback?.();
   }, [onCancelCallback]);
 
