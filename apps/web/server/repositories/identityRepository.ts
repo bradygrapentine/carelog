@@ -67,7 +67,9 @@ export async function resolveIdentity(
     .single();
 
   if (error || !data) {
-    throw new Error(`Identity resolution failed: ${error?.message}`);
+    // TD-178: stable code, never interpolate error.message (PHI leak vector —
+    // Postgres errors may echo column values). Raw error reachable via .cause.
+    throw new Error("identity_read_failed", { cause: error });
   }
 
   return data as IdentityRecord;
@@ -166,7 +168,9 @@ export async function createIdentity(params: {
     .single();
 
   if (error || !data) {
-    throw new Error(`Identity creation failed: ${error?.message}`);
+    // TD-178: stable code; raw error preserved via .cause; never interpolate
+    // error.message (e.g. unique-constraint DETAIL strings can echo PII).
+    throw new Error("identity_create_failed", { cause: error });
   }
 
   return data.token as string;
