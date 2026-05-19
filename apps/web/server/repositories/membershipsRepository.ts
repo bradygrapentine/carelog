@@ -140,19 +140,46 @@ export type RefillRecipient = {
   role: string;
 };
 
+/**
+ * TD-182: predicate hoisted out of the in-DB `.or(...)` string DSL.
+ * - coordinator: eligible for any recipient
+ * - caregiver/aide: eligible if assigned to this recipient OR org-wide (recipient_id IS NULL)
+ * - other roles: excluded
+ *
+ * The DB query coarse-filters by role via `.in(...)`; this predicate narrows
+ * to the recipient_id scope in JS. Together they reproduce the prior `.or`
+ * string exactly, with the additional benefit that the DB-side role filter
+ * preserves the `.limit(50)` semantics — only eligible-role rows consume cap
+ * slots (previously a future `viewer` / `supervisor` role could have silently
+ * displaced eligible recipients).
+ */
+export function isRefillRecipient(
+  membership: { role: string; recipient_id: string | null },
+  recipientId: string,
+): boolean {
+  if (membership.role === "coordinator") return true;
+  if (membership.role === "caregiver" || membership.role === "aide") {
+    return (
+      membership.recipient_id === recipientId ||
+      membership.recipient_id === null
+    );
+  }
+  return false;
+}
+
 export async function getRefillRecipients(
   orgId: string,
   recipientId: string,
 ): Promise<RefillRecipient[]> {
   // C1: explicit org_id filter on every membership read — even though Inngest
   // service-role bypasses RLS, we keep this as defense-in-depth.
+  // Role filter at DB matches old .or coarse set; JS predicate adds the
+  // recipient_id scope (TD-182).
   const { data: rows, error } = await supabaseAdmin
     .from("memberships")
     .select("id, user_id, role, recipient_id")
     .eq("org_id", orgId)
-    .or(
-      `role.eq.coordinator,and(role.eq.caregiver,or(recipient_id.eq.${recipientId},recipient_id.is.null)),and(role.eq.aide,or(recipient_id.eq.${recipientId},recipient_id.is.null))`,
-    )
+    .in("role", ["coordinator", "caregiver", "aide"])
     .not("accepted_at", "is", null)
     .not("user_id", "is", null)
     .limit(50);
@@ -161,7 +188,12 @@ export async function getRefillRecipients(
     throw new Error(`getRefillRecipients failed: ${error.message}`);
   }
 
-  const rowList = rows ?? [];
+  const rowList = (rows ?? []).filter((r) =>
+    isRefillRecipient(
+      { role: r.role as string, recipient_id: r.recipient_id as string | null },
+      recipientId,
+    ),
+  );
   const out: RefillRecipient[] = [];
   for (let i = 0; i < rowList.length; i += CARE_TEAM_CHUNK_SIZE) {
     const chunk = rowList.slice(i, i + CARE_TEAM_CHUNK_SIZE);

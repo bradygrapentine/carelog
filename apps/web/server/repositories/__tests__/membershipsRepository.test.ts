@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getCareTeamForRecipient } from "../membershipsRepository";
+import {
+  getCareTeamForRecipient,
+  isRefillRecipient,
+} from "../membershipsRepository";
 
 vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: {
@@ -218,5 +221,94 @@ describe("getCareTeamForRecipient", () => {
     );
 
     warnSpy.mockRestore();
+  });
+});
+
+describe("isRefillRecipient — TD-182 predicate", () => {
+  const REC = "rec-xyz";
+  const OTHER = "rec-other";
+
+  it("coordinator is always eligible regardless of recipient_id", () => {
+    expect(
+      isRefillRecipient({ role: "coordinator", recipient_id: REC }, REC),
+    ).toBe(true);
+    expect(
+      isRefillRecipient({ role: "coordinator", recipient_id: OTHER }, REC),
+    ).toBe(true);
+    expect(
+      isRefillRecipient({ role: "coordinator", recipient_id: null }, REC),
+    ).toBe(true);
+  });
+
+  it("caregiver is eligible when assigned to this recipient or org-wide (null)", () => {
+    expect(
+      isRefillRecipient({ role: "caregiver", recipient_id: REC }, REC),
+    ).toBe(true);
+    expect(
+      isRefillRecipient({ role: "caregiver", recipient_id: null }, REC),
+    ).toBe(true);
+  });
+
+  it("caregiver assigned to a different recipient is excluded", () => {
+    expect(
+      isRefillRecipient({ role: "caregiver", recipient_id: OTHER }, REC),
+    ).toBe(false);
+  });
+
+  it("aide follows the same scoping as caregiver", () => {
+    expect(isRefillRecipient({ role: "aide", recipient_id: REC }, REC)).toBe(
+      true,
+    );
+    expect(isRefillRecipient({ role: "aide", recipient_id: null }, REC)).toBe(
+      true,
+    );
+    expect(isRefillRecipient({ role: "aide", recipient_id: OTHER }, REC)).toBe(
+      false,
+    );
+  });
+
+  it("unknown roles (viewer/supervisor/future) are excluded", () => {
+    expect(isRefillRecipient({ role: "viewer", recipient_id: REC }, REC)).toBe(
+      false,
+    );
+    expect(
+      isRefillRecipient({ role: "supervisor", recipient_id: null }, REC),
+    ).toBe(false);
+    expect(isRefillRecipient({ role: "", recipient_id: REC }, REC)).toBe(false);
+  });
+
+  it("60-row volume case: only eligible subset is returned (regression pin)", () => {
+    // Construct exactly 30 eligible + 30 ineligible rows to pin the predicate's
+    // count semantics. Removing the DB-side `.in(...)` role filter would NOT
+    // be caught by this test (the predicate still filters correctly), but
+    // removing the predicate AND keeping a permissive DB query would silently
+    // widen the result set — this assertion fails in that case.
+    const rows: Array<{ role: string; recipient_id: string | null }> = [];
+    // 10 coordinators — all eligible
+    for (let i = 0; i < 10; i++)
+      rows.push({ role: "coordinator", recipient_id: i % 2 ? REC : null });
+    // 10 caregivers matching REC — all eligible
+    for (let i = 0; i < 10; i++)
+      rows.push({ role: "caregiver", recipient_id: REC });
+    // 10 aides with null recipient_id — all eligible
+    for (let i = 0; i < 10; i++)
+      rows.push({ role: "aide", recipient_id: null });
+    // 15 caregivers/aides on OTHER recipient — all ineligible
+    for (let i = 0; i < 15; i++)
+      rows.push({ role: "caregiver", recipient_id: OTHER });
+    // 15 viewers — all ineligible
+    for (let i = 0; i < 15; i++)
+      rows.push({ role: "viewer", recipient_id: REC });
+
+    expect(rows).toHaveLength(60);
+    const eligible = rows.filter((r) => isRefillRecipient(r, REC));
+    expect(eligible).toHaveLength(30);
+    // Sanity: every eligible row is one of the expected role/recipient combos.
+    for (const r of eligible) {
+      expect(["coordinator", "caregiver", "aide"]).toContain(r.role);
+      if (r.role !== "coordinator") {
+        expect([REC, null]).toContain(r.recipient_id);
+      }
+    }
   });
 });
