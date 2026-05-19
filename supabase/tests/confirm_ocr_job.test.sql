@@ -161,6 +161,19 @@ SELECT is(
 -- ============================================================
 -- Case 5: already_confirmed (race-loser contract). Genuine concurrent-tx
 -- races are infeasible in pgTAP; this proves the post-lock guard branch.
+--
+-- NOTE (TD-174): The `FOR UPDATE` clause in confirm_ocr_job
+-- (see supabase/migrations/20260517000000_confirm_ocr_job_rpc.sql)
+-- is load-bearing for race safety (FOR UPDATE load-bearing). Without it, two concurrent
+-- confirms targeting the same job would both observe status='needs_review',
+-- both pass the guard, and both insert duplicate audit + medication rows.
+-- This case exercises only the sequential post-lock guard branch
+-- (status='confirmed' on second call). Coverage gap: there is no
+-- concurrent-waiter test under serializable isolation because pgTAP
+-- runs each test in a single transaction. Adding such a test would
+-- require pg_blocking_pids or advisory-lock orchestration across two
+-- backends; if FOR UPDATE is ever removed, this single-tx case will
+-- still pass while production grows duplicate-row regressions.
 -- ============================================================
 SELECT results_eq(
   $$ SELECT (confirm_ocr_job(
