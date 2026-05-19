@@ -46,6 +46,13 @@ BEGIN
   -- T3 (race): lock the row before any writes. A concurrent caller waits here
   -- and then observes status='confirmed', exiting via the already_confirmed
   -- branch with no inserts.
+  --
+  -- FOR UPDATE is load-bearing: removes the race when two concurrent confirms
+  -- target the same job. Removing this without an advisory-lock equivalent is
+  -- a regression — both transactions would observe status='needs_review',
+  -- both pass the guard, and both insert duplicate audit + medication rows.
+  -- See supabase/tests/confirm_ocr_job.test.sql Case 5 for the (single-tx)
+  -- post-lock guard test and a note on the concurrent-waiter coverage gap.
   SELECT * INTO v_job
   FROM   ocr_jobs
   WHERE  id = p_job_id
