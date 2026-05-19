@@ -6,7 +6,7 @@
 // isEditing inside onCancel. Verified callers (CareTeamList, EmergencyFooterCard)
 // only reset local form state in onCancel — no isEditing reads.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
@@ -90,6 +90,18 @@ export function useEditMode(args?: UseEditModeArgs): UseEditModeReturn {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // TD-191 item 1: onCancelRef keeps `cancel` referentially stable even when
+  // the caller passes an inline arrow for `onCancel`. Inline arrows produce a
+  // new function reference every render; before this, `cancel` was rebuilt
+  // every render too, defeating any downstream `useMemo`/`useCallback` deps
+  // that included it. The ref-of-latest-callback pattern is the standard
+  // React fix — `cancel` reads the most recent onCancel without depending on
+  // it in its own dep array. Caller-side memoization is no longer required.
+  const onCancelRef = useRef(onCancelCallback);
+  useEffect(() => {
+    onCancelRef.current = onCancelCallback;
+  }, [onCancelCallback]);
+
   const open = useCallback(() => {
     setIsEditing(true);
     setError(null);
@@ -99,10 +111,12 @@ export function useEditMode(args?: UseEditModeArgs): UseEditModeReturn {
     // TD-188: setters run synchronously (React 19 batches in event handlers),
     // then onCancel fires. Callers MUST NOT read isEditing inside onCancel —
     // see hook-level JSDoc for the migration rationale.
+    // TD-191: onCancelRef.current resolves to the LATEST onCancel at call
+    // time, not the one captured at memoization time.
     setIsEditing(false);
     setError(null);
-    onCancelCallback?.();
-  }, [onCancelCallback]);
+    onCancelRef.current?.();
+  }, []);
 
   const onSuccess = useCallback(() => {
     setIsEditing(false);

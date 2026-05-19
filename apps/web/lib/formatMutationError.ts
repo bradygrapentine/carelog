@@ -59,7 +59,10 @@ function stripOneSegment(seg: string, stripPgConstraint: boolean): string {
   return pgStripped.trim();
 }
 
-function stripSchemaDetails(message: string, stripPgConstraint: boolean): string {
+function stripSchemaDetails(
+  message: string,
+  stripPgConstraint: boolean,
+): string {
   const segments = String(message).split(/[\n;]/);
   const cleaned = segments
     .map((s) => stripOneSegment(s, stripPgConstraint))
@@ -118,13 +121,14 @@ export function formatMutationError(err: unknown): string {
   if (raw === null) {
     return SAFE_CODE_FALLBACKS[code];
   }
-  // PG diagnostic detection: combine outer message + cause.message ONLY as
-  // gate input. cause.message is NEVER copied into the output — `raw` (the
-  // outer message) is the sole input to stripSchemaDetails. This keeps any
-  // PHI / PII that might live in cause.message off the user-facing string.
+  // PG diagnostic detection: test outer message OR cause.message as gate input.
+  // cause.message is NEVER copied into the output — `raw` (the outer message)
+  // is the sole input to stripSchemaDetails. This keeps any PHI / PII that
+  // might live in cause.message off the user-facing string.
+  // TD-191 item 3: short-circuit OR avoids the ${raw} ${causeMsg} template
+  // allocation and makes the gate-only contract obvious from the call site.
   const causeMsg = extractCauseMessage(err);
-  const gateInput = `${raw} ${causeMsg}`;
-  const stripPgConstraint = PG_DIAG_RE.test(gateInput);
+  const stripPgConstraint = PG_DIAG_RE.test(raw) || PG_DIAG_RE.test(causeMsg);
   const stripped = stripSchemaDetails(raw, stripPgConstraint);
   if (stripped.length === 0) {
     return SAFE_CODE_FALLBACKS[code];
