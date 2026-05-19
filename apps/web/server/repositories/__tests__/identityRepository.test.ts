@@ -65,7 +65,7 @@ describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
     );
 
     await expect(resolveIdentity(TOKEN_FOR_ORG_A, ORG_B)).rejects.toThrow(
-      "Identity resolution failed",
+      "identity_read_failed",
     );
   });
 
@@ -95,7 +95,10 @@ describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
       () =>
         makeSelectChain({
           data: null,
-          error: { message: "invalid input syntax for type uuid" },
+          error: {
+            message:
+              "invalid input syntax for type uuid: Key (token)=(jane@x.com)",
+          },
         }) as never,
     );
 
@@ -107,9 +110,15 @@ describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
     }
 
     expect(thrownError).toBeDefined();
-    expect(thrownError!.message).toMatch("Identity resolution failed");
-    // The error message must not echo back any identity field
+    // TD-178: stable code only — message never includes the raw PG error.
+    expect(thrownError!.message).toBe("identity_read_failed");
+    // PHI guards
+    expect(thrownError!.message).not.toMatch("jane@x.com");
     expect(thrownError!.message).not.toMatch(/full_name|dob|contact_info/i);
+    // Raw error reachable via .cause for server-side observability.
+    expect((thrownError as { cause?: unknown }).cause).toMatchObject({
+      message: expect.stringContaining("invalid input syntax"),
+    });
   });
 
   it("returns a clean error for an expired token (no row returned)", async () => {
@@ -123,7 +132,7 @@ describe("resolveIdentity — cross-org boundary (PHI leak guard)", () => {
     );
 
     await expect(resolveIdentity(TOKEN_FOR_ORG_A, ORG_A)).rejects.toThrow(
-      "Identity resolution failed",
+      "identity_read_failed",
     );
   });
 
@@ -163,11 +172,16 @@ describe("createIdentity", () => {
   });
 
   it("throws on insert error without leaking PHI in the message", async () => {
+    // Simulate a PG constraint error whose DETAIL string echoes the inserted
+    // PII — the prior interpolation pattern would have surfaced this verbatim.
     vi.mocked(supabaseAdmin.from).mockImplementationOnce(
       () =>
         makeInsertChain({
           data: null,
-          error: { message: "insert failed" },
+          error: {
+            message:
+              'duplicate key value violates unique constraint "identity_vault_pkey" DETAIL: Key (full_name)=(Jane Doe).',
+          },
         }) as never,
     );
 
@@ -178,8 +192,13 @@ describe("createIdentity", () => {
       err = e as Error;
     }
     expect(err).toBeDefined();
-    expect(err!.message).toMatch("Identity creation failed");
-    expect(err!.message).not.toMatch(/Jane Doe|1950/);
+    // TD-178: stable code; message never carries the raw PG string.
+    expect(err!.message).toBe("identity_create_failed");
+    expect(err!.message).not.toMatch(/Jane Doe|1950|duplicate key/);
+    // Raw error reachable via .cause for server-side observability.
+    expect((err as { cause?: unknown }).cause).toMatchObject({
+      message: expect.stringContaining("duplicate key"),
+    });
   });
 });
 
