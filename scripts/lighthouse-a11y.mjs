@@ -15,37 +15,32 @@ const LHCI_VERSION = "0.15.1";
 const SCORE_THRESHOLD = 90;
 const DEFAULT_URLS = ["http://localhost:3000"];
 
-const urls = process.argv.slice(2).length > 0 ? process.argv.slice(2) : DEFAULT_URLS;
+const rawArgs = process.argv.slice(2);
+const urls = rawArgs.length > 0 ? rawArgs : DEFAULT_URLS;
 
-function probe(url) {
+// TD-184 (items 1+2): split the original `auditOne` into `probeUrl` (curl reachability)
+// and `runLhci` (lhci collect + report parse). Each function owns a single failure
+// mode so the composing `auditOne` reads as a 3-step pipeline.
+
+function probeUrl(url) {
   const result = spawnSync(
     "curl",
     ["-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "10", url],
     { stdio: ["ignore", "pipe", "inherit"], shell: false },
   );
-  return result.stdout?.toString().trim() ?? "";
+  const httpCode = result.stdout?.toString().trim() ?? "";
+  if (httpCode === "200") return { ok: true, httpCode };
+  const inCI = process.env.CI === "true";
+  const reason = `${url} returned HTTP ${httpCode || "unreachable"}`;
+  return { ok: false, httpCode, inCI, reason };
 }
 
-function auditOne(url) {
-  const httpCode = probe(url);
-  if (httpCode !== "200") {
-    const inCI = process.env.CI === "true";
-    const msg = `${url} returned HTTP ${httpCode || "unreachable"}`;
-    if (inCI) {
-      console.error(`❌ ${msg} — failing CI run`);
-      return { url, score: 0, failed: true, audits: [], reason: msg };
-    }
-    console.log(`⚠ ${msg} — skipping (CI=false)`);
-    return { url, score: null, failed: false, audits: [], reason: msg };
-  }
-
+function runLhci(url) {
   // @lhci/cli collect writes to .lighthouseci/lhr-<unix-ms>.json relative to cwd
   // (NOT to a path you pass via --outputPath — that flag is for `lhci upload`).
   // Use a per-URL tempdir so each audit's reports stay isolated and the
   // readdir below can pick the single output deterministically.
   const workDir = mkdtempSync(join(tmpdir(), "lh-"));
-  let score = null;
-  let failingAudits = [];
   try {
     const result = spawnSync(
       "npx",
@@ -60,24 +55,27 @@ function auditOne(url) {
       { stdio: "inherit", shell: false, cwd: workDir },
     );
     if (result.status !== 0) {
-      return { url, score: 0, failed: true, audits: [], reason: "@lhci/cli collect failed" };
+      return { ok: false, reason: "@lhci/cli collect failed" };
     }
     const lhciDir = join(workDir, ".lighthouseci");
-    const reports = readdirSync(lhciDir).filter((f) => f.startsWith("lhr-") && f.endsWith(".json"));
+    const reports = readdirSync(lhciDir).filter(
+      (f) => f.startsWith("lhr-") && f.endsWith(".json"),
+    );
     if (reports.length === 0) {
-      return { url, score: 0, failed: true, audits: [], reason: "no lhr-*.json in .lighthouseci/" };
+      return { ok: false, reason: "no lhr-*.json in .lighthouseci/" };
     }
     const report = JSON.parse(readFileSync(join(lhciDir, reports[0]), "utf-8"));
     const raw = report?.categories?.accessibility?.score;
     if (typeof raw !== "number") {
-      return { url, score: 0, failed: true, audits: [], reason: "missing accessibility score" };
+      return { ok: false, reason: "missing accessibility score" };
     }
-    score = Math.round(raw * 100);
-    failingAudits = Object.values(report.audits)
+    const score = Math.round(raw * 100);
+    const failingAudits = Object.values(report.audits)
       .filter((a) => a.score !== null && a.score < 1 && a.details?.items?.length)
       .sort((a, b) => a.score - b.score)
       .slice(0, 5)
       .map((a) => ({ id: a.id, title: a.title, elements: a.details.items.length }));
+    return { ok: true, score, failingAudits };
   } finally {
     try {
       rmSync(workDir, { recursive: true, force: true });
@@ -85,13 +83,28 @@ function auditOne(url) {
       // tempdir may already be cleaned up
     }
   }
+}
 
+function auditOne(url) {
+  const probe = probeUrl(url);
+  if (!probe.ok) {
+    if (probe.inCI) {
+      console.error(`❌ ${probe.reason} — failing CI run`);
+      return { url, score: 0, failed: true, audits: [], reason: probe.reason };
+    }
+    console.log(`⚠ ${probe.reason} — skipping (CI=false)`);
+    return { url, score: null, failed: false, audits: [], reason: probe.reason };
+  }
+  const lhci = runLhci(url);
+  if (!lhci.ok) {
+    return { url, score: 0, failed: true, audits: [], reason: lhci.reason };
+  }
   return {
     url,
-    score,
-    failed: score < SCORE_THRESHOLD,
-    audits: failingAudits,
-    reason: score < SCORE_THRESHOLD ? `score ${score} < ${SCORE_THRESHOLD}` : null,
+    score: lhci.score,
+    failed: lhci.score < SCORE_THRESHOLD,
+    audits: lhci.failingAudits,
+    reason: lhci.score < SCORE_THRESHOLD ? `score ${lhci.score} < ${SCORE_THRESHOLD}` : null,
   };
 }
 
