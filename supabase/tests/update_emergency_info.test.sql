@@ -17,7 +17,7 @@
 --       true-concurrency integration test is deferred outside this sprint)
 
 BEGIN;
-SELECT plan(15);
+SELECT plan(16);
 
 -- ============================================================
 -- Fixtures
