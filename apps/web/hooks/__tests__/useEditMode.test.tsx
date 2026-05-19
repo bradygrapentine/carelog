@@ -119,7 +119,9 @@ describe("useEditMode", () => {
     // rendering a different component" warning that prompted TD-188. With
     // flushSync removed, dispatching a parent setter from inside onCancel
     // must not log a console.error from React.
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     let parentSetterCallCount = 0;
     const parentSetter = vi.fn(() => {
@@ -143,13 +145,38 @@ describe("useEditMode", () => {
     });
 
     expect(parentSetterCallCount).toBe(1);
-    // No React warnings should have been emitted.
-    const reactWarnings = consoleErrorSpy.mock.calls.filter((call) => {
+    // TD-191 item 2: tightened from `/react|warning/i` regex to an explicit
+    // "no console.error calls at all". The old filter would have missed real
+    // React 19 warnings whose first arg doesn't contain "react" or "warning"
+    // literally (e.g. "Cannot update a component (X) while rendering a
+    // different component (Y)..."). Asserting zero calls catches every
+    // unexpected console.error path — including future warning copy changes.
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("TD-191 item 2: regression — warnings without 'react'/'warning' literal still flagged", () => {
+    // Pin the regression guard. The pre-TD-191 filter used /react|warning/i;
+    // a real React 19 warning like "Cannot update a component (X) while
+    // rendering a different component (Y)" contains neither token literally
+    // and would have been silently dropped. We assert that consoleErrorSpy
+    // IS called when the message contains no filter-matching token — so the
+    // tightened `not.toHaveBeenCalled()` assertion above could not have
+    // false-passed historically.
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    // Emit a representative React 19 warning shape with no "react"/"warning" literal.
+    console.error(
+      "Cannot update a component (X) while rendering a different component (Y).",
+    );
+    const oldFilter = consoleErrorSpy.mock.calls.filter((call) => {
       const first = call[0];
       return typeof first === "string" && /react|warning/i.test(first);
     });
-    expect(reactWarnings).toHaveLength(0);
-
+    expect(oldFilter).toHaveLength(0); // old filter would have missed it
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1); // new assertion catches it
     consoleErrorSpy.mockRestore();
   });
 

@@ -79,8 +79,10 @@ function resolveArgPosition(obj, method) {
   if (obj === "Sentry") {
     if (method === "setUser") return { argIndices: [0], allowName: false };
     if (method === "setContext") return { argIndices: [1], allowName: true };
-    if (method === "captureException") return { argIndices: [1], allowName: false };
-    if (method === "addBreadcrumb") return { argIndices: [0], allowName: false };
+    if (method === "captureException")
+      return { argIndices: [1], allowName: false };
+    if (method === "addBreadcrumb")
+      return { argIndices: [0], allowName: false };
     // setTags/setExtras take a single object literal — inspect like setUser.
     if (method === "setTags" || method === "setExtras") {
       return { argIndices: [0], allowName: false };
@@ -140,6 +142,20 @@ function allowsName(obj, method) {
   return obj === "Sentry" && method === "setContext";
 }
 
+// TD-191 item 4 — documented TemplateLiteral asymmetry:
+// The SINGULAR setTag/setExtra path (see ~line 248 below) accepts a static
+// TemplateLiteral with no expressions as a literal key — i.e. it flags
+// `Sentry.setTag(\`email\`, x)` the same as `Sentry.setTag("email", x)`.
+// `isLiteralKey` (used by the OBJECT-EXPRESSION walker — setUser/setContext/
+// setTags/setExtras/posthog.identify/posthog.capture) does NOT: a computed
+// template key like `{ [\`email\`]: x }` falls through `prop.computed` early
+// and is silently skipped. This asymmetry is INTENTIONAL — computed template
+// keys are rare in practice and a static-analysis rule that tried to model
+// every escape hatch would balloon false-positive surface. The singular form
+// is the documented inspection surface; the object-expression form covers
+// the common patterns. If a real `{ [\`email\`]: ... }` site lands in this
+// codebase, prefer code-review catch + a focused regression test over
+// widening this walker.
 function isLiteralKey(prop) {
   if (prop.type !== "Property") return null;
   if (prop.computed) return null; // computed keys can't be statically resolved

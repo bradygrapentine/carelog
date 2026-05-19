@@ -17,7 +17,7 @@
 --       true-concurrency integration test is deferred outside this sprint)
 
 BEGIN;
-SELECT plan(15);
+SELECT plan(16);
 
 -- ============================================================
 -- Fixtures
@@ -179,7 +179,23 @@ SELECT results_eq(
 -- Case 9: disjoint-keys serial merge — two patches with different keys both
 -- land in the final state. NOT a true-concurrency simulation; documents the
 -- shallow top-level merge semantic preserves disjoint keys across calls.
+--
+-- TD-191 item 5: explicit pre-state assertion. Case 9 used to implicitly
+-- depend on Case 6 having cleared `dnr_status`; reordering or removing
+-- earlier cases would silently break the disjoint-keys narrative. Assert
+-- the pre-state here so the case is self-contained.
 -- ============================================================
+SELECT results_eq(
+  $$ SELECT (contact_info ? 'dnr_status') AS dnr_present
+     FROM identity_vault
+     WHERE token = (
+       SELECT identity_token FROM care_recipients
+       WHERE id = '20260518-2002-0000-0000-000000000001'::uuid
+     ) $$,
+  $$ VALUES (false) $$,
+  'Case 9 pre-state: dnr_status key absent before patch A applies'
+);
+
 SELECT lives_ok(
   $$ SELECT update_emergency_info(
        '20260518-2000-0000-0000-000000000001'::uuid,
