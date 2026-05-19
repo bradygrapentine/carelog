@@ -17,5 +17,5 @@ jobs:
 
       - name: Check E2E green streak
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/check-e2e-streak.mjs
