@@ -23,6 +23,7 @@ import { moodEntriesRouter } from "../routers/moodEntries";
 import { briefsRouter } from "../routers/briefs";
 import { shiftQuestionsRouter } from "../routers/shiftQuestions";
 import { recipientsRouter } from "../routers/recipients";
+import { tasksRouter } from "../routers/tasks";
 
 export const appRouter = router({
   ai: aiRouter,
@@ -49,6 +50,7 @@ export const appRouter = router({
   briefs: briefsRouter,
   shiftQuestions: shiftQuestionsRouter,
   recipients: recipientsRouter,
+  tasks: tasksRouter,
 });
 
 export type AppRouter = typeof appRouter;

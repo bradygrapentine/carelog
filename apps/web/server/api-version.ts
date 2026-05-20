@@ -11,4 +11,4 @@
  *
  * See `docs/adr/0006-trpc-schema-snapshots.md` for the full convention.
  */
-export const API_VERSION = "1.0.0";
+export const API_VERSION = "1.1.0";
