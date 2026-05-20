@@ -149,14 +149,21 @@ jobs:
   # ─── Unit tests ──────────────────────────────────────────────────────────────
 
   web-tests:
-    name: Web — unit tests
+    name: Web — ${{ matrix.project }}
     needs: changes
     runs-on: ubuntu-latest
-    # Always run in merge queue; on PRs/push run when web/package/lockfile changes
+    # Always run in merge queue; on PRs/push run when web/package/lockfile changes.
+    # TD-198: split the single `npx vitest run` into 3 parallel project-jobs
+    # (web/node/a11y) via matrix so the slow browser project no longer serializes
+    # ahead of the fast node/a11y projects.
     if: |
       github.event_name == 'merge_group' ||
       needs.changes.outputs.web == 'true' ||
       needs.changes.outputs.deps == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [web, node, a11y]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -167,11 +174,14 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Only the `web` project runs in a real browser (single Chromium instance,
+      # fileParallelism: false). node + a11y use jsdom/node and need no browser.
       - name: Install Chromium for browser tests
+        if: matrix.project == 'web'
         run: npx playwright install --with-deps chromium
         working-directory: apps/web
-      - name: Run web unit tests
-        run: npx vitest run
+      - name: Run web unit tests (${{ matrix.project }})
+        run: npx vitest run --project=${{ matrix.project }}
         working-directory: apps/web
 
   mobile-tests:
@@ -251,10 +261,13 @@ jobs:
     name: RLS pgTAP tests
     needs: changes
     runs-on: ubuntu-latest
-    # Always run in merge queue; on PRs/push run when supabase changes
+    # Always run in merge queue; on PRs/push run when supabase changes.
+    # TD-198: also fire on `deps` (covers pnpm-lock.yaml AND .github/workflows/**)
+    # so workflow-self-edits and lockfile bumps re-run pgTAP.
     if: |
       github.event_name == 'merge_group' ||
-      needs.changes.outputs.supabase == 'true'
+      needs.changes.outputs.supabase == 'true' ||
+      needs.changes.outputs.deps == 'true'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: supabase/setup-cli@v1
