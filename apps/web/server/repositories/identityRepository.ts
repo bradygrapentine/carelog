@@ -140,11 +140,13 @@ export async function updateEmergencyInfo(
     if (error.code === "P0IDF") {
       throw new Error("identity_not_found");
     }
-    // Catch-all: DROP raw error.message entirely. PG error messages may
-    // include column values (e.g. `Key (email)=(jane@x.com)`), which is
+    // Catch-all: DROP raw error.message from the thrown message entirely. PG
+    // error messages may include column values (e.g. `Key (email)=(jane@x.com)`),
     // a PHI leak path into thrown Error → Sentry capture → log aggregator.
-    // Code-only signal preserves debuggability without leaking PII.
-    throw new Error(`identity_update_failed: ${error.code ?? "UNKNOWN"}`);
+    // TD-192: normalize to the cause-bearing form so all three throw sites here
+    // share one contract — code-only `.message`, raw error on `.cause` (which
+    // sentry.server.config beforeSend redacts before capture).
+    throw new Error("identity_update_failed", { cause: error });
   }
 
   return parseEmergencyInfo((data ?? {}) as Record<string, unknown>);

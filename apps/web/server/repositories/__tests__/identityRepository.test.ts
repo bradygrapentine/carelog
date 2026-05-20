@@ -448,10 +448,11 @@ describe("updateEmergencyInfo — UX-105b / TD-179 (RPC-backed)", () => {
     );
   });
 
-  it("throws identity_update_failed:<code> for any other error (raw message DROPPED to prevent PHI leak)", async () => {
-    // PG error.message can include column values like
-    // `Key (email)=(jane@x.com)` — that's PII. Drop the message entirely;
-    // surface the SQLSTATE code only.
+  it("throws stable code identity_update_failed for any other error; raw PG error (incl. SQLSTATE) on .cause, message PHI-clean", async () => {
+    // TD-192: normalized to the cause-bearing form. PG error.message can include
+    // column values like `Key (email)=(jane@x.com)` — that's PII. The thrown
+    // message is the stable code only; the raw error (code + message) is on
+    // .cause for server-side observability (and is redacted by Sentry beforeSend).
     vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
       data: null,
       error: {
@@ -467,21 +468,31 @@ describe("updateEmergencyInfo — UX-105b / TD-179 (RPC-backed)", () => {
       err = e as Error;
     }
     expect(err).toBeDefined();
-    expect(err!.message).toBe("identity_update_failed: 23505");
-    // PHI guards
+    expect(err!.message).toBe("identity_update_failed");
+    // SQLSTATE still reachable for debugging — now on .cause, not .message.
+    expect((err as { cause?: { code?: string } }).cause?.code).toBe("23505");
+    // PHI guards: no column values leak into the thrown message.
     expect(err!.message).not.toMatch("jane@x.com");
     expect(err!.message).not.toMatch("duplicate key");
+    expect(err!.message).not.toMatch("23505");
     expect(err!.message).not.toMatch(ORG);
     expect(err!.message).not.toMatch(REC);
   });
 
-  it("throws identity_update_failed: UNKNOWN when error has no code", async () => {
+  it("throws identity_update_failed with cause when error has no code", async () => {
     vi.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({
       data: null,
       error: { message: "boom" },
     } as never);
-    await expect(updateEmergencyInfo(ORG, REC, {})).rejects.toThrow(
-      "identity_update_failed: UNKNOWN",
-    );
+    let err: Error | undefined;
+    try {
+      await updateEmergencyInfo(ORG, REC, {});
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err!.message).toBe("identity_update_failed");
+    expect((err as { cause?: unknown }).cause).toMatchObject({
+      message: "boom",
+    });
   });
 });

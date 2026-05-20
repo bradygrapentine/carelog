@@ -20,7 +20,9 @@ export async function getMemberships(
   }
 
   const { data, error } = await query;
-  if (error) throw new Error(`Memberships fetch failed: ${error.message}`);
+  // TD-192: stable snake_case code; raw PG error via .cause (never interpolate
+  // error.message — it can echo column values, a PHI leak path into Sentry).
+  if (error) throw new Error("memberships_fetch_failed", { cause: error });
   return (data ?? []) as Membership[];
 }
 
@@ -76,8 +78,7 @@ export async function getCareTeamForRecipient(
     .not("user_id", "is", null)
     .limit(50);
 
-  if (error)
-    throw new Error(`getCareTeamForRecipient failed: ${error.message}`);
+  if (error) throw new Error("care_team_fetch_failed", { cause: error });
 
   const rowList = rows ?? [];
   const members: CareTeamMember[] = [];
@@ -185,7 +186,7 @@ export async function getRefillRecipients(
     .limit(50);
 
   if (error) {
-    throw new Error(`getRefillRecipients failed: ${error.message}`);
+    throw new Error("refill_recipients_fetch_failed", { cause: error });
   }
 
   const rowList = (rows ?? []).filter((r) =>
@@ -248,7 +249,7 @@ export async function createMembershipAndInvite(params: {
     .single();
 
   if (mError || !membership) {
-    throw new Error(`Membership creation failed: ${mError?.message}`);
+    throw new Error("membership_create_failed", { cause: mError });
   }
 
   const { data: invite, error: iError } = await supabaseAdmin
@@ -261,7 +262,7 @@ export async function createMembershipAndInvite(params: {
     .single();
 
   if (iError || !invite) {
-    throw new Error(`Invite token creation failed: ${iError?.message}`);
+    throw new Error("invite_token_create_failed", { cause: iError });
   }
 
   return {
