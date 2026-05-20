@@ -97,3 +97,46 @@ describe("useJournalData — TD-206 loadMembers error handling", () => {
     expect(mockToastError).not.toHaveBeenCalled();
   });
 });
+
+describe("useJournalData — TD-216 loadEvents error handling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("toasts a generic error when /api/journal responds !ok (was silent)", async () => {
+    mockAuthFetch.mockImplementation((url: string) => {
+      if (url.includes("/api/journal")) {
+        return Promise.resolve({ ok: false, json: async () => ({}) });
+      }
+      // loadMembers / others succeed so only the timeline toast fires
+      return Promise.resolve({ ok: true, json: async () => ({ members: [] }) });
+    });
+
+    renderHook(() => useJournalData("rec-1", USER));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Couldn't load the timeline — please refresh.",
+      );
+    });
+    // PHI sentinel: no recipient/journal identity in the toast.
+    const msg = String(mockToastError.mock.calls[0]?.[0] ?? "");
+    expect(msg).not.toMatch(/@|user-1|rec-1/);
+  });
+
+  it("does not error-toast when /api/journal responds ok", async () => {
+    mockAuthFetch.mockImplementation((url: string) => {
+      if (url.includes("/api/journal")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ events: [], hasMore: false }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ members: [] }) });
+    });
+
+    const { result } = renderHook(() => useJournalData("rec-1", USER));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(mockToastError).not.toHaveBeenCalled();
+  });
+});

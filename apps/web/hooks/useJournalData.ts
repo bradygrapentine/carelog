@@ -57,6 +57,12 @@ export function useJournalData(
     const res = await authenticatedFetch(
       `/api/journal?recipientId=${recipientId}&limit=${PAGE_LIMIT}`,
     );
+    if (!res.ok) {
+      // Previously silent: a failed request left an empty timeline with no signal.
+      // Surface it; generic message (no journal PHI).
+      toast.error("Couldn't load the timeline — please refresh.");
+      return;
+    }
     const data = await res.json();
     if (data.events) {
       setEvents(data.events);
