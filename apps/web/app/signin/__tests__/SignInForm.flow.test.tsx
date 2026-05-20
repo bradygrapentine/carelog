@@ -285,10 +285,12 @@ describe("SignInForm", () => {
     expect(mockReplace).not.toHaveBeenCalled();
     unmount();
 
-    // Unknown user — must render the SAME copy (no "no such user" oracle)
+    // Unknown user — mock a DIFFERENT GoTrue message to prove our mapping (not
+    // GoTrue's coincidentally-identical string) collapses it to the same copy.
+    // If friendlyPasswordError ever branched on the message, this would diverge.
     mockSignInWithPassword.mockResolvedValueOnce({
       data: {},
-      error: { message: "Invalid login credentials" },
+      error: { message: "User not found: no account for ghost@example.com" },
     });
     render(<SignInForm />);
     fireEvent.click(
@@ -302,6 +304,38 @@ describe("SignInForm", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
     await waitFor(() => expect(screen.getByText(GENERIC)).toBeInTheDocument());
+    // the distinct raw GoTrue string (which would reveal the user doesn't exist)
+    // must NOT leak to the UI
+    expect(screen.queryByText(/User not found/i)).not.toBeInTheDocument();
+  });
+
+  it("password sign-in: 200 with NO session does NOT redirect (shows generic error)", async () => {
+    // GoTrue can return success-shaped data with a null session (e.g. an
+    // unconfirmed account under some configs). The redirect must be gated on a
+    // real session+user so we never bounce off the (app)/layout auth guard.
+    mockSignInWithPassword.mockResolvedValue({
+      data: { user: null, session: null },
+      error: null,
+    });
+    render(<SignInForm />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a password instead" }),
+    );
+    fireEvent.change(screen.getByLabelText("Email address"), {
+      target: { value: "unconfirmed@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "long-enough-password" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Email or password is incorrect."),
+      ).toBeInTheDocument(),
+    );
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
   });
 
   it("password sign-in: submit disabled until password ≥12 chars", () => {
