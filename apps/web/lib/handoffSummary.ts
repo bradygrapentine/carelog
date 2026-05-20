@@ -1,5 +1,6 @@
 import type { CareEvent } from "@carelog/types";
 import { isJournalEvent, parseMood } from "@/lib/careEvent";
+import { pickJournalBody } from "@/lib/pickJournalBody";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -143,9 +144,10 @@ export function buildHandoffSummary(
 
   const momentItems: MomentItem[] = journalEvents.map((e) => {
     const je = isJournalEvent(e) ? e : null;
+    const body = pickJournalBody(je?.payload ?? null);
     return {
       actorId: e.actor_id,
-      excerpt: je?.payload.text ? je.payload.text.slice(0, 120) : "(no text)",
+      excerpt: body ? body.slice(0, 120) : "(no text)",
       mood: parseMood(e.payload?.mood) ?? null,
       occurredAt: e.occurred_at,
     };
@@ -186,15 +188,15 @@ export function buildHandoffSummary(
     (e) => e.event_type === "symptom" || e.flagged,
   );
 
-  const concernItems: ConcernItem[] = concernEvents.map((e) => ({
-    actorId: e.actor_id,
-    excerpt:
-      isJournalEvent(e) && e.payload.text
-        ? e.payload.text.slice(0, 120)
-        : e.event_type,
-    occurredAt: e.occurred_at,
-    flagged: e.flagged,
-  }));
+  const concernItems: ConcernItem[] = concernEvents.map((e) => {
+    const body = isJournalEvent(e) ? pickJournalBody(e.payload) : null;
+    return {
+      actorId: e.actor_id,
+      excerpt: body ? body.slice(0, 120) : e.event_type,
+      occurredAt: e.occurred_at,
+      flagged: e.flagged,
+    };
+  });
 
   const concernsDescription =
     concernItems.length === 0
