@@ -21,7 +21,8 @@
     "test:all": "pnpm test && pnpm test:db && pnpm test:e2e",
     "a11y:contrast": "node scripts/a11y-contrast.mjs",
     "check:e2e-drift": "node scripts/check-e2e-string-drift.mjs",
-    "migration-check": "bash scripts/migration-check.sh"
+    "migration-check": "bash scripts/migration-check.sh",
+    "seed:prod-test": "node scripts/seed-prod-test-accounts.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
