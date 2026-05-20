@@ -6,6 +6,10 @@
  * - Duplicate delivery: dedup upsert returns empty rows → 200 duplicate (handler NOT called).
  * - Dedup DB error: insert fails → 500 returned (handler NOT called).
  * - Invalid signature: 400 returned before dedup.
+ *
+ * TD-202: handler failure must return non-2xx AND roll back the dedup row, so
+ * Stripe's automatic retry re-processes the event instead of being short-circuited
+ * as a duplicate (the row is inserted before the handler runs).
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -56,11 +60,21 @@ function makeRequest(): NextRequest {
   });
 }
 
-/** Build a Supabase chain that resolves with the given result at .select() */
-function makeUpsertChain(result: { data: unknown[] | null; error: unknown }) {
+/**
+ * Build a Supabase chain that resolves with the given result at .select() (the
+ * dedup upsert) and supports the rollback `.delete().eq()` path (TD-202). The
+ * `eq` spy is exposed so tests can assert the dedup row was rolled back and
+ * simulate a rollback failure.
+ */
+function makeUpsertChain(
+  result: { data: unknown[] | null; error: unknown },
+  deleteResult: { error: unknown } = { error: null },
+) {
   const chain: Record<string, unknown> = {};
   chain.upsert = vi.fn().mockReturnValue(chain);
   chain.select = vi.fn().mockResolvedValue(result);
+  chain.delete = vi.fn().mockReturnValue(chain);
+  chain.eq = vi.fn().mockResolvedValue(deleteResult);
   return chain;
 }
 
@@ -118,6 +132,42 @@ describe("POST /api/stripe/webhook", () => {
     expect(res.status).toBe(500);
     expect(body).toEqual({ error: "Dedup check failed" });
     expect(handlers["customer.subscription.updated"]).not.toHaveBeenCalled();
+  });
+
+  it("handler throws: returns 500 and rolls back the dedup row (TD-202)", async () => {
+    const chain = makeUpsertChain({
+      data: [{ event_id: FAKE_EVENT.id }],
+      error: null,
+    });
+    (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockReturnValue(chain);
+    (
+      handlers["customer.subscription.updated"] as ReturnType<typeof vi.fn>
+    ).mockRejectedValueOnce(new Error("boom"));
+
+    const res = await POST(makeRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body).toEqual({ error: "handler_failed" });
+    // Dedup row must be deleted so Stripe's retry re-processes (not short-circuited).
+    expect(chain.delete).toHaveBeenCalledTimes(1);
+    expect(chain.eq).toHaveBeenCalledWith("event_id", FAKE_EVENT.id);
+  });
+
+  it("handler throws AND rollback fails: still returns 500 (TD-202)", async () => {
+    const chain = makeUpsertChain(
+      { data: [{ event_id: FAKE_EVENT.id }], error: null },
+      { error: { message: "delete failed" } },
+    );
+    (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockReturnValue(chain);
+    (
+      handlers["customer.subscription.updated"] as ReturnType<typeof vi.fn>
+    ).mockRejectedValueOnce(new Error("boom"));
+
+    const res = await POST(makeRequest());
+
+    expect(res.status).toBe(500);
+    expect(chain.delete).toHaveBeenCalledTimes(1);
   });
 
   it("invalid signature: returns 400 before dedup", async () => {
