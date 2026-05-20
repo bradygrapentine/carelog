@@ -48,6 +48,7 @@ jobs:
       supabase: ${{ steps.filter.outputs.supabase }}
       deps: ${{ steps.filter.outputs.deps }}
       e2e: ${{ steps.filter.outputs.e2e }}
+      e2e-required: ${{ steps.filter.outputs.e2e-required }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
@@ -69,6 +70,28 @@ jobs:
               - '.github/workflows/**'
             e2e:
               - 'e2e/**'
+            # TD-195: narrower-than-`web` bucket for the actual E2E gate. Tightens what
+            # forces a Playwright run on PR. Backend-only diffs (apps/web/hooks/**,
+            # apps/web/lib/** outside lib/supabase/**, apps/web/eslint-rules/**, etc.)
+            # no longer trigger E2E. See docs/runbooks/ci-gating.md.
+            #
+            # POSITIVE patterns only — paths-filter v3 negation is brittle. Accepted
+            # false-positives: __tests__/ subdirs under routers/, components/, app/.
+            e2e-required:
+              - 'apps/web/app/**'
+              - 'apps/web/middleware.ts'
+              - 'apps/web/lib/supabase/**'
+              - 'apps/web/server/routers/**'
+              - 'apps/web/server/repositories/**'
+              - 'apps/web/components/**'
+              - 'apps/web/instrumentation.ts'
+              - 'apps/web/instrumentation-client.ts'
+              - 'apps/web/sentry.*.config.ts'
+              - 'apps/web/next.config.ts'
+              - 'apps/web/app/globals.css'
+              - 'apps/web/postcss.config.mjs'
+              - 'e2e/**'
+              - 'supabase/migrations/**'
 
   # ─── Fast checks — run in parallel ──────────────────────────────────────────
 
@@ -108,7 +131,11 @@ jobs:
   e2e-string-drift:
     name: E2E string drift
     needs: [changes]
-    if: needs.changes.outputs.web == 'true'
+    # TD-195: re-gated from broad `web` to narrower `e2e-required || deps || e2e`.
+    if: |
+      needs.changes.outputs.e2e-required == 'true' ||
+      needs.changes.outputs.deps == 'true' ||
+      needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -255,12 +282,15 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
-    # Run on push to main OR PRs/merge_queue that touch web/e2e/lockfile
+    # Run on push to main OR merge_queue OR PRs that touch e2e-required/e2e/deps.
+    # TD-195: narrowed from broad `web` to `e2e-required` bucket. Backend-only
+    # diffs (hooks/, lib/ outside lib/supabase/, eslint-rules/) no longer
+    # trigger E2E. See docs/runbooks/ci-gating.md.
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       github.event_name == 'merge_group' ||
       (github.event_name == 'pull_request' && (
-        needs.changes.outputs.web == 'true' ||
+        needs.changes.outputs.e2e-required == 'true' ||
         needs.changes.outputs.e2e == 'true' ||
         needs.changes.outputs.deps == 'true'
       ))
