@@ -1675,6 +1675,7 @@ export type Database = {
           recipient_id: string
           recurrence: Json | null
           recurring: boolean
+          shift_type: Database["public"]["Enums"]["shift_type"]
           start_at: string
           status: Database["public"]["Enums"]["shift_status"]
         }
@@ -1692,6 +1693,7 @@ export type Database = {
           recipient_id: string
           recurrence?: Json | null
           recurring?: boolean
+          shift_type?: Database["public"]["Enums"]["shift_type"]
           start_at: string
           status?: Database["public"]["Enums"]["shift_status"]
         }
@@ -1709,6 +1711,7 @@ export type Database = {
           recipient_id?: string
           recurrence?: Json | null
           recurring?: boolean
+          shift_type?: Database["public"]["Enums"]["shift_type"]
           start_at?: string
           status?: Database["public"]["Enums"]["shift_status"]
         }
@@ -1994,6 +1997,10 @@ export type Database = {
       is_thread_member: { Args: { p_thread_id: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      update_emergency_info: {
+        Args: { p_org_id: string; p_patch: Json; p_recipient_id: string }
+        Returns: Json
+      }
       user_can_access_recipient: {
         Args: { p_recipient_id: string }
         Returns: boolean
@@ -2038,6 +2045,7 @@ export type Database = {
         | "scheduled"
         | "in_progress"
         | "cancelled"
+      shift_type: "standard" | "on_call"
       visit_recording_status:
         | "pending"
         | "transcribing"
@@ -2216,6 +2224,7 @@ export const Constants = {
         "in_progress",
         "cancelled",
       ],
+      shift_type: ["standard", "on_call"],
       visit_recording_status: [
         "pending",
         "transcribing",
