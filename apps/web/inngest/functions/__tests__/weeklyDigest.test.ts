@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { digestHtml } from "../weeklyDigest";
+import { digestHtml, weeklyDigestDedupKey } from "../weeklyDigest";
 
 const ORG_NAME = "Smith Family";
 const RECIPIENT_ID = "rec-001";
@@ -194,5 +194,74 @@ describe("digestHtml", () => {
       medDoseCount: 5,
     });
     expect(html).toContain("5 medication doses recorded this week");
+  });
+});
+
+// ─── TD-187 — idempotency dedup key ──────────────────────────────────────────
+// The weekly digest is org-level (one email per org to all members), so the
+// dedup_key is keyed on (org, ISO week) — NOT recipient. The unique constraint
+// email_dispatch_log_kind_dedup_unique (kind, dedup_key) makes an Inngest retry
+// or a concurrent worker hit 23505 and skip instead of re-sending.
+
+describe("weeklyDigestDedupKey", () => {
+  it("composes the canonical weekly_digest dedup_key shape", () => {
+    expect(weeklyDigestDedupKey("org-a", "2026-W21")).toBe(
+      "weekly_digest:org-a:2026-W21",
+    );
+  });
+
+  it("per-week stamps yield distinct keys (dedup-window correctness)", () => {
+    const k1 = weeklyDigestDedupKey("org-a", "2026-W21");
+    const k2 = weeklyDigestDedupKey("org-a", "2026-W22");
+    expect(k1).not.toBe(k2);
+  });
+
+  it("per-org keys are distinct within the same week", () => {
+    const a = weeklyDigestDedupKey("org-a", "2026-W21");
+    const b = weeklyDigestDedupKey("org-b", "2026-W21");
+    expect(a).not.toBe(b);
+  });
+});
+
+// ─── TD-187 — PHI sentinel: Sentry calls must never carry recipient PHI ───────
+// On a DB insert error or a Resend send error the digest captures to Sentry.
+// The ESLint rule (carelog/no-phi-in-analytics) is a static keys-only check on
+// object literals; it cannot catch forbidden field-name STRINGS inside Sentry
+// call bodies or spreads. This source-file sentinel closes that gap. Mirrors the
+// refillAlert M2 sentinel — keep both; they are complementary, not redundant.
+
+describe("PHI sentinel (TD-187) — weeklyDigest source file invariants", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const source = fs.readFileSync(
+    path.resolve(__dirname, "../weeklyDigest.ts"),
+    "utf-8",
+  );
+
+  it("Sentry calls in weeklyDigest.ts never reference recipient PHI fields", () => {
+    const sentryBlocks = source.match(/Sentry\.[\s\S]*?\}\s*\)/g) ?? [];
+    expect(sentryBlocks.length).toBeGreaterThan(0);
+    for (const block of sentryBlocks) {
+      const lower = block.toLowerCase();
+      expect(lower).not.toContain("email");
+      expect(lower).not.toContain("recipient");
+      expect(lower).not.toContain("org.name");
+      expect(lower).not.toContain("entries");
+      // No spreads smuggling caller-controlled PHI into Sentry options.
+      expect(block).not.toMatch(/\.\.\.input\b/);
+      expect(block).not.toMatch(/\.\.\.event\b/);
+    }
+  });
+
+  it("dedup row INSERT carries only org-level identifiers (no recipient/email)", () => {
+    // Match only the .insert({...}) object payload — the table name
+    // "email_dispatch_log" itself contains "email", so it must not be in scope.
+    const insertMatch = source.match(/\.insert\(\{([\s\S]*?)\}\)/);
+    expect(insertMatch).not.toBeNull();
+    const payload = insertMatch![1].toLowerCase();
+    expect(payload).toContain("org_id");
+    expect(payload).toContain("dedup_key");
+    expect(payload).not.toContain("email");
+    expect(payload).not.toContain("recipient_id");
   });
 });
