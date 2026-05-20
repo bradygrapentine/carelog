@@ -870,6 +870,45 @@ export type Database = {
           },
         ]
       }
+      in_app_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          org_id: string
+          read_at: string | null
+          recipient_id: string | null
+          task_id: string | null
+          title: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          org_id: string
+          read_at?: string | null
+          recipient_id?: string | null
+          task_id?: string | null
+          title?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          org_id?: string
+          read_at?: string | null
+          recipient_id?: string | null
+          task_id?: string | null
+          title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invite_tokens: {
         Row: {
           consumed_at: string | null
@@ -1270,6 +1309,9 @@ export type Database = {
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           sms_enabled: boolean
+          task_assigned: boolean
+          task_completed: boolean
+          task_created: boolean
           updated_at: string
           user_id: string
           web_push_enabled: boolean
@@ -1282,6 +1324,9 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           sms_enabled?: boolean
+          task_assigned?: boolean
+          task_completed?: boolean
+          task_created?: boolean
           updated_at?: string
           user_id: string
           web_push_enabled?: boolean
@@ -1294,6 +1339,9 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           sms_enabled?: boolean
+          task_assigned?: boolean
+          task_completed?: boolean
+          task_created?: boolean
           updated_at?: string
           user_id?: string
           web_push_enabled?: boolean
