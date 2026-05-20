@@ -108,6 +108,11 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
+          // Node-project tests are pure-function / server-router units with no
+          // fork-specific global state, so the threads pool runs them with lower
+          // per-worker overhead than the default forks pool. (a11y / jsdom and
+          // browser / serial-by-design projects intentionally keep their defaults.)
+          pool: "threads",
           include: [
             "server/**/*.test.ts",
             "app/api/**/*.test.ts",
