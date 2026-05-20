@@ -13,3 +13,5 @@ New ADRs are written via the global `write-adr` skill or by hand. Sequence: `NNN
 - [0003 — `needs-phi-review` label removal protocol](./0003-phi-review-label-protocol.md)
 - [0004 — Feature flag rollout pattern (PostHog, PHI-safe distinctId)](./0004-feature-flag-rollout-pattern.md)
 - [0005 — Lighthouse a11y CI gate: build locally and audit in CI (path b)](./0005-lighthouse-a11y-gate-path.md)
+- [0006 — tRPC router Zod-schema snapshot tests](./0006-trpc-schema-snapshots.md)
+- [0007 — Task completion-permission model: per-org typed role arrays](./0007-task-permission-model.md)
