@@ -103,6 +103,52 @@ describe("buildHistoryExport", () => {
     ).rejects.toThrow("Identity not found");
   });
 
+  // TD-205: a query error on care_events/medications/symptom_readings must
+  // throw (fail closed) — never silently return a snapshot missing that data.
+  it.each([
+    ["care_events", "Care events fetch failed"],
+    ["medications", "Medications fetch failed"],
+    ["symptom_readings", "Symptom readings fetch failed"],
+  ])(
+    "throws when %s query errors (no silent partial export)",
+    async (table, message) => {
+      const admin = makeAdminMock({
+        [table]: { data: null, error: { message: "connection reset" } },
+      });
+      await expect(
+        buildHistoryExport({
+          orgId: ORG_ID,
+          recipientId: REC_ID,
+          supabaseAdmin: admin as any,
+        }),
+      ).rejects.toThrow(message);
+    },
+  );
+
+  // TD-205 PHI sentinel: a thrown error must carry no recipient PHI (full_name,
+  // dob) or raw DB error string — it propagates to the route's 500 + Sentry.
+  it("thrown query error contains no PHI or raw DB string", async () => {
+    const admin = makeAdminMock({
+      care_events: {
+        data: null,
+        error: { message: "row for Jane Doe / 1940-05-01 failed" },
+      },
+    });
+    let caught: Error | null = null;
+    try {
+      await buildHistoryExport({
+        orgId: ORG_ID,
+        recipientId: REC_ID,
+        supabaseAdmin: admin as any,
+      });
+    } catch (e) {
+      caught = e as Error;
+    }
+    expect(caught).not.toBeNull();
+    expect(caught!.message).toBe("Care events fetch failed");
+    expect(caught!.message).not.toMatch(/Jane Doe|1940|connection|row for/i);
+  });
+
   it("includes all tables in snapshot", async () => {
     const admin = makeAdminMock({
       care_events: {

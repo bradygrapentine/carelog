@@ -108,7 +108,10 @@ export async function buildHistoryExport(opts: {
   const dob: string | null = vault.dob ?? null;
 
   // 3. Fetch all care events (full timeline, no date limit)
-  const { data: careEvents } = await supabaseAdmin
+  // Fail closed on a query error: a discarded error here would silently produce
+  // an export missing the entire care timeline that the user trusts as complete.
+  // Messages are generic — no PHI / raw Postgres strings propagate to the 500/Sentry.
+  const { data: careEvents, error: careEventsError } = await supabaseAdmin
     .from("care_events")
     .select(
       "id, occurred_at, event_type, entry_kind, payload, flagged, created_at",
@@ -117,19 +120,31 @@ export async function buildHistoryExport(opts: {
     .eq("org_id", orgId)
     .order("occurred_at", { ascending: true });
 
+  if (careEventsError) {
+    throw new Error("Care events fetch failed");
+  }
+
   // 4. Fetch all medications
-  const { data: medications } = await supabaseAdmin
+  const { data: medications, error: medicationsError } = await supabaseAdmin
     .from("medications")
     .select("id, drug_name, dosage, instructions, active, created_at")
     .eq("recipient_id", recipientId)
     .order("created_at", { ascending: true });
 
+  if (medicationsError) {
+    throw new Error("Medications fetch failed");
+  }
+
   // 5. Fetch symptom readings
-  const { data: symptomReadings } = await supabaseAdmin
+  const { data: symptomReadings, error: symptomError } = await supabaseAdmin
     .from("symptom_readings")
     .select("id, recorded_at, reading_type, value, unit, notes")
     .eq("recipient_id", recipientId)
     .order("recorded_at", { ascending: true });
+
+  if (symptomError) {
+    throw new Error("Symptom readings fetch failed");
+  }
 
   // 6. Fetch EOL plan (may not exist)
   const { data: eolPlan } = await supabaseAdmin
