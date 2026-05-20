@@ -30,15 +30,24 @@ export const checklistItem = z.object({
 });
 export type ChecklistItem = z.infer<typeof checklistItem>;
 
-// Create payload — server stamps org/created_by/requested_by; client supplies content.
-export const createTaskPayload = z.object({
-  recipient_id: z.string().uuid(),
-  title: z.string().min(1).max(200),
+// Shared content fields — identical in both create and update payloads. Declared
+// as a plain field map (not a z.object) and spread into each payload so the field
+// ORDER is preserved (an `.extend()` would reorder the serialized JSON schema and
+// trip the tRPC snapshot for no semantic reason). `title` is intentionally NOT here:
+// it is required on create but optional on update, so it stays declared per-payload.
+const taskPayloadContentFields = {
   instructions: z.string().max(10000).nullable().optional(),
   checklist: z.array(checklistItem).max(100).optional(),
   assigned_to: z.string().uuid().nullable().optional(),
   shift_id: z.string().uuid().nullable().optional(),
   due_at: z.string().datetime().nullable().optional(),
+} as const;
+
+// Create payload — server stamps org/created_by/requested_by; client supplies content.
+export const createTaskPayload = z.object({
+  recipient_id: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  ...taskPayloadContentFields,
 });
 export type CreateTaskPayload = z.infer<typeof createTaskPayload>;
 
@@ -47,11 +56,7 @@ export type CreateTaskPayload = z.infer<typeof createTaskPayload>;
 export const updateTaskPayload = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(200).optional(),
-  instructions: z.string().max(10000).nullable().optional(),
-  checklist: z.array(checklistItem).max(100).optional(),
-  assigned_to: z.string().uuid().nullable().optional(),
-  shift_id: z.string().uuid().nullable().optional(),
-  due_at: z.string().datetime().nullable().optional(),
+  ...taskPayloadContentFields,
   status: taskStatus.optional(),
 });
 export type UpdateTaskPayload = z.infer<typeof updateTaskPayload>;

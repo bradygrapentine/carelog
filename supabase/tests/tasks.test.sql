@@ -18,7 +18,7 @@
 --   FIND-005: both predicate fns have pinned search_path
 
 BEGIN;
-SELECT plan(22);
+SELECT plan(31);
 
 -- ─── fixtures (as postgres, bypassing RLS) ───────────────────────────────────
 SET LOCAL ROLE postgres;
@@ -201,6 +201,75 @@ SELECT is(
   (SELECT 'search_path=public, pg_temp' = ANY(proconfig)
    FROM pg_proc WHERE proname = 'user_can_complete_task' AND pronamespace = 'public'::regnamespace),
   true, 'FIND-005: user_can_complete_task has pinned search_path');
+
+-- ─── TD-218: DELETE policy + de-completion + revive + positive edit/reassign ──
+-- Isolated fixtures (...004–...008) so these cases don't depend on prior mutations.
+SET LOCAL ROLE postgres;
+INSERT INTO tasks (id, org_id, recipient_id, title, created_by, requested_by, status) VALUES
+  ('aa770300-0000-0000-0000-000000000004','aa770100-0000-0000-0000-000000000001',
+   'aa770200-0000-0000-0000-000000000001','Delete-positive','aa770001-0000-0000-0000-000000000001','aa770001-0000-0000-0000-000000000001','todo'),
+  ('aa770300-0000-0000-0000-000000000005','aa770100-0000-0000-0000-000000000001',
+   'aa770200-0000-0000-0000-000000000001','Delete-deny','aa770001-0000-0000-0000-000000000001','aa770001-0000-0000-0000-000000000001','todo'),
+  ('aa770300-0000-0000-0000-000000000006','aa770100-0000-0000-0000-000000000001',
+   'aa770200-0000-0000-0000-000000000001','Done-task','aa770001-0000-0000-0000-000000000001','aa770001-0000-0000-0000-000000000001','done'),
+  ('aa770300-0000-0000-0000-000000000007','aa770100-0000-0000-0000-000000000001',
+   'aa770200-0000-0000-0000-000000000001','Cancelled-task','aa770001-0000-0000-0000-000000000001','aa770001-0000-0000-0000-000000000001','cancelled'),
+  ('aa770300-0000-0000-0000-000000000008','aa770100-0000-0000-0000-000000000001',
+   'aa770200-0000-0000-0000-000000000001','Edit-target','aa770001-0000-0000-0000-000000000001','aa770001-0000-0000-0000-000000000001','todo')
+ON CONFLICT DO NOTHING;
+
+-- DELETE deny: caregiver is not a coordinator → tasks_deletable_by_coordinator USING
+-- filters the row out; the DELETE matches 0 rows (RLS silently skips, does NOT throw).
+SET LOCAL ROLE authenticated;
+SET LOCAL "request.jwt.claims" TO '{"sub":"aa770002-0000-0000-0000-000000000002","role":"authenticated"}';
+SELECT results_eq(
+  $$WITH d AS (DELETE FROM tasks WHERE id = 'aa770300-0000-0000-0000-000000000005' RETURNING 1)
+    SELECT count(*)::int FROM d$$,
+  ARRAY[0]::int[],
+  'TD-218 DELETE deny: non-coordinator DELETE affects 0 rows (row survives)');
+SELECT results_eq(
+  $$SELECT count(*)::int FROM tasks WHERE id = 'aa770300-0000-0000-0000-000000000005'$$,
+  ARRAY[1]::int[],
+  'TD-218 DELETE deny: target row still exists after blocked DELETE');
+
+-- DELETE positive: coordinator CAN delete → row is gone (results_eq = 0 afterward).
+SET LOCAL "request.jwt.claims" TO '{"sub":"aa770001-0000-0000-0000-000000000001","role":"authenticated"}';
+SELECT lives_ok(
+  $$DELETE FROM tasks WHERE id = 'aa770300-0000-0000-0000-000000000004'$$,
+  'TD-218 DELETE positive: coordinator DELETE lives');
+SELECT results_eq(
+  $$SELECT count(*)::int FROM tasks WHERE id = 'aa770300-0000-0000-0000-000000000004'$$,
+  ARRAY[0]::int[],
+  'TD-218 DELETE positive: row gone after coordinator DELETE');
+
+-- De-completion done→todo by a completer (coordinator) → allowed; completed_by/at nulled.
+SELECT lives_ok(
+  $$UPDATE tasks SET status = 'todo' WHERE id = 'aa770300-0000-0000-0000-000000000006'$$,
+  'TD-218 de-completion: coordinator reverts done→todo');
+SELECT results_eq(
+  $$SELECT status::text, completed_by, completed_at
+    FROM tasks WHERE id = 'aa770300-0000-0000-0000-000000000006'$$,
+  $$VALUES ('todo', NULL::uuid, NULL::timestamptz)$$,
+  'TD-218 de-completion: completed_by/at cleared on done→todo');
+
+-- Revive cancelled→todo by coordinator (cancel/revive authority) → allowed.
+SELECT lives_ok(
+  $$UPDATE tasks SET status = 'todo' WHERE id = 'aa770300-0000-0000-0000-000000000007'$$,
+  'TD-218 revive: coordinator revives cancelled→todo');
+
+-- Positive CAN-edit: coordinator edits title → allowed (complements the caregiver deny).
+SELECT lives_ok(
+  $$UPDATE tasks SET title = 'Edited by coordinator' WHERE id = 'aa770300-0000-0000-0000-000000000008'$$,
+  'TD-218 positive edit: coordinator can edit task content');
+
+-- assigned_to reassignment authz: caregiver (non-creator, not in creator_roles,
+-- not coordinator) reassigning assigned_to is a content edit → tasks_edit_forbidden.
+SET LOCAL "request.jwt.claims" TO '{"sub":"aa770002-0000-0000-0000-000000000002","role":"authenticated"}';
+SELECT throws_like(
+  $$UPDATE tasks SET assigned_to = 'aa770002-0000-0000-0000-000000000002'
+    WHERE id = 'aa770300-0000-0000-0000-000000000008'$$,
+  '%tasks_edit_forbidden%',
+  'TD-218 reassign authz: non-creator caregiver cannot change assigned_to');
 
 SELECT * FROM finish();
 ROLLBACK;

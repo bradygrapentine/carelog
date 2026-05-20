@@ -92,6 +92,30 @@ describe("updateTaskPayload", () => {
   });
 });
 
+// TD-218: guards the shared-base refactor — `title` must keep its differing
+// optionality across the two payloads (required on create, optional on update).
+describe("title optionality parity (shared-base refactor guard)", () => {
+  it("create REQUIRES title (rejects when omitted)", () => {
+    expect(() => createTaskPayload.parse({ recipient_id: UUID })).toThrow();
+  });
+  it("update ACCEPTS a missing title", () => {
+    const r = updateTaskPayload.parse({ id: UUID });
+    expect("title" in r).toBe(false);
+  });
+  it("shared base fields still parse on both payloads", () => {
+    expect(
+      createTaskPayload.parse({
+        recipient_id: UUID,
+        title: "t",
+        shift_id: null,
+      }).shift_id,
+    ).toBeNull();
+    expect(
+      updateTaskPayload.parse({ id: UUID, shift_id: null }).shift_id,
+    ).toBeNull();
+  });
+});
+
 describe("taskPermissionsPayload", () => {
   it("accepts role arrays", () => {
     const r = taskPermissionsPayload.parse({

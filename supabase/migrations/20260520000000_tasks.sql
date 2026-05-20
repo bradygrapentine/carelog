@@ -160,6 +160,11 @@ BEGIN
     RAISE EXCEPTION 'tasks_edit_forbidden';
   END IF;
 
+  -- NOTE (TD-218): the lateral todo↔in_progress transition is intentionally
+  -- ungated — there is deliberately no IF block for it here. Any team member
+  -- with recipient access may move a task into/out of in_progress. Whether
+  -- in_progress should mean "claim work" (and thus be gated) is ON-79's call.
+
   -- Completion: gate + server-force audit fields (kills completed_by forgery).
   IF OLD.status <> 'done' AND NEW.status = 'done' THEN
     IF OLD.status = 'cancelled' THEN
