@@ -29,10 +29,13 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "inputs": ["**/*.{ts,tsx,js,jsx,mjs}", "eslint.config.mjs", ".eslintrc*", "package.json"],
+      "outputs": []
     },
     "type-check": {
-      "dependsOn": ["^build"]
+      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig*.json", "package.json"],
+      "outputs": []
     },
     "test": {
       "dependsOn": ["^build"]
