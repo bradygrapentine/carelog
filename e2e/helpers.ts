@@ -13,13 +13,15 @@ export async function clearMailpit(): Promise<void> {
   } catch {}
 }
 
-// Poll Mailpit for an OTP email rather than fixed-sleeping. Survives cold-cache
-// CI where the email may take up to 10s to arrive. Returns the 6-digit code.
+// Poll Mailpit for an OTP email rather than fixed-sleeping. Returns the 6-digit
+// code. The default timeout is generous (30s) because shard-loaded CI delivers
+// the Supabase OTP email well past the old 10s budget — different auth-dependent
+// specs would lose the delivery race per run, reddening shard 1 reliably.
 export async function getOtpFromMailpit(
   email: string,
   options: { timeoutMs?: number; pollIntervalMs?: number } = {},
 ): Promise<string> {
-  const timeoutMs = options.timeoutMs ?? 10_000;
+  const timeoutMs = options.timeoutMs ?? 30_000;
   const pollIntervalMs = options.pollIntervalMs ?? 500;
   const deadline = Date.now() + timeoutMs;
   let lastError = "no email yet";
