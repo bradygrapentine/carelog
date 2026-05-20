@@ -2,6 +2,7 @@ import { z } from "zod";
 import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
 import { capRawOcrText, sanitizeOcrFields } from "../../lib/ocrSanitize";
+import { resolveOcrStub } from "../../lib/ocr/devStub";
 
 // Validated at handler entry — defense-in-depth against forged events (R2-014)
 export const ocrJobCreatedEventSchema = z
@@ -36,31 +37,52 @@ export const ocrPrescription = inngest.createFunction(
   async ({ event, step }) => {
     const { jobId } = ocrJobCreatedEventSchema.parse(event.data);
 
-    // Step 1: mark processing
+    // Step 1: mark processing. Guard on status='pending' so an Inngest retry
+    // after a later step fails cannot re-stamp a row that already advanced to
+    // needs_review/confirmed back to processing (pending→processing is the only
+    // valid transition per lib/ocr/jobStateMachine).
     await step.run("mark-processing", async () => {
       await supabaseAdmin
         .from("ocr_jobs")
         .update({ status: "processing" })
-        .eq("id", jobId);
+        .eq("id", jobId)
+        .eq("status", "pending");
     });
 
-    // Step 2: fetch the job
+    // Step 2: fetch the job. Throw on a missing row / DB error rather than
+    // continuing with null — otherwise a bad jobId would store a parse result
+    // against nothing and silently pass.
     const job = await step.run("fetch-job", async () => {
-      const { data } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from("ocr_jobs")
         .select("image_url")
         .eq("id", jobId)
         .single();
+      if (error || !data) {
+        throw new Error(`ocr_job_not_found: ${jobId}`);
+      }
       return data;
     });
 
-    // Step 3: call OCR (stub if no API key)
+    // Step 3: obtain OCR text. The real provider call is not yet wired (TD-203);
+    // resolveOcrStub returns the fixture only outside production and null in
+    // production, so a real upload never gets fabricated medication data.
+    void job; // image_url consumed by the real provider call once wired
     const rawText = await step.run("call-ocr-api", async () => {
-      const apiKey = process.env.OCR_API_KEY;
-      if (!apiKey || !job) return "Lisinopril 10mg\nTake once daily with water";
-      // Real OCR call would go here — returns raw text
-      return "Lisinopril 10mg\nTake once daily with water";
+      return resolveOcrStub("Lisinopril 10mg\nTake once daily with water");
     });
+
+    // No OCR available (production, no provider wired): fail the job so the UI
+    // prompts manual entry instead of showing an invented prescription.
+    if (rawText === null) {
+      await step.run("mark-failed-no-ocr", async () => {
+        await supabaseAdmin
+          .from("ocr_jobs")
+          .update({ status: "failed" })
+          .eq("id", jobId);
+      });
+      return;
+    }
 
     // Step 4: parse and update to needs_review
     await step.run("update-needs-review", async () => {
