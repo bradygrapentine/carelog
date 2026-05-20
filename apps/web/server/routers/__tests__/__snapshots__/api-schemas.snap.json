@@ -1,0 +1,2606 @@
+{
+  "ai.enableConsent": {
+    "type": "mutation",
+    "input": null,
+    "output": null
+  },
+  "ai.query": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "pageContext": {
+          "type": "string",
+          "enum": [
+            "dashboard",
+            "medications",
+            "schedule",
+            "journal",
+            "messages",
+            "team",
+            "education",
+            "other"
+          ]
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "prompt",
+        "pageContext",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "ai.revokeConsent": {
+    "type": "mutation",
+    "input": null,
+    "output": null
+  },
+  "benefits.latest": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "benefits.screen": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "answers": {
+          "type": "object",
+          "properties": {
+            "age65plus": {
+              "type": "boolean"
+            },
+            "veteran": {
+              "type": "boolean"
+            },
+            "lowIncome": {
+              "type": "boolean"
+            },
+            "medicareEnrolled": {
+              "type": "boolean"
+            },
+            "medicaidEnrolled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "age65plus",
+            "veteran",
+            "lowIncome",
+            "medicareEnrolled",
+            "medicaidEnrolled"
+          ],
+          "additionalProperties": false
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "applyUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "name",
+              "description",
+              "applyUrl"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "answers",
+        "results"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "billing.getSubscription": {
+    "type": "query",
+    "input": null,
+    "output": null
+  },
+  "briefs.dashboardSummary": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "recipientId",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "briefs.latestForRecipient": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "recipientId",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "briefs.patterns": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "recipientId",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "burnout.checkIn": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sleep_score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "stress_score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "support_score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "week_stamp": {
+          "type": "string",
+          "pattern": "^\\d{4}-W\\d{2}$"
+        }
+      },
+      "required": [
+        "org_id",
+        "user_id",
+        "sleep_score",
+        "stress_score",
+        "support_score",
+        "week_stamp"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "burnout.myHistory": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "burnout.orgSummary": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.comments.add": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "careEventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "careEventId",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.comments.edit": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "commentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "commentId",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.comments.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "careEventId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "careEventId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.comments.remove": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "commentId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "commentId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.flag": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "flagged": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "eventId",
+        "flagged"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.flagged": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "recipientId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.getOne": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "eventId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.insert": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "journal",
+            "medication",
+            "shift",
+            "appointment",
+            "symptom",
+            "task",
+            "expense",
+            "handoff"
+          ]
+        },
+        "entryKind": {
+          "type": "string",
+          "enum": [
+            "human",
+            "system"
+          ],
+          "default": "system"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "occurredAt": {
+          "type": "string"
+        },
+        "flagged": {
+          "type": "boolean",
+          "default": false
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "orgId",
+        "recipientId",
+        "eventType",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.react": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reaction": {
+          "type": "string",
+          "enum": [
+            "heart",
+            "thinking_of_you",
+            "strong",
+            "grateful"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "reaction"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.reactions": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "eventId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.timeline": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "journal",
+            "medication",
+            "shift",
+            "appointment",
+            "symptom",
+            "task",
+            "expense",
+            "handoff"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        },
+        "before": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "recipientId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "careEvents.unreact": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "eventId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "coverageWindows.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "starts_at": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "ends_at": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "required_role": {
+          "type": "string",
+          "enum": [
+            "caregiver",
+            "coordinator",
+            "aide"
+          ]
+        },
+        "day_of_week": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "recurring": {
+          "type": "boolean",
+          "enum": [
+            true
+          ],
+          "default": true
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "label",
+        "starts_at",
+        "ends_at",
+        "day_of_week"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "coverageWindows.delete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "coverageWindows.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "documents.createShareLink": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expires_in_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 168
+        }
+      },
+      "required": [
+        "id",
+        "org_id",
+        "expires_in_hours"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "documents.delete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "documents.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "q": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "eolPlan.get": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "eolPlan.upsert": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "healthcare_proxy": {
+          "type": "string"
+        },
+        "resuscitation_pref": {
+          "type": "string",
+          "enum": [
+            "full",
+            "dnr",
+            "dnr_comfort_only"
+          ]
+        },
+        "funeral_pref": {
+          "type": "string"
+        },
+        "legacy_message": {
+          "type": "string"
+        },
+        "attorney_name": {
+          "type": "string"
+        },
+        "attorney_contact": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "expenses.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "type": "number",
+          "exclusiveMinimum": true,
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "medication",
+            "supplies",
+            "equipment",
+            "home_modification",
+            "aide_hours",
+            "transport",
+            "food",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paid_by_name": {
+          "type": "string"
+        },
+        "incurred_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "amount",
+        "category",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "expenses.delete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "expenses.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "since": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "historyExport.generate": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "historyExport.preview": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "drug_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "brand_name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "dosage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "form": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "instructions": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "prescriber": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "pharmacy": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "pharmacy_phone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "refills_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supply_days_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "last_refill_date": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "drug_name",
+        "dosage"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.delete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.get": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "medication_id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.getDocumentIdsForMedication": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "medication_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.getEventIdsForMedication": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "medication_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.getTagsForDocument": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "document_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.getTagsForEvent": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "care_event_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "care_event_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.listScheduled": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.logAdministration": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "scheduled_time": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "given",
+            "missed"
+          ]
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "medication_id",
+        "scheduled_time",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.tagDocument": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "document_id",
+        "medication_id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.tagEvent": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "care_event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "medication_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "care_event_id",
+        "medication_id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.todayLog": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.untagDocument": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "tag_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tag_id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.untagEvent": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "tag_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tag_id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.update": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "supply_days_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "refills_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "medications.weekData": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "memberships.accept": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "token"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "memberships.changeRole": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "membershipId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "coordinator",
+            "caregiver",
+            "supporter",
+            "aide"
+          ]
+        }
+      },
+      "required": [
+        "orgId",
+        "membershipId",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "memberships.invite": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "coordinator",
+            "caregiver",
+            "supporter",
+            "aide"
+          ]
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "orgId",
+        "recipientId",
+        "role",
+        "email"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "memberships.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "memberships.remove": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "membershipId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "orgId",
+        "membershipId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.createDm": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "targetUserId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "orgId",
+        "targetUserId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.createGroup": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "memberUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "minItems": 1,
+          "maxItems": 49
+        }
+      },
+      "required": [
+        "orgId",
+        "name",
+        "memberUserIds"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.getMembers": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.getMessages": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "before": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.listThreads": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.markRead": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "messages.sendMessage": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "threadId",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "moodEntries.sparkline": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "days": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 30,
+          "default": 13
+        }
+      },
+      "required": [
+        "recipientId",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "notifications.registerToken": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ios",
+            "android"
+          ]
+        }
+      },
+      "required": [
+        "token",
+        "platform"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "organizations.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "orgType": {
+          "type": "string",
+          "enum": [
+            "family",
+            "agency",
+            "institution",
+            "employer"
+          ],
+          "default": "family"
+        },
+        "recipientName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recipientDob": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "orgName",
+        "recipientName"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "organizations.get": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "organizations.list": {
+    "type": "query",
+    "input": null,
+    "output": null
+  },
+  "outerCircle.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "request_type": {
+          "type": "string",
+          "enum": [
+            "meal",
+            "transport",
+            "errand",
+            "visit",
+            "other"
+          ]
+        },
+        "slots_total": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 1
+        },
+        "needed_by": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "title",
+        "request_type"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "outerCircle.deactivate": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "outerCircle.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "recipients.updateEmergencyInfo": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "dnr_status": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "hospital": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "primary_contact": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "relationship": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "phone": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^\\+?[\\d\\s\\-()]{7,20}$|^$"
+            }
+          },
+          "required": [
+            "name",
+            "relationship",
+            "phone"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "dnr_status",
+        "hospital",
+        "primary_contact"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "recipients.updatePreferences": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "likes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "maxItems": 50
+        },
+        "dislikes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "maxItems": 50
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "likes",
+        "dislikes"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftQuestions.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "orgId",
+        "recipientId",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftQuestions.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "openOnly": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "recipientId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftQuestions.resolve": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftTradeRequests.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "shiftId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "targetUserId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "shiftId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftTradeRequests.forceOverride": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "decline",
+            "cancel"
+          ]
+        },
+        "orgId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "requestId",
+        "action",
+        "orgId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftTradeRequests.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "shiftId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "open",
+              "accepted",
+              "declined",
+              "expired",
+              "cancelled"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shiftTradeRequests.respond": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "decline"
+          ]
+        }
+      },
+      "required": [
+        "requestId",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.cancel": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cancel_future": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.complete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assignee_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "start_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "recurrence": {
+          "type": "object",
+          "properties": {
+            "freq": {
+              "type": "string",
+              "enum": [
+                "weekly"
+              ]
+            },
+            "weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          "required": [
+            "freq",
+            "weeks"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "assignee_user_id",
+        "start_at",
+        "end_at"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.getLatestHandoff": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipientId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "recipientId"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cursor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": true,
+          "minimum": 0,
+          "maximum": 200,
+          "default": 50
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.update": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "scheduled",
+            "in_progress",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "assignee_user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "org_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "shifts.upsertHandoff": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "shiftId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "heading": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "body": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "body"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 10
+        }
+      },
+      "required": [
+        "shiftId",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "symptoms.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "symptoms.log": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "pain_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "mood": {
+          "type": "string",
+          "enum": [
+            "good",
+            "okay",
+            "difficult",
+            "crisis"
+          ]
+        },
+        "appetite": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "reduced",
+            "poor",
+            "none"
+          ]
+        },
+        "mobility": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "limited",
+            "assisted",
+            "bedbound"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "org_id",
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "user.dismissEducationTip": {
+    "type": "mutation",
+    "input": null,
+    "output": null
+  },
+  "user.getProfile": {
+    "type": "query",
+    "input": null,
+    "output": null
+  },
+  "user.updateNotifications": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "emailDigest": {
+          "type": "boolean"
+        },
+        "emailMentions": {
+          "type": "boolean"
+        },
+        "emailShiftReminders": {
+          "type": "boolean"
+        },
+        "webPushEnabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "user.updateProfile": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_]+(?:\\/[A-Za-z_]+){1,2}$|^UTC$|^GMT$",
+                  "maxLength": 64
+                }
+              ]
+            },
+            {
+              "type": "string",
+              "enum": [
+                ""
+              ]
+            }
+          ]
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "en"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": null
+  }
+}
