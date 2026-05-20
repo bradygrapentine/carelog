@@ -1,8 +1,35 @@
 import { test, expect } from "@playwright/test";
-import { signIn, clearMailpit, uniqueEmail } from "./helpers";
+import {
+  signIn,
+  clearMailpit,
+  getOtpFromMailpit,
+  uniqueEmail,
+} from "./helpers";
 
 test.beforeEach(async () => {
   await clearMailpit();
+});
+
+// TD-220: signIn() now mints OTPs via the GoTrue admin API (no email sent),
+// which removed the recurring Mailpit timeout flake from every auth-gated spec.
+// This ONE test still drives the REAL Supabase→Mailpit email delivery so that
+// pipeline stays smoke-covered — if real OTP emails stop arriving, this fails.
+test("real OTP email delivery (Mailpit coverage path)", async ({ page }) => {
+  const email = uniqueEmail("auth-real-otp");
+  await clearMailpit();
+  await page.goto("/signin");
+  await page.getByLabel("Email address").fill(email);
+  await page.getByRole("button", { name: /^Continue with email$/ }).click();
+  await page
+    .getByText("Check your email", { exact: false })
+    .waitFor({ timeout: 30_000 });
+  const otp = await getOtpFromMailpit(email);
+  await page.getByPlaceholder("123456").fill(otp);
+  await Promise.all([
+    page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
+    page.getByRole("button", { name: /^Verify code$/ }).click(),
+  ]);
+  await expect(page.getByText("Your care dashboard")).toBeVisible();
 });
 
 test("sign in page loads correctly", async ({ page }) => {
