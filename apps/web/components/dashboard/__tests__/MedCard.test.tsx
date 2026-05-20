@@ -320,3 +320,22 @@ describe("MedCard — accessibility", () => {
     expect(results).toHaveNoViolations();
   });
 });
+
+// TD-211: missed-dose derivation reads the injected `now` anchor, not a live
+// `new Date()`. med-2 (20:00, not taken) is "missed" only once `now` is past
+// 20:00 — proves the useState anchor + closed-over helpers use the prop.
+describe("MedCard — now anchor (TD-211 purity fix)", () => {
+  it("flags the untaken 20:00 dose missed when now is after 20:00", () => {
+    render(<MedCard {...PROPS} now={new Date(2026, 4, 20, 23, 59)} />);
+    expect(
+      screen.getByLabelText("Missed doses needing attention"),
+    ).toBeInTheDocument();
+  });
+
+  it("does NOT flag the 20:00 dose missed when now is before 20:00", () => {
+    render(<MedCard {...PROPS} now={new Date(2026, 4, 20, 0, 1)} />);
+    expect(
+      screen.queryByLabelText("Missed doses needing attention"),
+    ).not.toBeInTheDocument();
+  });
+});
