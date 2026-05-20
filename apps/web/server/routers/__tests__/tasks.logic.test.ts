@@ -62,7 +62,7 @@ beforeEach(() => {
 
 describe("tasks.create", () => {
   it("sets created_by/requested_by = caller and status=todo, resolving recipient org RLS-scoped", async () => {
-    const cap = {};
+    const cap: { payload?: unknown } = {};
     const from = vi.fn((table: string) =>
       table === "care_recipients"
         ? makeChain({ data: { org_id: ORG_ID }, error: null }, {})
@@ -102,7 +102,7 @@ describe("tasks.create", () => {
 
 describe("tasks.complete", () => {
   it("sends only {status:'done'} — never completed_by/completed_at (trigger owns them)", async () => {
-    const cap = {};
+    const cap: { payload?: unknown } = {};
     const from = vi.fn(() =>
       makeChain({ data: [{ id: TASK_ID, status: "done" }], error: null }, cap),
     );
@@ -142,7 +142,7 @@ describe("tasks.complete", () => {
 
 describe("tasks.cancel", () => {
   it("sends {status:'cancelled'} and maps RAISE to FORBIDDEN", async () => {
-    const cap = {};
+    const cap: { payload?: unknown } = {};
     const ok = vi.fn(() =>
       makeChain({ data: [{ id: TASK_ID }], error: null }, cap),
     );
