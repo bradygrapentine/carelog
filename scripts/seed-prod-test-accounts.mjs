@@ -54,6 +54,18 @@ const emails = (process.env.PROD_TEST_EMAILS || "")
   .filter(Boolean);
 const password = process.env.PROD_TEST_PASSWORD || "CareSyncTest!123";
 
+// TD-221 / FIND-001: enforce the ASVS L1 length floor (must match
+// supabase/config.toml minimum_password_length + the prod dashboard policy).
+// This validates LENGTH only — it does NOT check the password against HIBP
+// (FIND-002, a dashboard-side leaked-password check); the operator is
+// responsible for choosing non-breached passwords for the 4 accounts.
+const MIN_PASSWORD_LENGTH = 12;
+if (password.length < MIN_PASSWORD_LENGTH) {
+  fail(
+    `PROD_TEST_PASSWORD must be at least ${MIN_PASSWORD_LENGTH} characters (got ${password.length}).`,
+  );
+}
+
 if (!url) fail("SUPABASE_URL is required (set it explicitly — no env fallback).");
 let host;
 try {
