@@ -68,13 +68,13 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 
 **Verified facts (do NOT re-discover):**
 - `changes` job (lines 42–66) already exposes outputs: `web`, `mobile`, `supabase`, `deps`, `e2e`, `e2e-required`. The `deps` bucket already covers `.github/workflows/**` (the filter list at line 67 includes `.github/workflows/**`). **There is NO `workflow` output** — do NOT reference `needs.changes.outputs.workflow`.
-- `rls-tests` is at line 250 with no `if:` gate currently.
+- `rls-tests` is at line 250 and **already has** an `if:` block at lines 255–257: `if: github.event_name == 'merge_group' || needs.changes.outputs.supabase == 'true'`. Track A **EXTENDS** this gate; it does not create a new one.
 
 **Implementation steps:**
 1. Locate the `web-tests` job (line 151) in `ci.yml`. Convert to a matrix job: `strategy.matrix.project: [web, node, a11y]` with `fail-fast: false`. Each runs `npx vitest run --project=${{ matrix.project }}` in `apps/web`. Update the job name template to `Web — ${{ matrix.project }}` for readable check rows.
-2. Locate the `rls-tests` job (line 250). Add `if: github.event_name == 'merge_group' || needs.changes.outputs.supabase == 'true' || needs.changes.outputs.deps == 'true'` (workflow-self-edit force-run is already covered because `.github/workflows/**` is inside the existing `deps` bucket).
+2. Locate the existing `if:` block on the `rls-tests` job (lines 255–257). **EXTEND** it by appending ` || needs.changes.outputs.deps == 'true'` so workflow-self-edits and lockfile changes also trigger pgTAP. Do NOT duplicate the block.
 3. Update `ci-summary` job (line 385) to treat `skipped` `rls-tests` as success when the path-filter gated it, NOT as failure (same pattern TD-195 applied to E2E).
-4. Do NOT add new paths-filter buckets, do NOT touch the `changes` job's filter list, and do NOT modify other workflows. Scope is strictly the `web-tests` matrix conversion + the single `if:` on `rls-tests` + the `ci-summary` skip-as-success update.
+4. Do NOT add new paths-filter buckets, do NOT touch the `changes` job's filter list, and do NOT modify other workflows. Scope is strictly the `web-tests` matrix conversion + the `rls-tests` `if:` EXTENSION + the `ci-summary` skip-as-success update.
 
 **Acceptance (verifiable):**
 - `gh pr checks <pr>` shows 3 `Web — <project>` rows running in parallel for any web/* diff.
@@ -104,30 +104,39 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - All other application code
 
 **Verified facts (do NOT re-discover):**
-- Root `package.json` already defines: `"lint": "turbo lint"` and `"type-check": "turbo type-check"` (note the hyphen). CI calls `pnpm type-check` at `ci.yml:111`. Do **NOT** add a new un-hyphenated `typecheck` script — it would create a parallel turbo task and a divergence from CI. Do **NOT** redefine `lint` — the existing script is correct.
-- Track B's job is to add the **turbo task definitions** so the EXISTING `turbo lint` and `turbo type-check` invocations gain cache behavior.
+- Root `package.json` already defines: `"lint": "turbo lint"` and `"type-check": "turbo type-check"` (hyphenated). CI calls `pnpm type-check` at `ci.yml:111`. Do **NOT** add a new un-hyphenated `typecheck` script.
+- `turbo.json` already has **existing task blocks** for `lint` (with `dependsOn: ["^lint"]`) and `type-check` (with `dependsOn: ["^build"]`). Track B **MERGES `inputs` + `outputs: []` into the existing blocks**; it does NOT add new task entries.
+- The existing `type-check.dependsOn: ["^build"]` is wasteful (type-check does not need build artifacts) and prevents cache hits from showing as `>>> FULL TURBO` on a clean second run. Track B **REMOVES** `dependsOn` from `type-check` only. Keeps `dependsOn` on `lint` (semantically reasonable — root lint waits on workspace lints).
 
 **Implementation steps:**
-1. Open `turbo.json`. Inside `tasks`, add **`type-check`** (hyphenated, matching the existing root script) and **`lint`**:
+1. Open `turbo.json`. **Modify the existing `type-check` block** to:
    ```json
    "type-check": {
      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig*.json", "package.json"],
      "outputs": []
-   },
+   }
+   ```
+   (removes `dependsOn: ["^build"]`; adds `inputs` + `outputs: []`).
+2. **Modify the existing `lint` block** to:
+   ```json
    "lint": {
+     "dependsOn": ["^lint"],
      "inputs": ["**/*.{ts,tsx,js,jsx,mjs}", "eslint.config.mjs", ".eslintrc*", "package.json"],
      "outputs": []
    }
    ```
-2. Open root `package.json`. **Do not modify the existing `lint` or `type-check` scripts** — they already invoke `turbo lint` and `turbo type-check`, which the new task definitions will now cache. Touch root `package.json` ONLY if a script change is needed (none expected).
-3. Verify locally: `pnpm type-check` runs (no error), then `pnpm type-check` a second time shows `>>> FULL TURBO` or per-package `cache hit, replaying logs` lines. Same for `pnpm lint`.
+   (keeps `dependsOn`; adds `inputs` + `outputs: []`).
+3. Do NOT touch root `package.json` — the existing `"lint": "turbo lint"` and `"type-check": "turbo type-check"` scripts already route through these tasks.
+4. Verify locally: `pnpm type-check` runs (no error), then `pnpm type-check` a second time shows `>>> FULL TURBO` or per-package `cache hit, replaying logs`. Same for `pnpm lint`.
 
 **Acceptance (verifiable):**
-- `grep -E '"type-check"' turbo.json` returns the new task block.
-- `grep -E '"lint"' turbo.json` returns the new task block.
+- `jq '.tasks["type-check"].inputs | length' turbo.json` returns a non-zero integer.
+- `jq '.tasks["type-check"].dependsOn' turbo.json` returns `null` (dependsOn was removed).
+- `jq '.tasks.lint.inputs | length' turbo.json` returns a non-zero integer.
+- `jq '.tasks.lint.dependsOn' turbo.json` returns `["^lint"]`.
 - `pnpm type-check && pnpm type-check` — second invocation prints `>>> FULL TURBO` or per-package `cache hit, replaying logs`.
 - `pnpm lint && pnpm lint` — same.
-- `diff <(grep -E '"(lint|type-check)":' package.json) <(echo -e '    "lint": "turbo lint",\n    "type-check": "turbo type-check",')` shows no diff (root scripts unchanged).
+- `git diff package.json` shows no changes (root scripts unchanged).
 
 **Risk + mitigations:** Cache invalidation on input-glob mismatch (e.g. tests passing because cache hit on stale source) — mitigated by explicit `inputs` lists that include the source globs; `outputs: []` means no artifacts to stale.
 
@@ -153,11 +162,11 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - The **browser** project's `fileParallelism: false` (lines 56–58) is load-bearing for the single-chromium-instance constraint. OUT OF SCOPE.
 
 **Implementation steps:**
-1. Inside the **node** project's `test:` block ONLY, add:
+1. Inside the **node** project's `test:` block ONLY, add a single line:
    ```ts
    pool: "threads",
-   poolOptions: { threads: { singleThread: false } },
    ```
+   Do NOT add `poolOptions` — vitest's defaults under `threads` already enable file-level parallelism. Setting `singleThread: false` is a no-op signal that adds noise. If a future change needs explicit thread-count caps, add `minThreads`/`maxThreads` in a follow-up TD.
 2. Do NOT change the **a11y** project. jsdom + threads is fragile; the a11y project's ~10 short test files do not justify the risk. Leave it on vitest's default pool (`forks`).
 3. Do NOT change the **browser** project. Its `fileParallelism: false` is load-bearing.
 4. Run `cd apps/web && npx vitest run` locally and confirm all tests still pass (2333 at baseline).
