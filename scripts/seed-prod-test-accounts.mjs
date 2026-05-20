@@ -41,7 +41,12 @@ function fail(msg) {
 }
 
 // ── Parse + validate guards ────────────────────────────────────────────────
-const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+// SUPABASE_URL must be set EXPLICITLY — no NEXT_PUBLIC_SUPABASE_URL fallback.
+// An operator who merely sources apps/web/.env.local would otherwise resolve the
+// prod URL silently, satisfy SEED_PROD_TEST_CONFIRM_HOST (host matches), and run a
+// service-role write against a project they never consciously targeted. Forcing
+// an explicit SUPABASE_URL keeps "never write to the wrong project by accident" real.
+const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const emails = (process.env.PROD_TEST_EMAILS || "")
   .split(",")
@@ -49,7 +54,7 @@ const emails = (process.env.PROD_TEST_EMAILS || "")
   .filter(Boolean);
 const password = process.env.PROD_TEST_PASSWORD || "CareSyncTest!123";
 
-if (!url) fail("SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) is required.");
+if (!url) fail("SUPABASE_URL is required (set it explicitly — no env fallback).");
 let host;
 try {
   host = new URL(url).host;
