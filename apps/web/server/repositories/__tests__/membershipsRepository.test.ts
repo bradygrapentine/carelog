@@ -165,16 +165,26 @@ describe("getCareTeamForRecipient", () => {
     expect(supabaseAdmin.auth.admin.getUserById).not.toHaveBeenCalled();
   });
 
-  it("throws when the memberships query errors", async () => {
+  it("throws stable code care_team_fetch_failed with raw error on .cause", async () => {
+    // TD-192: message is the stable snake_case code only (no interpolated
+    // error.message — PHI leak guard); raw PG error preserved via .cause.
     const mockSupabase = makeMockSupabaseClient(
       makeListChain({
         data: null,
         error: { message: "boom" },
       }),
     );
-    await expect(
-      getCareTeamForRecipient(mockSupabase, ORG_ID, RECIPIENT_ID),
-    ).rejects.toThrow(/getCareTeamForRecipient failed: boom/);
+    let err: Error | undefined;
+    try {
+      await getCareTeamForRecipient(mockSupabase, ORG_ID, RECIPIENT_ID);
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err?.message).toBe("care_team_fetch_failed");
+    expect(err?.message).not.toMatch("boom");
+    expect((err as { cause?: unknown }).cause).toMatchObject({
+      message: "boom",
+    });
   });
 
   it("returns surviving members when getUserById blips on one row", async () => {
