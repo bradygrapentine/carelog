@@ -30,6 +30,18 @@ Pair-intersection (every pair):
 
 **Forbidden-shared check:** none found. No source modules, schemas, configs, or test files appear in 2+ tracks' file lists.
 
+## Executor contract (applies to all 4 tracks)
+
+Each track-executor session MUST:
+
+1. **`cd <worktree>`** at session start; never operate from repo root.
+2. **`git branch --show-current`** before every commit; abort if it doesn't match the assigned branch (per global "Multi-Session Discipline" rule 2).
+3. **Stage explicit file lists** (`git add <files>`) — NEVER `git add .` or `git commit -a`. Multi-session HEAD swaps can leak unrelated changes.
+4. **Pre-granted Bash patterns** (no permission prompts needed): `gh pr create`, `gh pr merge --auto --squash`, `gh pr view`, `git push -u origin <branch>`, `pnpm`, `npx`, `cd`, `grep`, `cat`, `ls`.
+5. **Heartbeat clause** — append a timestamp every ~5 min to `.claude/agent-status/td-<id>.log` (per global Worktree & Subagent Conventions rule 3).
+6. **Diff summary in PR body** — list files changed + intentionally-NOT-changed.
+7. **Pre-commit local verification** — run the project test/typecheck commands listed in the track's Acceptance section before committing; `--no-verify` allowed ONLY when the documented pnpm + worktree env mismatch reproduces with changes stashed (see `.claude/CLAUDE.md` Known Gotchas).
+
 ## Worktrees (pre-created)
 
 - Track A: `worktrees/td-198-vitest-split-pgtap-fastskip/` (branch `feat/td-198-vitest-split-pgtap-fastskip`)
@@ -54,17 +66,22 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - `BACKLOG.md`, `CONTEXT.md` (finalizer-only)
 - All other application code
 
+**Verified facts (do NOT re-discover):**
+- `changes` job (lines 42–66) already exposes outputs: `web`, `mobile`, `supabase`, `deps`, `e2e`, `e2e-required`. The `deps` bucket already covers `.github/workflows/**` (the filter list at line 67 includes `.github/workflows/**`). **There is NO `workflow` output** — do NOT reference `needs.changes.outputs.workflow`.
+- `rls-tests` is at line 250 with no `if:` gate currently.
+
 **Implementation steps:**
 1. Locate the `web-tests` job (line 151) in `ci.yml`. Convert to a matrix job: `strategy.matrix.project: [web, node, a11y]` with `fail-fast: false`. Each runs `npx vitest run --project=${{ matrix.project }}` in `apps/web`. Update the job name template to `Web — ${{ matrix.project }}` for readable check rows.
-2. Verify the `changes` job's `dorny/paths-filter` step exposes a `supabase` output bucket; if not (TD-195 landed only the listed buckets), add `supabase: ['supabase/**']` to the filter.
-3. Locate the `rls-tests` job (line 250). Add `if: github.event_name == 'merge_group' || needs.changes.outputs.supabase == 'true' || needs.changes.outputs.deps == 'true' || needs.changes.outputs.workflow == 'true'` (mirror TD-195's `e2e` `if` shape — include workflow-self-edit force-run).
-4. Update `ci-summary` job (line 385) to treat `skipped` `rls-tests` as success when the path-filter gated it, NOT as failure (same pattern TD-195 applied to E2E).
+2. Locate the `rls-tests` job (line 250). Add `if: github.event_name == 'merge_group' || needs.changes.outputs.supabase == 'true' || needs.changes.outputs.deps == 'true'` (workflow-self-edit force-run is already covered because `.github/workflows/**` is inside the existing `deps` bucket).
+3. Update `ci-summary` job (line 385) to treat `skipped` `rls-tests` as success when the path-filter gated it, NOT as failure (same pattern TD-195 applied to E2E).
+4. Do NOT add new paths-filter buckets, do NOT touch the `changes` job's filter list, and do NOT modify other workflows. Scope is strictly the `web-tests` matrix conversion + the single `if:` on `rls-tests` + the `ci-summary` skip-as-success update.
 
 **Acceptance (verifiable):**
 - `gh pr checks <pr>` shows 3 `Web — <project>` rows running in parallel for any web/* diff.
-- A docs-only PR has `rls-tests` skipped AND `ci-summary` green.
+- A docs-only PR (no `supabase/**`, no `pnpm-lock.yaml`, no workflow/package changes) has `rls-tests` skipped AND `ci-summary` green.
 - A `supabase/**` change has `rls-tests` running.
-- The `force-run` allowlist (workflow self-edit) re-triggers `rls-tests` even on a docs-only PR.
+- A workflow-self-edit PR (touches `.github/workflows/**`) re-triggers `rls-tests` via the `deps` bucket.
+- `grep -E "outputs.workflow" .github/workflows/ci.yml` returns no matches (sanity check: do not introduce a `workflow` output).
 
 **Risk + mitigations:** RLS regression slipping through skip path — mitigated by force-run allowlist breadth and pgTAP nightly (when added in a future TD). Matrix flake — `fail-fast: false`.
 
@@ -86,10 +103,14 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - `BACKLOG.md`, `CONTEXT.md` (finalizer-only)
 - All other application code
 
+**Verified facts (do NOT re-discover):**
+- Root `package.json` already defines: `"lint": "turbo lint"` and `"type-check": "turbo type-check"` (note the hyphen). CI calls `pnpm type-check` at `ci.yml:111`. Do **NOT** add a new un-hyphenated `typecheck` script — it would create a parallel turbo task and a divergence from CI. Do **NOT** redefine `lint` — the existing script is correct.
+- Track B's job is to add the **turbo task definitions** so the EXISTING `turbo lint` and `turbo type-check` invocations gain cache behavior.
+
 **Implementation steps:**
-1. Open `turbo.json`. Inside `tasks`, add:
+1. Open `turbo.json`. Inside `tasks`, add **`type-check`** (hyphenated, matching the existing root script) and **`lint`**:
    ```json
-   "typecheck": {
+   "type-check": {
      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig*.json", "package.json"],
      "outputs": []
    },
@@ -98,18 +119,15 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
      "outputs": []
    }
    ```
-2. Open root `package.json`. Add scripts:
-   ```json
-   "typecheck": "turbo run typecheck",
-   "lint": "turbo run lint"
-   ```
-   If these scripts already exist with different bodies, leave them alone and document in PR description.
-3. Verify `pnpm typecheck` from repo root completes successfully and a second run shows cache HIT for unchanged packages.
+2. Open root `package.json`. **Do not modify the existing `lint` or `type-check` scripts** — they already invoke `turbo lint` and `turbo type-check`, which the new task definitions will now cache. Touch root `package.json` ONLY if a script change is needed (none expected).
+3. Verify locally: `pnpm type-check` runs (no error), then `pnpm type-check` a second time shows `>>> FULL TURBO` or per-package `cache hit, replaying logs` lines. Same for `pnpm lint`.
 
 **Acceptance (verifiable):**
-- `grep -E '"typecheck"' turbo.json` returns the new task block.
-- `pnpm typecheck && pnpm typecheck` — second invocation prints `>>> FULL TURBO` or per-package cache HIT lines.
-- `grep -E '"typecheck":.*turbo' package.json` (root) returns the new script.
+- `grep -E '"type-check"' turbo.json` returns the new task block.
+- `grep -E '"lint"' turbo.json` returns the new task block.
+- `pnpm type-check && pnpm type-check` — second invocation prints `>>> FULL TURBO` or per-package `cache hit, replaying logs`.
+- `pnpm lint && pnpm lint` — same.
+- `diff <(grep -E '"(lint|type-check)":' package.json) <(echo -e '    "lint": "turbo lint",\n    "type-check": "turbo type-check",')` shows no diff (root scripts unchanged).
 
 **Risk + mitigations:** Cache invalidation on input-glob mismatch (e.g. tests passing because cache hit on stale source) — mitigated by explicit `inputs` lists that include the source globs; `outputs: []` means no artifacts to stale.
 
@@ -130,22 +148,27 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - `BACKLOG.md`, `CONTEXT.md` (finalizer-only)
 - All other application code
 
+**Verified facts (do NOT re-discover):**
+- The **a11y** project uses `environment: "jsdom"` (apps/web/vitest.config.ts:line ~133–145). jsdom + threads pool is documented-fragile in vitest 4.x (DOM globals can leak across thread-pool workers). a11y is intentionally OUT OF SCOPE for this track.
+- The **browser** project's `fileParallelism: false` (lines 56–58) is load-bearing for the single-chromium-instance constraint. OUT OF SCOPE.
+
 **Implementation steps:**
-1. Inside the **node** project's `test:` block, add:
+1. Inside the **node** project's `test:` block ONLY, add:
    ```ts
    pool: "threads",
    poolOptions: { threads: { singleThread: false } },
    ```
-2. Inside the **a11y** project's `test:` block, add the same `pool` + `poolOptions`.
-3. Do NOT change the **browser** project. Its `fileParallelism: false` is load-bearing (single chromium instance — comment at lines 56–58 explains).
-4. Run `cd apps/web && npx vitest run` locally and confirm all tests still pass.
+2. Do NOT change the **a11y** project. jsdom + threads is fragile; the a11y project's ~10 short test files do not justify the risk. Leave it on vitest's default pool (`forks`).
+3. Do NOT change the **browser** project. Its `fileParallelism: false` is load-bearing.
+4. Run `cd apps/web && npx vitest run` locally and confirm all tests still pass (2333 at baseline).
 
 **Acceptance (verifiable):**
-- `grep -A 2 'name: "node"' apps/web/vitest.config.ts | grep -E "pool.*threads"` returns the new config.
+- `grep -A 6 'name: "node"' apps/web/vitest.config.ts | grep -E 'pool: "threads"'` returns the new config.
+- `grep -A 6 'name: "a11y"' apps/web/vitest.config.ts | grep -E 'pool:'` returns NO matches (a11y stays on default pool).
 - Full vitest suite green (2333 tests at baseline; should remain 2333).
 - Browser project's `fileParallelism: false` line is unchanged.
 
-**Risk + mitigations:** Thread-pool incompatibility with a test that relies on fork-only globals — mitigated by running the full suite locally; node project tests are pure-functions / server-router unit tests with no fork-specific state.
+**Risk + mitigations:** Thread-pool incompatibility with a test that relies on fork-only globals — mitigated by running the full suite locally; node project tests are pure-functions / server-router unit tests with no fork-specific state. a11y kept on default pool to avoid known jsdom + threads fragility.
 
 ## Track D — TD-201 — Playwright workers + fullyParallel config
 
@@ -164,19 +187,23 @@ All four worktrees branch from base SHA `09547d9379260ea4a5076902d1566d948e6f729
 - `BACKLOG.md`, `CONTEXT.md` (finalizer-only)
 - All other application code
 
+**Verified facts (do NOT re-discover):**
+- `playwright.config.ts` currently has `fullyParallel: false` on line 21 and `workers: 1` on line 23. Track D **REPLACES** both lines, it does not add duplicates.
+
 **Implementation steps:**
-1. Open `playwright.config.ts` (root). Add or update the top-level config object:
-   - `workers: process.env.CI ? 2 : undefined`
-   - `fullyParallel: true`
-2. If either key already exists with a different value, do NOT change it without first confirming the existing value's rationale in code comments / git blame. Document in PR description.
-3. Run `pnpm exec playwright test --list 2>&1 | tail -5` to confirm the config still parses.
+1. Open `playwright.config.ts` (root).
+2. **Replace line 21** `fullyParallel: false,` with `fullyParallel: true,`.
+3. **Replace line 23** `workers: 1,` with `workers: process.env.CI ? 2 : undefined,`.
+4. Run `pnpm exec playwright test --list 2>&1 | tail -10` to confirm the config still parses and the test count is unchanged from baseline.
 
 **Acceptance (verifiable):**
-- `grep -E "workers.*CI.*2" playwright.config.ts` returns the new line.
-- `grep -E "fullyParallel.*true" playwright.config.ts` returns the new line.
-- `pnpm exec playwright test --list` exits 0.
+- `grep -E "^  workers: process\.env\.CI \? 2 : undefined," playwright.config.ts` returns exactly one match.
+- `grep -E "^  fullyParallel: true," playwright.config.ts` returns exactly one match.
+- `grep -E "workers: 1," playwright.config.ts` returns NO matches (old line is gone).
+- `grep -E "fullyParallel: false," playwright.config.ts` returns NO matches (old line is gone).
+- `pnpm exec playwright test --list` exits 0 with the same test count as on main.
 
-**Risk + mitigations:** Worker count too high for the runner SKU causing OOM — mitigated by capping at 2 (conservative on 2-core GHA runners).
+**Risk + mitigations:** Worker count too high for the runner SKU causing OOM — mitigated by capping at 2 (conservative on 2-core GHA runners). `fullyParallel: true` may surface previously-hidden test ordering dependencies — mitigated by running the full e2e suite locally before opening PR.
 
 ## Merge order
 
