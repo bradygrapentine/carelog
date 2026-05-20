@@ -64,22 +64,30 @@ export function SignInForm() {
     setError(null);
     const supabase = createClient();
     // Client-side sign-in mirrors the OTP path (verifyOtp) — it sets the
-    // browser session/cookie the same way. NOTE: never pass `password` (or
-    // email) to posthog/Sentry/console (FIND-006); capture UUID-only, exactly
-    // as the OTP path does.
+    // browser session/cookie the same way. SECURITY CONSEQUENCE: because this
+    // runs client-side (like the OTP form), it does NOT pass through the
+    // app-layer rateLimit.ts wrapper (that only guards the unused
+    // api/auth/verify route). So GoTrue's own rate limit (prod dashboard
+    // sign_in_sign_ups) is the SOLE brute-force control on the password path —
+    // do not assume an app-layer middleware protects it. (threat-model FIND-005;
+    // see PROD_LIVE_TEST_LOCKDOWN.md step 5.)
+    // NOTE: never pass `password` (or email) to posthog/Sentry/console
+    // (FIND-006); capture UUID-only, exactly as the OTP path does.
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
       password,
     });
-    if (error) {
-      setError(friendlyPasswordError(error.message));
+    // Gate the redirect on a real session+user — GoTrue can return 200 with a
+    // null session (e.g. an unconfirmed account under some configs); redirecting
+    // then would bounce off the (app)/layout auth guard. Treat it as a failed
+    // sign-in with the same generic copy (no enumeration oracle).
+    if (error || !data.session || !data.user) {
+      setError(friendlyPasswordError(error?.message ?? ""));
       setLoading(false);
       return;
     }
-    if (data.user) {
-      posthog.identify(data.user.id); // UUID only — never email (PHI)
-      posthog.capture("sign_in_completed");
-    }
+    posthog.identify(data.user.id); // UUID only — never email (PHI)
+    posthog.capture("sign_in_completed");
     setLoading(false);
     router.replace("/dashboard");
   }
@@ -174,7 +182,10 @@ export function SignInForm() {
           />
         </div>
         {error && (
-          <p className="text-sm text-[var(--color-danger)] text-center">
+          <p
+            role="alert"
+            className="text-sm text-[var(--color-danger)] text-center"
+          >
             {error}
           </p>
         )}
@@ -192,7 +203,7 @@ export function SignInForm() {
             setOtp("");
             setError(null);
           }}
-          className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+          className="w-full rounded text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         >
           Use a different email
         </button>
@@ -238,13 +249,21 @@ export function SignInForm() {
             required
             minLength={MIN_PASSWORD_LENGTH}
             autoComplete="current-password"
+            aria-describedby="password-help"
             className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
           />
-          <p className="mt-1 text-xs text-[var(--color-muted)]">
+          <p
+            id="password-help"
+            className="mt-1 text-xs text-[var(--color-muted)]"
+          >
             At least {MIN_PASSWORD_LENGTH} characters.
           </p>
         </div>
-        {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-[var(--color-danger)]">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
           disabled={loading || !email || tooShort}
@@ -259,7 +278,7 @@ export function SignInForm() {
             setPassword("");
             setError(null);
           }}
-          className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+          className="w-full rounded text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         >
           Use a code instead
         </button>
@@ -287,7 +306,11 @@ export function SignInForm() {
           className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         />
       </div>
-      {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-[var(--color-danger)]">
+          {error}
+        </p>
+      )}
       <button
         type="submit"
         disabled={loading || !email}
