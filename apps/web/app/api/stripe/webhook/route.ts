@@ -62,6 +62,24 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch {}
+
+    // Roll back the replay-protection row so Stripe's automatic retry actually
+    // re-processes this event. The row was inserted BEFORE the handler ran (for
+    // concurrency-safe dedup), so returning 500 without deleting it would let the
+    // retry be short-circuited as a duplicate above — silently dropping the event.
+    const { error: rollbackError } = await supabaseAdmin
+      .from("stripe_events")
+      .delete()
+      .eq("event_id", event.id);
+    if (rollbackError) {
+      logger.error(
+        "[stripe/webhook] dedup rollback failed — Stripe retry will be skipped as a duplicate:",
+        rollbackError,
+      );
+    }
+
+    // Surface failure to Stripe (non-2xx) so it retries with backoff.
+    return NextResponse.json({ error: "handler_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
