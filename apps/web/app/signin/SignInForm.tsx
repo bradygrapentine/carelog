@@ -30,13 +30,59 @@ function friendlyOtpError(message: string): string {
   return "Couldn't sign you in. Try again, or send a fresh code.";
 }
 
+// TD-221: password sign-in error copy. Deliberately collapses every credential
+// failure — wrong password, no such user, unconfirmed — into ONE generic line
+// so we never expose a user-enumeration oracle (OWASP A07 / threat-model
+// FIND-003). Only the rate-limit case gets distinct (non-revealing) copy.
+function friendlyPasswordError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("rate limit") || m.includes("too many")) {
+    return "Too many attempts. Wait a minute and try again.";
+  }
+  return "Email or password is incorrect.";
+}
+
+// Minimum password length — must match supabase/config.toml minimum_password_length
+// and the prod dashboard Auth policy (threat-model FIND-001, ASVS L1).
+const MIN_PASSWORD_LENGTH = 12;
+
 export function SignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  // "otp" = passwordless email-code (default for families); "password" = the
+  // coexisting email+password method (TD-221). OTP is never removed.
+  const [mode, setMode] = useState<"otp" | "password">("otp");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handlePasswordSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const supabase = createClient();
+    // Client-side sign-in mirrors the OTP path (verifyOtp) — it sets the
+    // browser session/cookie the same way. NOTE: never pass `password` (or
+    // email) to posthog/Sentry/console (FIND-006); capture UUID-only, exactly
+    // as the OTP path does.
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase().trim(),
+      password,
+    });
+    if (error) {
+      setError(friendlyPasswordError(error.message));
+      setLoading(false);
+      return;
+    }
+    if (data.user) {
+      posthog.identify(data.user.id); // UUID only — never email (PHI)
+      posthog.capture("sign_in_completed");
+    }
+    setLoading(false);
+    router.replace("/dashboard");
+  }
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +200,73 @@ export function SignInForm() {
     );
   }
 
+  if (mode === "password") {
+    const tooShort = password.length < MIN_PASSWORD_LENGTH;
+    return (
+      <form onSubmit={handlePasswordSignIn} className="space-y-6">
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-[var(--color-ink)] mb-1.5"
+          >
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoComplete="username"
+            className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-[var(--color-ink)] mb-1.5"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••••••"
+            required
+            minLength={MIN_PASSWORD_LENGTH}
+            autoComplete="current-password"
+            className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+          />
+          <p className="mt-1 text-xs text-[var(--color-muted)]">
+            At least {MIN_PASSWORD_LENGTH} characters.
+          </p>
+        </div>
+        {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading || !email || tooShort}
+          className="w-full rounded-xl bg-[var(--color-primary-pressed)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-deep)] disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-pressed)] focus:ring-offset-2"
+        >
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("otp");
+            setPassword("");
+            setError(null);
+          }}
+          className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+        >
+          Use a code instead
+        </button>
+      </form>
+    );
+  }
+
   return (
     <form onSubmit={handleSendOtp} className="space-y-6">
       <div>
@@ -170,6 +283,7 @@ export function SignInForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           required
+          autoComplete="username"
           className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
         />
       </div>
@@ -184,6 +298,16 @@ export function SignInForm() {
       <p className="text-center text-xs text-[var(--color-muted)]">
         We'll email you a 6-digit code. No password needed.
       </p>
+      <button
+        type="button"
+        onClick={() => {
+          setMode("password");
+          setError(null);
+        }}
+        className="w-full text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+      >
+        Use a password instead
+      </button>
     </form>
   );
 }
