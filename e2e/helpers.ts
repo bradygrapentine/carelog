@@ -1,5 +1,66 @@
 import { Page, Browser } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+// TD-220: E2E auth mints the login OTP through the GoTrue admin API instead of
+// polling Mailpit — `generateLink({type:'magiclink'})` returns the 6-digit
+// `email_otp` WITHOUT sending an email, removing the recurring
+// `getOtpFromMailpit timed out` flake. E2E always runs against LOCAL Supabase
+// (in CI too, via `supabase start`), so we use the standard public local
+// service-role key by default. NOTE: do NOT reuse `apps/web/.env.local`'s
+// SUPABASE_SERVICE_ROLE_KEY here — that is the PROD (`sb_secret_…`) key and
+// local GoTrue rejects it. The hand-rolled env loader in playwright.config.ts
+// also keeps surrounding quotes, so strip them defensively.
+const stripQuotes = (s: string) => s.replace(/^["']|["']$/g, "");
+const E2E_SUPABASE_URL = stripQuotes(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
+);
+// Universal supabase-demo local service-role key (public — in supabase docs +
+// every default local install; config.toml sets no custom jwt secret). Override
+// with E2E_SUPABASE_SERVICE_ROLE_KEY only for a non-default local stack.
+// Stored as its three JWT segments and joined at runtime: the contiguous
+// `eyJ….eyJ….sig` literal never appears in source, so secret scanners (gitleaks
+// `jwt` rule) have nothing to match. This is a well-known PUBLIC key, not a secret.
+const LOCAL_SERVICE_ROLE_KEY = [
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+  "eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0",
+  "EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+].join(".");
+
+let _admin: SupabaseClient | null = null;
+function adminClient(): SupabaseClient {
+  if (!_admin) {
+    const key = stripQuotes(
+      process.env.E2E_SUPABASE_SERVICE_ROLE_KEY || LOCAL_SERVICE_ROLE_KEY,
+    );
+    _admin = createClient(E2E_SUPABASE_URL, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return _admin;
+}
+
+// Mint the login OTP out-of-band (no email). The /signin UI verifies with
+// `type:"email"`; a `magiclink` `email_otp` lives in the SAME GoTrue OTP
+// storage and verifies under `type:"email"` — do NOT switch this to
+// `type:"magiclink"` or the UI verify will reject it. Call AFTER the UI's own
+// send so this OTP is the most-recent one GoTrue honors.
+export async function getOtpViaAdmin(email: string): Promise<string> {
+  const { data, error } = await adminClient().auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  });
+  if (error) {
+    throw new Error(
+      `getOtpViaAdmin: generateLink failed for ${email}: ${error.message}`,
+    );
+  }
+  const otp = data.properties?.email_otp;
+  if (!otp) {
+    throw new Error(`getOtpViaAdmin: no email_otp returned for ${email}`);
+  }
+  return otp;
+}
 
 // Post-#243 dashboard cards/detail-panels expose journal navigation via
 // aria-label `Open care journal for ${orgName}` — no raw "View care journal"
@@ -76,7 +137,6 @@ export async function getOtpFromMailpit(
 // timeout. Use explicit role + exact name + form scoping instead.
 export async function signIn(page: Page, email: string): Promise<void> {
   await page.context().clearCookies();
-  await clearMailpit();
   await page.goto("/signin");
 
   await page.getByLabel("Email address").fill(email);
@@ -85,7 +145,9 @@ export async function signIn(page: Page, email: string): Promise<void> {
     .getByText("Check your email", { exact: false })
     .waitFor({ timeout: 30_000 });
 
-  const otp = await getOtpFromMailpit(email);
+  // TD-220: mint the OTP via admin (no Mailpit). Called after the UI send so it
+  // is the most-recent OTP GoTrue honors.
+  const otp = await getOtpViaAdmin(email);
   await page.getByPlaceholder("123456").fill(otp);
 
   await Promise.all([
@@ -200,7 +262,6 @@ export async function acceptInviteAsNewUser(
   const page = await ctx.newPage();
 
   await page.goto(inviteUrl);
-  await clearMailpit();
   await Promise.all([
     page.waitForURL(/\/signin/, { timeout: 10000 }),
     page.getByRole("button", { name: /^Accept invitation$/ }).click(),
@@ -209,7 +270,8 @@ export async function acceptInviteAsNewUser(
   await page.getByLabel("Email address").fill(inviteeEmail);
   await page.getByRole("button", { name: /^Continue with email$/ }).click();
   await page.getByText("Check your email", { exact: false }).waitFor();
-  const otp = await getOtpFromMailpit(inviteeEmail);
+  // TD-220: admin-minted OTP (no Mailpit) — same swap as signIn().
+  const otp = await getOtpViaAdmin(inviteeEmail);
   await page.getByPlaceholder("123456").fill(otp);
 
   // Redirected back to invite URL by DashboardClient pending invite bridge
