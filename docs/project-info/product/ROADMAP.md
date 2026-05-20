@@ -217,6 +217,32 @@ Publish a privacy policy and Terms of Service at stable URLs linked from the sig
 ### SEO discoverability (in-progress)
 LAUNCH-003 shipped the table-stakes (OG/Twitter meta, sitemap, robots.txt, Organization + SoftwareApplication JSON-LD). The post-launch SEO push goes deeper: SEO-001/002/004 shipped via PR #386 (intent-shaped titles, FAQPage JSON-LD on `/contact` + `/pricing`, footer cross-links). SEO-003 (HowTo JSON-LD) deferred — `/carezone-alternative` was consolidated into `/about` via PRs #316/#317 and `/about` lacks step-by-step content the schema would describe. SEO-005 shipped 2026-05-17 via PR #588 (Geist `display: "swap"` for FOIT fix on `/`, `/pricing`, `/about`; CWV baseline doc at `docs/runbooks/lighthouse-cwv-baseline-2026-05-17.md`). Remaining work: SEO-006/007 (Google Search Console verification + cornerstone content at `/learn/*`) — both 🧑 human-gated. Tracked in BACKLOG.md §1.
 
+## Phase 7 — Task coordination & on-call (planned)
+
+The scheduler answers "who is here Thursday." This phase answers "what needs to happen, who is allowed to do it, and who gets pinged when it does." It is the first net-new feature phase after launch readiness. Driven by a real caregiver flow: a coordinator (or the care recipient themselves) raises a need; an on-call caregiver is notified, completes it, and the requester is notified of completion — for both on-demand needs and known-in-advance events (appointments, medication pickups, a granddaughter's soccer game).
+
+**The capability:**
+- **Tasks** — discrete activities that must be completed. Each carries free-text instructions and/or a clickable checklist. Tasks can be **pinned to a shift** (current or future) so they surface to whoever is covering that window, and they carry a completion lifecycle (to-do → in progress → done) with an optional completion artifact.
+- **Role-based access** — who may *create* a task and who may *complete* a given task is configurable per org by an admin. The recipient themselves may also raise a request.
+- **On-call shifts** — a new shift *type* (orthogonal to the existing open/claimed/confirmed status lifecycle). An on-call caregiver is the routing target for task requests that arrive during their window.
+- **Configurable notifications** — tied to task lifecycle events (created/assigned/completed). Email + in-app first (reuses the live Resend + `email_dispatch_log` + Inngest infra); push layered in once mobile launches.
+- **Future-dated & recurring tasks** — appointments, pickups, and recurring events pin to future shifts and surface/remind ahead of time.
+
+**Why now / why this shape:**
+- It builds directly on the shipped scheduler (shifts) and notification infra — no new external dependencies for v1.
+- The on-demand loop (recipient calls → coordinator raises task → on-call caregiver completes → requester notified) is the highest-frequency real-world coordination need not yet served.
+- Verification (photo/confirmation on completion, à la Lime/DoorDash) is intentionally a **deferred follow-up** — ship the core loop first, validate it, then add proof-of-completion.
+
+**Tracked in `BACKLOG.md`** as the `ON-77 … ON-84` family:
+- **ON-77** — Task data model + RLS + configurable role-based permissions (foundational; blocks the rest).
+- **ON-78** — On-call shift type (`shift_type` enum on `shifts`).
+- **ON-79** — Task CRUD + web UI (instructions + clickable checklist + pin-to-shift).
+- **ON-80** — Mobile task flow (create + on-call receive + complete).
+- **ON-81** — Configurable task notifications (email + in-app; on-call routing).
+- **ON-82** — Future-shift pinning + scheduled/recurring tasks.
+- **ON-83** — Recipient-initiated task requests.
+- **ON-84** — Task completion verification layer (🧊 deferred).
+
 ## Beyond Phase 6 — open follow-ups
 
 The product is shipped. Open work beyond launch readiness lives entirely in `BACKLOG.md`:
