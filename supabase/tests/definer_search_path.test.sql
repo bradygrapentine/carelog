@@ -15,7 +15,7 @@
 --      (is_thread_member policy works for a normal authenticated user).
 
 BEGIN;
-SELECT plan(16);
+SELECT plan(17);
 
 -- ============================================================
 -- 1. proconfig pinned on all 10 (signature-keyed, public-scoped)
@@ -87,15 +87,19 @@ SELECT is(has_function_privilege('authenticated', 'public.user_is_org_member(uui
   'authenticated CAN EXECUTE user_is_org_member (required for RLS policy eval)');
 
 -- ============================================================
--- 4. Positive owner-context: REVOKE does not break RLS policy evaluation.
---    Policy "thread members can select" on message_threads calls the now-REVOKEd
---    public.is_thread_member(id). A member must still see their thread.
+-- 5. Owner-context RLS still works after pinning + (deliberately) NOT revoking
+--    the helpers. The "thread members can select" policy on message_threads
+--    calls public.is_thread_member(id) — which remains caller-executable (test
+--    14). Member SELECTs 1 row; a NON-member SELECTs 0. The negative case makes
+--    this load-bearing: a `USING (true)` regression would fail the count=0 test.
 -- ============================================================
 SET LOCAL ROLE postgres;
 INSERT INTO auth.users (id, aud, role, email, email_confirmed_at, created_at, updated_at,
   raw_app_meta_data, raw_user_meta_data, is_super_admin) VALUES
   ('20260521-1001-0000-0000-000000000001', 'authenticated', 'authenticated',
-   'member@td217.test', now(), now(), now(), '{}', '{}', false)
+   'member@td217.test', now(), now(), now(), '{}', '{}', false),
+  ('20260521-1001-0000-0000-000000000002', 'authenticated', 'authenticated',
+   'nonmember@td217.test', now(), now(), now(), '{}', '{}', false)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO organizations (id, name, org_type) VALUES
   ('20260521-1000-0000-0000-000000000001', 'TD-217 Org', 'family') ON CONFLICT DO NOTHING;
@@ -108,13 +112,25 @@ INSERT INTO public.message_threads (id, org_id, thread_type, created_by) VALUES
 INSERT INTO public.message_thread_members (thread_id, user_id) VALUES
   ('20260521-1ee0-0000-0000-000000000001', '20260521-1001-0000-0000-000000000001') ON CONFLICT DO NOTHING;
 
+-- Member sees their thread
 SET LOCAL ROLE authenticated;
 SET LOCAL "request.jwt.claims" TO '{"sub":"20260521-1001-0000-0000-000000000001","role":"authenticated"}';
 SELECT is(
   (SELECT count(*)::int FROM public.message_threads
    WHERE id = '20260521-1ee0-0000-0000-000000000001'),
   1,
-  'thread member still SELECTs their thread — REVOKEd is_thread_member evaluates as owner (RLS unbroken)'
+  'thread member SELECTs their thread (is_thread_member callable → RLS unbroken)'
+);
+
+-- Non-member sees nothing (proves the policy actually filters — not USING(true))
+SET LOCAL ROLE postgres;
+SET LOCAL "request.jwt.claims" TO '{"sub":"20260521-1001-0000-0000-000000000002","role":"authenticated"}';
+SET LOCAL ROLE authenticated;
+SELECT is(
+  (SELECT count(*)::int FROM public.message_threads
+   WHERE id = '20260521-1ee0-0000-0000-000000000001'),
+  0,
+  'non-member SELECTs 0 threads (is_thread_member correctly filters — not USING(true))'
 );
 
 SET LOCAL ROLE postgres;
