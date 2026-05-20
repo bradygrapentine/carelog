@@ -103,12 +103,14 @@ describe("buildHistoryExport", () => {
     ).rejects.toThrow("Identity not found");
   });
 
-  // TD-205: a query error on care_events/medications/symptom_readings must
-  // throw (fail closed) — never silently return a snapshot missing that data.
+  // TD-205 + TD-216: a query error on any care/eol/documents table must throw
+  // (fail closed) — never silently return a snapshot missing that data.
   it.each([
     ["care_events", "Care events fetch failed"],
     ["medications", "Medications fetch failed"],
     ["symptom_readings", "Symptom readings fetch failed"],
+    ["eol_plan", "EOL plan fetch failed"],
+    ["documents", "Documents fetch failed"],
   ])(
     "throws when %s query errors (no silent partial export)",
     async (table, message) => {

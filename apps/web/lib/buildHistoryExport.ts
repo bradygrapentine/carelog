@@ -146,21 +146,29 @@ export async function buildHistoryExport(opts: {
     throw new Error("Symptom readings fetch failed");
   }
 
-  // 6. Fetch EOL plan (may not exist)
-  const { data: eolPlan } = await supabaseAdmin
+  // 6. Fetch EOL plan (may not exist — null data is valid, only a query error throws)
+  const { data: eolPlan, error: eolPlanError } = await supabaseAdmin
     .from("eol_plans")
     .select("id, created_at, updated_at, content")
     .eq("recipient_id", recipientId)
     .eq("org_id", orgId)
     .maybeSingle();
 
-  // 7. Fetch documents metadata (not file contents)
-  const { data: documents } = await supabaseAdmin
+  if (eolPlanError) {
+    throw new Error("EOL plan fetch failed");
+  }
+
+  // 7. Fetch documents metadata (not file contents — empty list is valid)
+  const { data: documents, error: documentsError } = await supabaseAdmin
     .from("documents")
     .select("id, created_at, file_name, file_type, uploaded_by")
     .eq("recipient_id", recipientId)
     .eq("org_id", orgId)
     .order("created_at", { ascending: true });
+
+  if (documentsError) {
+    throw new Error("Documents fetch failed");
+  }
 
   return {
     generated_at: new Date().toISOString(),
