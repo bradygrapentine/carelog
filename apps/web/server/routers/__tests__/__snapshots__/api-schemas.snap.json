@@ -2529,6 +2529,226 @@
     },
     "output": null
   },
+  "tasks.assign": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assignee_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        }
+      },
+      "required": [
+        "id",
+        "assignee_user_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "tasks.cancel": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "tasks.complete": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "tasks.create": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "instructions": {
+          "type": "string",
+          "maxLength": 10000,
+          "nullable": true
+        },
+        "checklist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "done": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "label",
+              "done"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "assigned_to": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        },
+        "shift_id": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        },
+        "due_at": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        }
+      },
+      "required": [
+        "recipient_id",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "tasks.list": {
+    "type": "query",
+    "input": {
+      "type": "object",
+      "properties": {
+        "recipient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shift_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assigned_to": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "recipient_id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "tasks.update": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "instructions": {
+          "type": "string",
+          "maxLength": 10000,
+          "nullable": true
+        },
+        "checklist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "done": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "label",
+              "done"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "assigned_to": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        },
+        "shift_id": {
+          "type": "string",
+          "format": "uuid",
+          "nullable": true
+        },
+        "due_at": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "todo",
+            "in_progress",
+            "done",
+            "cancelled"
+          ]
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
   "user.dismissEducationTip": {
     "type": "mutation",
     "input": null,
