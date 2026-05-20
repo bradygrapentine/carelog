@@ -19,7 +19,7 @@ function renderNav(
 }
 
 describe("SidebarNav", () => {
-  it("renders all 7 nav items", () => {
+  it("renders all 8 nav items", () => {
     renderNav();
     expect(
       screen.getByRole("button", { name: /journal/i }),
@@ -29,6 +29,7 @@ describe("SidebarNav", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /team/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /shifts/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tasks/i })).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /documents/i }),
     ).toBeInTheDocument();

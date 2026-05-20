@@ -15,7 +15,8 @@ import { createTaskPayload, updateTaskPayload } from "@carelog/schemas";
 // the single source of truth stays in SQL. The only supabaseAdmin use is the
 // cross-user assignee-membership read in `assign`.
 
-// Trigger RAISE constants (PHI-free) + RLS WITH CHECK violation → FORBIDDEN.
+// Trigger RAISE constants (PHI-free). An RLS WITH CHECK violation surfaces as
+// SQLSTATE 42501, handled by code in isForbidden — no message-substring needed.
 const FORBIDDEN_MARKERS = [
   "tasks_complete_forbidden",
   "tasks_edit_forbidden",
@@ -23,7 +24,6 @@ const FORBIDDEN_MARKERS = [
   "tasks_revive_forbidden",
   "tasks_decomplete_forbidden",
   "tasks_immutable_column",
-  "row-level security",
 ];
 
 type PgError = { code?: string; message?: string } | null;

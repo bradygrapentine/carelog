@@ -8,6 +8,7 @@ export type Destination =
   | "medications"
   | "team"
   | "shifts"
+  | "tasks"
   | "documents"
   | "messages"
   | "more";
@@ -17,6 +18,7 @@ const VALID: readonly Destination[] = [
   "medications",
   "team",
   "shifts",
+  "tasks",
   "documents",
   "messages",
   "more",

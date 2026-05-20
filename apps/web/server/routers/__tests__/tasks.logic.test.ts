@@ -161,6 +161,56 @@ describe("tasks.cancel", () => {
       code: "FORBIDDEN",
     });
   });
+
+  it("maps a 0-rows result (RLS USING-denial, no error) to FORBIDDEN", async () => {
+    const from = vi.fn(() => makeChain({ data: [], error: null }, {}));
+    await expect(
+      caller(from).tasks.cancel({ id: TASK_ID }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+});
+
+describe("tasks.update", () => {
+  it("builds a content-only patch (title + checklist), never completed_by/at", async () => {
+    const cap: { payload?: unknown } = {};
+    const checklist = [{ label: "Step 1", done: true }];
+    const from = vi.fn(() =>
+      makeChain({ data: [{ id: TASK_ID, title: "New" }], error: null }, cap),
+    );
+    const res = await caller(from).tasks.update({
+      id: TASK_ID,
+      title: "New",
+      checklist,
+    });
+    expect(res).toEqual({ id: TASK_ID, title: "New" });
+    const payload = cap.payload as Record<string, unknown>;
+    expect(payload).toEqual({ title: "New", checklist });
+    expect(payload).not.toHaveProperty("completed_by");
+    expect(payload).not.toHaveProperty("completed_at");
+    expect(payload).not.toHaveProperty("status");
+  });
+
+  it("maps a trigger RAISE (tasks_edit_forbidden) to FORBIDDEN", async () => {
+    const from = vi.fn(() =>
+      makeChain(
+        {
+          data: null,
+          error: { code: "P0001", message: "tasks_edit_forbidden" },
+        },
+        {},
+      ),
+    );
+    await expect(
+      caller(from).tasks.update({ id: TASK_ID, title: "x" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("maps a 0-rows result (RLS USING-denial, no error) to FORBIDDEN", async () => {
+    const from = vi.fn(() => makeChain({ data: [], error: null }, {}));
+    await expect(
+      caller(from).tasks.update({ id: TASK_ID, title: "x" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });
 
 describe("tasks.assign", () => {
@@ -181,6 +231,27 @@ describe("tasks.assign", () => {
 
   it("FORBIDDEN when the task row is not visible to the caller", async () => {
     const from = vi.fn(() => makeChain({ data: null, error: null }, {}));
+    await expect(
+      caller(from).tasks.assign({ id: TASK_ID, assignee_user_id: null }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("maps a 0-rows write result to FORBIDDEN (task visible, but write denied)", async () => {
+    // First from() = the RLS-scoped task read (succeeds); second = the assign
+    // write, which returns 0 rows (RLS USING-denial, no error).
+    let call = 0;
+    const from = vi.fn(() => {
+      call += 1;
+      return call === 1
+        ? makeChain(
+            {
+              data: { org_id: ORG_ID, recipient_id: RECIPIENT_ID },
+              error: null,
+            },
+            {},
+          )
+        : makeChain({ data: [], error: null }, {});
+    });
     await expect(
       caller(from).tasks.assign({ id: TASK_ID, assignee_user_id: null }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
