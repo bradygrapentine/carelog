@@ -1,7 +1,17 @@
 import { z } from "zod";
 
+// TD-210: the load-bearing length caps on care_events JSONB payload fields,
+// named so the limit has a single source of truth and an explicit intent rather
+// than a bare magic number repeated at the call site. NOTE: care_events.payload
+// is `jsonb` with no per-field DB CHECK, so these are app-side validation only —
+// they are deliberately NOT claimed to mirror a database constraint (no such
+// constraint exists for these sub-fields). Adjust here when the product limit
+// changes.
+export const JOURNAL_TEXT_MAX = 10000;
+export const HANDOFF_NOTE_MAX = 2000;
+
 export const journalPayload = z.object({
-  text: z.string().min(1).max(10000),
+  text: z.string().min(1).max(JOURNAL_TEXT_MAX),
   mood: z.enum(["good", "okay", "difficult", "crisis"]).optional(),
   flagReason: z.string().max(1000).optional(),
   prompt_used: z.string().max(500).optional(),
@@ -19,7 +29,7 @@ export const medicationPayload = z.object({
 export const shiftPayload = z.object({
   shift_id: z.string().uuid(),
   action: z.enum(["started", "completed", "missed", "covered"]),
-  handoff_note: z.string().max(2000).optional(),
+  handoff_note: z.string().max(HANDOFF_NOTE_MAX).optional(),
 });
 
 export const appointmentPayload = z.object({
