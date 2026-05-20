@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // --- Mocks ---
@@ -83,11 +83,19 @@ function setupCoordinator(overrides?: {
 describe("POST /api/stripe/checkout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Price env vars are unset in CI; stub them so the happy-path tests exercise
+    // the real flow (TD-204 added a fail-closed guard when priceId is missing).
+    vi.stubEnv("STRIPE_PRICE_MONTHLY", "price_monthly_test");
+    vi.stubEnv("STRIPE_PRICE_ANNUAL", "price_annual_test");
     // Default: mock a successful checkout session
     mockCheckoutCreate.mockResolvedValue({
       url: "https://checkout.stripe.com/session_123",
     });
     mockCustomerCreate.mockResolvedValue({ id: "cus_new" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("returns 401 without auth", async () => {
@@ -251,5 +259,98 @@ describe("POST /api/stripe/checkout", () => {
       makeRequest({ orgId: TEST_ORG_ID, interval: "month" }),
     );
     expect(res.status).toBe(404);
+  });
+
+  // TD-204: fail closed when the price env var is unset — never hand Stripe a
+  // session with `price: undefined`.
+  it("returns 400 and does NOT create a session when price env is unset", async () => {
+    setupCoordinator();
+    vi.stubEnv("STRIPE_PRICE_MONTHLY", "");
+    const { POST } = await import("../checkout/route");
+    const res = await POST(
+      makeRequest({ orgId: TEST_ORG_ID, interval: "month" }),
+    );
+    expect(res.status).toBe(400);
+    expect(mockCheckoutCreate).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
+  });
+
+  // TD-204: customer-create succeeds but the stripe_id persist fails → 500
+  // (orphaned customer), and the Stripe customer id is never leaked to client.
+  it("returns 500 without leaking customer id when stripe_id update fails", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: { role: "coordinator" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "organizations") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: {
+                  id: TEST_ORG_ID,
+                  name: "Test Org",
+                  plan: "free",
+                  stripe_id: null,
+                },
+                error: null,
+              }),
+            }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: { code: "XX000" } }),
+          }),
+        };
+      }
+      return {};
+    });
+    const { POST } = await import("../checkout/route");
+    const res = await POST(
+      makeRequest({ orgId: TEST_ORG_ID, interval: "month" }),
+    );
+    const body = await res.json();
+    expect(res.status).toBe(500);
+    expect(JSON.stringify(body)).not.toContain("cus_new");
+    expect(mockCheckoutCreate).not.toHaveBeenCalled();
+  });
+
+  // TD-204: a transport/DB error on the membership lookup must 500, not the
+  // misleading 403 a discarded error would have produced.
+  it("returns 500 on membership lookup transport error", async () => {
+    mockGetRequestUser.mockResolvedValue({ id: "user-1", email: "a@b.com" });
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "memberships") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: { code: "XX000", message: "connection lost" },
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+    const { POST } = await import("../checkout/route");
+    const res = await POST(
+      makeRequest({ orgId: TEST_ORG_ID, interval: "month" }),
+    );
+    expect(res.status).toBe(500);
   });
 });

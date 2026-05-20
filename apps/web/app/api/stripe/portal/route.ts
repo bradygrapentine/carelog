@@ -23,12 +23,20 @@ export async function POST(request: NextRequest) {
   const { orgId } = parsed.data;
 
   // Verify coordinator
-  const { data: membership } = await supabaseAdmin
+  const { data: membership, error: membershipError } = await supabaseAdmin
     .from("memberships")
     .select("role")
     .eq("org_id", orgId)
     .eq("user_id", user.id)
     .single();
+
+  // Transport/DB error → 500; legitimate no-row (PGRST116) falls through to 403.
+  if (membershipError && membershipError.code !== "PGRST116") {
+    logger.error("[stripe/portal] membership lookup failed", {
+      code: membershipError.code,
+    });
+    return NextResponse.json({ error: "Lookup failed" }, { status: 500 });
+  }
 
   if (!membership || membership.role !== "coordinator") {
     return NextResponse.json(
@@ -38,11 +46,16 @@ export async function POST(request: NextRequest) {
   }
 
   // Look up org stripe_id
-  const { data: org } = await supabaseAdmin
+  const { data: org, error: orgError } = await supabaseAdmin
     .from("organizations")
     .select("id, stripe_id")
     .eq("id", orgId)
     .single();
+
+  if (orgError && orgError.code !== "PGRST116") {
+    logger.error("[stripe/portal] org lookup failed", { code: orgError.code });
+    return NextResponse.json({ error: "Lookup failed" }, { status: 500 });
+  }
 
   if (!org?.stripe_id) {
     return NextResponse.json(
