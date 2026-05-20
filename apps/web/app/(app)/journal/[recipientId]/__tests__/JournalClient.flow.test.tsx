@@ -10,6 +10,7 @@ const { mockAuthFetch, mockFrom, mockGet } = vi.hoisted(() => {
   const mockAuthFetch = vi.fn().mockImplementation(async (url: string) => {
     if (typeof url === "string" && url.includes("members")) {
       return {
+        ok: true,
         json: async () => ({
           members: [
             {
@@ -23,7 +24,7 @@ const { mockAuthFetch, mockFrom, mockGet } = vi.hoisted(() => {
         }),
       };
     }
-    return { json: async () => ({ events: [] }) };
+    return { ok: true, json: async () => ({ events: [] }) };
   });
   return { mockAuthFetch, mockFrom: vi.fn(), mockGet: vi.fn() };
 });
@@ -154,6 +155,7 @@ describe("JournalClient", () => {
     mockAuthFetch.mockImplementation(async (url: string) => {
       if (typeof url === "string" && url.includes("members")) {
         return {
+          ok: true,
           json: async () => ({
             members: [
               {
@@ -167,7 +169,7 @@ describe("JournalClient", () => {
           }),
         };
       }
-      return { json: async () => ({ events: [] }) };
+      return { ok: true, json: async () => ({ events: [] }) };
     });
   });
 
@@ -234,6 +236,7 @@ describe("JournalClient", () => {
     mockAuthFetch.mockImplementation(async (url: string) => {
       if (typeof url === "string" && url.includes("members")) {
         return {
+          ok: true,
           json: async () => ({
             members: [
               {
@@ -247,7 +250,7 @@ describe("JournalClient", () => {
           }),
         } as Response;
       }
-      return { json: async () => ({ events: [] }) } as Response;
+      return { ok: true, json: async () => ({ events: [] }) } as Response;
     });
 
     render(<JournalClient recipientId="r1" user={MOCK_USER as any} />);

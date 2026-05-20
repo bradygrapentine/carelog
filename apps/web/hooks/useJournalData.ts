@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase";
 import { authenticatedFetch } from "../lib/authenticatedFetch";
@@ -85,6 +86,12 @@ export function useJournalData(
 
   async function loadMembers(orgId: string, userId: string) {
     const res = await authenticatedFetch("/api/members?orgId=" + orgId);
+    if (!res.ok) {
+      // Previously silent: a failed request left members stale and the current
+      // user's role unset. Surface it; generic message (no member PHI).
+      toast.error("Couldn't load the care team — please refresh.");
+      return;
+    }
     const data = await res.json();
     if (data.members) {
       setMembers(data.members);
@@ -97,11 +104,16 @@ export function useJournalData(
     const supabase = createClient();
     // care_recipients has no display_name column — names live in the display_names
     // PHI-vault table (full_name, keyed by recipient_id).
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("display_names")
       .select("recipient_id, full_name")
       .eq("org_id", orgId)
       .order("full_name", { ascending: true });
+    if (error) {
+      // Generic message only — display_names.full_name is PHI, never logged/echoed.
+      toast.error("Couldn't load recipients — please refresh.");
+      return;
+    }
     if (data) {
       setRecipients(
         data.map((row) => ({

@@ -58,6 +58,10 @@ export function useJournalActions(
           toast.error(
             "Offline queue is full. Connect to the internet to sync.",
           );
+        } else {
+          // Previously swallowed silently — the user believed the entry saved.
+          // Generic message only: never echo journal text/mood (PHI).
+          toast.error("Couldn't save offline — please try again.");
         }
       }
       return;
