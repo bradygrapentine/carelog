@@ -3,6 +3,35 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc/index";
 import { supabaseAdmin } from "../supabaseAdmin.server";
 import { createTaskPayload, updateTaskPayload } from "@carelog/schemas";
+import type { TaskNotificationType } from "@carelog/schemas";
+import { inngest } from "../../inngest/client";
+
+// ON-81: fire-and-forget task-notification event. A send failure must never
+// fail the mutation (the task write already committed) — mirror the
+// careEventComments emit. UUID-only payload (never task title/instructions).
+async function emitTaskEvent(
+  type: TaskNotificationType,
+  task: { id: string; org_id: string; recipient_id: string },
+  actorId: string,
+): Promise<void> {
+  await inngest
+    .send({
+      name:
+        type === "task_assigned"
+          ? "task/assigned"
+          : type === "task_completed"
+            ? "task/completed"
+            : "task/created",
+      data: {
+        type,
+        taskId: task.id,
+        orgId: task.org_id,
+        recipientId: task.recipient_id,
+        actorId,
+      },
+    })
+    .catch(() => {});
+}
 
 // ON-79: Task CRUD tRPC router.
 //
@@ -127,6 +156,7 @@ export const tasksRouter = router({
           message: "Task create failed",
         });
       }
+      await emitTaskEvent("task_created", data, ctx.user.id);
       return data;
     }),
 
@@ -151,6 +181,14 @@ export const tasksRouter = router({
         .eq("id", input.id)
         .select();
       assertWriteAllowed(error, data);
+      // The ON-79 router lets `update` assign + complete too — emit on the delta
+      // so those paths aren't silently un-notified (idempotent downstream).
+      if (input.assigned_to) {
+        await emitTaskEvent("task_assigned", data![0], ctx.user.id);
+      }
+      if (input.status === "done") {
+        await emitTaskEvent("task_completed", data![0], ctx.user.id);
+      }
       return data![0];
     }),
 
@@ -164,6 +202,7 @@ export const tasksRouter = router({
         .eq("id", input.id)
         .select();
       assertWriteAllowed(error, data);
+      await emitTaskEvent("task_completed", data![0], ctx.user.id);
       return data![0];
     }),
 
@@ -238,6 +277,9 @@ export const tasksRouter = router({
         .eq("id", input.id)
         .select();
       assertWriteAllowed(error, data);
+      if (input.assignee_user_id) {
+        await emitTaskEvent("task_assigned", data![0], ctx.user.id);
+      }
       return data![0];
     }),
 });

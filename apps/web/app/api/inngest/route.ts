@@ -10,6 +10,7 @@ import { journalFlagAlert } from "../../../inngest/functions/journalFlagAlert";
 import { documentsExtractText } from "../../../inngest/functions/documentsExtractText";
 import { messagingPushFn } from "../../../inngest/functions/messagingPush";
 import { careEventCommentFanoutFn } from "../../../inngest/functions/careEventCommentFanout";
+import { taskNotificationFanoutFn } from "../../../inngest/functions/taskNotificationFanout";
 import { shiftTradeExpiry } from "../../../inngest/functions/shiftTradeExpiry";
 import { educationTipRefresh } from "../../../inngest/functions/educationTipRefresh";
 import { rateLimit429Monitor } from "../../../inngest/functions/rateLimit429Monitor";
@@ -28,6 +29,7 @@ export const { GET, POST, PUT } = serve({
     documentsExtractText,
     messagingPushFn,
     careEventCommentFanoutFn,
+    taskNotificationFanoutFn,
     shiftTradeExpiry,
     educationTipRefresh,
     rateLimit429Monitor,

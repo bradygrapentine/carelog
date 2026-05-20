@@ -10,8 +10,14 @@ vi.mock("@/server/supabaseAdmin.server", () => ({
   supabaseAdmin: { from: vi.fn() },
   wrapAdminError: (e: unknown) => e,
 }));
+// ON-81: tasks now emit fire-and-forget notification events. Mock the client so
+// the mutations don't hit the real Inngest API.
+vi.mock("@/inngest/client", () => ({
+  inngest: { send: vi.fn().mockResolvedValue(undefined) },
+}));
 
 import { supabaseAdmin } from "@/server/supabaseAdmin.server";
+import { inngest } from "@/inngest/client";
 import { appRouter } from "@/server/trpc/router";
 import type { Context } from "@/server/trpc";
 
@@ -267,5 +273,86 @@ describe("tasks.list", () => {
     expect(res).toEqual([{ id: TASK_ID }]);
     expect(from).toHaveBeenCalledWith("tasks");
     expect(supabaseAdmin.from).not.toHaveBeenCalled();
+  });
+});
+
+describe("tasks — ON-81 notification emit (fire-and-forget)", () => {
+  const sendMock = inngest.send as ReturnType<typeof vi.fn>;
+
+  it("create emits task/created", async () => {
+    const row = {
+      id: TASK_ID,
+      org_id: ORG_ID,
+      recipient_id: RECIPIENT_ID,
+    };
+    const from = vi.fn((table: string) =>
+      table === "care_recipients"
+        ? makeChain({ data: { org_id: ORG_ID }, error: null }, {})
+        : makeChain({ data: row, error: null }, {}),
+    );
+    await caller(from).tasks.create({ recipient_id: RECIPIENT_ID, title: "x" });
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "task/created",
+        data: expect.objectContaining({
+          type: "task_created",
+          taskId: TASK_ID,
+        }),
+      }),
+    );
+  });
+
+  it("complete emits task/completed", async () => {
+    const from = vi.fn(() =>
+      makeChain(
+        {
+          data: [{ id: TASK_ID, org_id: ORG_ID, recipient_id: RECIPIENT_ID }],
+          error: null,
+        },
+        {},
+      ),
+    );
+    await caller(from).tasks.complete({ id: TASK_ID });
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "task/completed" }),
+    );
+  });
+
+  it("update emits task/assigned AND task/completed on the delta", async () => {
+    const from = vi.fn(() =>
+      makeChain(
+        {
+          data: [{ id: TASK_ID, org_id: ORG_ID, recipient_id: RECIPIENT_ID }],
+          error: null,
+        },
+        {},
+      ),
+    );
+    await caller(from).tasks.update({
+      id: TASK_ID,
+      assigned_to: ASSIGNEE_ID,
+      status: "done",
+    });
+    const names = sendMock.mock.calls.map(
+      (c) => (c[0] as { name: string }).name,
+    );
+    expect(names).toContain("task/assigned");
+    expect(names).toContain("task/completed");
+  });
+
+  it("a send rejection never fails the mutation (fire-and-forget)", async () => {
+    sendMock.mockRejectedValueOnce(new Error("inngest down"));
+    const from = vi.fn(() =>
+      makeChain(
+        {
+          data: [{ id: TASK_ID, org_id: ORG_ID, recipient_id: RECIPIENT_ID }],
+          error: null,
+        },
+        {},
+      ),
+    );
+    await expect(
+      caller(from).tasks.complete({ id: TASK_ID }),
+    ).resolves.toBeDefined();
   });
 });
