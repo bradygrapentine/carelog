@@ -1804,6 +1804,121 @@ export type Database = {
           },
         ]
       }
+      task_permissions: {
+        Row: {
+          completer_roles: Database["public"]["Enums"]["member_role"][]
+          creator_roles: Database["public"]["Enums"]["member_role"][]
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          completer_roles?: Database["public"]["Enums"]["member_role"][]
+          creator_roles?: Database["public"]["Enums"]["member_role"][]
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          completer_roles?: Database["public"]["Enums"]["member_role"][]
+          creator_roles?: Database["public"]["Enums"]["member_role"][]
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_permissions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          checklist: Json
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          due_at: string | null
+          id: string
+          instructions: string | null
+          org_id: string
+          recipient_id: string
+          requested_by: string
+          requested_on_behalf_of: string | null
+          shift_id: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          checklist?: Json
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          due_at?: string | null
+          id?: string
+          instructions?: string | null
+          org_id: string
+          recipient_id: string
+          requested_by: string
+          requested_on_behalf_of?: string | null
+          shift_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+        }
+        Update: {
+          assigned_to?: string | null
+          checklist?: Json
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          due_at?: string | null
+          id?: string
+          instructions?: string | null
+          org_id?: string
+          recipient_id?: string
+          requested_by?: string
+          requested_on_behalf_of?: string | null
+          shift_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_requested_on_behalf_of_fkey"
+            columns: ["requested_on_behalf_of"]
+            isOneToOne: false
+            referencedRelation: "care_recipients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           ai_assistant_enabled: boolean
@@ -2005,6 +2120,8 @@ export type Database = {
         Args: { p_recipient_id: string }
         Returns: boolean
       }
+      user_can_complete_task: { Args: { p_task_id: string }; Returns: boolean }
+      user_can_create_task: { Args: { p_org_id: string }; Returns: boolean }
       user_in_org: { Args: { p_org_id: string }; Returns: boolean }
       user_is_coordinator_for: {
         Args: { p_recipient_id: string }
@@ -2046,6 +2163,7 @@ export type Database = {
         | "in_progress"
         | "cancelled"
       shift_type: "standard" | "on_call"
+      task_status: "todo" | "in_progress" | "done" | "cancelled"
       visit_recording_status:
         | "pending"
         | "transcribing"
@@ -2225,6 +2343,7 @@ export const Constants = {
         "cancelled",
       ],
       shift_type: ["standard", "on_call"],
+      task_status: ["todo", "in_progress", "done", "cancelled"],
       visit_recording_status: [
         "pending",
         "transcribing",
