@@ -6,9 +6,9 @@ import {
   uniqueEmail,
 } from "./helpers";
 
-test.beforeEach(async () => {
-  await clearMailpit();
-});
+// No blanket clearMailpit beforeEach: the admin-OTP path (signIn) never touches
+// Mailpit, and the one real-OTP coverage test below clears its own inbox. A
+// per-test hook would re-introduce the Mailpit HTTP call this refactor removed.
 
 // TD-220: signIn() now mints OTPs via the GoTrue admin API (no email sent),
 // which removed the recurring Mailpit timeout flake from every auth-gated spec.

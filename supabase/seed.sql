@@ -12,9 +12,12 @@
 -- All identities are SYNTHETIC — no real PHI. Login for every seeded user is
 -- password `password123` (email/password is enabled locally).
 --
--- Idempotency: `supabase db reset` wipes first, so this is mostly belt-and-
--- suspenders, but every auth user is existence-checked and the content block is
--- guarded on "no care_events for this org yet" so a bare re-run won't duplicate.
+-- Idempotency: the SUPPORTED entry point is `supabase db reset`, which wipes
+-- first — so the guards below are mostly belt-and-suspenders. Auth users are
+-- existence-checked, profiles upsert on id, and the org is reused if it already
+-- exists; the bulk scenario content is guarded on "no care_events for this org
+-- yet". NOTE: identity_vault / care_recipients / memberships are plain INSERTs,
+-- so a bare re-run WITHOUT a reset would duplicate those few rows — run a reset.
 --
 -- Enum references (see migrations / lib/database.types.ts):
 --   org_type   : family | agency | institution | employer
