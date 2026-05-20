@@ -3,6 +3,7 @@ import { inngest } from "../client";
 import { supabaseAdmin } from "../../server/supabaseAdmin.server";
 import { sendPushToUser } from "../pushNotification";
 import { capRawOcrText } from "../../lib/ocrSanitize";
+import { resolveOcrStub } from "../../lib/ocr/devStub";
 
 // Validated at handler entry — defense-in-depth against forged events (R2-014)
 export const ocrDocumentCreatedEventSchema = z
@@ -91,28 +92,46 @@ export const ocrDocument = inngest.createFunction(
   async ({ event, step }) => {
     const { jobId } = ocrDocumentCreatedEventSchema.parse(event.data);
 
+    // Guard on status='pending' so an Inngest retry can't re-stamp a row that
+    // already advanced (needs_review/confirmed) back to processing.
     await step.run("mark-processing", async () => {
       await supabaseAdmin
         .from("ocr_jobs")
         .update({ status: "processing" })
-        .eq("id", jobId);
+        .eq("id", jobId)
+        .eq("status", "pending");
     });
 
+    // Throw on missing row / DB error rather than continuing with null.
     const job = await step.run("fetch-job", async () => {
-      const { data } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from("ocr_jobs")
         .select("image_url, created_by")
         .eq("id", jobId)
         .single();
+      if (error || !data) {
+        throw new Error(`ocr_job_not_found: ${jobId}`);
+      }
       return data;
     });
 
+    // Real provider call not yet wired (TD-203); stub only outside production,
+    // null in production so a real upload never gets fabricated fields.
     const rawText = await step.run("call-ocr-api", async () => {
-      if (!process.env.OCR_API_KEY || !job) {
-        return "Patient: Jane Doe\nTest: Glucose\nResult: 95 mg/dL\nReference: 70-100 mg/dL\nDate: 04/10/2026";
-      }
-      return "Patient: Jane Doe\nTest: Glucose\nResult: 95 mg/dL\nReference: 70-100 mg/dL\nDate: 04/10/2026";
+      return resolveOcrStub(
+        "Patient: Jane Doe\nTest: Glucose\nResult: 95 mg/dL\nReference: 70-100 mg/dL\nDate: 04/10/2026",
+      );
     });
+
+    if (rawText === null) {
+      await step.run("mark-failed-no-ocr", async () => {
+        await supabaseAdmin
+          .from("ocr_jobs")
+          .update({ status: "failed" })
+          .eq("id", jobId);
+      });
+      return;
+    }
 
     await step.run("update-needs-review", async () => {
       const capped = capRawOcrText(rawText as string);
