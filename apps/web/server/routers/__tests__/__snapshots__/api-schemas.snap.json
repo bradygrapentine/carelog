@@ -1749,6 +1749,43 @@
     },
     "output": null
   },
+  "notifications.listInApp": {
+    "type": "query",
+    "input": {
+      "anyOf": [
+        {
+          "not": {}
+        },
+        {
+          "type": "object",
+          "properties": {
+            "unreadOnly": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "output": null
+  },
+  "notifications.markRead": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
   "notifications.registerToken": {
     "type": "mutation",
     "input": {
@@ -1772,6 +1809,35 @@
       ],
       "additionalProperties": false
     },
+    "output": null
+  },
+  "notifications.setTaskPrefs": {
+    "type": "mutation",
+    "input": {
+      "type": "object",
+      "properties": {
+        "task_assigned": {
+          "type": "boolean"
+        },
+        "task_completed": {
+          "type": "boolean"
+        },
+        "task_created": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "task_assigned",
+        "task_completed",
+        "task_created"
+      ],
+      "additionalProperties": false
+    },
+    "output": null
+  },
+  "notifications.taskPrefs": {
+    "type": "query",
+    "input": null,
     "output": null
   },
   "organizations.create": {

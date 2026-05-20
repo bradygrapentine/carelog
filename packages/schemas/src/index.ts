@@ -15,3 +15,4 @@ export * from "./eolPlan";
 export * from "./messages";
 export * from "./careEventComments";
 export * from "./tasks";
+export * from "./notifications";
