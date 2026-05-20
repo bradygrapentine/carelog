@@ -41,10 +41,12 @@ type MedicationPayload = {
 };
 
 /**
- * Journal entries carry free-text + an optional mood tag.
- * `note`/`notes` observed in VisitSummary.tsx:387-390.
- * `text` observed in handoffSummary.ts:146 and pdf/route.tsx:235.
- * `mood` observed in handoffSummary.ts:150 and JournalTimeline.tsx:148-163.
+ * Journal entries carry free-text + an optional mood tag. Three legacy body
+ * slots (`text` / `note` / `notes`) exist across already-persisted payloads;
+ * keep all three readable for back-compat — there is no data migration that
+ * collapses them. The single sanctioned reader is `pickJournalBody`
+ * (`lib/pickJournalBody.ts`), which encodes the canonical precedence
+ * `text > note > notes`. Do NOT hand-roll a body pick at a call site.
  */
 type JournalPayload = {
   text?: string;

@@ -7,6 +7,7 @@ import {
   type DoseEvent,
 } from "@/lib/medAdherence";
 import { formatShortDate } from "@/lib/format";
+import { pickJournalBody } from "@/lib/pickJournalBody";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,15 +52,6 @@ export type VisitSummaryProps = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Safely extract a string value from an unknown payload field. */
-function stringField(
-  payload: Record<string, unknown>,
-  key: string,
-): string | null {
-  const v = payload[key];
-  return typeof v === "string" ? v : null;
-}
 
 function calculateAge(dob: string | null): string | null {
   if (!dob) return null;
@@ -392,9 +384,7 @@ export function VisitSummary({
         ) : (
           <ul className="space-y-3 text-sm">
             {journalHighlights.map((e) => {
-              const note =
-                stringField(e.payload, "note") ??
-                stringField(e.payload, "notes");
+              const note = pickJournalBody(e.payload);
               const excerpt = note
                 ? note.slice(0, 180) + (note.length > 180 ? "…" : "")
                 : "No details";
