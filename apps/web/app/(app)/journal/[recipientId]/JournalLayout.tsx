@@ -17,6 +17,7 @@ import type { Mood } from "@/lib/mood";
 import { TeamPanel } from "./TeamPanel";
 import { ShiftForm } from "./ShiftForm";
 import { ShiftsPanel } from "./ShiftsPanel";
+import { TasksPanel } from "./TasksPanel";
 import { MedicationPanel } from "./MedicationPanel";
 import { MedicationChecklist } from "./MedicationChecklist";
 import { OcrReviewPanel } from "./OcrReviewPanel";
@@ -323,6 +324,15 @@ export function JournalLayout({
                 currentUserRole={currentUserRole}
               />
             </>
+          )}
+
+          {activeDestination === "tasks" && (
+            <TasksPanel
+              orgId={org?.id ?? ""}
+              recipientId={recipientId}
+              members={members}
+              currentUserRole={currentUserRole}
+            />
           )}
 
           {activeDestination === "documents" && (
