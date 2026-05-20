@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { formatClockTime } from "@/lib/format";
@@ -19,9 +19,15 @@ type MedCardProps = {
   recipientId?: string;
   /** UUID of the org. Required for real data; omit to skip queries (stub/placeholder mode). */
   orgId?: string;
+  /** Override "now" — only used by tests for deterministic missed-dose / hour math. */
+  now?: Date;
 };
 
-export function MedCard({ recipientId, orgId }: MedCardProps) {
+export function MedCard({
+  recipientId,
+  orgId,
+  now: nowOverride,
+}: MedCardProps) {
   const enabled = !!recipientId && !!orgId;
 
   const {
@@ -48,6 +54,12 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   );
 
   const utils = trpc.useUtils();
+
+  // TD-211: anchor "now" once at mount. Calling `new Date()` inside useMemo /
+  // render bodies is a React 19 purity violation (hard lint error) and re-reads
+  // the clock on every render. The lazy useState initializer freezes it for the
+  // card's lifetime; the helpers + memos below close over this stable value.
+  const [now] = useState(() => nowOverride ?? new Date());
 
   const logMutation = trpc.medications.logAdministration.useMutation({
     onSuccess: () => {
@@ -105,7 +117,6 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   function isPastScheduledTime(hms: string): boolean {
     const [h, m] = hms.split(":").map((n) => parseInt(n, 10));
     if (Number.isNaN(h) || Number.isNaN(m)) return false;
-    const now = new Date();
     const minutesNow = now.getHours() * 60 + now.getMinutes();
     return h * 60 + m < minutesNow;
   }
@@ -126,12 +137,12 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
           medId: r.medId,
           rawScheduledTime: r.scheduledTime,
         })),
-    [rows],
+    [rows, now],
   );
 
   const stripDoses = useMemo(() => {
     if (!weekData) return [];
-    const today = new Date();
+    const today = now;
     const todayDow = today.getUTCDay();
     const todayStartMs = Date.UTC(
       today.getUTCFullYear(),
@@ -163,7 +174,7 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
         };
       });
     return buildStripDoses(enriched, todayEvents, today);
-  }, [weekData, scheduled]);
+  }, [weekData, scheduled, now]);
 
   const adherenceDays = useMemo(() => {
     if (!weekData) return [];
@@ -171,9 +182,8 @@ export function MedCard({ recipientId, orgId }: MedCardProps) {
   }, [weekData]);
 
   const nowHour = useMemo(() => {
-    const d = new Date();
-    return d.getHours() + d.getMinutes() / 60;
-  }, []);
+    return now.getHours() + now.getMinutes() / 60;
+  }, [now]);
 
   function handleLog(medId: string, scheduledTime: string) {
     if (!orgId || !recipientId) return;
