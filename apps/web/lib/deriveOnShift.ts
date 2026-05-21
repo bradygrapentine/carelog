@@ -21,6 +21,10 @@ type MemberLike = {
 };
 
 type LatestMoodInput = {
+  // TD-213: this is a derived 3-bucket *shift-status* label, NOT the canonical
+  // care-event Mood union in lib/mood.ts (good|okay|difficult|crisis). "steady"
+  // is intentional shift-summary vocabulary (a coarser rollup) — do not unify
+  // with Mood; they are different domains.
   label: "good" | "steady" | "difficult";
   occurredAt: string; // ISO
   by: string;
@@ -49,7 +53,10 @@ type OnShiftSidebarData = {
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-function buildInitials(displayName: string | null, email: string | null): string {
+function buildInitials(
+  displayName: string | null,
+  email: string | null,
+): string {
   if (displayName) {
     const words = displayName.trim().split(/\s+/);
     return words
@@ -113,11 +120,12 @@ export function deriveOnShift(input: {
   }
 
   // Find onNow: shift where starts_at <= now <= ends_at
-  const onNowShift = shifts.find((s) => {
-    const start = Date.parse(s.starts_at);
-    const end = Date.parse(s.ends_at);
-    return start <= nowMs && nowMs <= end;
-  }) ?? null;
+  const onNowShift =
+    shifts.find((s) => {
+      const start = Date.parse(s.starts_at);
+      const end = Date.parse(s.ends_at);
+      return start <= nowMs && nowMs <= end;
+    }) ?? null;
 
   // Find upNext: shift with smallest starts_at where starts_at > now
   const futureShifts = shifts

@@ -58,6 +58,10 @@ CREATE POLICY "shift_questions updatable by team member"
   USING (user_is_org_member(org_id))
   WITH CHECK (user_is_org_member(org_id));
 
+-- TD-213: this trigger freezes the 5 provenance columns (org_id, recipient_id,
+-- raised_by, raised_at, body) so an UPDATE can mutate ONLY the two resolve-state
+-- columns: `resolved_at` and `resolved_by`. Keeping the immutable set explicit
+-- here documents the write contract a reader would otherwise have to infer.
 CREATE FUNCTION shift_questions_immutable_cols()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN

@@ -17,9 +17,18 @@
 --
 -- RLS: existing `shifts` policies apply unchanged. Writes to
 -- `handoff_entries` are gated by the existing "shifts updatable by
--- coordinator" policy. A separate caregiver-write path is added in
+-- coordinator" policy.
+--
+-- TD-213: WHY the caregiver-write path bypasses RLS. The off-going
+-- caregiver is NOT necessarily the coordinator, so the coordinator-only
+-- UPDATE policy above would reject their handoff write. Rather than
+-- widen the RLS policy (which would also unlock every other shift
+-- column to any caregiver), the narrower caregiver-write path lives in
 -- the application layer (UX-101b tRPC `shifts.upsertHandoff`) using
--- supabaseAdmin with an explicit ownership check.
+-- supabaseAdmin (service-role, RLS-bypassing) with an explicit
+-- own-shift ownership check. Authz moves to the app layer precisely
+-- because it can scope to "this caregiver, this shift, this column"
+-- in a way the table-level RLS grant cannot express.
 
 ALTER TABLE shifts
   ADD COLUMN handoff_entries jsonb NOT NULL DEFAULT '[]'::jsonb;

@@ -15,7 +15,10 @@ import type { JournalEvent } from "../types/journal";
 
 // ─── Internal helpers ──────────────────────────────────────────────────────
 
-function isJournalEvent(e: unknown): e is JournalEvent {
+// TD-213: validates the generic care-event shape (id/event_type/occurred_at),
+// NOT journal-specificity. Named distinctly from the exported `isJournalEvent`
+// in lib/careEvent.ts (which IS journal-specific) to kill the prior collision.
+function isCareEventLike(e: unknown): e is JournalEvent {
   if (!e || typeof e !== "object") return false;
   const obj = e as Record<string, unknown>;
   return (
@@ -27,7 +30,7 @@ function isJournalEvent(e: unknown): e is JournalEvent {
 
 function safeEvents(events: unknown): JournalEvent[] {
   if (!Array.isArray(events)) return [];
-  return events.filter(isJournalEvent);
+  return events.filter(isCareEventLike);
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────

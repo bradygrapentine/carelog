@@ -111,6 +111,16 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+// TD-213: module-level invariants (hoisted out of the component body so they are
+// stable references — no longer pseudo-deps of the memos that use them).
+const ADHERENCE_WINDOW_DAYS = 28;
+const MOOD_SCORE: Record<string, number> = {
+  good: 4,
+  okay: 3,
+  difficult: 2,
+  crisis: 1,
+};
+
 export function VisitSummary({
   recipient,
   medications,
@@ -120,8 +130,6 @@ export function VisitSummary({
   questions = "",
   generatedAt,
 }: VisitSummaryProps) {
-  const WINDOW = 28;
-
   // § Medications with adherence
   const medsWithAdherence = useMemo(
     () =>
@@ -129,7 +137,7 @@ export function VisitSummary({
         .filter((m) => m.active)
         .map((m) => ({
           med: m,
-          adherence: computeAdherence(m, doseEvents, WINDOW),
+          adherence: computeAdherence(m, doseEvents, ADHERENCE_WINDOW_DAYS),
         })),
     [medications, doseEvents],
   );
@@ -143,18 +151,11 @@ export function VisitSummary({
     [symptomReadings],
   );
 
-  const moodMap: Record<string, number> = {
-    good: 4,
-    okay: 3,
-    difficult: 2,
-    crisis: 1,
-  };
   const moodValues = useMemo(
     () =>
       symptomReadings
-        .map((r) => (r.mood ? (moodMap[r.mood] ?? null) : null))
+        .map((r) => (r.mood ? (MOOD_SCORE[r.mood] ?? null) : null))
         .filter((v): v is number => v !== null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [symptomReadings],
   );
 
