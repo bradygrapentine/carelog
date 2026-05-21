@@ -269,10 +269,14 @@ describe("PHI sentinel (TD-187) — weeklyDigest source file invariants", async 
   // are the load-bearing invariants (a missing kind filter would delete other
   // crons' rows; a missing sent_at-null guard would delete delivered digests).
   it("has a kind-scoped weekly_digest pending-row sweep", () => {
-    // Isolate the sweep step body via a fixed window from the step label.
-    const sweepIdx = source.indexOf("sweep-pending-weekly-dispatch");
-    expect(sweepIdx).toBeGreaterThan(-1);
-    const sweep = source.slice(sweepIdx, sweepIdx + 700);
+    // Isolate the FULL sweep step.run body (label → its 6-space-indented closing
+    // `});`), not a fixed-width window. A fixed slice silently drops assertions
+    // if the body grows (e.g. adding a try/catch), letting a real regression pass.
+    const sweepMatch = source.match(
+      /step\.run\("sweep-pending-weekly-dispatch",[\s\S]*?\n {6}\}\);/,
+    );
+    expect(sweepMatch).not.toBeNull();
+    const sweep = sweepMatch![0];
     // delete, scoped to weekly_digest, only stale-pending rows.
     expect(sweep).toContain(".delete()");
     expect(sweep).toContain('.eq("kind", "weekly_digest")');

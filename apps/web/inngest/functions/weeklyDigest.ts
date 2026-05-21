@@ -189,19 +189,30 @@ export const weeklyDigest = inngest.createFunction(
       // it never touches refill/task rows (mirrors refillAlert / taskNotificationFanout).
       // Runs before find-active-orgs so a zero-activity week still sweeps.
       await step.run("sweep-pending-weekly-dispatch", async () => {
-        const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-        const { error } = await supabaseAdmin
-          .from("email_dispatch_log")
-          .delete()
-          .eq("kind", "weekly_digest")
-          .is("sent_at", null)
-          .lt("created_at", cutoff);
-        if (error) {
-          // Defense-in-depth: a sweep failure must not block the digest run.
-          // PHI-clean Sentry capture: only generic component/path tags.
-          Sentry.captureException(error, {
-            tags: { component: "inngest.weeklyDigest", path: "sweep.error" },
+        // Defense-in-depth: a sweep failure must NOT block the digest run.
+        // The catch must eat ALL errors, not just the Supabase `{ error }`
+        // envelope — a network-level throw (fetch failure, client init) would
+        // otherwise escape this step.run, be re-caught by the outer try/catch
+        // below, and abort the whole digest, breaking the no-block contract.
+        try {
+          const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+          const { error } = await supabaseAdmin
+            .from("email_dispatch_log")
+            .delete()
+            .eq("kind", "weekly_digest")
+            .is("sent_at", null)
+            .lt("created_at", cutoff);
+          if (error) {
+            // PHI-clean Sentry capture: only generic component/path tags.
+            Sentry.captureException(error, {
+              tags: { component: "inngest.weeklyDigest", path: "sweep.error" },
+            });
+          }
+        } catch (e) {
+          Sentry.captureException(e, {
+            tags: { component: "inngest.weeklyDigest", path: "sweep.throw" },
           });
+          // Intentionally swallowed — sweep is best-effort recovery, never load-bearing.
         }
       });
 

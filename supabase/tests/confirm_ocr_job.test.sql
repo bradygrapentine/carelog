@@ -281,10 +281,14 @@ SELECT is(
 -- achievable guard is structural: assert the compiled function body still
 -- contains the load-bearing `FOR UPDATE` clause (TD-174). If anyone removes it,
 -- this test fails. Do NOT "upgrade" this into a flaky concurrency test.
+-- Match `FOR UPDATE;` (clause + statement terminator), NOT a bare `FOR UPDATE`:
+-- pg_get_functiondef() includes inline comments, and the migration body has a
+-- `-- FOR UPDATE is load-bearing` comment that a `%FOR UPDATE%` match would
+-- satisfy even if the actual clause were deleted.
 SELECT ok(
   pg_get_functiondef(
     'confirm_ocr_job(uuid, uuid, uuid, text, text, text, bytea, text[])'::regprocedure
-  ) LIKE '%FOR UPDATE%',
+  ) LIKE '%FOR UPDATE;%',
   'confirm_ocr_job body retains the load-bearing FOR UPDATE row lock (TD-174/TD-214)'
 );
 
