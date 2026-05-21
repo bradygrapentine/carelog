@@ -181,6 +181,30 @@ export const weeklyDigest = inngest.createFunction(
         Date.now() - 7 * 24 * 60 * 60 * 1000,
       ).toISOString();
 
+      // Step 0 (TD-209): sweep stale pending weekly-digest dispatch rows. A crash
+      // between the INSERT (dedup guard) and the sent_at UPDATE leaves a row
+      // pending forever; every later retry then hits the 23505 unique violation
+      // and skips, permanently SUPPRESSING the digest for that org+week. Clear
+      // rows older than 15 min so a genuine failure can recover. Kind-scoped so
+      // it never touches refill/task rows (mirrors refillAlert / taskNotificationFanout).
+      // Runs before find-active-orgs so a zero-activity week still sweeps.
+      await step.run("sweep-pending-weekly-dispatch", async () => {
+        const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+        const { error } = await supabaseAdmin
+          .from("email_dispatch_log")
+          .delete()
+          .eq("kind", "weekly_digest")
+          .is("sent_at", null)
+          .lt("created_at", cutoff);
+        if (error) {
+          // Defense-in-depth: a sweep failure must not block the digest run.
+          // PHI-clean Sentry capture: only generic component/path tags.
+          Sentry.captureException(error, {
+            tags: { component: "inngest.weeklyDigest", path: "sweep.error" },
+          });
+        }
+      });
+
       // Step 1: find orgs with journal activity this week
       const activeOrgs = await step.run("find-active-orgs", async () => {
         const { data, error } = await supabaseAdmin

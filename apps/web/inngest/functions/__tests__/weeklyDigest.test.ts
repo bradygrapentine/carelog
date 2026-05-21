@@ -264,4 +264,39 @@ describe("PHI sentinel (TD-187) — weeklyDigest source file invariants", async 
     expect(payload).not.toContain("email");
     expect(payload).not.toContain("recipient_id");
   });
+
+  // TD-209: the pending-row sweep must exist and be correctly scoped — these
+  // are the load-bearing invariants (a missing kind filter would delete other
+  // crons' rows; a missing sent_at-null guard would delete delivered digests).
+  it("has a kind-scoped weekly_digest pending-row sweep", () => {
+    // Isolate the sweep step body via a fixed window from the step label.
+    const sweepIdx = source.indexOf("sweep-pending-weekly-dispatch");
+    expect(sweepIdx).toBeGreaterThan(-1);
+    const sweep = source.slice(sweepIdx, sweepIdx + 700);
+    // delete, scoped to weekly_digest, only stale-pending rows.
+    expect(sweep).toContain(".delete()");
+    expect(sweep).toContain('.eq("kind", "weekly_digest")');
+    expect(sweep).toContain('.is("sent_at", null)');
+    expect(sweep).toMatch(/\.lt\("created_at"/);
+    // Must NOT broaden to other kinds.
+    expect(sweep).not.toContain('"refill"');
+    expect(sweep).not.toContain('"task"');
+  });
+
+  it("sweep step appears before the per-org send fan-out (single run-level step)", () => {
+    // Match the quoted step.run() labels, not bare substrings — the sweep's own
+    // comment mentions "find-active-orgs", which would otherwise collide.
+    const sweepIdx = source.indexOf('"sweep-pending-weekly-dispatch"');
+    const fanoutIdx = source.indexOf('"send-digest-"');
+    const findOrgsIdx = source.indexOf('"find-active-orgs"');
+    expect(sweepIdx).toBeGreaterThan(-1);
+    expect(findOrgsIdx).toBeGreaterThan(-1);
+    expect(fanoutIdx).toBeGreaterThan(-1);
+    // Before both find-active-orgs (so a zero-activity week still sweeps) and
+    // the send fan-out (so it's one run-level step, not N per-org).
+    expect(sweepIdx).toBeLessThan(findOrgsIdx);
+    expect(sweepIdx).toBeLessThan(fanoutIdx);
+    // Exactly one occurrence of the step label.
+    expect(source.split('"sweep-pending-weekly-dispatch"').length - 1).toBe(1);
+  });
 });
