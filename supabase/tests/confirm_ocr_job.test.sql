@@ -18,7 +18,7 @@
 --   9. empty confirmed_field_keys array → field_count=0 (not NULL), no constraint violation
 
 BEGIN;
-SELECT plan(18);
+SELECT plan(19);
 
 -- ============================================================
 -- Fixtures
@@ -272,6 +272,20 @@ SELECT is(
      AND backfilled = false),
   0,
   'empty field_keys array produced field_count=0 (COALESCE worked)'
+);
+
+-- TD-214: FOR UPDATE lock-presence regression guard.
+-- A genuine two-backend concurrent-waiter race is NOT testable in pgTAP's
+-- single connection (it would need pg_blocking_pids / advisory-lock
+-- orchestration across two backends — see the Case 5 NOTE above). The
+-- achievable guard is structural: assert the compiled function body still
+-- contains the load-bearing `FOR UPDATE` clause (TD-174). If anyone removes it,
+-- this test fails. Do NOT "upgrade" this into a flaky concurrency test.
+SELECT ok(
+  pg_get_functiondef(
+    'confirm_ocr_job(uuid, uuid, uuid, text, text, text, bytea, text[])'::regprocedure
+  ) LIKE '%FOR UPDATE%',
+  'confirm_ocr_job body retains the load-bearing FOR UPDATE row lock (TD-174/TD-214)'
 );
 
 SELECT * FROM finish();
