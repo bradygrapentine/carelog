@@ -1,4 +1,13 @@
-/** Returns a deterministic minute offset (0–239) derived from the org ID's last 4 hex digits, used to stagger weekly digest sends across orgs. */
+/**
+ * Deterministic per-org jitter value (0–239) derived from the org ID's last 4
+ * hex digits, used to stagger weekly-digest sends so they don't all fire at the
+ * same cron instant.
+ *
+ * TD-213 note: despite the legacy name, the caller applies this as a **seconds**
+ * offset (`digestMinuteOffset(orgId) + "s"`), so the actual spread is ~0–4 min,
+ * not 0–239 min. Kept un-renamed to avoid churn on the caller; treat the return
+ * value as a seconds offset.
+ */
 export function digestMinuteOffset(orgId: string): number {
   return parseInt(orgId.slice(-4), 16) % 240;
 }
@@ -31,7 +40,15 @@ export function isoWeekStamp(date: Date): string {
   return d.getUTCFullYear() + "-W" + String(weekNum).padStart(2, "0");
 }
 
-/** Returns today's date as `YYYY-MM-DD`, used as an idempotency key for daily jobs. */
+/**
+ * Returns today's date as `YYYY-MM-DD`, used as an idempotency key for daily jobs.
+ *
+ * TD-213 contract note: this is a **UTC** day stamp (`toISOString()` is always
+ * UTC). A cron running in a non-UTC server timezone near midnight will get the
+ * UTC calendar day, which can differ from the server-local day — intentional for
+ * idempotency-key stability, but callers reasoning about "today" in local time
+ * must account for it.
+ */
 export function getDayStamp(): string {
   return new Date().toISOString().slice(0, 10);
 }
